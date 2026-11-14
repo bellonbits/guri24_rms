@@ -3,7 +3,6 @@ use std::{
     sync::{Arc, RwLock},
 };
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
@@ -14,19 +13,19 @@ use crate::{
     modules::organizations::{Organization, OrganizationRepository, RegisterOrganizationCommand},
 };
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct LoginCommand {
     pub email: String,
     pub password: String,
     pub organization_id: Option<Uuid>,
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct RefreshTokenCommand {
     pub refresh_token: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthSessionResponse {
     pub access_token: String,
     pub refresh_token: String,

@@ -5,7 +5,6 @@ use std::{
 use chrono::{DateTime, NaiveDate, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::core::{
@@ -15,7 +14,7 @@ use crate::core::{
     tenant_context::TenantContext,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tenant {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -32,7 +31,7 @@ pub struct Tenant {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TenantApplication {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -46,7 +45,7 @@ pub struct TenantApplication {
 }
 
 /// CQRS Command: Register Tenant (Phone-first onboarding for the Kenyan market)
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct RegisterTenantCommand {
     pub full_name: String,
     pub phone: String,
@@ -56,7 +55,7 @@ pub struct RegisterTenantCommand {
     pub emergency_contact_phone: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CreateApplicationCommand {
     pub property_id: Uuid,
     pub unit_id: Uuid,

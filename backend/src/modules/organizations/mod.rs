@@ -6,7 +6,6 @@ use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::core::{
@@ -15,7 +14,7 @@ use crate::core::{
     tenant_context::TenantContext,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Organization {
     pub id: Uuid,
     pub name: String,
@@ -31,7 +30,7 @@ pub struct Organization {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrganizationSettings {
     pub organization_id: Uuid,
     pub rent_calculation_strategy: String,
@@ -79,7 +78,7 @@ pub struct UserRecord {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrganizationMembership {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -90,7 +89,7 @@ pub struct OrganizationMembership {
 }
 
 /// CQRS Command: Register Organization and Owner User
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct RegisterOrganizationCommand {
     pub organization_name: String,
     pub organization_type: String,

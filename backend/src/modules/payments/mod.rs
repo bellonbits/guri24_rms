@@ -5,7 +5,6 @@ use std::{
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
@@ -21,7 +20,7 @@ use crate::{
     },
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum PaymentStatus {
     Pending,
@@ -30,7 +29,7 @@ pub enum PaymentStatus {
     Reversed,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PaymentAllocation {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -42,7 +41,7 @@ pub struct PaymentAllocation {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Receipt {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -148,7 +147,7 @@ impl ReceiptBuilder {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Payment {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -208,7 +207,7 @@ impl PaymentAllocationStrategy for FifoOldestFirstAllocationStrategy {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct InitiateMpesaPaymentCommand {
     pub tenant_id: Uuid,
     pub lease_id: Option<Uuid>,

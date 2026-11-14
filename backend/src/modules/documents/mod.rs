@@ -4,7 +4,6 @@ use std::{
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
@@ -15,7 +14,7 @@ use crate::{
     integrations::storage::{SignedDocumentUrl, StorageAdapter},
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DocumentRecord {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -30,7 +29,7 @@ pub struct DocumentRecord {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct RegisterDocumentCommand {
     pub category: String,
     pub entity_type: String,

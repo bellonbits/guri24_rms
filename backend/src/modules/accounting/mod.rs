@@ -5,7 +5,6 @@ use std::{
 use chrono::{DateTime, NaiveDate, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::core::{
@@ -13,7 +12,7 @@ use crate::core::{
     tenant_context::TenantContext,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum AccountType {
     Asset,
@@ -23,7 +22,7 @@ pub enum AccountType {
     Expense,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -33,7 +32,7 @@ pub struct Account {
     pub normal_balance: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JournalLine {
     pub id: Uuid,
     pub account_code: String,
@@ -46,7 +45,7 @@ pub struct JournalLine {
     pub memo: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JournalEntry {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -65,7 +64,7 @@ pub struct JournalEntry {
     pub posted_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PropertyExpense {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -82,7 +81,7 @@ pub struct PropertyExpense {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct RecordExpenseCommand {
     pub property_id: Uuid,
     pub unit_id: Option<Uuid>,

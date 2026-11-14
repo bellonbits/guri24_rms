@@ -5,7 +5,6 @@ use std::{
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
@@ -44,7 +43,7 @@ impl DepositCalculationStrategy for FixedDepositStrategy {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SecurityDepositLedger {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -61,14 +60,14 @@ pub struct SecurityDepositLedger {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct ReceiveDepositCommand {
     pub lease_id: Uuid,
     pub amount_kes: Decimal,
     pub payment_reference: String,
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct DeductOrRefundDepositCommand {
     pub lease_id: Uuid,
     pub amount_kes: Decimal,

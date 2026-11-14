@@ -5,7 +5,6 @@ use std::{
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::core::{
@@ -16,7 +15,7 @@ use crate::core::{
 
 /// Section 10: Maintenance Workflow Statuses
 /// Submitted -> Reviewed -> Approved -> Assigned -> InProgress -> Completed -> Verified -> Closed (or Rejected)
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum MaintenanceStatus {
     Submitted,
@@ -46,7 +45,7 @@ impl MaintenanceStatus {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkOrder {
     pub id: Uuid,
     pub work_order_number: String,
@@ -59,7 +58,7 @@ pub struct WorkOrder {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MaintenanceRequest {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -81,7 +80,7 @@ pub struct MaintenanceRequest {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct SubmitMaintenanceCommand {
     pub property_id: Uuid,
     pub building_id: Uuid,
@@ -94,7 +93,7 @@ pub struct SubmitMaintenanceCommand {
     pub estimated_cost_kes: Decimal,
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct TransitionMaintenanceCommand {
     pub next_status: MaintenanceStatus,
     pub assigned_vendor_name: Option<String>,

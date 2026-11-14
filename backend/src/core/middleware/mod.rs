@@ -4,7 +4,7 @@ use std::{
     time::{Duration, Instant},
 };
 use axum::{
-    extract::{FromRequestParts, State},
+    extract::FromRequestParts,
     http::{header, request::Parts, HeaderMap, Request},
     middleware::Next,
     response::Response,

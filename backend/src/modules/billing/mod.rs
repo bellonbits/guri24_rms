@@ -6,7 +6,6 @@ use chrono::{DateTime, NaiveDate, Utc};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
@@ -21,7 +20,7 @@ use crate::{
     },
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum InvoiceStatus {
     Draft,
@@ -32,7 +31,7 @@ pub enum InvoiceStatus {
     Cancelled,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InvoiceLineItem {
     pub item_code: String,
     pub description: String,
@@ -41,7 +40,7 @@ pub struct InvoiceLineItem {
     pub line_total_kes: Decimal,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Invoice {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -276,7 +275,7 @@ impl InvoiceBuilder {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct GenerateInvoiceCommand {
     pub lease_id: Uuid,
     pub billing_period: String, // e.g. "2026-11"

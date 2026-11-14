@@ -5,7 +5,6 @@ use std::{
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::core::{
@@ -13,7 +12,7 @@ use crate::core::{
     tenant_context::TenantContext,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum UnitStatus {
     Vacant,
@@ -23,7 +22,7 @@ pub enum UnitStatus {
     Unavailable,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Property {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -39,7 +38,7 @@ pub struct Property {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Building {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -50,7 +49,7 @@ pub struct Building {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Floor {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -61,7 +60,7 @@ pub struct Floor {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Unit {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -84,7 +83,7 @@ pub struct Unit {
 }
 
 // CQRS Commands
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CreatePropertyCommand {
     pub code: String,
     pub name: String,
@@ -98,7 +97,7 @@ pub struct CreatePropertyCommand {
     pub management_commission_pct: Decimal,
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CreateBuildingCommand {
     pub property_id: Uuid,
     pub code: String,
@@ -106,7 +105,7 @@ pub struct CreateBuildingCommand {
     pub total_floors: u16,
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CreateFloorCommand {
     pub property_id: Uuid,
     pub building_id: Uuid,
@@ -114,7 +113,7 @@ pub struct CreateFloorCommand {
     pub label: String,
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CreateUnitCommand {
     pub property_id: Uuid,
     pub building_id: Uuid,

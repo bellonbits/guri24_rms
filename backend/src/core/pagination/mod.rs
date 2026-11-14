@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
-use utoipa::{IntoParams, ToSchema};
 
-#[derive(Debug, Clone, Deserialize, IntoParams, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct PaginationParams {
     #[serde(default = "default_page")]
     pub page: usize,
@@ -30,7 +29,7 @@ impl Default for PaginationParams {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PaginatedResponse<T> {
     pub items: Vec<T>,
     pub page: usize,

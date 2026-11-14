@@ -5,7 +5,6 @@ use std::{
 use chrono::{DateTime, NaiveDate, Utc};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::{
@@ -20,7 +19,7 @@ use crate::{
     },
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum LeaseStatus {
     Draft,
@@ -31,14 +30,14 @@ pub enum LeaseStatus {
     Terminated,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RecurringLeaseCharge {
     pub charge_code: String,
     pub description: String,
     pub amount_kes: Decimal,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Lease {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -250,7 +249,7 @@ impl LeaseBuilder {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct CreateLeaseCommand {
     pub unit_id: Uuid,
     pub primary_tenant_id: Uuid,
@@ -265,14 +264,14 @@ pub struct CreateLeaseCommand {
     pub recurring_charges: Vec<RecurringLeaseCharge>,
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct RenewLeaseCommand {
     pub new_start_date: NaiveDate,
     pub new_end_date: NaiveDate,
     pub new_monthly_rent_kes: Decimal,
 }
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct TerminateLeaseCommand {
     pub reason: String,
 }
