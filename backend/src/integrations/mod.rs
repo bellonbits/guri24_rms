@@ -1,6 +1,7 @@
 pub mod ai;
 pub mod email;
 pub mod mpesa;
+pub mod ocr;
 pub mod sms;
 pub mod storage;
 
@@ -13,12 +14,13 @@ use crate::{
         ai::{AIAdapter, OperationalInsightsAiAdapter},
         email::{EmailAdapter, SmtpEmailAdapter},
         mpesa::{MpesaAdapter, SafaricomDarajaAdapter},
+        ocr::{ConfigurableOcrProviderAdapter, OcrProvider},
         sms::{AfricasTalkingSmsAdapter, SmsAdapter},
         storage::{PrivateS3StorageAdapter, StorageAdapter},
     },
 };
 
-/// Section 5.4: Factory Pattern
+/// Section 6: Factory Pattern
 /// Factories for interchangeable infrastructure adapters selected via configuration.
 pub struct PaymentProviderFactory;
 
@@ -30,6 +32,19 @@ impl PaymentProviderFactory {
             config.mpesa_shortcode.clone(),
             config.mpesa_callback_url.clone(),
             config.mpesa_callback_hmac_secret.clone(),
+            breaker,
+        ))
+    }
+}
+
+pub struct OcrProviderFactory;
+
+impl OcrProviderFactory {
+    pub fn create(config: &AppConfig) -> Arc<dyn OcrProvider> {
+        let breaker = CircuitBreaker::new("ocr_document_intelligence", 3, Duration::from_secs(30));
+        Arc::new(ConfigurableOcrProviderAdapter::new(
+            config.ocr_provider.clone(),
+            config.ocr_provider_api_key.clone(),
             breaker,
         ))
     }

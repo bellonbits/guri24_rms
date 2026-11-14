@@ -12,6 +12,7 @@ use tower_http::cors::{Any, CorsLayer};
 use uuid::Uuid;
 
 use crate::{
+    config::IntegrationStatusItem,
     core::{
         errors::{AppError, AppResult},
         middleware::security_headers_middleware,
@@ -22,6 +23,10 @@ use crate::{
     integrations::mpesa::VerifiedMpesaCallback,
     modules::{
         accounting::{JournalEntry, PropertyExpense, RecordExpenseCommand},
+        assistant::{
+            AssistantActionConfirmation, AssistantChatCommand, AssistantConversation,
+            AssistantMessage, ConfirmAssistantActionCommand,
+        },
         auth::{AuthSessionResponse, LoginCommand, RefreshTokenCommand},
         billing::{GenerateInvoiceCommand, Invoice},
         deposits::{DeductOrRefundDepositCommand, ReceiveDepositCommand, SecurityDepositLedger},
@@ -31,6 +36,11 @@ use crate::{
         },
         maintenance::{
             MaintenanceRequest, SubmitMaintenanceCommand, TransitionMaintenanceCommand,
+        },
+        ocr::{OcrJobRecord, ReviewOcrJobCommand, SubmitOcrJobCommand},
+        operations::{
+            CreateInspectionCommand, CreateVendorCommand, InspectionRecord, SubscriptionSummary,
+            Vendor,
         },
         organizations::{
             Organization, OrganizationSettings, RegisterOrganizationCommand,
@@ -55,6 +65,7 @@ pub struct HealthResponse {
     pub timezone: String,
     pub currency: String,
     pub mpesa_circuit_state: crate::core::circuit_breaker::CircuitState,
+    pub ocr_circuit_state: crate::core::circuit_breaker::CircuitState,
 }
 
 pub fn create_router(state: Arc<AppState>) -> Router {
@@ -69,12 +80,15 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/auth/login", post(login_handler))
         .route("/auth/refresh", post(refresh_token_handler))
         .route("/auth/logout", post(logout_handler))
+        // Provider & Integration Readiness Status
+        .route("/integrations/status", get(list_integrations_status_handler))
         // Organizations & Settings
         .route("/organizations/current", get(get_organization_handler))
         .route(
             "/organizations/settings",
             get(get_organization_settings_handler).patch(update_organization_settings_handler),
         )
+        .route("/subscriptions/current", get(get_subscription_handler))
         // Properties, Buildings, Floors, Units
         .route(
             "/properties",
@@ -129,7 +143,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             "/accounting/expenses",
             get(list_expenses_handler).post(record_expense_handler),
         )
-        // Maintenance & Work Orders
+        // Maintenance, Vendors & Inspections
         .route(
             "/maintenance",
             get(list_maintenance_handler).post(submit_maintenance_handler),
@@ -138,12 +152,38 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             "/maintenance/:id/transition",
             patch(transition_maintenance_handler),
         )
+        .route(
+            "/vendors",
+            get(list_vendors_handler).post(create_vendor_handler),
+        )
+        .route(
+            "/inspections",
+            get(list_inspections_handler).post(create_inspection_handler),
+        )
         // Documents (Private S3 Signed URLs)
         .route(
             "/documents",
             get(list_documents_handler).post(register_document_handler),
         )
         .route("/documents/:id/signed-url", get(get_signed_document_url_handler))
+        // OCR & Document Intelligence Pipeline
+        .route(
+            "/ocr/jobs",
+            get(list_ocr_jobs_handler).post(submit_ocr_job_handler),
+        )
+        .route("/ocr/jobs/:id", get(get_ocr_job_handler))
+        .route("/ocr/jobs/:id/review", post(review_ocr_job_handler))
+        .route("/ocr/jobs/:id/retry", post(retry_ocr_job_handler))
+        // AI Agent Assistant (Permission-Checked Tools & Action Confirmations)
+        .route(
+            "/assistant/conversations",
+            get(list_assistant_conversations_handler),
+        )
+        .route("/assistant/chat", post(assistant_chat_handler))
+        .route(
+            "/assistant/confirmations/:id",
+            post(confirm_assistant_action_handler),
+        )
         // Reports & Analytics
         .route("/reports/summary", get(get_portfolio_summary_handler))
         .route("/reports/export.csv", get(export_portfolio_csv_handler));
@@ -165,7 +205,14 @@ async fn health_check_handler(State(state): State<Arc<AppState>>) -> Json<Health
         timezone: state.config.default_timezone.clone(),
         currency: state.config.default_currency.clone(),
         mpesa_circuit_state: state.mpesa_adapter.circuit_breaker().state(),
+        ocr_circuit_state: state.ocr_adapter.circuit_breaker().state(),
     })
+}
+
+async fn list_integrations_status_handler(
+    State(state): State<Arc<AppState>>,
+) -> Json<Vec<IntegrationStatusItem>> {
+    Json(state.config.integrations_status())
 }
 
 async fn prometheus_metrics_handler(State(state): State<Arc<AppState>>) -> impl IntoResponse {
@@ -175,8 +222,18 @@ async fn prometheus_metrics_handler(State(state): State<Arc<AppState>>) -> impl 
          guri24_rms_up 1\n\
          # HELP guri24_rms_mpesa_circuit_open Whether M-Pesa circuit breaker is open\n\
          # TYPE guri24_rms_mpesa_circuit_open gauge\n\
-         guri24_rms_mpesa_circuit_open {}\n",
+         guri24_rms_mpesa_circuit_open {}\n\
+         # HELP guri24_rms_ocr_circuit_open Whether OCR circuit breaker is open\n\
+         # TYPE guri24_rms_ocr_circuit_open gauge\n\
+         guri24_rms_ocr_circuit_open {}\n",
         if state.mpesa_adapter.circuit_breaker().state()
+            == crate::core::circuit_breaker::CircuitState::Open
+        {
+            1
+        } else {
+            0
+        },
+        if state.ocr_adapter.circuit_breaker().state()
             == crate::core::circuit_breaker::CircuitState::Open
         {
             1
@@ -254,6 +311,14 @@ async fn update_organization_settings_handler(
         .organizations
         .update_settings(&ctx, settings)?;
     Ok(Json(updated))
+}
+
+async fn get_subscription_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+) -> AppResult<Json<SubscriptionSummary>> {
+    let sub = state.repositories.operations.get_subscription(&ctx)?;
+    Ok(Json(sub))
 }
 
 async fn create_property_handler(
@@ -604,6 +669,40 @@ async fn list_maintenance_handler(
     Ok(Json(items))
 }
 
+async fn create_vendor_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Json(cmd): Json<CreateVendorCommand>,
+) -> AppResult<(StatusCode, Json<Vendor>)> {
+    let v = state.repositories.operations.create_vendor(&ctx, cmd)?;
+    Ok((StatusCode::CREATED, Json(v)))
+}
+
+async fn list_vendors_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+) -> AppResult<Json<Vec<Vendor>>> {
+    let items = state.repositories.operations.list_vendors(&ctx)?;
+    Ok(Json(items))
+}
+
+async fn create_inspection_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Json(cmd): Json<CreateInspectionCommand>,
+) -> AppResult<(StatusCode, Json<InspectionRecord>)> {
+    let rec = state.repositories.operations.create_inspection(&ctx, cmd)?;
+    Ok((StatusCode::CREATED, Json(rec)))
+}
+
+async fn list_inspections_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+) -> AppResult<Json<Vec<InspectionRecord>>> {
+    let items = state.repositories.operations.list_inspections(&ctx)?;
+    Ok(Json(items))
+}
+
 async fn register_document_handler(
     State(state): State<Arc<AppState>>,
     ctx: TenantContext,
@@ -631,6 +730,78 @@ async fn get_signed_document_url_handler(
         .documents
         .generate_signed_url(&ctx, id)?;
     Ok(Json(signed))
+}
+
+async fn submit_ocr_job_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Json(cmd): Json<SubmitOcrJobCommand>,
+) -> AppResult<(StatusCode, Json<OcrJobRecord>)> {
+    let job = state.repositories.ocr.submit_and_process_job(&ctx, cmd)?;
+    Ok((StatusCode::CREATED, Json(job)))
+}
+
+async fn list_ocr_jobs_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+) -> AppResult<Json<Vec<OcrJobRecord>>> {
+    let jobs = state.repositories.ocr.list_jobs(&ctx)?;
+    Ok(Json(jobs))
+}
+
+async fn get_ocr_job_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<OcrJobRecord>> {
+    let job = state.repositories.ocr.get_job(&ctx, id)?;
+    Ok(Json(job))
+}
+
+async fn review_ocr_job_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Path(id): Path<Uuid>,
+    Json(cmd): Json<ReviewOcrJobCommand>,
+) -> AppResult<Json<OcrJobRecord>> {
+    let job = state.repositories.ocr.review_job(&ctx, id, cmd)?;
+    Ok(Json(job))
+}
+
+async fn retry_ocr_job_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<OcrJobRecord>> {
+    let job = state.repositories.ocr.retry_job(&ctx, id)?;
+    Ok(Json(job))
+}
+
+async fn list_assistant_conversations_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+) -> AppResult<Json<Vec<AssistantConversation>>> {
+    let items = state.assistant_service.list_conversations(&ctx)?;
+    Ok(Json(items))
+}
+
+async fn assistant_chat_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Json(cmd): Json<AssistantChatCommand>,
+) -> AppResult<Json<AssistantMessage>> {
+    let msg = state.assistant_service.chat(&ctx, cmd)?;
+    Ok(Json(msg))
+}
+
+async fn confirm_assistant_action_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Path(id): Path<Uuid>,
+    Json(cmd): Json<ConfirmAssistantActionCommand>,
+) -> AppResult<Json<AssistantActionConfirmation>> {
+    let res = state.assistant_service.confirm_action(&ctx, id, cmd)?;
+    Ok(Json(res))
 }
 
 async fn get_portfolio_summary_handler(

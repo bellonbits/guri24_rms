@@ -8,18 +8,21 @@ use crate::{
         security::TokenService,
     },
     integrations::{
-        ai::AIAdapter, email::EmailAdapter, mpesa::MpesaAdapter, sms::SmsAdapter,
-        storage::StorageAdapter, AIProviderFactory, NotificationProviderFactory,
-        PaymentProviderFactory, StorageProviderFactory,
+        ai::AIAdapter, email::EmailAdapter, mpesa::MpesaAdapter, ocr::OcrProvider,
+        sms::SmsAdapter, storage::StorageAdapter, AIProviderFactory, NotificationProviderFactory,
+        OcrProviderFactory, PaymentProviderFactory, StorageProviderFactory,
     },
     modules::{
         accounting::{AccountingRepository, InMemoryAccountingRepository},
+        assistant::{AssistantServiceTrait, GroundedAssistantService},
         auth::AuthService,
         billing::{InMemoryInvoiceRepository, InvoiceRepository},
         deposits::{DepositRepository, InMemoryDepositRepository},
         documents::{DocumentRepository, InMemoryDocumentRepository},
         leases::{InMemoryLeaseRepository, LeaseRepository},
         maintenance::{InMemoryMaintenanceRepository, MaintenanceRepository},
+        ocr::{InMemoryOcrRepository, OcrRepository},
+        operations::{InMemoryOperationsRepository, OperationsRepository},
         organizations::{InMemoryOrganizationRepository, OrganizationRepository},
         payments::{InMemoryPaymentRepository, PaymentRepository},
         properties::{InMemoryPropertyUnitStore, PropertyRepository, UnitRepository},
@@ -39,19 +42,23 @@ pub struct RepositoryRegistry {
     pub accounting: Arc<dyn AccountingRepository>,
     pub maintenance: Arc<dyn MaintenanceRepository>,
     pub documents: Arc<dyn DocumentRepository>,
+    pub ocr: Arc<dyn OcrRepository>,
+    pub operations: Arc<dyn OperationsRepository>,
 }
 
-/// Section 5.5: Singleton Pattern
+/// Section 6: Singleton Pattern
 /// Shared application-wide resources managed safely via `Arc<AppState>` without unsafe global mutability.
 pub struct AppState {
     pub config: AppConfig,
     pub token_service: Arc<TokenService>,
     pub auth_service: Arc<AuthService>,
+    pub assistant_service: Arc<dyn AssistantServiceTrait>,
     pub event_bus: EventBus,
     pub audit_observer: Arc<AuditLogObserver>,
     pub notification_observer: Arc<NotificationObserver>,
     pub rate_limiter: RateLimiterDecorator,
     pub mpesa_adapter: Arc<dyn MpesaAdapter>,
+    pub ocr_adapter: Arc<dyn OcrProvider>,
     pub sms_adapter: Arc<dyn SmsAdapter>,
     pub email_adapter: Arc<dyn EmailAdapter>,
     pub storage_adapter: Arc<dyn StorageAdapter>,
@@ -76,6 +83,7 @@ impl AppState {
         ));
 
         let mpesa_adapter = PaymentProviderFactory::create(&config);
+        let ocr_adapter = OcrProviderFactory::create(&config);
         let sms_adapter = NotificationProviderFactory::create_sms(&config);
         let email_adapter = NotificationProviderFactory::create_email(&config);
         let storage_adapter = StorageProviderFactory::create(&config);
@@ -114,6 +122,25 @@ impl AppState {
             Arc::new(InMemoryMaintenanceRepository::new(event_bus.clone()));
         let document_repo: Arc<dyn DocumentRepository> =
             Arc::new(InMemoryDocumentRepository::new(storage_adapter.clone()));
+        let ocr_repo: Arc<dyn OcrRepository> =
+            Arc::new(InMemoryOcrRepository::new(ocr_adapter.clone()));
+        let operations_repo: Arc<dyn OperationsRepository> =
+            Arc::new(InMemoryOperationsRepository::new());
+
+        let assistant_service: Arc<dyn AssistantServiceTrait> =
+            Arc::new(GroundedAssistantService::new(
+                prop_repo.clone(),
+                unit_repo.clone(),
+                tenant_repo.clone(),
+                lease_repo.clone(),
+                invoice_repo.clone(),
+                payment_repo.clone(),
+                deposit_repo.clone(),
+                accounting_repo.clone(),
+                maintenance_repo.clone(),
+                document_repo.clone(),
+                ocr_repo.clone(),
+            ));
 
         let auth_service = Arc::new(AuthService::new(org_repo.clone(), token_service.clone()));
 
@@ -121,11 +148,13 @@ impl AppState {
             config,
             token_service,
             auth_service,
+            assistant_service,
             event_bus,
             audit_observer,
             notification_observer,
             rate_limiter: RateLimiterDecorator::new(300, Duration::from_secs(60)),
             mpesa_adapter,
+            ocr_adapter,
             sms_adapter,
             email_adapter,
             storage_adapter,
@@ -142,6 +171,8 @@ impl AppState {
                 accounting: accounting_repo,
                 maintenance: maintenance_repo,
                 documents: document_repo,
+                ocr: ocr_repo,
+                operations: operations_repo,
             },
         })
     }

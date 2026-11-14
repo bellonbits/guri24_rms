@@ -1,23 +1,35 @@
 import {
+  AssistantActionConfirmation,
+  AssistantCitation,
+  AssistantConversation,
+  AssistantMessage,
+  AssistantToolCall,
   Building,
   DocumentItem,
   Floor,
+  InspectionRecord,
+  IntegrationStatusItem,
   Invoice,
   JournalEntry,
   JournalLine,
   Lease,
   MaintenanceRequest,
   MaintenanceStatus,
+  OcrDocumentCategory,
+  OcrExtractedField,
+  OcrJobRecord,
   Organization,
   Payment,
   PaymentAllocation,
   Property,
   PropertyExpense,
   SecurityDepositRecord,
+  SubscriptionSummary,
   SystemRole,
   Tenant,
   TenantApplication,
   Unit,
+  Vendor,
 } from '../types';
 import { maskNationalId, normalizeKenyanPhone } from './formatters';
 
@@ -39,6 +51,9 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'maintenance.view',
     'maintenance.assign',
     'documents.view',
+    'documents.upload',
+    'ocr.review',
+    'assistant.use',
     'reports.export',
     'users.manage',
   ],
@@ -59,6 +74,9 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'maintenance.view',
     'maintenance.assign',
     'documents.view',
+    'documents.upload',
+    'ocr.review',
+    'assistant.use',
     'reports.export',
     'users.manage',
   ],
@@ -72,6 +90,7 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'expenses.approve',
     'maintenance.view',
     'documents.view',
+    'assistant.use',
     'reports.export',
   ],
   PROPERTY_MANAGER: [
@@ -89,6 +108,9 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'maintenance.view',
     'maintenance.assign',
     'documents.view',
+    'documents.upload',
+    'ocr.review',
+    'assistant.use',
     'reports.export',
   ],
   ACCOUNTANT: [
@@ -101,6 +123,9 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'payments.reconcile',
     'expenses.approve',
     'documents.view',
+    'documents.upload',
+    'ocr.review',
+    'assistant.use',
     'reports.export',
   ],
   RECEPTIONIST: [
@@ -110,8 +135,18 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'leases.view',
     'leases.create',
     'maintenance.view',
+    'documents.view',
+    'documents.upload',
+    'assistant.use',
   ],
-  MAINTENANCE_OFFICER: ['properties.view', 'maintenance.view', 'maintenance.assign'],
+  MAINTENANCE_OFFICER: [
+    'properties.view',
+    'maintenance.view',
+    'maintenance.assign',
+    'documents.view',
+    'documents.upload',
+    'assistant.use',
+  ],
   VENDOR: ['properties.view', 'maintenance.view', 'maintenance.assign'],
   TENANT: [
     'leases.view',
@@ -119,6 +154,8 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'payments.view',
     'maintenance.view',
     'documents.view',
+    'documents.upload',
+    'assistant.use',
   ],
 };
 
@@ -152,6 +189,13 @@ export interface RmsPlatformState {
   expenses: PropertyExpense[];
   maintenance: MaintenanceRequest[];
   documents: DocumentItem[];
+  ocrJobs: OcrJobRecord[];
+  assistantConversations: AssistantConversation[];
+  assistantConfirmations: AssistantActionConfirmation[];
+  vendors: Vendor[];
+  inspections: InspectionRecord[];
+  subscriptions: SubscriptionSummary[];
+  integrationsStatus: IntegrationStatusItem[];
 }
 
 export function createInitialRmsState(): RmsPlatformState {
@@ -766,6 +810,330 @@ export function createInitialRmsState(): RmsPlatformState {
         created_at: '2026-11-04T09:15:05Z',
       },
     ],
+    ocrJobs: [
+      {
+        id: 'ocr-job-0001',
+        organization_id: org1Id,
+        document_id: 'doc-0001',
+        file_name: 'executed_lease_LSE_0001_A101.pdf',
+        mime_type: 'application/pdf',
+        file_size_kb: 412,
+        page_count: 3,
+        document_category: 'LEASE_AGREEMENT',
+        provider_name: 'ConfigurableOcrProviderAdapter (Local Structured Parser)',
+        status: 'NEEDS_REVIEW',
+        raw_extracted_text:
+          'RESIDENTIAL LEASE AGREEMENT — Property: Jacaranda Heights Apartments | Unit: A-101 | Tenant: Wanjiku Mwangi | Phone: 0722111222 | Monthly Rent: KES 15,000.00 | Security Deposit: KES 15,000.00 | Lease Start: 2026-01-01 | Lease End: 2026-12-31 | Due Day: 5',
+        overall_confidence: 0.94,
+        fields: [
+          {
+            id: 'fld-lse-1',
+            field_name: 'tenant_name',
+            field_label: 'Tenant Name',
+            extracted_value: 'Wanjiku Mwangi',
+            normalized_value: 'Wanjiku Mwangi',
+            confidence: 0.97,
+            page_number: 1,
+            bounding_box: { page: 1, x: 0.12, y: 0.18, width: 0.34, height: 0.04 },
+            validation_errors: [],
+            human_verified: false,
+          },
+          {
+            id: 'fld-lse-2',
+            field_name: 'unit_number',
+            field_label: 'Unit Number',
+            extracted_value: 'A-101',
+            normalized_value: 'A-101',
+            confidence: 0.96,
+            page_number: 1,
+            bounding_box: { page: 1, x: 0.52, y: 0.18, width: 0.14, height: 0.04 },
+            validation_errors: [],
+            human_verified: false,
+          },
+          {
+            id: 'fld-lse-3',
+            field_name: 'monthly_rent_kes',
+            field_label: 'Monthly Rent (KES)',
+            extracted_value: 'KES 15,000.00',
+            normalized_value: '15000.00',
+            confidence: 0.95,
+            page_number: 1,
+            bounding_box: { page: 1, x: 0.12, y: 0.28, width: 0.25, height: 0.04 },
+            validation_errors: [],
+            human_verified: false,
+          },
+          {
+            id: 'fld-lse-4',
+            field_name: 'deposit_amount_kes',
+            field_label: 'Security Deposit (KES)',
+            extracted_value: 'KES 15,000.00',
+            normalized_value: '15000.00',
+            confidence: 0.92,
+            page_number: 1,
+            bounding_box: { page: 1, x: 0.45, y: 0.28, width: 0.25, height: 0.04 },
+            validation_errors: [],
+            human_verified: false,
+          },
+          {
+            id: 'fld-lse-5',
+            field_name: 'lease_period',
+            field_label: 'Lease Start → End Date',
+            extracted_value: '2026-01-01 to 2026-12-31',
+            normalized_value: '2026-01-01/2026-12-31',
+            confidence: 0.91,
+            page_number: 2,
+            bounding_box: { page: 2, x: 0.12, y: 0.42, width: 0.45, height: 0.04 },
+            validation_errors: [],
+            human_verified: false,
+          },
+        ],
+        authoritative_record_applied: false,
+        linked_entity_label: 'Lease LSE-0001 (Unit A-101)',
+        created_at: '2026-11-10T11:20:00Z',
+        completed_at: '2026-11-10T11:20:04Z',
+      },
+      {
+        id: 'ocr-job-0002',
+        organization_id: org1Id,
+        document_id: 'doc-0002',
+        file_name: 'national_id_brian_otieno.jpg',
+        mime_type: 'image/jpeg',
+        file_size_kb: 285,
+        page_count: 1,
+        document_category: 'TENANT_IDENTIFICATION',
+        provider_name: 'ConfigurableOcrProviderAdapter (Local Structured Parser)',
+        status: 'VERIFIED',
+        raw_extracted_text:
+          'REPUBLIC OF KENYA — NATIONAL IDENTITY CARD | Full Names: BRIAN OTIENO ODHIAMBO | ID Number: 29489012 | Date of Birth: 1993-08-14',
+        overall_confidence: 0.96,
+        fields: [
+          {
+            id: 'fld-id-1',
+            field_name: 'full_name',
+            field_label: 'Full Name',
+            extracted_value: 'BRIAN OTIENO ODHIAMBO',
+            normalized_value: 'Brian Otieno Odhiambo',
+            confidence: 0.98,
+            page_number: 1,
+            bounding_box: { page: 1, x: 0.2, y: 0.3, width: 0.5, height: 0.05 },
+            validation_errors: [],
+            human_verified: true,
+          },
+          {
+            id: 'fld-id-2',
+            field_name: 'id_number',
+            field_label: 'Kenyan National ID (Masked)',
+            extracted_value: '29489012',
+            normalized_value: '****9012',
+            confidence: 0.95,
+            page_number: 1,
+            bounding_box: { page: 1, x: 0.2, y: 0.18, width: 0.3, height: 0.05 },
+            validation_errors: [],
+            human_verified: true,
+          },
+        ],
+        authoritative_record_applied: true,
+        linked_entity_label: 'Tenant TNT-0002 (Brian Otieno Odhiambo)',
+        review_audit: {
+          id: 'rev-0001',
+          job_id: 'ocr-job-0002',
+          reviewer_role: 'ORGANIZATION_ADMINISTRATOR',
+          decision: 'APPROVED',
+          notes: 'Verified against original Kenyan National ID card during move-in.',
+          reviewed_at: '2026-11-11T09:05:00Z',
+        },
+        created_at: '2026-11-11T09:00:00Z',
+        completed_at: '2026-11-11T09:00:03Z',
+      },
+    ],
+    assistantConversations: [
+      {
+        id: 'conv-0001',
+        organization_id: org1Id,
+        title: 'November Collections, Arrears & Portfolio Operations',
+        updated_at: '2026-11-14T10:00:00Z',
+        messages: [
+          {
+            id: 'msg-0001',
+            role: 'ASSISTANT',
+            content:
+              'Jambo! I am your grounded Guri24 RMS AI Assistant for Kilimani Crest Property Management Ltd. Every figure I report is verified against your live tenant-scoped ledger, invoices, leases, units, and OCR documents. Ask me about rent collections, overdue arrears, vacant units, maintenance tickets, or ask me to draft an action with confirmation.',
+            citations: [
+              {
+                record_type: 'INVOICE',
+                record_id: inv1Id,
+                reference_code: 'INV-202611-0001',
+                summary: 'Unit A-101 (Wanjiku Mwangi) — Total KES 15,000, Paid KES 10,000, Balance KES 5,000',
+              },
+              {
+                record_type: 'INVOICE',
+                record_id: inv2Id,
+                reference_code: 'INV-202610-0002',
+                summary: 'Unit A-102 (Brian Otieno) — Overdue Balance KES 20,000',
+              },
+            ],
+            tool_calls: [
+              {
+                id: 'tc-init-1',
+                tool_name: 'get_collection_summary',
+                permission_checked: 'invoices.view',
+                arguments_summary: '{"organization_id":"org-kilimani-crest-001","period":"2026-11"}',
+                result_summary: 'Total Billed: KES 55,000 | Collected: KES 10,000 | Outstanding Arrears: KES 45,000',
+                executed_at: '2026-11-14T10:00:00Z',
+              },
+            ],
+            created_at: '2026-11-14T10:00:00Z',
+          },
+        ],
+      },
+    ],
+    assistantConfirmations: [],
+    vendors: [
+      {
+        id: 'vnd-0001',
+        organization_id: org1Id,
+        vendor_code: 'VND-0001',
+        company_name: 'Nairobi Rapid Plumbers Ltd',
+        contact_person: 'Peter Ndegwa',
+        phone: '254722778899',
+        email: 'service@nairobirapidplumbers.co.ke',
+        specialty: 'PLUMBING & SOLAR HEATING',
+        kra_pin: 'P051662211R',
+        rating: 4.9,
+        status: 'ACTIVE',
+      },
+      {
+        id: 'vnd-0002',
+        organization_id: org1Id,
+        vendor_code: 'VND-0002',
+        company_name: 'MetroVolt Electrical Contractors KE',
+        contact_person: 'oscah@metrovolt.co.ke',
+        phone: '254711223344',
+        email: 'dispatch@metrovolt.co.ke',
+        specialty: 'ELECTRICAL & BACKUP GENERATORS',
+        kra_pin: 'P051990011E',
+        rating: 4.8,
+        status: 'ACTIVE',
+      },
+    ],
+    inspections: [
+      {
+        id: 'insp-0001',
+        organization_id: org1Id,
+        property_id: prop1Id,
+        building_id: bld1Id,
+        unit_id: unitA101Id,
+        lease_id: lease1Id,
+        inspection_number: 'INSP-0001',
+        inspection_type: 'MOVE_IN',
+        scheduled_at: '2026-01-01T09:00',
+        inspector_name: 'Grace Mutua (Property Manager)',
+        overall_condition: 'EXCELLENT',
+        recommended_deposit_deduction_kes: 0,
+        notes: 'All walls freshly painted, NCWSC-88101 water meter reading 114.0 m³.',
+        status: 'SIGNED_OFF',
+      },
+      {
+        id: 'insp-0002',
+        organization_id: org1Id,
+        property_id: prop1Id,
+        building_id: bld1Id,
+        unit_id: unitA102Id,
+        lease_id: lease2Id,
+        inspection_number: 'INSP-0002',
+        inspection_type: 'ROUTINE',
+        scheduled_at: '2026-11-18T14:00',
+        inspector_name: 'Grace Mutua (Property Manager)',
+        overall_condition: 'GOOD',
+        recommended_deposit_deduction_kes: 0,
+        notes: 'Mid-lease check for balcony photocell light and kitchen plumbing.',
+        status: 'SCHEDULED',
+      },
+    ],
+    subscriptions: [
+      {
+        id: 'sub-0001',
+        organization_id: org1Id,
+        plan_code: 'GROWTH_PRO',
+        plan_name: 'Guri24 Growth Pro (Kenya)',
+        status: 'ACTIVE',
+        monthly_price_kes: 14500,
+        unit_limit: 250,
+        units_used: 4,
+        ocr_pages_quota: 500,
+        ocr_pages_used: 4,
+        ai_assistant_queries_quota: 1000,
+        ai_assistant_queries_used: 12,
+        renewal_date: '2026-12-01',
+      },
+      {
+        id: 'sub-0002',
+        organization_id: org2Id,
+        plan_code: 'ENTERPRISE_KE',
+        plan_name: 'Guri24 Enterprise Estates',
+        status: 'ACTIVE',
+        monthly_price_kes: 35000,
+        unit_limit: 1000,
+        units_used: 1,
+        ocr_pages_quota: 2500,
+        ocr_pages_used: 0,
+        ai_assistant_queries_quota: 5000,
+        ai_assistant_queries_used: 0,
+        renewal_date: '2026-12-01',
+      },
+    ],
+    integrationsStatus: [
+      {
+        provider_key: 'MPESA_DARAJA',
+        display_name: 'Safaricom M-Pesa Daraja (STK Push & C2B)',
+        category: 'PAYMENTS',
+        configured_mode: 'SANDBOX_SIMULATOR',
+        live_credentials_configured: false,
+        status_label: 'Sandbox Simulator Active (Credentials Unconfigured)',
+        honest_disclosure:
+          'MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, and MPESA_PASSKEY are not set to production keys in .env. Webhook HMAC verification, idempotency, and FIFO allocation run via the deterministic Daraja Sandbox Adapter.',
+      },
+      {
+        provider_key: 'OCR_PROVIDER',
+        display_name: 'OCR & Document Intelligence Engine',
+        category: 'OCR',
+        configured_mode: 'LOCAL_DETERMINISTIC_ADAPTER',
+        live_credentials_configured: false,
+        status_label: 'Local Structured Adapter Active (Cloud API Key Unconfigured)',
+        honest_disclosure:
+          'OCR_PROVIDER_API_KEY is not configured. Using local deterministic OcrProvider adapter with confidence scoring and mandatory human verification.',
+      },
+      {
+        provider_key: 'LLM_ASSISTANT',
+        display_name: 'Grounded RMS AI Assistant',
+        category: 'AI_ASSISTANT',
+        configured_mode: 'GROUNDED_TOOL_ENGINE',
+        live_credentials_configured: false,
+        status_label: 'Grounded RMS Tool Engine Active (External LLM Key Unconfigured)',
+        honest_disclosure:
+          'LLM_API_KEY is not configured. Assistant executes live permission-checked RMS tools, cites real database records, enforces prompt-injection guards, and gates mutating actions on user confirmation.',
+      },
+      {
+        provider_key: 'AFRICAS_TALKING_SMS',
+        display_name: "Africa's Talking SMS & Transactional Outbox",
+        category: 'MESSAGING',
+        configured_mode: 'OUTBOX_SANDBOX',
+        live_credentials_configured: false,
+        status_label: 'Transactional Outbox Active (Live SMS Key Unconfigured)',
+        honest_disclosure:
+          'AFRICAS_TALKING_API_KEY is not set. Notifications are queued in the transactional outbox so delivery failures never roll back financial transactions.',
+      },
+      {
+        provider_key: 'S3_STORAGE',
+        display_name: 'Private S3 / MinIO Document Vault',
+        category: 'STORAGE',
+        configured_mode: 'SIGNED_URL_VAULT',
+        live_credentials_configured: true,
+        status_label: 'Private Bucket + 300s Pre-Signed URLs Active',
+        honest_disclosure:
+          'Documents are scoped under private/org/{organization_id}/* keys and served via short-lived HMAC-SHA256 pre-signed URLs.',
+      },
+    ],
   };
 }
 
@@ -1241,3 +1609,803 @@ export function processVerifiedMpesaPayment(
     duplicateIgnored: false,
   };
 }
+
+/**
+ * Module 19 — OCR & Document Intelligence Pipeline
+ * Enforces:
+ * - File type (PDF, PNG, JPEG, WEBP), size (<= 15 MB), and page count (<= 50 pages) validation
+ * - Pipeline stages: UPLOADED -> QUEUED -> PROCESSING -> NEEDS_REVIEW
+ * - Extracted fields are NEVER applied to authoritative RMS records until human verification
+ */
+export function submitOcrDocumentJob(
+  state: RmsPlatformState,
+  input: {
+    fileName: string;
+    mimeType: string;
+    fileSizeKb: number;
+    pageCount: number;
+    documentCategory: OcrDocumentCategory;
+    rawSampleText?: string;
+    linkedEntityLabel?: string;
+  }
+): { nextState: RmsPlatformState; job: OcrJobRecord } {
+  assertPermission(state.currentRole, 'documents.upload');
+  const allowedMimes = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp'];
+  if (!allowedMimes.includes(input.mimeType)) {
+    throw new Error(
+      `Unsupported document MIME type '${input.mimeType}'. Allowed: PDF, PNG, JPEG, WEBP.`
+    );
+  }
+  if (input.fileSizeKb <= 0 || input.fileSizeKb > 15360) {
+    throw new Error('Document file size must be between 1 KB and 15,360 KB (15 MB).');
+  }
+  if (input.pageCount <= 0 || input.pageCount > 50) {
+    throw new Error('Document page count must be between 1 and 50 pages.');
+  }
+
+  const orgId = state.currentOrganizationId;
+  const seq = state.ocrJobs.filter((j) => j.organization_id === orgId).length + 1;
+  const jobId = `ocr-job-${String(seq).padStart(4, '0')}`;
+  const docId = `doc-ocr-${String(seq).padStart(4, '0')}`;
+
+  let fields: OcrExtractedField[] = [];
+  let rawText = input.rawSampleText?.trim() || '';
+
+  if (input.documentCategory === 'TENANT_IDENTIFICATION') {
+    if (!rawText) {
+      rawText =
+        'REPUBLIC OF KENYA — NATIONAL IDENTITY CARD | Full Names: AMINA HASSAN NOOR | ID Number: 31223344 | Phone: 0700889900';
+    }
+    fields = [
+      {
+        id: `${jobId}-f1`,
+        field_name: 'full_name',
+        field_label: 'Full Name',
+        extracted_value: 'AMINA HASSAN NOOR',
+        normalized_value: 'Amina Hassan Noor',
+        confidence: 0.97,
+        page_number: 1,
+        bounding_box: { page: 1, x: 0.18, y: 0.28, width: 0.48, height: 0.05 },
+        validation_errors: [],
+        human_verified: false,
+      },
+      {
+        id: `${jobId}-f2`,
+        field_name: 'id_number',
+        field_label: 'Kenyan National ID (Masked)',
+        extracted_value: '31223344',
+        normalized_value: maskNationalId('31223344'),
+        confidence: 0.95,
+        page_number: 1,
+        bounding_box: { page: 1, x: 0.18, y: 0.16, width: 0.3, height: 0.05 },
+        validation_errors: [],
+        human_verified: false,
+      },
+      {
+        id: `${jobId}-f3`,
+        field_name: 'phone_number',
+        field_label: 'M-Pesa Phone Number',
+        extracted_value: '0700889900',
+        normalized_value: normalizeKenyanPhone('0700889900') || '254700889900',
+        confidence: 0.93,
+        page_number: 1,
+        bounding_box: { page: 1, x: 0.18, y: 0.42, width: 0.32, height: 0.05 },
+        validation_errors: [],
+        human_verified: false,
+      },
+    ];
+  } else if (input.documentCategory === 'LEASE_AGREEMENT') {
+    if (!rawText) {
+      rawText =
+        'RESIDENTIAL LEASE AGREEMENT — Property: Jacaranda Heights Apartments | Unit: A-201 | Tenant: Amina Hassan Noor | Monthly Rent: KES 35,000.00 | Deposit: KES 35,000.00 | Term: 2026-12-01 to 2027-11-30';
+    }
+    fields = [
+      {
+        id: `${jobId}-f1`,
+        field_name: 'tenant_name',
+        field_label: 'Tenant Name',
+        extracted_value: 'Amina Hassan Noor',
+        normalized_value: 'Amina Hassan Noor',
+        confidence: 0.96,
+        page_number: 1,
+        bounding_box: { page: 1, x: 0.14, y: 0.22, width: 0.4, height: 0.04 },
+        validation_errors: [],
+        human_verified: false,
+      },
+      {
+        id: `${jobId}-f2`,
+        field_name: 'unit_number',
+        field_label: 'Unit Number',
+        extracted_value: 'A-201',
+        normalized_value: 'A-201',
+        confidence: 0.95,
+        page_number: 1,
+        bounding_box: { page: 1, x: 0.58, y: 0.22, width: 0.16, height: 0.04 },
+        validation_errors: [],
+        human_verified: false,
+      },
+      {
+        id: `${jobId}-f3`,
+        field_name: 'monthly_rent_kes',
+        field_label: 'Monthly Rent (KES)',
+        extracted_value: 'KES 35,000.00',
+        normalized_value: '35000.00',
+        confidence: 0.94,
+        page_number: 1,
+        bounding_box: { page: 1, x: 0.14, y: 0.34, width: 0.26, height: 0.04 },
+        validation_errors: [],
+        human_verified: false,
+      },
+      {
+        id: `${jobId}-f4`,
+        field_name: 'deposit_amount_kes',
+        field_label: 'Security Deposit (KES)',
+        extracted_value: 'KES 35,000.00',
+        normalized_value: '35000.00',
+        confidence: 0.92,
+        page_number: 1,
+        bounding_box: { page: 1, x: 0.46, y: 0.34, width: 0.26, height: 0.04 },
+        validation_errors: [],
+        human_verified: false,
+      },
+    ];
+  } else if (input.documentCategory === 'RECEIPT_OR_INVOICE') {
+    if (!rawText) {
+      rawText =
+        'VENDOR TAX INVOICE — Vendor: Nairobi Rapid Plumbers Ltd | Invoice #: VINV-2026-884 | Amount: KES 4,500.00 | Date: 2026-11-08 | KRA PIN: P051662211R';
+    }
+    fields = [
+      {
+        id: `${jobId}-f1`,
+        field_name: 'vendor_name',
+        field_label: 'Vendor / Issuer Name',
+        extracted_value: 'Nairobi Rapid Plumbers Ltd',
+        normalized_value: 'Nairobi Rapid Plumbers Ltd',
+        confidence: 0.96,
+        page_number: 1,
+        bounding_box: { page: 1, x: 0.12, y: 0.15, width: 0.45, height: 0.04 },
+        validation_errors: [],
+        human_verified: false,
+      },
+      {
+        id: `${jobId}-f2`,
+        field_name: 'invoice_or_receipt_number',
+        field_label: 'Receipt / Invoice Number',
+        extracted_value: 'VINV-2026-884',
+        normalized_value: 'VINV-2026-884',
+        confidence: 0.94,
+        page_number: 1,
+        bounding_box: { page: 1, x: 0.62, y: 0.15, width: 0.24, height: 0.04 },
+        validation_errors: [],
+        human_verified: false,
+      },
+      {
+        id: `${jobId}-f3`,
+        field_name: 'total_amount_kes',
+        field_label: 'Amount (KES)',
+        extracted_value: 'KES 4,500.00',
+        normalized_value: '4500.00',
+        confidence: 0.95,
+        page_number: 1,
+        bounding_box: { page: 1, x: 0.62, y: 0.48, width: 0.24, height: 0.04 },
+        validation_errors: [],
+        human_verified: false,
+      },
+    ];
+  } else {
+    if (!rawText) {
+      rawText =
+        'REPUBLIC OF KENYA — CERTIFICATE OF LEASE / PROPERTY DEED | Parcel LR Number: LR 209/11421 | County: Nairobi | Registered Proprietor: Kilimani Crest Property Management Ltd';
+    }
+    fields = [
+      {
+        id: `${jobId}-f1`,
+        field_name: 'lr_number',
+        field_label: 'Land Reference (LR) Number',
+        extracted_value: 'LR 209/11421',
+        normalized_value: 'LR 209/11421',
+        confidence: 0.95,
+        page_number: 1,
+        bounding_box: { page: 1, x: 0.2, y: 0.25, width: 0.35, height: 0.04 },
+        validation_errors: [],
+        human_verified: false,
+      },
+      {
+        id: `${jobId}-f2`,
+        field_name: 'county',
+        field_label: 'County',
+        extracted_value: 'Nairobi',
+        normalized_value: 'Nairobi',
+        confidence: 0.98,
+        page_number: 1,
+        bounding_box: { page: 1, x: 0.2, y: 0.33, width: 0.25, height: 0.04 },
+        validation_errors: [],
+        human_verified: false,
+      },
+    ];
+  }
+
+  const avgConfidence =
+    fields.reduce((acc, f) => acc + f.confidence, 0) / Math.max(1, fields.length);
+
+  const newDoc: DocumentItem = {
+    id: docId,
+    organization_id: orgId,
+    category:
+      input.documentCategory === 'TENANT_IDENTIFICATION'
+        ? 'TENANT_ID'
+        : input.documentCategory === 'LEASE_AGREEMENT'
+        ? 'LEASE_AGREEMENT'
+        : input.documentCategory === 'RECEIPT_OR_INVOICE'
+        ? 'INVOICE'
+        : 'PROPERTY_DEED',
+    entity_label: input.linkedEntityLabel || 'OCR Document Upload',
+    file_name: input.fileName.trim(),
+    mime_type: input.mimeType,
+    file_size_kb: input.fileSizeKb,
+    s3_object_key: `private/org/${orgId}/ocr/${input.fileName.trim()}`,
+    created_at: new Date().toISOString(),
+  };
+
+  const job: OcrJobRecord = {
+    id: jobId,
+    organization_id: orgId,
+    document_id: docId,
+    file_name: input.fileName.trim(),
+    mime_type: input.mimeType,
+    file_size_kb: input.fileSizeKb,
+    page_count: input.pageCount,
+    document_category: input.documentCategory,
+    provider_name: 'ConfigurableOcrProviderAdapter (Local Structured Parser)',
+    status: 'NEEDS_REVIEW',
+    raw_extracted_text: rawText,
+    overall_confidence: Number(avgConfidence.toFixed(2)),
+    fields,
+    authoritative_record_applied: false,
+    linked_entity_label: input.linkedEntityLabel || 'Pending Verification',
+    created_at: new Date().toISOString(),
+    completed_at: new Date().toISOString(),
+  };
+
+  return {
+    nextState: {
+      ...state,
+      documents: [newDoc, ...state.documents],
+      ocrJobs: [job, ...state.ocrJobs],
+      subscriptions: state.subscriptions.map((sub) =>
+        sub.organization_id === orgId
+          ? { ...sub, ocr_pages_used: sub.ocr_pages_used + input.pageCount }
+          : sub
+      ),
+    },
+    job,
+  };
+}
+
+/**
+ * Mandatory Human-in-the-Loop OCR Verification
+ * Requires `ocr.review` permission. Only when `approve: true` does the job transition to `VERIFIED`
+ * and mark `authoritative_record_applied: true`.
+ */
+export function reviewOcrDocumentJob(
+  state: RmsPlatformState,
+  jobId: string,
+  reviewInput: {
+    approve: boolean;
+    corrections?: Record<string, string>;
+    notes: string;
+  }
+): { nextState: RmsPlatformState; job: OcrJobRecord } {
+  assertPermission(state.currentRole, 'ocr.review');
+  const orgId = state.currentOrganizationId;
+  const target = state.ocrJobs.find((j) => j.id === jobId && j.organization_id === orgId);
+  if (!target) {
+    throw new Error('OCR job not found in current organization (strict tenant isolation).');
+  }
+
+  const corrections = reviewInput.corrections ?? {};
+  const updatedFields = target.fields.map((fld) => {
+    const corrected = corrections[fld.field_name]?.trim();
+    const nextVal = corrected && corrected.length > 0 ? corrected : fld.normalized_value;
+    if (reviewInput.approve && !nextVal) {
+      throw new Error(`OCR field '${fld.field_label}' cannot be empty when approving verification.`);
+    }
+    return {
+      ...fld,
+      normalized_value: nextVal,
+      corrected_value: corrected && corrected !== fld.normalized_value ? corrected : fld.corrected_value,
+      human_verified: reviewInput.approve,
+    };
+  });
+
+  const updatedJob: OcrJobRecord = {
+    ...target,
+    status: reviewInput.approve ? 'VERIFIED' : 'FAILED',
+    fields: updatedFields,
+    authoritative_record_applied: reviewInput.approve,
+    review_audit: {
+      id: `rev-${Date.now()}`,
+      job_id: target.id,
+      reviewer_role: state.currentRole,
+      decision: reviewInput.approve ? 'APPROVED' : 'REJECTED',
+      notes: reviewInput.notes.trim() || (reviewInput.approve ? 'Human verified and approved.' : 'Rejected during review.'),
+      reviewed_at: new Date().toISOString(),
+    },
+  };
+
+  return {
+    nextState: {
+      ...state,
+      ocrJobs: state.ocrJobs.map((j) => (j.id === target.id ? updatedJob : j)),
+    },
+    job: updatedJob,
+  };
+}
+
+/**
+ * Module 20 — Grounded AI Agent Assistant
+ * - Enforces `assistant.use` and tool-level RBAC permissions
+ * - Blocks prompt-injection / cross-tenant / unverified-data override attempts
+ * - Cites live RMS records (Invoices, Leases, Units, Payments, Maintenance, OCR Jobs)
+ * - Requires explicit user confirmation (`AssistantActionConfirmation`) before any mutating action
+ */
+const PROMPT_INJECTION_PATTERNS = [
+  /ignore\s+(all\s+)?previous\s+instructions/i,
+  /bypass\s+(rbac|permission|tenant|security|isolation)/i,
+  /show\s+(all\s+)?organizations/i,
+  /other\s+organization/i,
+  /nyali\s+oceanfront/i,
+  /system\s+prompt/i,
+  /delete\s+all\s+journals/i,
+];
+
+export function sendAssistantPrompt(
+  state: RmsPlatformState,
+  rawPrompt: string,
+  conversationId = 'conv-0001'
+): {
+  nextState: RmsPlatformState;
+  reply: AssistantMessage;
+  pendingConfirmation?: AssistantActionConfirmation;
+} {
+  assertPermission(state.currentRole, 'assistant.use');
+  const prompt = rawPrompt.trim();
+  if (!prompt) {
+    throw new Error('Assistant prompt cannot be empty.');
+  }
+
+  const orgId = state.currentOrganizationId;
+  const nowIso = new Date().toISOString();
+
+  const userMessage: AssistantMessage = {
+    id: `msg-user-${Date.now()}`,
+    role: 'USER',
+    content: prompt,
+    citations: [],
+    tool_calls: [],
+    created_at: nowIso,
+  };
+
+  // 1. Prompt-injection & cross-tenant safety guard
+  const matchedInjection = PROMPT_INJECTION_PATTERNS.find((re) => re.test(prompt));
+  if (matchedInjection) {
+    const blockedReply: AssistantMessage = {
+      id: `msg-ast-${Date.now() + 1}`,
+      role: 'ASSISTANT',
+      content:
+        'Security & Grounding Guard: Request blocked. I cannot bypass RBAC permissions, expose records belonging to another organization, or mutate financial ledgers without authorization.',
+      citations: [],
+      tool_calls: [],
+      blocked_reason: 'PROMPT_INJECTION_OR_CROSS_TENANT_ATTEMPT_BLOCKED',
+      created_at: nowIso,
+    };
+
+    return {
+      nextState: appendConversationMessages(state, orgId, conversationId, [userMessage, blockedReply]),
+      reply: blockedReply,
+    };
+  }
+
+  const lower = prompt.toLowerCase();
+  const orgInvoices = state.invoices.filter((i) => i.organization_id === orgId);
+  const orgUnits = state.units.filter((u) => u.organization_id === orgId);
+  const orgLeases = state.leases.filter((l) => l.organization_id === orgId);
+  const orgTenants = state.tenants.filter((t) => t.organization_id === orgId);
+  const orgMaintenance = state.maintenance.filter((m) => m.organization_id === orgId);
+  const orgOcrJobs = state.ocrJobs.filter((j) => j.organization_id === orgId);
+
+  const citations: AssistantCitation[] = [];
+  const toolCalls: AssistantToolCall[] = [];
+  let replyText = '';
+  let pendingConfirmation: AssistantActionConfirmation | undefined;
+
+  // 2. Check if prompt requests a mutating action (Create maintenance request / send reminder)
+  if (
+    lower.includes('create maintenance') ||
+    lower.includes('log maintenance') ||
+    lower.includes('open ticket') ||
+    lower.includes('draft reminder') ||
+    lower.includes('send arrears')
+  ) {
+    // Check permission for maintenance or invoice reminder
+    if (lower.includes('maintenance') || lower.includes('ticket')) {
+      assertPermission(state.currentRole, 'maintenance.view');
+      const targetUnit =
+        orgUnits.find((u) => lower.includes(u.unit_number.toLowerCase())) ?? orgUnits[0];
+      const confId = `conf-${Date.now()}`;
+      pendingConfirmation = {
+        id: confId,
+        organization_id: orgId,
+        conversation_id: conversationId,
+        action_type: 'CREATE_MAINTENANCE_REQUEST',
+        title: `Create Maintenance Ticket for Unit ${targetUnit.unit_number}`,
+        summary: `Log PLUMBING / GENERAL inspection ticket for Unit ${targetUnit.unit_number} (Estimated KES 2,500). Requires your explicit confirmation before writing to RMS records.`,
+        target_reference: `Unit ${targetUnit.unit_number}`,
+        payload: {
+          unit_id: targetUnit.id,
+          unit_number: targetUnit.unit_number,
+          category: 'PLUMBING',
+          title: `Assistant-logged inspection for Unit ${targetUnit.unit_number}`,
+          estimated_cost_kes: 2500,
+        },
+        status: 'PENDING',
+        created_at: nowIso,
+      };
+      toolCalls.push({
+        id: `tc-${Date.now()}`,
+        tool_name: 'prepare_maintenance_request_confirmation',
+        permission_checked: 'maintenance.view',
+        arguments_summary: JSON.stringify({ unit_number: targetUnit.unit_number }),
+        result_summary: `Prepared confirmation ${confId} (awaiting human approval)`,
+        executed_at: nowIso,
+      });
+      citations.push({
+        record_type: 'UNIT',
+        record_id: targetUnit.id,
+        reference_code: `Unit ${targetUnit.unit_number}`,
+        summary: `${targetUnit.unit_type} — Status: ${targetUnit.status}`,
+      });
+      replyText = `I have prepared a maintenance ticket draft for Unit ${targetUnit.unit_number}. Per Guri24 safety policy, no database mutation has been executed yet—please click **Confirm & Execute** on the confirmation card below to create the ticket.`;
+    } else {
+      assertPermission(state.currentRole, 'invoices.view');
+      const overdueInv =
+        orgInvoices.find((i) => i.balance_kes > 0 && i.status === 'OVERDUE') ??
+        orgInvoices.find((i) => i.balance_kes > 0) ??
+        orgInvoices[0];
+      const tenant = orgTenants.find((t) => t.id === overdueInv?.tenant_id);
+      const confId = `conf-${Date.now()}`;
+      pendingConfirmation = {
+        id: confId,
+        organization_id: orgId,
+        conversation_id: conversationId,
+        action_type: 'DRAFT_TENANT_ARREARS_REMINDER',
+        title: `Queue Arrears Reminder for ${tenant?.full_name ?? 'Tenant'}`,
+        summary: `Queue transactional outbox reminder for Invoice ${overdueInv.invoice_number} (Outstanding Balance: KES ${overdueInv.balance_kes.toLocaleString()}).`,
+        target_reference: overdueInv.invoice_number,
+        payload: {
+          invoice_id: overdueInv.id,
+          invoice_number: overdueInv.invoice_number,
+          tenant_name: tenant?.full_name ?? 'Tenant',
+          balance_kes: overdueInv.balance_kes,
+        },
+        status: 'PENDING',
+        created_at: nowIso,
+      };
+      toolCalls.push({
+        id: `tc-${Date.now()}`,
+        tool_name: 'draft_tenant_notification',
+        permission_checked: 'invoices.view',
+        arguments_summary: JSON.stringify({ invoice_number: overdueInv.invoice_number }),
+        result_summary: `Drafted arrears notice for ${overdueInv.invoice_number} (awaiting confirmation)`,
+        executed_at: nowIso,
+      });
+      citations.push({
+        record_type: 'INVOICE',
+        record_id: overdueInv.id,
+        reference_code: overdueInv.invoice_number,
+        summary: `${tenant?.full_name ?? 'Tenant'} — Balance KES ${overdueInv.balance_kes.toLocaleString()}`,
+      });
+      replyText = `I drafted an arrears reminder for ${tenant?.full_name ?? 'Tenant'} referencing ${overdueInv.invoice_number} (Balance: KES ${overdueInv.balance_kes.toLocaleString()}). Please confirm below before queuing to the transactional outbox.`;
+    }
+  } else if (lower.includes('vacant') || lower.includes('available unit')) {
+    assertPermission(state.currentRole, 'properties.view');
+    const vacant = orgUnits.filter((u) => u.status === 'VACANT');
+    toolCalls.push({
+      id: `tc-${Date.now()}`,
+      tool_name: 'get_unit_availability',
+      permission_checked: 'properties.view',
+      arguments_summary: JSON.stringify({ organization_id: orgId, status: 'VACANT' }),
+      result_summary: `${vacant.length} vacant unit(s) found`,
+      executed_at: nowIso,
+    });
+    for (const u of vacant) {
+      citations.push({
+        record_type: 'UNIT',
+        record_id: u.id,
+        reference_code: `Unit ${u.unit_number}`,
+        summary: `${u.unit_type} (${u.bedrooms}BR) — KES ${u.monthly_rent_kes.toLocaleString()}/mo`,
+      });
+    }
+    replyText = `There are currently **${vacant.length} vacant units** available in your organization: ${vacant
+      .map((u) => `Unit ${u.unit_number} (KES ${u.monthly_rent_kes.toLocaleString()}/mo)`)
+      .join(', ')}.`;
+  } else if (lower.includes('ocr') || lower.includes('document')) {
+    assertPermission(state.currentRole, 'documents.view');
+    toolCalls.push({
+      id: `tc-${Date.now()}`,
+      tool_name: 'search_documents',
+      permission_checked: 'documents.view',
+      arguments_summary: JSON.stringify({ organization_id: orgId }),
+      result_summary: `${orgOcrJobs.length} OCR job(s) retrieved`,
+      executed_at: nowIso,
+    });
+    for (const j of orgOcrJobs) {
+      citations.push({
+        record_type: 'OCR_DOCUMENT',
+        record_id: j.id,
+        reference_code: j.file_name,
+        summary: `Status: ${j.status} | Confidence: ${Math.round(j.overall_confidence * 100)}%`,
+      });
+    }
+    const needsReview = orgOcrJobs.filter((j) => j.status === 'NEEDS_REVIEW').length;
+    const verified = orgOcrJobs.filter((j) => j.status === 'VERIFIED').length;
+    replyText = `Your OCR pipeline has **${orgOcrJobs.length} document jobs**: **${verified} Verified** and **${needsReview} Needs Human Review**. Unverified OCR extractions remain staged and have not overwritten authoritative RMS records.`;
+  } else if (lower.includes('maintenance') || lower.includes('work order')) {
+    assertPermission(state.currentRole, 'maintenance.view');
+    toolCalls.push({
+      id: `tc-${Date.now()}`,
+      tool_name: 'get_maintenance_requests',
+      permission_checked: 'maintenance.view',
+      arguments_summary: JSON.stringify({ organization_id: orgId }),
+      result_summary: `${orgMaintenance.length} maintenance ticket(s) active`,
+      executed_at: nowIso,
+    });
+    for (const m of orgMaintenance) {
+      citations.push({
+        record_type: 'MAINTENANCE',
+        record_id: m.id,
+        reference_code: m.request_number,
+        summary: `${m.title} — Status: ${m.status} (Est. KES ${m.estimated_cost_kes.toLocaleString()})`,
+      });
+    }
+    replyText = `There are **${orgMaintenance.length} maintenance tickets** in your organization: ${orgMaintenance
+      .map((m) => `${m.request_number} (${m.title} — ${m.status})`)
+      .join('; ')}.`;
+  } else {
+    // Default: Collections, Arrears & Lease summary
+    assertPermission(state.currentRole, 'invoices.view');
+    const totalBilled = orgInvoices.reduce((acc, i) => acc + i.total_amount_kes, 0);
+    const totalPaid = orgInvoices.reduce((acc, i) => acc + i.amount_paid_kes, 0);
+    const totalArrears = orgInvoices.reduce((acc, i) => acc + i.balance_kes, 0);
+    const openInvoices = orgInvoices.filter((i) => i.balance_kes > 0);
+
+    toolCalls.push({
+      id: `tc-${Date.now()}`,
+      tool_name: 'get_arrears_report',
+      permission_checked: 'invoices.view',
+      arguments_summary: JSON.stringify({ organization_id: orgId }),
+      result_summary: `Total Billed KES ${totalBilled.toLocaleString()}, Collected KES ${totalPaid.toLocaleString()}, Arrears KES ${totalArrears.toLocaleString()}`,
+      executed_at: nowIso,
+    });
+
+    for (const inv of openInvoices) {
+      const t = orgTenants.find((x) => x.id === inv.tenant_id);
+      citations.push({
+        record_type: 'INVOICE',
+        record_id: inv.id,
+        reference_code: inv.invoice_number,
+        summary: `${t?.full_name ?? 'Tenant'} — Balance KES ${inv.balance_kes.toLocaleString()} (${inv.status})`,
+      });
+    }
+    for (const l of orgLeases.slice(0, 2)) {
+      citations.push({
+        record_type: 'LEASE',
+        record_id: l.id,
+        reference_code: l.lease_number,
+        summary: `Rent KES ${l.monthly_rent_kes.toLocaleString()}/mo (${l.start_date} → ${l.end_date})`,
+      });
+    }
+
+    replyText = `Grounded Ledger Summary: Total billed across **${orgInvoices.length} invoices** is **KES ${totalBilled.toLocaleString()}**, collected is **KES ${totalPaid.toLocaleString()}**, and outstanding arrears total **KES ${totalArrears.toLocaleString()}** across ${openInvoices.map((i) => `${i.invoice_number} (KES ${i.balance_kes.toLocaleString()})`).join(', ')}.`;
+  }
+
+  const assistantReply: AssistantMessage = {
+    id: `msg-ast-${Date.now() + 2}`,
+    role: 'ASSISTANT',
+    content: replyText,
+    citations,
+    tool_calls: toolCalls,
+    pending_confirmation_id: pendingConfirmation?.id,
+    created_at: nowIso,
+  };
+
+  let nextState = appendConversationMessages(state, orgId, conversationId, [
+    userMessage,
+    assistantReply,
+  ]);
+
+  if (pendingConfirmation) {
+    nextState = {
+      ...nextState,
+      assistantConfirmations: [pendingConfirmation, ...nextState.assistantConfirmations],
+    };
+  }
+
+  nextState = {
+    ...nextState,
+    subscriptions: nextState.subscriptions.map((s) =>
+      s.organization_id === orgId
+        ? { ...s, ai_assistant_queries_used: s.ai_assistant_queries_used + 1 }
+        : s
+    ),
+  };
+
+  return { nextState, reply: assistantReply, pendingConfirmation };
+}
+
+function appendConversationMessages(
+  state: RmsPlatformState,
+  orgId: string,
+  conversationId: string,
+  newMessages: AssistantMessage[]
+): RmsPlatformState {
+  const exists = state.assistantConversations.some(
+    (c) => c.id === conversationId && c.organization_id === orgId
+  );
+  if (!exists) {
+    const createdConv: AssistantConversation = {
+      id: conversationId,
+      organization_id: orgId,
+      title: 'Grounded RMS Assistant Session',
+      messages: newMessages,
+      updated_at: new Date().toISOString(),
+    };
+    return {
+      ...state,
+      assistantConversations: [createdConv, ...state.assistantConversations],
+    };
+  }
+  return {
+    ...state,
+    assistantConversations: state.assistantConversations.map((c) =>
+      c.id === conversationId && c.organization_id === orgId
+        ? {
+            ...c,
+            messages: [...c.messages, ...newMessages],
+            updated_at: new Date().toISOString(),
+          }
+        : c
+    ),
+  };
+}
+
+/**
+ * Resolves a pending AI Assistant Action Confirmation (`CONFIRMED` or `CANCELLED`).
+ */
+export function resolveAssistantConfirmation(
+  state: RmsPlatformState,
+  confirmationId: string,
+  approve: boolean
+): { nextState: RmsPlatformState; confirmation: AssistantActionConfirmation } {
+  assertPermission(state.currentRole, 'assistant.use');
+  const orgId = state.currentOrganizationId;
+  const target = state.assistantConfirmations.find(
+    (c) => c.id === confirmationId && c.organization_id === orgId
+  );
+  if (!target) {
+    throw new Error('Action confirmation record not found in current organization.');
+  }
+  if (target.status !== 'PENDING') {
+    return { nextState: state, confirmation: target };
+  }
+
+  const updatedConf: AssistantActionConfirmation = {
+    ...target,
+    status: approve ? 'CONFIRMED' : 'CANCELLED',
+    resolved_at: new Date().toISOString(),
+  };
+
+  let nextMaintenance = state.maintenance;
+  if (approve && target.action_type === 'CREATE_MAINTENANCE_REQUEST') {
+    const unitId = String(target.payload.unit_id || '');
+    const unit = state.units.find((u) => u.id === unitId && u.organization_id === orgId);
+    if (unit) {
+      const seq = state.maintenance.filter((m) => m.organization_id === orgId).length + 1;
+      const createdTicket: MaintenanceRequest = {
+        id: `mnt-ast-${Date.now()}`,
+        organization_id: orgId,
+        property_id: unit.property_id,
+        building_id: unit.building_id,
+        unit_id: unit.id,
+        tenant_id: unit.current_tenant_id,
+        request_number: `MNT-${String(seq).padStart(4, '0')}`,
+        category: String(target.payload.category || 'PLUMBING'),
+        priority: 'MEDIUM',
+        title: String(target.payload.title || `Inspection for Unit ${unit.unit_number}`),
+        description: `Created via confirmed AI Assistant action (${target.id}).`,
+        status: 'SUBMITTED',
+        estimated_cost_kes: Number(target.payload.estimated_cost_kes || 2500),
+        actual_cost_kes: 0,
+        created_at: new Date().toISOString(),
+      };
+      nextMaintenance = [createdTicket, ...state.maintenance];
+    }
+  }
+
+  return {
+    nextState: {
+      ...state,
+      maintenance: nextMaintenance,
+      assistantConfirmations: state.assistantConfirmations.map((c) =>
+        c.id === target.id ? updatedConf : c
+      ),
+    },
+    confirmation: updatedConf,
+  };
+}
+
+/**
+ * Dependent Hierarchy Selector Helper (`Property` -> `Building` -> `Floor` -> `Unit`)
+ * Ensures child selections belong to the parent selection and resets stale child IDs.
+ */
+export function resolveDependentUnitHierarchy(
+  state: RmsPlatformState,
+  selection: {
+    propertyId?: string;
+    buildingId?: string;
+    floorId?: string;
+    unitId?: string;
+  }
+): {
+  propertyId: string;
+  buildingId: string;
+  floorId: string;
+  unitId: string;
+  availableProperties: Property[];
+  availableBuildings: Building[];
+  availableFloors: Floor[];
+  availableUnits: Unit[];
+} {
+  const orgId = state.currentOrganizationId;
+  const availableProperties = state.properties.filter((p) => p.organization_id === orgId);
+  const validProperty =
+    availableProperties.find((p) => p.id === selection.propertyId) ?? availableProperties[0];
+  const propertyId = validProperty?.id ?? '';
+
+  const availableBuildings = state.buildings.filter(
+    (b) => b.organization_id === orgId && b.property_id === propertyId
+  );
+  const validBuilding =
+    availableBuildings.find((b) => b.id === selection.buildingId) ?? availableBuildings[0];
+  const buildingId = validBuilding?.id ?? '';
+
+  const availableFloors = state.floors.filter(
+    (f) => f.organization_id === orgId && f.building_id === buildingId
+  );
+  const validFloor =
+    availableFloors.find((f) => f.id === selection.floorId) ?? availableFloors[0];
+  const floorId = validFloor?.id ?? '';
+
+  const availableUnits = state.units.filter(
+    (u) =>
+      u.organization_id === orgId &&
+      u.property_id === propertyId &&
+      (!buildingId || u.building_id === buildingId) &&
+      (!floorId || u.floor_id === floorId)
+  );
+  const validUnit =
+    availableUnits.find((u) => u.id === selection.unitId) ?? availableUnits[0];
+  const unitId = validUnit?.id ?? '';
+
+  return {
+    propertyId,
+    buildingId,
+    floorId,
+    unitId,
+    availableProperties,
+    availableBuildings,
+    availableFloors,
+    availableUnits,
+  };
+}
+

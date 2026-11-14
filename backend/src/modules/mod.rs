@@ -1,4 +1,5 @@
 pub mod accounting;
+pub mod assistant;
 pub mod auth;
 pub mod billing;
 pub mod deposits;
@@ -6,6 +7,8 @@ pub mod documents;
 pub mod leases;
 pub mod maintenance;
 pub mod notifications;
+pub mod ocr;
+pub mod operations;
 pub mod organizations;
 pub mod payments;
 pub mod properties;

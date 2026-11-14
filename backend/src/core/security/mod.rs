@@ -45,6 +45,9 @@ impl SystemRole {
                 "maintenance.view",
                 "maintenance.assign",
                 "documents.view",
+                "documents.upload",
+                "ocr.review",
+                "assistant.use",
                 "reports.export",
                 "users.manage",
             ],
@@ -58,6 +61,8 @@ impl SystemRole {
                 "expenses.approve",
                 "maintenance.view",
                 "documents.view",
+                "ocr.review",
+                "assistant.use",
                 "reports.export",
             ],
             Self::PropertyManager => vec![
@@ -75,6 +80,9 @@ impl SystemRole {
                 "maintenance.view",
                 "maintenance.assign",
                 "documents.view",
+                "documents.upload",
+                "ocr.review",
+                "assistant.use",
                 "reports.export",
             ],
             Self::Accountant => vec![
@@ -87,6 +95,9 @@ impl SystemRole {
                 "payments.reconcile",
                 "expenses.approve",
                 "documents.view",
+                "documents.upload",
+                "ocr.review",
+                "assistant.use",
                 "reports.export",
             ],
             Self::Receptionist => vec![
@@ -96,6 +107,9 @@ impl SystemRole {
                 "leases.view",
                 "leases.create",
                 "maintenance.view",
+                "documents.view",
+                "documents.upload",
+                "assistant.use",
             ],
             Self::MaintenanceOfficer | Self::Vendor => {
                 vec!["properties.view", "maintenance.view", "maintenance.assign"]
@@ -106,6 +120,8 @@ impl SystemRole {
                 "payments.view",
                 "maintenance.view",
                 "documents.view",
+                "documents.upload",
+                "assistant.use",
             ],
         }
     }
