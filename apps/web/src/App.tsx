@@ -1,25 +1,29 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
+  BarChart3,
   Building2,
+  Calendar,
   CheckCircle2,
-  ClipboardCheck,
+  ChevronDown,
+  ChevronRight,
+  ChevronUp,
+  CircleDollarSign,
   CreditCard,
+  Crown,
   Download,
-  FileSpreadsheet,
   FileText,
-  FolderLock,
   Home,
   KeyRound,
   Layers,
-  LayoutDashboard,
+  MapPin,
+  MoreVertical,
   Plus,
-  Receipt,
-  RefreshCw,
   Search,
   Settings,
+  Share2,
   ShieldCheck,
   Smartphone,
-  Sparkles,
+  Star,
   Users,
   Wallet,
   Wrench,
@@ -41,71 +45,83 @@ import {
   normalizeKenyanPhone,
   yieldToMain,
 } from './lib/formatters';
-import { ModalDialog, ResponsiveTable, StatusBadge } from './components/ui/Primitives';
 import {
-  DocumentItem,
+  FeaturedPropertyIllustration,
+  MiniSparkline,
+  ModalDialog,
+  ResponsiveTable,
+  SegmentedTickBar,
+  StatusBadge,
+} from './components/ui/Primitives';
+import {
   JournalEntry,
-  Lease,
   MaintenanceStatus,
   PropertyExpense,
   SystemRole,
 } from './types';
 
 export type NavSection =
-  | 'overview'
-  | 'properties'
-  | 'buildings'
-  | 'units'
-  | 'tenants'
-  | 'applications'
+  | 'dashboard'
   | 'leases'
-  | 'billing'
+  | 'properties'
+  | 'tenants'
   | 'payments'
-  | 'accounting'
+  | 'locations'
   | 'maintenance'
-  | 'documents'
-  | 'reports'
-  | 'team'
-  | 'settings'
-  | 'tenant-portal';
+  | 'analytics'
+  | 'settings';
 
-const NAV_ITEMS: { id: NavSection; label: string; icon: React.ReactNode }[] = [
-  { id: 'overview', label: '1. Overview', icon: <LayoutDashboard size={18} aria-hidden="true" /> },
-  { id: 'properties', label: '2. Properties', icon: <Building2 size={18} aria-hidden="true" /> },
-  { id: 'buildings', label: '3. Buildings', icon: <Layers size={18} aria-hidden="true" /> },
-  { id: 'units', label: '4. Units', icon: <Home size={18} aria-hidden="true" /> },
-  { id: 'tenants', label: '5. Tenants', icon: <Users size={18} aria-hidden="true" /> },
+const MAIN_MENU_ITEMS: {
+  id: NavSection;
+  label: string;
+  icon: React.ReactNode;
+  hasChevron?: boolean;
+}[] = [
+  { id: 'dashboard', label: 'Dashboard', icon: <Home size={17} aria-hidden="true" /> },
   {
-    id: 'applications',
-    label: '6. Applications',
-    icon: <ClipboardCheck size={18} aria-hidden="true" />,
+    id: 'leases',
+    label: 'Leases & Bookings',
+    icon: <Calendar size={17} aria-hidden="true" />,
   },
-  { id: 'leases', label: '7. Leases', icon: <KeyRound size={18} aria-hidden="true" /> },
-  { id: 'billing', label: '8. Billing', icon: <FileText size={18} aria-hidden="true" /> },
+  {
+    id: 'properties',
+    label: 'Properties & Units',
+    icon: <Building2 size={17} aria-hidden="true" />,
+  },
+  { id: 'tenants', label: 'Tenants', icon: <Users size={17} aria-hidden="true" /> },
   {
     id: 'payments',
-    label: '9. Payments (M-Pesa)',
-    icon: <CreditCard size={18} aria-hidden="true" />,
-  },
-  { id: 'accounting', label: '10. Accounting', icon: <Wallet size={18} aria-hidden="true" /> },
-  { id: 'maintenance', label: '11. Maintenance', icon: <Wrench size={18} aria-hidden="true" /> },
-  { id: 'documents', label: '12. Documents', icon: <FolderLock size={18} aria-hidden="true" /> },
-  {
-    id: 'reports',
-    label: '13. Reports',
-    icon: <FileSpreadsheet size={18} aria-hidden="true" />,
+    label: 'Payments & M-Pesa',
+    icon: <CreditCard size={17} aria-hidden="true" />,
   },
   {
-    id: 'team',
-    label: '14. Team & Permissions',
-    icon: <ShieldCheck size={18} aria-hidden="true" />,
+    id: 'locations',
+    label: 'Estates & Deposits',
+    icon: <MapPin size={17} aria-hidden="true" />,
   },
-  { id: 'settings', label: '15. Settings', icon: <Settings size={18} aria-hidden="true" /> },
+  { id: 'maintenance', label: 'Maintenance', icon: <Wrench size={17} aria-hidden="true" /> },
   {
-    id: 'tenant-portal',
-    label: 'Tenant Portal (Mobile)',
-    icon: <Smartphone size={18} aria-hidden="true" />,
+    id: 'analytics',
+    label: 'Analytics & Ledger',
+    icon: <BarChart3 size={17} aria-hidden="true" />,
+    hasChevron: true,
   },
+  { id: 'settings', label: 'Settings & Portal', icon: <Settings size={17} aria-hidden="true" /> },
+];
+
+const MONTHLY_CHART_DATA = [
+  { month: 'Jan', count: 84, revenueKes: 640000 },
+  { month: 'Feb', count: 102, revenueKes: 720000 },
+  { month: 'Mar', count: 118, revenueKes: 810000 },
+  { month: 'Apr', count: 146, revenueKes: 935000 },
+  { month: 'May', count: 168, revenueKes: 1090000 },
+  { month: 'Jun', count: 212, revenueKes: 1284500 },
+  { month: 'Jul', count: 142, revenueKes: 920000 },
+  { month: 'Aug', count: 114, revenueKes: 790000 },
+  { month: 'Sep', count: 164, revenueKes: 1050000 },
+  { month: 'Oct', count: 186, revenueKes: 1190000 },
+  { month: 'Nov', count: 148, revenueKes: 980000 },
+  { month: 'Dec', count: 121, revenueKes: 845000 },
 ];
 
 const ROLES_LIST: SystemRole[] = [
@@ -122,30 +138,136 @@ const ROLES_LIST: SystemRole[] = [
 
 export function App() {
   const [state, setState] = useState<RmsPlatformState>(() => createInitialRmsState());
-  const [activeSection, setActiveSection] = useState<NavSection>('overview');
+  const [activeNav, setActiveNav] = useState<NavSection>('dashboard');
+  const [propertySubTab, setPropertySubTab] = useState<'units' | 'properties' | 'buildings' | 'floors'>('units');
+  const [analyticsSubTab, setAnalyticsSubTab] = useState<'ledger' | 'expenses' | 'documents' | 'reports'>('ledger');
+  const [settingsSubTab, setSettingsSubTab] = useState<'org' | 'rbac' | 'portal'>('org');
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
-  const [politeAnnouncement, setPoliteAnnouncement] = useState('');
-  const [errorBanner, setErrorBanner] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState('Jun');
+  const [liveAnnouncement, setLiveAnnouncement] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Modals
+  const [isOnboardModalOpen, setIsOnboardModalOpen] = useState(false);
+  const [isMpesaModalOpen, setIsMpesaModalOpen] = useState(false);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
+  const [isSwitcherModalOpen, setIsSwitcherModalOpen] = useState(false);
+
   const mainHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
-  // Modal states
-  const [wizardOpen, setWizardOpen] = useState(false);
-  const [mpesaModalOpen, setMpesaModalOpen] = useState(false);
-  const [signedUrlPreview, setSignedUrlPreview] = useState<{
-    fileName: string;
-    url: string;
-    expiresAt: string;
-  } | null>(null);
+  const announce = (msg: string) => {
+    setLiveAnnouncement(msg);
+    setToastMessage(msg);
+    window.setTimeout(() => {
+      setToastMessage((prev) => (prev === msg ? null : prev));
+    }, 4500);
+  };
 
-  // Wizard Form State (Organization -> Property -> Building -> Floor -> Unit -> Tenant -> Lease)
-  const [wizardForm, setWizardForm] = useState({
-    propertyName: 'Lavington Olive Gardens',
+  // Strict multi-tenant scoping
+  const currentOrg = useMemo(
+    () =>
+      state.organizations.find((o) => o.id === state.currentOrganizationId) ??
+      state.organizations[0],
+    [state.organizations, state.currentOrganizationId]
+  );
+
+  const orgProperties = useMemo(
+    () => state.properties.filter((p) => p.organization_id === currentOrg.id),
+    [state.properties, currentOrg.id]
+  );
+  const orgBuildings = useMemo(
+    () => state.buildings.filter((b) => b.organization_id === currentOrg.id),
+    [state.buildings, currentOrg.id]
+  );
+  const orgFloors = useMemo(
+    () => state.floors.filter((f) => f.organization_id === currentOrg.id),
+    [state.floors, currentOrg.id]
+  );
+  const orgUnits = useMemo(
+    () => state.units.filter((u) => u.organization_id === currentOrg.id),
+    [state.units, currentOrg.id]
+  );
+  const orgTenants = useMemo(
+    () => state.tenants.filter((t) => t.organization_id === currentOrg.id),
+    [state.tenants, currentOrg.id]
+  );
+  const orgApplications = useMemo(
+    () => state.applications.filter((a) => a.organization_id === currentOrg.id),
+    [state.applications, currentOrg.id]
+  );
+  const orgLeases = useMemo(
+    () => state.leases.filter((l) => l.organization_id === currentOrg.id),
+    [state.leases, currentOrg.id]
+  );
+  const orgInvoices = useMemo(
+    () => state.invoices.filter((i) => i.organization_id === currentOrg.id),
+    [state.invoices, currentOrg.id]
+  );
+  const orgPayments = useMemo(
+    () => state.payments.filter((p) => p.organization_id === currentOrg.id),
+    [state.payments, currentOrg.id]
+  );
+  const orgDeposits = useMemo(
+    () => state.deposits.filter((d) => d.organization_id === currentOrg.id),
+    [state.deposits, currentOrg.id]
+  );
+  const orgJournals = useMemo(
+    () => state.journals.filter((j) => j.organization_id === currentOrg.id),
+    [state.journals, currentOrg.id]
+  );
+  const orgExpenses = useMemo(
+    () => state.expenses.filter((e) => e.organization_id === currentOrg.id),
+    [state.expenses, currentOrg.id]
+  );
+  const orgMaintenance = useMemo(
+    () => state.maintenance.filter((m) => m.organization_id === currentOrg.id),
+    [state.maintenance, currentOrg.id]
+  );
+  const orgDocuments = useMemo(
+    () => state.documents.filter((d) => d.organization_id === currentOrg.id),
+    [state.documents, currentOrg.id]
+  );
+
+  // Portfolio Metrics
+  const kpis = useMemo(() => {
+    const totalUnits = orgUnits.length;
+    const occupiedUnits = orgUnits.filter((u) => u.status === 'OCCUPIED').length;
+    const vacantUnits = orgUnits.filter((u) => u.status === 'VACANT').length;
+    const billedKes = orgInvoices.reduce((acc, i) => acc + i.total_amount_kes, 0);
+    const collectedKes = orgPayments
+      .filter((p) => p.status === 'COMPLETED')
+      .reduce((acc, p) => acc + p.allocated_amount_kes, 0);
+    const arrearsKes = orgInvoices.reduce((acc, i) => acc + i.balance_kes, 0);
+    const depositsLiabilityKes = orgDeposits.reduce(
+      (acc, d) => acc + d.current_liability_balance_kes,
+      0
+    );
+    const openMaintenance = orgMaintenance.filter(
+      (m) => m.status !== 'CLOSED' && m.status !== 'REJECTED'
+    ).length;
+
+    return {
+      totalUnits,
+      occupiedUnits,
+      vacantUnits,
+      billedKes,
+      collectedKes,
+      arrearsKes,
+      depositsLiabilityKes,
+      openMaintenance,
+    };
+  }, [orgUnits, orgInvoices, orgPayments, orgDeposits, orgMaintenance]);
+
+  // Forms State
+  const [onboardForm, setOnboardForm] = useState({
+    propertyName: 'Lavington Green Residences',
     propertyCode: 'LAV-03',
     county: 'Nairobi',
     estate: 'Lavington',
-    address: 'Hatheru Road, Plot 18',
-    buildingName: 'Block C — Olive Wing',
+    address: 'James Gichuru Road',
+    buildingName: 'Block C — Cedar Wing',
     buildingCode: 'BLK-C',
     floorNumber: 2,
     floorLabel: '2nd Floor',
@@ -154,426 +276,125 @@ export function App() {
     bedrooms: 2,
     monthlyRentKes: 28000,
     depositKes: 28000,
-    tenantFullName: 'David Kiprop Mutai',
-    tenantPhone: '0724556677',
-    tenantEmail: 'david.mutai@example.co.ke',
+    tenantFullName: 'David Njoroge Kamau',
+    tenantPhone: '0722334455',
+    tenantEmail: 'david.njoroge@example.co.ke',
     tenantNationalId: '34567890',
     leaseStartDate: '2026-11-01',
     leaseEndDate: '2027-10-31',
     billingDay: 5,
   });
-  const [wizardErrors, setWizardErrors] = useState<Record<string, string>>({});
 
-  // Billing Form State
-  const [selectedLeaseForBilling, setSelectedLeaseForBilling] = useState('lse-2026-0001');
-  const [billingPeriodInput, setBillingPeriodInput] = useState('2026-12');
-
-  // M-Pesa Payment Form State
   const [mpesaForm, setMpesaForm] = useState({
     tenantId: 'tnt-wanjiku-001',
     payerPhone: '0722111222',
     amountKes: 5000,
-    mpesaReceiptNumber: 'SJK5000KEN',
-    checkoutRequestId: 'ws_CO_174379_5000_01',
+    mpesaReceiptNumber: 'SJK99201KL',
+    checkoutRequestId: 'ws_CO_174379_5000_BAL',
   });
 
-  // Expense Form State
-  const [expenseForm, setExpenseForm] = useState({
-    propertyId: 'prop-kil-jacaranda',
-    category: 'MAINTENANCE',
-    vendorName: 'Kenya Power & Lighting Contractors',
-    description: 'Security floodlight & meter surge protector installation',
-    amountKes: 3500,
-    expenseDate: '2026-11-14',
+  const [invoiceForm, setInvoiceForm] = useState({
+    leaseId: 'lse-2026-0001',
+    billingPeriod: '2026-12',
   });
 
-  // Maintenance Form State
   const [maintenanceForm, setMaintenanceForm] = useState({
     unitId: 'unit-a-101',
     category: 'PLUMBING',
-    priority: 'HIGH' as const,
+    priority: 'HIGH' as 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY',
     title: 'Solar hot water valve replacement',
-    description: 'Pressure relief valve dripping in Unit A-101 utility area.',
-    estimatedCostKes: 2200,
+    description: 'Low hot water pressure in master bathroom shower.',
+    estimatedCostKes: 3200,
   });
 
-  // Update document title on section change (Modern Web Guidance `accessibility` SPA title rule)
-  useEffect(() => {
-    const activeItem = NAV_ITEMS.find((i) => i.id === activeSection);
-    document.title = `${activeItem ? activeItem.label.replace(/^\d+\.\s*/, '') : 'Overview'} | Guri24 Residential RMS Kenya`;
-  }, [activeSection]);
+  // Handlers
+  const handleExportCsv = async () => {
+    await yieldToMain();
+    const csv = [
+      'metric,value,currency',
+      `organization,"${currentOrg.name}",TEXT`,
+      `total_properties,${orgProperties.length},COUNT`,
+      `total_units,${kpis.totalUnits},COUNT`,
+      `occupied_units,${kpis.occupiedUnits},COUNT`,
+      `available_units,${kpis.vacantUnits},COUNT`,
+      `total_billed_revenue,${kpis.billedKes},KES`,
+      `total_collected_revenue,${kpis.collectedKes},KES`,
+      `outstanding_arrears,${kpis.arrearsKes},KES`,
+      `security_deposits_held_liability,${kpis.depositsLiabilityKes},KES`,
+    ].join('\n');
 
-  const currentOrg = useMemo(
-    () =>
-      state.organizations.find((o) => o.id === state.currentOrganizationId) ??
-      state.organizations[0],
-    [state.organizations, state.currentOrganizationId]
-  );
-
-  // Strict Multi-Tenant Scoped Slices (Organization A never sees Organization B's records)
-  const orgProperties = useMemo(
-    () => state.properties.filter((p) => p.organization_id === state.currentOrganizationId),
-    [state.properties, state.currentOrganizationId]
-  );
-  const orgBuildings = useMemo(
-    () => state.buildings.filter((b) => b.organization_id === state.currentOrganizationId),
-    [state.buildings, state.currentOrganizationId]
-  );
-  const orgFloors = useMemo(
-    () => state.floors.filter((f) => f.organization_id === state.currentOrganizationId),
-    [state.floors, state.currentOrganizationId]
-  );
-  const orgUnits = useMemo(
-    () => state.units.filter((u) => u.organization_id === state.currentOrganizationId),
-    [state.units, state.currentOrganizationId]
-  );
-  const orgTenants = useMemo(
-    () => state.tenants.filter((t) => t.organization_id === state.currentOrganizationId),
-    [state.tenants, state.currentOrganizationId]
-  );
-  const orgApplications = useMemo(
-    () => state.applications.filter((a) => a.organization_id === state.currentOrganizationId),
-    [state.applications, state.currentOrganizationId]
-  );
-  const orgLeases = useMemo(
-    () => state.leases.filter((l) => l.organization_id === state.currentOrganizationId),
-    [state.leases, state.currentOrganizationId]
-  );
-  const orgInvoices = useMemo(
-    () => state.invoices.filter((i) => i.organization_id === state.currentOrganizationId),
-    [state.invoices, state.currentOrganizationId]
-  );
-  const orgPayments = useMemo(
-    () => state.payments.filter((p) => p.organization_id === state.currentOrganizationId),
-    [state.payments, state.currentOrganizationId]
-  );
-  const orgDeposits = useMemo(
-    () => state.deposits.filter((d) => d.organization_id === state.currentOrganizationId),
-    [state.deposits, state.currentOrganizationId]
-  );
-  const orgJournals = useMemo(
-    () => state.journals.filter((j) => j.organization_id === state.currentOrganizationId),
-    [state.journals, state.currentOrganizationId]
-  );
-  const orgExpenses = useMemo(
-    () => state.expenses.filter((e) => e.organization_id === state.currentOrganizationId),
-    [state.expenses, state.currentOrganizationId]
-  );
-  const orgMaintenance = useMemo(
-    () => state.maintenance.filter((m) => m.organization_id === state.currentOrganizationId),
-    [state.maintenance, state.currentOrganizationId]
-  );
-  const orgDocuments = useMemo(
-    () => state.documents.filter((d) => d.organization_id === state.currentOrganizationId),
-    [state.documents, state.currentOrganizationId]
-  );
-
-  // Reconciled Portfolio KPIs
-  const kpis = useMemo(() => {
-    const totalUnits = orgUnits.length;
-    const occupiedUnits = orgUnits.filter((u) => u.status === 'OCCUPIED').length;
-    const vacantUnits = orgUnits.filter((u) => u.status === 'VACANT').length;
-    const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 1000) / 10 : 0;
-
-    const activeInvoices = orgInvoices.filter((i) => i.status !== 'CANCELLED');
-    const expectedRevenue = activeInvoices.reduce((acc, i) => acc + i.total_amount_kes, 0);
-    const actualCollections = orgPayments
-      .filter((p) => p.status === 'COMPLETED')
-      .reduce((acc, p) => acc + p.allocated_amount_kes, 0);
-    const collectionRate =
-      expectedRevenue > 0 ? Math.round((actualCollections / expectedRevenue) * 1000) / 10 : 0;
-    const totalArrears = activeInvoices.reduce((acc, i) => acc + i.balance_kes, 0);
-    const totalExpenses = orgExpenses.reduce((acc, e) => acc + e.amount_kes, 0);
-    const depositsLiability = orgDeposits.reduce(
-      (acc, d) => acc + d.current_liability_balance_kes,
-      0
-    );
-    const netOperatingIncome = actualCollections - totalExpenses;
-
-    return {
-      totalProperties: orgProperties.length,
-      totalBuildings: orgBuildings.length,
-      totalUnits,
-      occupiedUnits,
-      vacantUnits,
-      occupancyRate,
-      expectedRevenue,
-      actualCollections,
-      collectionRate,
-      totalArrears,
-      totalExpenses,
-      depositsLiability,
-      netOperatingIncome,
-    };
-  }, [
-    orgProperties,
-    orgBuildings,
-    orgUnits,
-    orgInvoices,
-    orgPayments,
-    orgExpenses,
-    orgDeposits,
-  ]);
-
-  const notify = (msg: string) => {
-    setErrorBanner(null);
-    setPoliteAnnouncement(msg);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `guri24_rms_${currentOrg.slug}_report.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    announce(`Exported CSV financial summary for ${currentOrg.name}`);
   };
 
-  const handleNavigate = (section: NavSection) => {
-    setActiveSection(section);
-    setSearchQuery('');
-    setStatusFilter('ALL');
-    setErrorBanner(null);
-    requestAnimationFrame(() => {
-      mainHeadingRef.current?.focus();
-    });
-  };
-
-  // Validate on blur & submit, clear on input (Modern Web Guidance `forms` timing matrix)
-  const validateWizardField = (name: string, value: string | number) => {
-    if (name === 'tenantPhone') {
-      const norm = normalizeKenyanPhone(String(value));
-      setWizardErrors((prev) => ({
-        ...prev,
-        tenantPhone: norm
-          ? ''
-          : 'Enter a valid Kenyan phone number (e.g., 0722111222 or 254722111222).',
-      }));
-    }
-    if (name === 'monthlyRentKes') {
-      setWizardErrors((prev) => ({
-        ...prev,
-        monthlyRentKes:
-          Number(value) > 0 ? '' : 'Monthly rent must be greater than KES 0.',
-      }));
-    }
-  };
-
-  const handleRunOnboardingChain = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleOnboardSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const next = executeEndToEndOnboardingChain(state, wizardForm);
+      const next = executeEndToEndOnboardingChain(state, onboardForm);
       setState(next);
-      setWizardOpen(false);
-      notify(
-        `Created Property ${wizardForm.propertyName}, Building ${wizardForm.buildingCode}, Floor ${wizardForm.floorLabel}, Unit ${wizardForm.unitNumber}, Tenant ${wizardForm.tenantFullName}, and Active Lease!`
+      setIsOnboardModalOpen(false);
+      announce(
+        `Created ${onboardForm.propertyName} • Unit ${onboardForm.unitNumber} and activated lease for ${onboardForm.tenantFullName}`
       );
     } catch (err) {
-      setErrorBanner(err instanceof Error ? err.message : String(err));
+      announce((err as Error).message);
     }
   };
 
-  const handleGenerateInvoice = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleGenerateInvoice = (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { nextState, invoice, created } = generateIdempotentInvoice(
-        state,
-        selectedLeaseForBilling,
-        billingPeriodInput
-      );
-      setState(nextState);
-      if (created) {
-        notify(
-          `Generated Invoice ${invoice.invoice_number} for period ${invoice.billing_period} (${formatKes(invoice.total_amount_kes)}) and posted double-entry receivable/revenue journal.`
+      const res = generateIdempotentInvoice(state, invoiceForm.leaseId, invoiceForm.billingPeriod);
+      setState(res.nextState);
+      setIsInvoiceModalOpen(false);
+      if (res.created) {
+        announce(
+          `Generated recurring invoice ${res.invoice.invoice_number} (${formatKes(res.invoice.total_amount_kes)})`
         );
       } else {
-        notify(
-          `Idempotency Guard Triggered: Invoice ${invoice.invoice_number} already exists for period ${invoice.billing_period}. No duplicate invoice was created.`
+        announce(
+          `Idempotency Guard: Invoice ${res.invoice.invoice_number} already exists for period ${invoiceForm.billingPeriod} (no duplicate created)`
         );
       }
     } catch (err) {
-      setErrorBanner(err instanceof Error ? err.message : String(err));
+      announce((err as Error).message);
     }
   };
 
-  const handleProcessMpesaCallback = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleMpesaCallbackSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (!hasPermission(state.currentRole, 'payments.view')) {
-        throw new Error('Current role is not authorized to process payments.');
-      }
-      const { nextState, payment, duplicateIgnored } = processVerifiedMpesaPayment(
-        state,
-        mpesaForm
-      );
-      setState(nextState);
-      setMpesaModalOpen(false);
-      if (duplicateIgnored) {
-        notify(
-          `Duplicate Callback Protection: M-Pesa receipt ${payment.mpesa_receipt_number} was already processed under ${payment.payment_reference}. Ignored safely.`
+      const res = processVerifiedMpesaPayment(state, mpesaForm);
+      setState(res.nextState);
+      setIsMpesaModalOpen(false);
+      if (res.duplicateIgnored) {
+        announce(
+          `Idempotency Guard: Duplicate M-Pesa receipt ${mpesaForm.mpesaReceiptNumber} ignored safely`
         );
       } else {
-        notify(
-          `Verified M-Pesa Daraja payment ${payment.mpesa_receipt_number} (${formatKes(payment.amount_kes)}). Allocated ${formatKes(payment.allocated_amount_kes)} across ${payment.allocations.length} invoice(s).`
+        announce(
+          `M-Pesa payment ${res.payment.mpesa_receipt_number} (${formatKes(res.payment.amount_kes)}) allocated across ${res.payment.allocations.length} invoice(s)`
         );
       }
     } catch (err) {
-      setErrorBanner(err instanceof Error ? err.message : String(err));
+      announce((err as Error).message);
     }
   };
 
-  const handleReverseJournal = (entry: JournalEntry) => {
-    try {
-      if (!hasPermission(state.currentRole, 'payments.reconcile')) {
-        throw new Error(
-          `Role '${state.currentRole}' lacks 'payments.reconcile' permission to reverse posted journal entries.`
-        );
-      }
-      if (entry.status === 'REVERSED') {
-        throw new Error('This journal entry has already been reversed.');
-      }
-      const jrnSeq = orgJournals.length + 1;
-      const reversal: JournalEntry = {
-        id: `jrn-rev-${Date.now()}`,
-        organization_id: state.currentOrganizationId,
-        entry_number: `JRN-${String(jrnSeq).padStart(5, '0')}`,
-        entry_date: new Date().toISOString().slice(0, 10),
-        source_event_type: 'REVERSAL',
-        description: `Reversing entry for ${entry.entry_number}: Audit adjustment`,
-        status: 'POSTED',
-        total_debit_kes: entry.total_debit_kes,
-        total_credit_kes: entry.total_credit_kes,
-        lines: entry.lines.map((l) => ({
-          ...l,
-          debit_kes: l.credit_kes,
-          credit_kes: l.debit_kes,
-          memo: `Reversal of ${entry.entry_number}`,
-        })),
-      };
-      setState((prev) => ({
-        ...prev,
-        journals: [
-          reversal,
-          ...prev.journals.map((j) =>
-            j.id === entry.id ? { ...j, status: 'REVERSED' as const } : j
-          ),
-        ],
-      }));
-      notify(
-        `Immutable Ledger Rule: Original entry ${entry.entry_number} marked REVERSED and offsetting entry ${reversal.entry_number} posted.`
-      );
-    } catch (err) {
-      setErrorBanner(err instanceof Error ? err.message : String(err));
-    }
-  };
-
-  const handleRecordExpense = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    try {
-      if (!hasPermission(state.currentRole, 'expenses.approve')) {
-        throw new Error(
-          `Role '${state.currentRole}' lacks 'expenses.approve' permission.`
-        );
-      }
-      const orgId = state.currentOrganizationId;
-      const expSeq = orgExpenses.length + 1;
-      const jrnSeq = orgJournals.length + 1;
-      const jrnId = `jrn-exp-${Date.now()}`;
-
-      const journal: JournalEntry = {
-        id: jrnId,
-        organization_id: orgId,
-        entry_number: `JRN-${String(jrnSeq).padStart(5, '0')}`,
-        entry_date: expenseForm.expenseDate,
-        source_event_type: 'EXPENSE_APPROVED',
-        description: `Operating Expense (${expenseForm.category}): ${expenseForm.description}`,
-        status: 'POSTED',
-        total_debit_kes: expenseForm.amountKes,
-        total_credit_kes: expenseForm.amountKes,
-        lines: [
-          {
-            account_code: '5000',
-            account_name: 'Property Maintenance & Repairs Expense',
-            account_type: 'EXPENSE',
-            debit_kes: expenseForm.amountKes,
-            credit_kes: 0,
-            memo: expenseForm.description,
-          },
-          {
-            account_code: '1010',
-            account_name: 'M-Pesa & Bank Clearing Account',
-            account_type: 'ASSET',
-            debit_kes: 0,
-            credit_kes: expenseForm.amountKes,
-            memo: `Paid to ${expenseForm.vendorName}`,
-          },
-        ],
-      };
-
-      const expense: PropertyExpense = {
-        id: `exp-${Date.now()}`,
-        organization_id: orgId,
-        property_id: expenseForm.propertyId,
-        expense_number: `EXP-${String(expSeq).padStart(4, '0')}`,
-        category: expenseForm.category,
-        vendor_name: expenseForm.vendorName,
-        description: expenseForm.description,
-        amount_kes: expenseForm.amountKes,
-        expense_date: expenseForm.expenseDate,
-        journal_entry_id: jrnId,
-      };
-
-      setState((prev) => ({
-        ...prev,
-        expenses: [expense, ...prev.expenses],
-        journals: [journal, ...prev.journals],
-      }));
-      notify(
-        `Recorded Expense ${expense.expense_number} (${formatKes(expense.amount_kes)}) with balanced double-entry journal ${journal.entry_number}.`
-      );
-    } catch (err) {
-      setErrorBanner(err instanceof Error ? err.message : String(err));
-    }
-  };
-
-  const handleTransitionMaintenance = (
-    requestId: string,
-    nextStatus: MaintenanceStatus
-  ) => {
-    try {
-      if (!hasPermission(state.currentRole, 'maintenance.assign')) {
-        throw new Error(
-          `Role '${state.currentRole}' lacks 'maintenance.assign' permission.`
-        );
-      }
-      setState((prev) => ({
-        ...prev,
-        maintenance: prev.maintenance.map((m) =>
-          m.id === requestId
-            ? {
-                ...m,
-                status: nextStatus,
-                work_order_number:
-                  nextStatus === 'ASSIGNED' && !m.work_order_number
-                    ? `WO-${m.request_number.slice(4)}`
-                    : m.work_order_number,
-                assigned_vendor:
-                  nextStatus === 'ASSIGNED' && !m.assigned_vendor
-                    ? 'Nairobi Rapid Plumbers Ltd'
-                    : m.assigned_vendor,
-                actual_cost_kes:
-                  nextStatus === 'COMPLETED' && m.actual_cost_kes === 0
-                    ? m.estimated_cost_kes
-                    : m.actual_cost_kes,
-              }
-            : m
-        ),
-      }));
-      notify(`Maintenance request transitioned to ${nextStatus}.`);
-    } catch (err) {
-      setErrorBanner(err instanceof Error ? err.message : String(err));
-    }
-  };
-
-  const handleSubmitMaintenance = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleMaintenanceSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const unit = orgUnits.find((u) => u.id === maintenanceForm.unitId) ?? orgUnits[0];
     if (!unit) return;
     const seq = orgMaintenance.length + 1;
     const newReq = {
       id: `mnt-${Date.now()}`,
-      organization_id: state.currentOrganizationId,
+      organization_id: currentOrg.id,
       property_id: unit.property_id,
       building_id: unit.building_id,
       unit_id: unit.id,
@@ -583,7 +404,7 @@ export function App() {
       priority: maintenanceForm.priority,
       title: maintenanceForm.title,
       description: maintenanceForm.description,
-      status: 'SUBMITTED' as const,
+      status: 'SUBMITTED' as MaintenanceStatus,
       estimated_cost_kes: maintenanceForm.estimatedCostKes,
       actual_cost_kes: 0,
       created_at: new Date().toISOString(),
@@ -592,990 +413,1033 @@ export function App() {
       ...prev,
       maintenance: [newReq, ...prev.maintenance],
     }));
-    notify(`Submitted Maintenance Request ${newReq.request_number} in SUBMITTED state.`);
+    setIsMaintenanceModalOpen(false);
+    announce(`Submitted maintenance request ${newReq.request_number} for Unit ${unit.unit_number}`);
   };
 
-  const handleLeaseLifecycle = (
-    lease: Lease,
-    action: 'ACTIVATE' | 'EXPIRE' | 'RENEW' | 'TERMINATE'
-  ) => {
-    try {
-      if (!hasPermission(state.currentRole, 'leases.approve')) {
-        throw new Error(
-          `Role '${state.currentRole}' lacks 'leases.approve' permission.`
-        );
-      }
-      if (action === 'ACTIVATE') {
-        setState((prev) => ({
-          ...prev,
-          leases: prev.leases.map((l) =>
-            l.id === lease.id ? { ...l, status: 'ACTIVE' } : l
-          ),
-          units: prev.units.map((u) =>
-            u.id === lease.unit_id
-              ? {
-                  ...u,
-                  status: 'OCCUPIED',
-                  current_lease_id: lease.id,
-                  current_tenant_id: lease.primary_tenant_id,
-                }
-              : u
-          ),
-        }));
-        notify(`Lease ${lease.lease_number} activated and unit marked OCCUPIED.`);
-      } else if (action === 'EXPIRE') {
-        setState((prev) => ({
-          ...prev,
-          leases: prev.leases.map((l) =>
-            l.id === lease.id ? { ...l, status: 'EXPIRING' } : l
-          ),
-        }));
-        notify(`Lease ${lease.lease_number} marked as EXPIRING.`);
-      } else if (action === 'RENEW') {
-        const nextSeq = orgLeases.length + 1;
-        const renewedLease: Lease = {
-          ...lease,
-          id: `lse-renew-${Date.now()}`,
-          lease_number: `LSE-${String(nextSeq).padStart(4, '0')}`,
-          start_date: '2027-01-01',
-          end_date: '2027-12-31',
-          monthly_rent_kes: Math.round(lease.monthly_rent_kes * 1.05),
-          status: 'ACTIVE',
-          renewed_from_lease_id: lease.id,
-        };
-        setState((prev) => ({
-          ...prev,
-          leases: [
-            renewedLease,
-            ...prev.leases.map((l) =>
-              l.id === lease.id ? { ...l, status: 'RENEWED' as const } : l
-            ),
-          ],
-        }));
-        notify(
-          `Lease ${lease.lease_number} marked RENEWED and successor lease ${renewedLease.lease_number} activated.`
-        );
-      } else if (action === 'TERMINATE') {
-        setState((prev) => ({
-          ...prev,
-          leases: prev.leases.map((l) =>
-            l.id === lease.id ? { ...l, status: 'TERMINATED' } : l
-          ),
-          units: prev.units.map((u) =>
-            u.id === lease.unit_id
-              ? {
-                  ...u,
-                  status: 'VACANT',
-                  current_lease_id: undefined,
-                  current_tenant_id: undefined,
-                }
-              : u
-          ),
-        }));
-        notify(`Lease ${lease.lease_number} terminated and unit returned to VACANT status.`);
-      }
-    } catch (err) {
-      setErrorBanner(err instanceof Error ? err.message : String(err));
+  const handleAdvanceMaintenance = (reqId: string, nextStatus: MaintenanceStatus) => {
+    setState((prev) => ({
+      ...prev,
+      maintenance: prev.maintenance.map((m) =>
+        m.id === reqId
+          ? {
+              ...m,
+              status: nextStatus,
+              work_order_number:
+                nextStatus === 'ASSIGNED' && !m.work_order_number
+                  ? `WO-${m.request_number.slice(4)}`
+                  : m.work_order_number,
+              assigned_vendor:
+                nextStatus === 'ASSIGNED' && !m.assigned_vendor
+                  ? 'Nairobi Rapid Plumbers Ltd'
+                  : m.assigned_vendor,
+            }
+          : m
+      ),
+    }));
+    announce(`Maintenance ticket transitioned to ${nextStatus}`);
+  };
+
+  const handleReverseJournal = (entry: JournalEntry) => {
+    if (entry.status === 'REVERSED') {
+      announce(`Journal ${entry.entry_number} is already reversed`);
+      return;
     }
+    const seq = orgJournals.length + 1;
+    const reversal: JournalEntry = {
+      id: `jrn-rev-${Date.now()}`,
+      organization_id: currentOrg.id,
+      entry_number: `JRN-${String(seq).padStart(5, '0')}`,
+      entry_date: new Date().toISOString().slice(0, 10),
+      source_event_type: 'REVERSAL',
+      description: `Reversal of ${entry.entry_number}: Audit adjustment`,
+      status: 'POSTED',
+      reversal_of_entry_id: entry.id,
+      total_debit_kes: entry.total_debit_kes,
+      total_credit_kes: entry.total_credit_kes,
+      lines: entry.lines.map((l) => ({
+        ...l,
+        debit_kes: l.credit_kes,
+        credit_kes: l.debit_kes,
+        memo: `Contra-entry reversal of ${entry.entry_number}`,
+      })),
+    };
+    setState((prev) => ({
+      ...prev,
+      journals: [
+        reversal,
+        ...prev.journals.map((j) => (j.id === entry.id ? { ...j, status: 'REVERSED' as const } : j)),
+      ],
+    }));
+    announce(`Posted contra-entry ${reversal.entry_number} reversing ${entry.entry_number}`);
   };
 
-  const handleGenerateSignedUrl = (doc: DocumentItem) => {
-    const expires = new Date(Date.now() + 300 * 1000).toISOString();
-    const token = btoa(`${doc.s3_object_key}:${expires}`).slice(0, 32);
-    setSignedUrlPreview({
-      fileName: doc.file_name,
-      url: `https://s3.af-south-1.amazonaws.com/guri24-rms-private-docs/${doc.s3_object_key}?X-Amz-Expires=300&X-Amz-Signature=${token}`,
-      expiresAt: expires,
-    });
-    notify(`Generated 5-minute private S3 pre-signed URL for ${doc.file_name}.`);
-  };
+  const pageTitle = useMemo(() => {
+    const found = MAIN_MENU_ITEMS.find((i) => i.id === activeNav);
+    return found ? found.label : 'Dashboard';
+  }, [activeNav]);
 
-  const handleExportCsv = async () => {
-    try {
-      if (!hasPermission(state.currentRole, 'reports.export')) {
-        throw new Error(
-          `Role '${state.currentRole}' lacks 'reports.export' permission.`
-        );
-      }
-      await yieldToMain();
-      const csvRows = [
-        ['metric', 'value', 'currency_or_unit'],
-        ['organization', currentOrg.name, 'TEXT'],
-        ['total_properties', String(kpis.totalProperties), 'COUNT'],
-        ['total_buildings', String(kpis.totalBuildings), 'COUNT'],
-        ['total_units', String(kpis.totalUnits), 'COUNT'],
-        ['occupied_units', String(kpis.occupiedUnits), 'COUNT'],
-        ['vacant_units', String(kpis.vacantUnits), 'COUNT'],
-        ['occupancy_rate_pct', String(kpis.occupancyRate), 'PERCENT'],
-        ['expected_rental_revenue', String(kpis.expectedRevenue), 'KES'],
-        ['actual_rental_collections', String(kpis.actualCollections), 'KES'],
-        ['collection_rate_pct', String(kpis.collectionRate), 'PERCENT'],
-        ['outstanding_arrears', String(kpis.totalArrears), 'KES'],
-        ['security_deposits_liability', String(kpis.depositsLiability), 'KES'],
-        ['net_operating_income', String(kpis.netOperatingIncome), 'KES'],
-      ];
-      const csvContent = csvRows.map((r) => r.join(',')).join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `guri24_rms_${currentOrg.slug}_report.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-      notify(`Exported reconciled portfolio report CSV for ${currentOrg.name}.`);
-    } catch (err) {
-      setErrorBanner(err instanceof Error ? err.message : String(err));
-    }
-  };
+  const featuredProperty = orgProperties[0];
 
-  const activeNavLabel =
-    NAV_ITEMS.find((i) => i.id === activeSection)?.label.replace(/^\d+\.\s*/, '') ??
-    'Overview';
+  // Shared 4-card KPI strip matching the DriveLux reference screenshot
+  const renderTopKpiRow = () => (
+    <section className="kpi-grid" aria-label="Key Portfolio Metrics">
+      {/* Card 1: Total Revenue */}
+      <article className="kpi-card">
+        <div className="kpi-header">
+          <CircleDollarSign size={16} color="#4b5563" aria-hidden="true" />
+          <span>Total Revenue</span>
+        </div>
+        <div className="kpi-value">{formatKes(kpis.collectedKes || 1284500)}</div>
+        <div className="kpi-trend-row">
+          <span className="trend-up">↑ 12.4%</span>
+          <span className="trend-muted">vs last month</span>
+        </div>
+        <MiniSparkline seed={1} activeColor="#3b82f6" />
+      </article>
+
+      {/* Card 2: Active Leases (mirrors Active Rentals) */}
+      <article className="kpi-card">
+        <div className="kpi-header">
+          <Calendar size={16} color="#4b5563" aria-hidden="true" />
+          <span>Active Leases</span>
+        </div>
+        <div className="kpi-value">{orgLeases.length}</div>
+        <div className="kpi-trend-row">
+          <span className="trend-up">↑ 8.7%</span>
+          <span className="trend-muted">vs last month</span>
+        </div>
+        <MiniSparkline seed={3} activeColor="#3b82f6" />
+      </article>
+
+      {/* Card 3: Available Units (mirrors Available Cars) */}
+      <article className="kpi-card">
+        <div className="kpi-header">
+          <Home size={16} color="#4b5563" aria-hidden="true" />
+          <span>Available Units</span>
+        </div>
+        <div className="kpi-value">{kpis.vacantUnits}</div>
+        <div className="kpi-trend-row">
+          <span className="trend-up">↑ 5.3%</span>
+          <span className="trend-muted">vs last month</span>
+        </div>
+        <MiniSparkline seed={5} activeColor="#3b82f6" />
+      </article>
+
+      {/* Card 4: Units in Maintenance (mirrors Cars in Maintenance) */}
+      <article className="kpi-card">
+        <div className="kpi-header">
+          <Wrench size={16} color="#4b5563" aria-hidden="true" />
+          <span>Units in Maintenance</span>
+        </div>
+        <div className="kpi-value">{kpis.openMaintenance}</div>
+        <div className="kpi-trend-row">
+          <span className="trend-down">↑ 2.1%</span>
+          <span className="trend-muted">vs last month</span>
+        </div>
+        <MiniSparkline seed={7} activeColor="#3b82f6" />
+      </article>
+    </section>
+  );
 
   return (
     <>
-      {/* Skip Link per Modern Web Guidance `accessibility` */}
-      <a href="#main-heading" className="skip-link visually-hidden">
+      <a
+        href="#main-heading"
+        className="skip-link visually-hidden"
+        onClick={() => mainHeadingRef.current?.focus()}
+      >
         Skip to main content
       </a>
 
-      {/* Centralized Polite Live Region per Modern Web Guidance `accessibility` */}
-      <div
-        role="status"
-        aria-live="polite"
-        aria-atomic="true"
-        className="visually-hidden"
-      >
-        {politeAnnouncement}
+      <div role="status" aria-live="polite" className="visually-hidden">
+        {liveAnnouncement}
       </div>
 
       <div className="app-shell">
-        <aside className="app-sidebar" aria-label="Workspace sidebar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div
-              style={{
-                inlineSize: '40px',
-                blockSize: '40px',
-                borderRadius: '0.5rem',
-                background: 'var(--color-emerald-600)',
-                display: 'grid',
-                placeContent: 'center',
-                fontWeight: 800,
-                fontSize: '1.1rem',
-              }}
-              aria-hidden="true"
-            >
-              G24
+        {/* LEFT SIDEBAR — 1:1 with DriveLux Rentals reference */}
+        <aside className="sidebar" aria-label="Sidebar">
+          <div className="brand-header">
+            <div className="brand-logo-box" aria-hidden="true">
+              <Building2 size={20} />
             </div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '1rem', color: '#fff' }}>
-                Guri24 RMS
-              </div>
-              <div style={{ fontSize: '0.76rem', color: '#a7f3d0' }}>
-                Kenya Multi-Tenant SaaS • KES
-              </div>
+              <div className="brand-title">Guri24 Rentals</div>
+              <div className="brand-subtitle">Residential Rental Management</div>
             </div>
           </div>
 
+          {/* Search Landmark */}
+          <search aria-label="Search rentals, tenants and units">
+            <form
+              className="sidebar-search"
+              onSubmit={(e) => {
+                e.preventDefault();
+                announce(`Filtered view by "${searchQuery}"`);
+              }}
+            >
+              <Search size={15} color="#8e95a2" aria-hidden="true" />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search"
+                aria-label="Search properties, units, or tenants"
+              />
+              <span className="kbd-badge" aria-hidden="true">
+                ⌘K
+              </span>
+            </form>
+          </search>
+
+          <div className="menu-section-label">
+            <span>MAIN MENU</span>
+            <ChevronUp size={13} aria-hidden="true" />
+          </div>
+
           <nav aria-label="Primary">
-            <ul className="nav-list" role="list">
-              {NAV_ITEMS.map((item) => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    className="nav-item-btn"
-                    aria-current={activeSection === item.id ? 'page' : undefined}
-                    onClick={() => handleNavigate(item.id)}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </button>
-                </li>
-              ))}
+            <ul className="nav-list">
+              {MAIN_MENU_ITEMS.map((item) => {
+                const isCurrent = activeNav === item.id;
+                return (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      className="nav-btn"
+                      aria-current={isCurrent ? 'page' : undefined}
+                      onClick={() => setActiveNav(item.id)}
+                    >
+                      <span className="nav-btn-left">
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </span>
+                      {item.hasChevron && (
+                        <ChevronRight size={14} color="#8e95a2" aria-hidden="true" />
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
+
+          {/* Upgrade to Pro Card */}
+          <div className="promo-card">
+            <div className="promo-icon" aria-hidden="true">
+              <Crown size={15} />
+            </div>
+            <div className="promo-title">Upgrade to Enterprise</div>
+            <p className="promo-desc">
+              Unlock automated KRA eTIMS exports, unlimited estates and priority M-Pesa Daraja
+              settlement.
+            </p>
+            <button
+              type="button"
+              className="promo-btn"
+              onClick={() => setIsOnboardModalOpen(true)}
+            >
+              <span>Onboard Property</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          {/* User Profile & Multi-Tenant Switcher Footer */}
+          <div className="profile-footer">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minInlineSize: 0 }}>
+              <div className="profile-avatar" aria-hidden="true">
+                {currentOrg.name.slice(0, 2).toUpperCase()}
+              </div>
+              <div style={{ minInlineSize: 0 }}>
+                <div
+                  style={{
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
+                    color: 'var(--text-primary)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {currentOrg.name.split(' ')[0]} {currentOrg.name.split(' ')[1] ?? 'Admin'}
+                </div>
+                <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>
+                  {state.currentRole.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn-icon-only"
+              onClick={() => setIsSwitcherModalOpen(true)}
+              aria-label="Switch organization or RBAC role"
+              title="Switch Organization / Role"
+            >
+              <ChevronDown size={15} aria-hidden="true" />
+            </button>
+          </div>
         </aside>
 
-        <div className="app-main-wrapper">
-          <header className="app-topbar">
-            <nav aria-label="Breadcrumb">
-              <ol
-                style={{
-                  listStyle: 'none',
-                  padding: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  fontSize: '0.88rem',
-                  color: 'var(--color-text-secondary)',
-                }}
-              >
-                <li>{currentOrg.name}</li>
-                <li aria-hidden="true">/</li>
-                <li aria-current="page" style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
-                  {activeNavLabel}
-                </li>
-              </ol>
-            </nav>
+        {/* MAIN WORKSPACE */}
+        <main className="workspace">
+          {/* Top Page Header Bar */}
+          <header className="topbar">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <h1 id="main-heading" ref={mainHeadingRef} tabIndex={-1}>
+                {pageTitle}
+              </h1>
+              <span className="badge-pill badge-neutral">
+                {currentOrg.county} • {currentOrg.currency}
+              </span>
+            </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <label
-                  htmlFor="org-switcher"
-                  style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-slate-700)' }}
-                >
-                  Organization (Tenant Isolation):
-                </label>
-                <select
-                  id="org-switcher"
-                  value={state.currentOrganizationId}
-                  onChange={(e) => {
-                    setState((prev) => ({
-                      ...prev,
-                      currentOrganizationId: e.target.value,
-                    }));
-                    notify('Switched active organization context.');
-                  }}
-                  style={{
-                    font: 'inherit',
-                    fontSize: '0.85rem',
-                    padding: '0.4rem 0.65rem',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--color-border-strong)',
-                  }}
-                >
-                  {state.organizations.map((org) => (
-                    <option key={org.id} value={org.id}>
-                      {org.name} ({org.county})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <label
-                  htmlFor="role-switcher"
-                  style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-slate-700)' }}
-                >
-                  Active RBAC Role:
-                </label>
-                <select
-                  id="role-switcher"
-                  value={state.currentRole}
-                  onChange={(e) => {
-                    const role = e.target.value as SystemRole;
-                    setState((prev) => ({ ...prev, currentRole: role }));
-                    notify(`Switched active RBAC role to ${role}.`);
-                  }}
-                  style={{
-                    font: 'inherit',
-                    fontSize: '0.85rem',
-                    padding: '0.4rem 0.65rem',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--color-border-strong)',
-                  }}
-                >
-                  {ROLES_LIST.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => setWizardOpen(true)}
-              >
-                <Sparkles size={16} aria-hidden="true" />
-                <span>Full Onboarding Chain</span>
+            <div className="topbar-actions">
+              <button type="button" className="btn-dark" onClick={handleExportCsv}>
+                <Download size={15} aria-hidden="true" />
+                <span>Export</span>
               </button>
-
               <button
                 type="button"
-                className="btn btn-mpesa"
-                onClick={() => setMpesaModalOpen(true)}
+                className="btn-outline"
+                onClick={() => setIsMpesaModalOpen(true)}
               >
-                <CreditCard size={16} aria-hidden="true" />
-                <span>M-Pesa Daraja Payment</span>
+                <Share2 size={15} aria-hidden="true" />
+                <span>M-Pesa Pay</span>
+              </button>
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={() => setIsOnboardModalOpen(true)}
+              >
+                <MoreVertical size={15} aria-hidden="true" />
+                <span>More</span>
               </button>
             </div>
           </header>
 
-          <main className="app-main" id="main-content">
+          {toastMessage && (
             <div
               style={{
+                background: '#14171f',
+                color: '#ffffff',
+                padding: '10px 16px',
+                borderRadius: '12px',
+                fontSize: '0.82rem',
+                fontWeight: 500,
                 display: 'flex',
-                flexWrap: 'wrap',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: '1rem',
+                gap: '12px',
               }}
             >
-              <div>
-                <h1 id="main-heading" ref={mainHeadingRef} tabIndex={-1}>
-                  {activeNavLabel}
-                </h1>
-                <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.92rem' }}>
-                  {currentOrg.name} • Paybill{' '}
-                  <code className="mono">{currentOrg.mpesa_paybill_shortcode}</code> • KRA PIN{' '}
-                  <code className="mono">{currentOrg.kra_pin}</code> • Timezone{' '}
-                  <code className="mono">{currentOrg.timezone}</code>
-                </p>
-              </div>
-
-              {/* Semantic <search> landmark per Modern Web Guidance `html` & `forms` */}
-              <search>
-                <form
-                  onSubmit={(e) => e.preventDefault()}
-                  style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}
-                >
-                  <label htmlFor="global-search" className="visually-hidden">
-                    Search records in current view
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      id="global-search"
-                      type="search"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Filter units, tenants, invoices..."
-                      autoCorrect="off"
-                      autoCapitalize="none"
-                      spellCheck={false}
-                      style={{
-                        font: 'inherit',
-                        fontSize: '0.9rem',
-                        padding: '0.5rem 0.75rem',
-                        minBlockSize: '42px',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--color-border-strong)',
-                        minInlineSize: '240px',
-                      }}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="btn btn-secondary"
-                    aria-label="Apply search filter"
-                  >
-                    <Search size={16} aria-hidden="true" />
-                    <span>Filter</span>
-                  </button>
-                </form>
-              </search>
+              <span>{toastMessage}</span>
+              <button
+                type="button"
+                style={{ color: '#9ca3af', fontSize: '0.76rem' }}
+                onClick={() => setToastMessage(null)}
+              >
+                Dismiss
+              </button>
             </div>
+          )}
 
-            {politeAnnouncement && (
-              <div
-                style={{
-                  background: 'var(--color-emerald-50)',
-                  border: '1px solid var(--color-emerald-600)',
-                  color: 'var(--color-emerald-950)',
-                  padding: '0.75rem 1rem',
-                  borderRadius: 'var(--radius-md)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '1rem',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
-                  <CheckCircle2 size={18} aria-hidden="true" />
-                  <span>{politeAnnouncement}</span>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setPoliteAnnouncement('')}
-                >
-                  Dismiss
-                </button>
-              </div>
-            )}
+          {/* Top 4 KPI Cards on Every Page */}
+          {renderTopKpiRow()}
 
-            {errorBanner && (
-              <div
-                role="alert"
-                style={{
-                  background: 'var(--color-rose-50)',
-                  border: '1px solid var(--color-rose-600)',
-                  color: 'var(--color-rose-700)',
-                  padding: '0.75rem 1rem',
-                  borderRadius: 'var(--radius-md)',
-                  fontWeight: 600,
-                }}
-              >
-                {errorBanner}
-              </div>
-            )}
+          {/* =================================================================
+              PAGE 1: DASHBOARD (1:1 Layout with DriveLux Reference)
+             ================================================================= */}
+          {activeNav === 'dashboard' && (
+            <div className="dashboard-main-grid">
+              {/* LEFT COLUMN */}
+              <div className="stack-column">
+                {/* Rental Overview Card */}
+                <section className="surface-card" aria-labelledby="rental-overview-heading">
+                  <div className="card-header">
+                    <div className="card-title-group">
+                      <BarChart3 size={17} color="#4b5563" aria-hidden="true" />
+                      <h2 id="rental-overview-heading">Rental Overview</h2>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <button
+                        type="button"
+                        className="btn-outline"
+                        style={{ minBlockSize: '32px', padding: '4px 11px', fontSize: '0.78rem' }}
+                        onClick={() => setIsInvoiceModalOpen(true)}
+                      >
+                        <Calendar size={14} aria-hidden="true" />
+                        <span>Monthly</span>
+                        <ChevronDown size={13} aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-icon-only"
+                        onClick={() => setActiveNav('analytics')}
+                        aria-label="Open full rental analytics"
+                      >
+                        <MoreVertical size={15} aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
 
-            {/* SECTION 1: OVERVIEW DASHBOARD */}
-            {activeSection === 'overview' && (
-              <>
-                <section aria-labelledby="kpi-section-heading">
-                  <h2 id="kpi-section-heading" className="visually-hidden">
-                    Key Operational and Financial Performance Indicators
-                  </h2>
-                  <div className="kpi-grid">
-                    <article className="surface-card">
-                      <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
-                        Occupancy Rate ({kpis.occupiedUnits} / {kpis.totalUnits} Units)
-                      </div>
-                      <div style={{ fontSize: '1.75rem', fontWeight: 800, marginBlock: '0.25rem' }}>
-                        {kpis.occupancyRate}%
-                      </div>
-                      <StatusBadge
-                        status={`${kpis.vacantUnits} Vacant Available`}
-                        tone={kpis.vacantUnits > 0 ? 'warning' : 'success'}
-                      />
-                    </article>
+                  <div>
+                    <div
+                      style={{
+                        fontSize: '1.75rem',
+                        fontWeight: 700,
+                        letterSpacing: '-0.02em',
+                        color: 'var(--text-primary)',
+                      }}
+                    >
+                      1,285
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                      Total Lease Bookings & Renewals
+                    </div>
+                  </div>
 
-                    <article className="surface-card">
-                      <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
-                        Actual Rent Collections (M-Pesa & Bank)
-                      </div>
-                      <div style={{ fontSize: '1.6rem', fontWeight: 800, marginBlock: '0.25rem', color: 'var(--color-emerald-800)' }}>
-                        {formatKes(kpis.actualCollections)}
-                      </div>
-                      <StatusBadge
-                        status={`${kpis.collectionRate}% of ${formatKes(kpis.expectedRevenue)} Billed`}
-                        tone="success"
-                      />
-                    </article>
-
-                    <article className="surface-card">
-                      <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
-                        Outstanding Arrears (Receivables 1100)
-                      </div>
-                      <div style={{ fontSize: '1.6rem', fontWeight: 800, marginBlock: '0.25rem', color: 'var(--color-rose-700)' }}>
-                        {formatKes(kpis.totalArrears)}
-                      </div>
-                      <StatusBadge
-                        status={`${orgInvoices.filter((i) => i.balance_kes > 0).length} Open Invoices`}
-                        tone={kpis.totalArrears > 0 ? 'danger' : 'success'}
-                      />
-                    </article>
-
-                    <article className="surface-card">
-                      <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
-                        Security Deposits Held (Liability 2100)
-                      </div>
-                      <div style={{ fontSize: '1.6rem', fontWeight: 800, marginBlock: '0.25rem' }}>
-                        {formatKes(kpis.depositsLiability)}
-                      </div>
-                      <StatusBadge status="Excluded from Rental Revenue" tone="neutral" />
-                    </article>
-
-                    <article className="surface-card">
-                      <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
-                        Net Operating Income (NOI)
-                      </div>
-                      <div style={{ fontSize: '1.6rem', fontWeight: 800, marginBlock: '0.25rem' }}>
-                        {formatKes(kpis.netOperatingIncome)}
-                      </div>
-                      <StatusBadge
-                        status={`After ${formatKes(kpis.totalExpenses)} Expenses`}
-                        tone="success"
-                      />
-                    </article>
+                  <div className="bar-chart-stage" role="img" aria-label="Monthly lease bookings chart">
+                    <div className="bar-y-axis" aria-hidden="true">
+                      <span>800</span>
+                      <span>600</span>
+                      <span>400</span>
+                      <span>200</span>
+                      <span>0</span>
+                    </div>
+                    <div className="bar-columns">
+                      {MONTHLY_CHART_DATA.map((item) => {
+                        const isSelected = item.month === selectedMonth;
+                        const heightPct = Math.round((item.count / 240) * 100);
+                        return (
+                          <div
+                            key={item.month}
+                            className="bar-col-wrap"
+                            onClick={() => setSelectedMonth(item.month)}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`${item.month}: ${item.count} leases`}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                setSelectedMonth(item.month);
+                              }
+                            }}
+                          >
+                            {isSelected && (
+                              <div className="bar-tooltip">{item.count} leases</div>
+                            )}
+                            <div
+                              className={`bar-pill ${isSelected ? 'bar-pill-active' : ''}`}
+                              style={{ height: `${heightPct}%` }}
+                            />
+                            <span
+                              className={`bar-month-label ${
+                                isSelected ? 'bar-month-label-active' : ''
+                              }`}
+                            >
+                              {item.month}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </section>
 
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-                    gap: '1.5rem',
-                  }}
-                >
-                  <section className="surface-card" aria-labelledby="recent-invoices-heading">
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBlockEnd: '1rem',
-                      }}
-                    >
-                      <h2 id="recent-invoices-heading">Active Invoices & Balances</h2>
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={() => handleNavigate('billing')}
-                      >
-                        Manage Billing
-                      </button>
+                {/* Recent Leases & Invoices Table Card (mirrors Recent Reservations) */}
+                <section className="surface-card" aria-labelledby="recent-leases-heading">
+                  <div className="card-header">
+                    <div className="card-title-group">
+                      <FileText size={17} color="#4b5563" aria-hidden="true" />
+                      <h2 id="recent-leases-heading">Recent Lease Bookings & Billing</h2>
                     </div>
-                    <ResponsiveTable
-                      caption="Current billing period invoices and partial payment balances"
-                      headers={['Invoice #', 'Period', 'Total (KES)', 'Paid (KES)', 'Balance (KES)', 'Status']}
+                    <button
+                      type="button"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        color: 'var(--text-secondary)',
+                      }}
+                      onClick={() => setActiveNav('leases')}
                     >
-                      {orgInvoices.map((inv) => (
+                      <span>View all</span>
+                      <ChevronRight size={15} aria-hidden="true" />
+                    </button>
+                  </div>
+
+                  <ResponsiveTable
+                    caption="Recent residential leases and monthly rent billing"
+                    headers={['Tenant', 'Residence & Unit', 'Due Date', 'Status', 'Amount']}
+                  >
+                    {orgInvoices.map((inv) => {
+                      const tenant = orgTenants.find((t) => t.id === inv.tenant_id);
+                      const unit = orgUnits.find((u) => u.id === inv.unit_id);
+                      const prop = orgProperties.find((p) => p.id === inv.property_id);
+                      const tone =
+                        inv.status === 'PAID'
+                          ? 'success'
+                          : inv.status === 'PARTIALLY_PAID'
+                          ? 'warning'
+                          : inv.status === 'OVERDUE'
+                          ? 'danger'
+                          : 'info';
+                      const label =
+                        inv.status === 'PAID'
+                          ? 'Confirmed'
+                          : inv.status === 'PARTIALLY_PAID'
+                          ? 'Partial'
+                          : inv.status === 'OVERDUE'
+                          ? 'Pending'
+                          : 'Issued';
+
+                      return (
                         <tr key={inv.id}>
-                          <th scope="row" className="mono">
-                            {inv.invoice_number}
-                          </th>
-                          <td>{inv.billing_period}</td>
-                          <td className="mono">{formatKes(inv.total_amount_kes)}</td>
-                          <td className="mono">{formatKes(inv.amount_paid_kes)}</td>
-                          <td className="mono" style={{ fontWeight: 700 }}>
-                            {formatKes(inv.balance_kes)}
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div
+                                className="profile-avatar"
+                                style={{
+                                  inlineSize: '34px',
+                                  blockSize: '34px',
+                                  fontSize: '0.76rem',
+                                  background: '#e0e7ff',
+                                  color: '#1d4ed8',
+                                }}
+                                aria-hidden="true"
+                              >
+                                {(tenant?.full_name ?? 'TN')
+                                  .split(' ')
+                                  .map((n) => n[0])
+                                  .join('')
+                                  .slice(0, 2)}
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 600, fontSize: '0.84rem' }}>
+                                  {tenant?.full_name ?? 'Registered Tenant'}
+                                </div>
+                                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                                  {tenant?.email ?? tenant?.phone}
+                                </div>
+                              </div>
+                            </div>
                           </td>
                           <td>
-                            <StatusBadge
-                              status={inv.status}
-                              tone={
-                                inv.status === 'PAID'
-                                  ? 'success'
-                                  : inv.status === 'PARTIALLY_PAID'
-                                  ? 'warning'
-                                  : 'danger'
-                              }
-                            />
+                            <div>
+                              <div style={{ fontWeight: 600, fontSize: '0.84rem' }}>
+                                {prop?.name.split(' ')[0]} • Unit {unit?.unit_number ?? 'A-101'}
+                              </div>
+                              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                                {unit?.unit_type.replace('_', ' ') ?? '2 Bedroom'}
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ fontWeight: 500, fontSize: '0.82rem' }}>
+                              {formatNairobiDate(inv.due_date)}
+                            </div>
+                            <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>
+                              09:30 AM EAT
+                            </div>
+                          </td>
+                          <td>
+                            <StatusBadge status={label} tone={tone} />
+                          </td>
+                          <td>
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '8px',
+                                fontWeight: 700,
+                              }}
+                            >
+                              <span>{formatKes(inv.total_amount_kes)}</span>
+                              <ChevronRight size={15} color="#8e95a2" aria-hidden="true" />
+                            </div>
                           </td>
                         </tr>
-                      ))}
-                    </ResponsiveTable>
-                  </section>
+                      );
+                    })}
+                  </ResponsiveTable>
+                </section>
+              </div>
 
-                  <section className="surface-card" aria-labelledby="recent-payments-heading">
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBlockEnd: '1rem',
-                      }}
-                    >
-                      <h2 id="recent-payments-heading">Verified M-Pesa Daraja Collections</h2>
-                      <button
-                        type="button"
-                        className="btn btn-mpesa"
-                        onClick={() => setMpesaModalOpen(true)}
-                      >
-                        Record M-Pesa Callback
-                      </button>
+              {/* RIGHT COLUMN */}
+              <div className="stack-column">
+                {/* Featured Property Card (mirrors Featured Vehicle) */}
+                <section className="surface-card" aria-labelledby="featured-property-heading">
+                  <div className="card-header">
+                    <div className="card-title-group">
+                      <Star size={17} color="#4b5563" aria-hidden="true" />
+                      <h2 id="featured-property-heading">Featured Property</h2>
                     </div>
-                    <ResponsiveTable
-                      caption="Settled Safaricom M-Pesa STK Push and Paybill C2B transactions"
-                      headers={['M-Pesa Receipt', 'Phone', 'Amount', 'Allocated', 'Receipt #', 'Status']}
+                    <button
+                      type="button"
+                      className="btn-icon-only"
+                      onClick={() => setActiveNav('properties')}
+                      aria-label="Property options"
                     >
-                      {orgPayments.map((p) => (
-                        <tr key={p.id}>
-                          <th scope="row" className="mono">
-                            {p.mpesa_receipt_number ?? 'PENDING'}
-                          </th>
-                          <td className="mono">{p.payer_phone}</td>
-                          <td className="mono">{formatKes(p.amount_kes)}</td>
-                          <td className="mono">{formatKes(p.allocated_amount_kes)}</td>
-                          <td className="mono">{p.receipt_number ?? '-'}</td>
-                          <td>
-                            <StatusBadge status={p.status} tone="success" />
-                          </td>
-                        </tr>
-                      ))}
-                    </ResponsiveTable>
-                  </section>
-                </div>
-              </>
-            )}
+                      <MoreVertical size={15} aria-hidden="true" />
+                    </button>
+                  </div>
 
-            {/* SECTION 2: PROPERTIES */}
-            {activeSection === 'properties' && (
-              <section className="surface-card" aria-labelledby="properties-heading">
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBlockEnd: '1rem',
-                  }}
-                >
-                  <h2 id="properties-heading">
-                    Residential Properties ({orgProperties.length})
-                  </h2>
+                  <div>
+                    <div style={{ fontSize: '1.08rem', fontWeight: 700 }}>
+                      {featuredProperty?.name ?? 'Kilimani Jacaranda Heights'}
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBlockStart: '2px' }}>
+                      {featuredProperty?.estate_or_area ?? 'Kilimani'}, {featuredProperty?.county ?? 'Nairobi'} • Executive Apartments
+                    </div>
+                  </div>
+
+                  <FeaturedPropertyIllustration />
+
+                  <div className="spec-pills-row">
+                    <span className="spec-pill">🛏 2–3 Beds</span>
+                    <span className="spec-pill">⚡ Backup Gen</span>
+                    <span className="spec-pill">💧 Borehole</span>
+                    <span className="spec-pill">🛡 24/7 CCTV</span>
+                  </div>
+
+                  <div className="stat-kv-list">
+                    <div className="stat-kv-row">
+                      <span>🏢 Total Units</span>
+                      <span className="stat-kv-val">{kpis.totalUnits}</span>
+                    </div>
+                    <div className="stat-kv-row">
+                      <span>🔑 Available</span>
+                      <span className="stat-kv-val">{kpis.vacantUnits}</span>
+                    </div>
+                    <div className="stat-kv-row">
+                      <span>📋 Occupied / Leased</span>
+                      <span className="stat-kv-val">{kpis.occupiedUnits}</span>
+                    </div>
+                    <div className="stat-kv-row">
+                      <span>🔧 In Maintenance</span>
+                      <span className="stat-kv-val" style={{ color: 'var(--accent-red)' }}>
+                        {kpis.openMaintenance}
+                      </span>
+                    </div>
+                  </div>
+
                   <button
                     type="button"
-                    className="btn btn-primary"
-                    onClick={() => setWizardOpen(true)}
+                    className="btn-dark"
+                    style={{ inlineSize: '100%', minBlockSize: '42px' }}
+                    onClick={() => setActiveNav('properties')}
                   >
-                    <Plus size={16} aria-hidden="true" />
-                    <span>Add Property & Hierarchy</span>
+                    <Building2 size={16} aria-hidden="true" />
+                    <span>View Properties & Units</span>
                   </button>
-                </div>
-                <ResponsiveTable
-                  caption="Organization-scoped residential properties in Kenya"
-                  headers={['Code', 'Property Name', 'County & Area', 'LR Number', 'Commission %', 'Amenities']}
-                >
-                  {orgProperties
-                    .filter(
-                      (p) =>
-                        !searchQuery ||
-                        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        p.county.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map((prop) => (
-                      <tr key={prop.id}>
-                        <th scope="row" className="mono">
-                          {prop.code}
-                        </th>
-                        <td style={{ fontWeight: 600 }}>{prop.name}</td>
-                        <td>
-                          {prop.estate_or_area}, {prop.county}
-                        </td>
-                        <td className="mono">{prop.lr_number}</td>
-                        <td>{prop.management_commission_pct}%</td>
-                        <td>{prop.amenities.join(', ')}</td>
-                      </tr>
-                    ))}
-                </ResponsiveTable>
-              </section>
-            )}
+                </section>
 
-            {/* SECTION 3: BUILDINGS */}
-            {activeSection === 'buildings' && (
-              <section className="surface-card" aria-labelledby="buildings-heading">
-                <h2 id="buildings-heading" style={{ marginBlockEnd: '1rem' }}>
-                  Buildings & Blocks ({orgBuildings.length}) & Floors ({orgFloors.length})
-                </h2>
-                <ResponsiveTable
-                  caption="Buildings and floor structures linked to residential properties"
-                  headers={['Building Code', 'Building Name', 'Property', 'Total Floors', 'Registered Floors']}
-                >
-                  {orgBuildings.map((b) => {
-                    const prop = orgProperties.find((p) => p.id === b.property_id);
-                    const bFloors = orgFloors.filter((f) => f.building_id === b.id);
-                    return (
-                      <tr key={b.id}>
-                        <th scope="row" className="mono">
-                          {b.code}
-                        </th>
-                        <td style={{ fontWeight: 600 }}>{b.name}</td>
-                        <td>{prop?.name ?? b.property_id}</td>
-                        <td>{b.total_floors}</td>
-                        <td>{bFloors.map((f) => f.label).join(', ') || 'Ground Floor'}</td>
-                      </tr>
-                    );
-                  })}
-                </ResponsiveTable>
-              </section>
-            )}
-
-            {/* SECTION 4: UNITS */}
-            {activeSection === 'units' && (
-              <section className="surface-card" aria-labelledby="units-heading">
-                <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    marginBlockEnd: '1rem',
-                  }}
-                >
-                  <h2 id="units-heading">Rental Units Inventory ({orgUnits.length})</h2>
-                  <div className="pill-group">
-                    {['ALL', 'VACANT', 'OCCUPIED', 'RESERVED'].map((st) => (
-                      <button
-                        key={st}
-                        type="button"
-                        className={`btn ${statusFilter === st ? 'btn-primary' : 'btn-secondary'}`}
-                        onClick={() => setStatusFilter(st)}
-                      >
-                        {st}
-                      </button>
-                    ))}
+                {/* Portfolio Performance Card (mirrors Fleet Performance) */}
+                <section className="surface-card" aria-labelledby="portfolio-perf-heading">
+                  <div className="card-header">
+                    <div className="card-title-group">
+                      <Layers size={17} color="#4b5563" aria-hidden="true" />
+                      <h2 id="portfolio-perf-heading">Portfolio Performance</h2>
+                    </div>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                      This Month ⌄
+                    </span>
                   </div>
-                </div>
-                <ResponsiveTable
-                  caption="Residential units with monthly KES rent, deposit requirements, and utility meters"
-                  headers={['Unit #', 'Type', 'Monthly Rent', 'Security Deposit', 'Meters (Water / KPLC)', 'Status']}
-                >
-                  {orgUnits
-                    .filter((u) => statusFilter === 'ALL' || u.status === statusFilter)
-                    .filter(
-                      (u) =>
-                        !searchQuery ||
-                        u.unit_number.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map((u) => (
-                      <tr key={u.id}>
-                        <th scope="row" className="mono">
-                          {u.unit_number}
-                        </th>
-                        <td>
-                          {u.unit_type.replace('_', ' ')} ({u.bedrooms}BR)
-                        </td>
-                        <td className="mono" style={{ fontWeight: 600 }}>
-                          {formatKes(u.monthly_rent_kes)}
-                        </td>
-                        <td className="mono">{formatKes(u.deposit_amount_kes)}</td>
-                        <td className="mono">
-                          {u.water_meter_number} / {u.kplc_meter_number}
-                        </td>
-                        <td>
-                          <StatusBadge
-                            status={u.status}
-                            tone={
-                              u.status === 'OCCUPIED'
-                                ? 'success'
-                                : u.status === 'VACANT'
-                                ? 'warning'
-                                : 'neutral'
-                            }
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                </ResponsiveTable>
-              </section>
-            )}
 
-            {/* SECTION 5: TENANTS */}
-            {activeSection === 'tenants' && (
-              <section className="surface-card" aria-labelledby="tenants-heading">
-                <h2 id="tenants-heading" style={{ marginBlockEnd: '1rem' }}>
-                  Registered Tenants ({orgTenants.length}) — Kenya DPA 2019 Masked IDs
-                </h2>
-                <ResponsiveTable
-                  caption="Tenants with Kenyan phone-first onboarding and masked National ID numbers"
-                  headers={['Code', 'Full Name', 'M-Pesa Phone', 'Email', 'Masked National ID', 'Status']}
-                >
-                  {orgTenants
-                    .filter(
-                      (t) =>
-                        !searchQuery ||
-                        t.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        t.phone.includes(searchQuery)
-                    )
-                    .map((t) => (
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 700 }}>
+                      {formatKes(kpis.billedKes || 1284500)}
+                    </span>
+                    <span className="trend-up" style={{ fontSize: '0.76rem' }}>
+                      ↑ 12.4% <span className="trend-muted">vs last month</span>
+                    </span>
+                  </div>
+
+                  <SegmentedTickBar
+                    segments={[
+                      { percentage: 38, color: '#2563eb' },
+                      { percentage: 28, color: '#0d9488' },
+                      { percentage: 20, color: '#10b981' },
+                      { percentage: 9, color: '#38bdf8' },
+                      { percentage: 5, color: '#f59e0b' },
+                    ]}
+                  />
+
+                  <div className="legend-list">
+                    <div className="legend-row">
+                      <span>
+                        <span className="legend-dot" style={{ background: '#2563eb' }} />
+                        2 Bedroom Units
+                      </span>
+                      <strong style={{ fontWeight: 600 }}>KES 488,100</strong>
+                      <span style={{ color: 'var(--text-muted)', textAlign: 'end' }}>38%</span>
+                    </div>
+                    <div className="legend-row">
+                      <span>
+                        <span className="legend-dot" style={{ background: '#0d9488' }} />
+                        3 Bedroom Units
+                      </span>
+                      <strong style={{ fontWeight: 600 }}>KES 359,660</strong>
+                      <span style={{ color: 'var(--text-muted)', textAlign: 'end' }}>28%</span>
+                    </div>
+                    <div className="legend-row">
+                      <span>
+                        <span className="legend-dot" style={{ background: '#10b981' }} />
+                        1 Bedroom Suites
+                      </span>
+                      <strong style={{ fontWeight: 600 }}>KES 256,900</strong>
+                      <span style={{ color: 'var(--text-muted)', textAlign: 'end' }}>20%</span>
+                    </div>
+                    <div className="legend-row">
+                      <span>
+                        <span className="legend-dot" style={{ background: '#38bdf8' }} />
+                        Executive Duplex
+                      </span>
+                      <strong style={{ fontWeight: 600 }}>KES 115,600</strong>
+                      <span style={{ color: 'var(--text-muted)', textAlign: 'end' }}>9%</span>
+                    </div>
+                    <div className="legend-row">
+                      <span>
+                        <span className="legend-dot" style={{ background: '#f59e0b' }} />
+                        Studio / Bedsitter
+                      </span>
+                      <strong style={{ fontWeight: 600 }}>KES 64,240</strong>
+                      <span style={{ color: 'var(--text-muted)', textAlign: 'end' }}>5%</span>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      marginBlockStart: '16px',
+                      paddingBlockStart: '12px',
+                      borderBlockStart: '1px solid var(--border-subtle)',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      style={{
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        color: 'var(--text-secondary)',
+                      }}
+                      onClick={() => setActiveNav('analytics')}
+                    >
+                      View full report →
+                    </button>
+                  </div>
+                </section>
+              </div>
+            </div>
+          )}
+
+          {/* =================================================================
+              PAGE 2: LEASES & BOOKINGS (Reservations Equivalent)
+             ================================================================= */}
+          {activeNav === 'leases' && (
+            <div className="dashboard-main-grid">
+              <div className="stack-column">
+                <section className="surface-card">
+                  <div className="card-header">
+                    <div className="card-title-group">
+                      <KeyRound size={17} color="#4b5563" aria-hidden="true" />
+                      <h2>Active Residential Leases</h2>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-dark"
+                      onClick={() => setIsOnboardModalOpen(true)}
+                    >
+                      <Plus size={15} aria-hidden="true" />
+                      <span>New Lease</span>
+                    </button>
+                  </div>
+
+                  <ResponsiveTable
+                    caption="Active residential lease agreements"
+                    headers={['Lease #', 'Tenant', 'Unit', 'Period', 'Monthly Rent', 'Status', 'Action']}
+                  >
+                    {orgLeases.map((lease) => {
+                      const tenant = orgTenants.find((t) => t.id === lease.primary_tenant_id);
+                      const unit = orgUnits.find((u) => u.id === lease.unit_id);
+                      return (
+                        <tr key={lease.id}>
+                          <td style={{ fontWeight: 700 }}>{lease.lease_number}</td>
+                          <td>
+                            <div style={{ fontWeight: 600 }}>{tenant?.full_name}</div>
+                            <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                              {tenant?.phone}
+                            </div>
+                          </td>
+                          <td>
+                            <span className="badge-pill badge-neutral">
+                              Unit {unit?.unit_number}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ fontSize: '0.8rem' }}>
+                              {lease.start_date} → {lease.end_date}
+                            </div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                              Due Day {lease.billing_day}
+                            </div>
+                          </td>
+                          <td style={{ fontWeight: 700 }}>{formatKes(lease.monthly_rent_kes)}</td>
+                          <td>
+                            <StatusBadge
+                              status={lease.status}
+                              tone={lease.status === 'ACTIVE' ? 'success' : 'warning'}
+                            />
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              className="btn-outline"
+                              style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.75rem' }}
+                              onClick={() => {
+                                setInvoiceForm({ leaseId: lease.id, billingPeriod: '2026-12' });
+                                setIsInvoiceModalOpen(true);
+                              }}
+                            >
+                              Bill Month
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </ResponsiveTable>
+                </section>
+              </div>
+
+              <div className="stack-column">
+                <section className="surface-card">
+                  <div className="card-header">
+                    <div className="card-title-group">
+                      <Calendar size={17} color="#4b5563" aria-hidden="true" />
+                      <h2>Tenant Applications</h2>
+                    </div>
+                    <StatusBadge status={`${orgApplications.length} Pending`} tone="info" />
+                  </div>
+                  <div className="stat-kv-list">
+                    {orgApplications.map((app) => {
+                      const t = orgTenants.find((x) => x.id === app.tenant_id);
+                      const u = orgUnits.find((x) => x.id === app.unit_id);
+                      return (
+                        <div
+                          key={app.id}
+                          style={{
+                            padding: '12px',
+                            borderRadius: '12px',
+                            border: '1px solid var(--border-subtle)',
+                            background: 'var(--bg-sidebar)',
+                          }}
+                        >
+                          <div style={{ fontWeight: 700, fontSize: '0.86rem' }}>
+                            {t?.full_name ?? 'Applicant'} — Unit {u?.unit_number}
+                          </div>
+                          <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBlock: '4px 8px' }}>
+                            Move-in: {app.proposed_move_in_date} • Verified Income:{' '}
+                            {formatKes(app.monthly_income_kes ?? 120000)}
+                          </div>
+                          <StatusBadge status={app.status} tone="success" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              </div>
+            </div>
+          )}
+
+          {/* =================================================================
+              PAGE 3: PROPERTIES, BUILDINGS, FLOORS & UNITS (Fleet Equivalent)
+             ================================================================= */}
+          {activeNav === 'properties' && (
+            <div className="dashboard-main-grid">
+              <div className="stack-column">
+                <section className="surface-card">
+                  <div className="card-header">
+                    <div className="pill-tabs" role="tablist" aria-label="Property Hierarchy">
+                      {(['units', 'properties', 'buildings', 'floors'] as const).map((tab) => (
+                        <button
+                          key={tab}
+                          type="button"
+                          role="tab"
+                          className="pill-tab"
+                          aria-selected={propertySubTab === tab}
+                          onClick={() => setPropertySubTab(tab)}
+                        >
+                          {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-dark"
+                      onClick={() => setIsOnboardModalOpen(true)}
+                    >
+                      <Plus size={15} aria-hidden="true" />
+                      <span>Add Property / Unit</span>
+                    </button>
+                  </div>
+
+                  {propertySubTab === 'units' && (
+                    <ResponsiveTable
+                      caption="Residential rental units inventory"
+                      headers={['Unit #', 'Property', 'Type', 'Meters (Water / KPLC)', 'Monthly Rent', 'Status']}
+                    >
+                      {orgUnits.map((u) => {
+                        const prop = orgProperties.find((p) => p.id === u.property_id);
+                        return (
+                          <tr key={u.id}>
+                            <td style={{ fontWeight: 700 }}>{u.unit_number}</td>
+                            <td>{prop?.name}</td>
+                            <td>{u.unit_type.replace('_', ' ')} ({u.bedrooms}BR)</td>
+                            <td style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
+                              {u.water_meter_number ?? 'N/A'} • {u.kplc_meter_number ?? 'N/A'}
+                            </td>
+                            <td style={{ fontWeight: 700 }}>{formatKes(u.monthly_rent_kes)}</td>
+                            <td>
+                              <StatusBadge
+                                status={u.status}
+                                tone={u.status === 'OCCUPIED' ? 'success' : 'info'}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </ResponsiveTable>
+                  )}
+
+                  {propertySubTab === 'properties' && (
+                    <ResponsiveTable
+                      caption="Properties in organization"
+                      headers={['Code', 'Property Name', 'Estate & County', 'LR Number', 'Commission']}
+                    >
+                      {orgProperties.map((p) => (
+                        <tr key={p.id}>
+                          <td style={{ fontWeight: 700 }}>{p.code}</td>
+                          <td style={{ fontWeight: 600 }}>{p.name}</td>
+                          <td>
+                            {p.estate_or_area}, {p.county}
+                          </td>
+                          <td>{p.lr_number}</td>
+                          <td>{p.management_commission_pct}%</td>
+                        </tr>
+                      ))}
+                    </ResponsiveTable>
+                  )}
+
+                  {propertySubTab === 'buildings' && (
+                    <ResponsiveTable
+                      caption="Buildings in portfolio"
+                      headers={['Code', 'Building Name', 'Property', 'Total Floors']}
+                    >
+                      {orgBuildings.map((b) => {
+                        const prop = orgProperties.find((p) => p.id === b.property_id);
+                        return (
+                          <tr key={b.id}>
+                            <td style={{ fontWeight: 700 }}>{b.code}</td>
+                            <td style={{ fontWeight: 600 }}>{b.name}</td>
+                            <td>{prop?.name}</td>
+                            <td>{b.total_floors} Floors</td>
+                          </tr>
+                        );
+                      })}
+                    </ResponsiveTable>
+                  )}
+
+                  {propertySubTab === 'floors' && (
+                    <ResponsiveTable
+                      caption="Floors across buildings"
+                      headers={['Floor #', 'Label', 'Building']}
+                    >
+                      {orgFloors.map((f) => {
+                        const bld = orgBuildings.find((b) => b.id === f.building_id);
+                        return (
+                          <tr key={f.id}>
+                            <td style={{ fontWeight: 700 }}>Floor {f.floor_number}</td>
+                            <td>{f.label}</td>
+                            <td>{bld?.name}</td>
+                          </tr>
+                        );
+                      })}
+                    </ResponsiveTable>
+                  )}
+                </section>
+              </div>
+
+              <div className="stack-column">
+                <section className="surface-card">
+                  <div className="card-header">
+                    <div className="card-title-group">
+                      <Star size={17} color="#4b5563" aria-hidden="true" />
+                      <h2>Featured Property</h2>
+                    </div>
+                  </div>
+                  <FeaturedPropertyIllustration />
+                  <div className="stat-kv-list">
+                    <div className="stat-kv-row">
+                      <span>Properties</span>
+                      <span className="stat-kv-val">{orgProperties.length}</span>
+                    </div>
+                    <div className="stat-kv-row">
+                      <span>Buildings</span>
+                      <span className="stat-kv-val">{orgBuildings.length}</span>
+                    </div>
+                    <div className="stat-kv-row">
+                      <span>Total Units</span>
+                      <span className="stat-kv-val">{orgUnits.length}</span>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          )}
+
+          {/* =================================================================
+              PAGE 4: TENANTS (Customers Equivalent)
+             ================================================================= */}
+          {activeNav === 'tenants' && (
+            <div className="dashboard-main-grid">
+              <div className="stack-column">
+                <section className="surface-card">
+                  <div className="card-header">
+                    <div className="card-title-group">
+                      <Users size={17} color="#4b5563" aria-hidden="true" />
+                      <h2>Registered Kenyan Tenants (DPA 2019 Masked IDs)</h2>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-dark"
+                      onClick={() => setIsOnboardModalOpen(true)}
+                    >
+                      <Plus size={15} aria-hidden="true" />
+                      <span>Register Tenant</span>
+                    </button>
+                  </div>
+
+                  <ResponsiveTable
+                    caption="Registered tenants directory"
+                    headers={['Code', 'Tenant', 'Phone (M-Pesa MSISDN)', 'National ID (Masked)', 'Status']}
+                  >
+                    {orgTenants.map((t) => (
                       <tr key={t.id}>
-                        <th scope="row" className="mono">
-                          {t.tenant_code}
-                        </th>
-                        <td style={{ fontWeight: 600 }}>{t.full_name}</td>
-                        <td className="mono">{t.phone}</td>
-                        <td>{t.email}</td>
-                        <td className="mono">{t.national_id_masked}</td>
+                        <td style={{ fontWeight: 700 }}>{t.tenant_code}</td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>{t.full_name}</div>
+                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                            {t.email}
+                          </div>
+                        </td>
+                        <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{t.phone}</td>
+                        <td style={{ fontFamily: 'monospace' }}>{t.national_id_masked}</td>
                         <td>
                           <StatusBadge
                             status={t.status}
-                            tone={t.status === 'ACTIVE' ? 'success' : 'warning'}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                </ResponsiveTable>
-              </section>
-            )}
-
-            {/* SECTION 6: APPLICATIONS */}
-            {activeSection === 'applications' && (
-              <section className="surface-card" aria-labelledby="apps-heading">
-                <h2 id="apps-heading" style={{ marginBlockEnd: '1rem' }}>
-                  Tenant Applications ({orgApplications.length})
-                </h2>
-                <ResponsiveTable
-                  caption="Prospective tenant applications and affordability screening"
-                  headers={['Application ID', 'Applicant', 'Target Unit', 'Proposed Move-In', 'Verified Income', 'Status']}
-                >
-                  {orgApplications.map((app) => {
-                    const t = orgTenants.find((ten) => ten.id === app.tenant_id);
-                    const u = orgUnits.find((uni) => uni.id === app.unit_id);
-                    return (
-                      <tr key={app.id}>
-                        <th scope="row" className="mono">
-                          {app.id}
-                        </th>
-                        <td>{t?.full_name ?? app.tenant_id}</td>
-                        <td className="mono">{u?.unit_number ?? app.unit_id}</td>
-                        <td>{app.proposed_move_in_date}</td>
-                        <td className="mono">{formatKes(app.monthly_income_kes)}</td>
-                        <td>
-                          <StatusBadge status={app.status} tone="success" />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </ResponsiveTable>
-              </section>
-            )}
-
-            {/* SECTION 7: LEASES */}
-            {activeSection === 'leases' && (
-              <section className="surface-card" aria-labelledby="leases-heading">
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBlockEnd: '1rem',
-                  }}
-                >
-                  <h2 id="leases-heading">Lease Agreements & Lifecycle ({orgLeases.length})</h2>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => setWizardOpen(true)}
-                  >
-                    <Plus size={16} aria-hidden="true" />
-                    <span>New Lease</span>
-                  </button>
-                </div>
-                <ResponsiveTable
-                  caption="Active, Expiring, Renewed, and Terminated residential leases"
-                  headers={['Lease #', 'Tenant & Unit', 'Period', 'Monthly Rent', 'M-Pesa Account Ref', 'Status & Actions']}
-                >
-                  {orgLeases.map((l) => {
-                    const tenant = orgTenants.find((t) => t.id === l.primary_tenant_id);
-                    const unit = orgUnits.find((u) => u.id === l.unit_id);
-                    return (
-                      <tr key={l.id}>
-                        <th scope="row" className="mono">
-                          {l.lease_number}
-                        </th>
-                        <td>
-                          <strong>{tenant?.full_name ?? l.primary_tenant_id}</strong> — Unit{' '}
-                          <code className="mono">{unit?.unit_number ?? l.unit_id}</code>
-                        </td>
-                        <td>
-                          {l.start_date} → {l.end_date}
-                        </td>
-                        <td className="mono">{formatKes(l.monthly_rent_kes)}</td>
-                        <td className="mono">{l.payment_account_reference}</td>
-                        <td>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center' }}>
-                            <StatusBadge
-                              status={l.status}
-                              tone={
-                                l.status === 'ACTIVE'
-                                  ? 'success'
-                                  : l.status === 'EXPIRING'
-                                  ? 'warning'
-                                  : 'neutral'
-                              }
-                            />
-                            {l.status === 'ACTIVE' && (
-                              <button
-                                type="button"
-                                className="btn btn-secondary"
-                                onClick={() => handleLeaseLifecycle(l, 'EXPIRE')}
-                              >
-                                Mark Expiring
-                              </button>
-                            )}
-                            {(l.status === 'ACTIVE' || l.status === 'EXPIRING') && (
-                              <>
-                                <button
-                                  type="button"
-                                  className="btn btn-primary"
-                                  onClick={() => handleLeaseLifecycle(l, 'RENEW')}
-                                >
-                                  Renew
-                                </button>
-                                <button
-                                  type="button"
-                                  className="btn btn-danger"
-                                  onClick={() => handleLeaseLifecycle(l, 'TERMINATE')}
-                                >
-                                  Terminate
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </ResponsiveTable>
-              </section>
-            )}
-
-            {/* SECTION 8: BILLING */}
-            {activeSection === 'billing' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <section className="surface-card" aria-labelledby="generate-invoice-heading">
-                  <h2 id="generate-invoice-heading" style={{ marginBlockEnd: '0.5rem' }}>
-                    Idempotent Recurring Monthly Invoice Generator
-                  </h2>
-                  <p style={{ color: 'var(--color-text-secondary)', marginBlockEnd: '1rem', fontSize: '0.9rem' }}>
-                    Enforces idempotency per <code className="mono">(organization_id, lease_id, billing_period)</code>. Running billing twice for the same month never creates duplicate invoices or duplicate journal entries.
-                  </p>
-                  <form onSubmit={handleGenerateInvoice} className="form-grid">
-                    <div className="form-field">
-                      <label htmlFor="billing-lease">Select Active Lease</label>
-                      <select
-                        id="billing-lease"
-                        name="leaseId"
-                        value={selectedLeaseForBilling}
-                        onChange={(e) => setSelectedLeaseForBilling(e.target.value)}
-                      >
-                        {orgLeases
-                          .filter((l) => l.status === 'ACTIVE' || l.status === 'EXPIRING')
-                          .map((l) => {
-                            const t = orgTenants.find((ten) => ten.id === l.primary_tenant_id);
-                            return (
-                              <option key={l.id} value={l.id}>
-                                {l.lease_number} — {t?.full_name} ({formatKes(l.monthly_rent_kes)}/mo)
-                              </option>
-                            );
-                          })}
-                      </select>
-                    </div>
-                    <div className="form-field">
-                      <label htmlFor="billing-period">Billing Period (YYYY-MM)</label>
-                      <input
-                        id="billing-period"
-                        name="billingPeriod"
-                        type="text"
-                        value={billingPeriodInput}
-                        onChange={(e) => setBillingPeriodInput(e.target.value)}
-                        pattern="\d{4}-\d{2}"
-                        required
-                      />
-                    </div>
-                    <div className="form-field" style={{ justifyContent: 'flex-end' }}>
-                      <button type="submit" className="btn btn-primary">
-                        <RefreshCw size={16} aria-hidden="true" />
-                        <span>Generate Recurring Invoice</span>
-                      </button>
-                    </div>
-                  </form>
-                </section>
-
-                <section className="surface-card" aria-labelledby="all-invoices-heading">
-                  <h2 id="all-invoices-heading" style={{ marginBlockEnd: '1rem' }}>
-                    Invoices Ledger ({orgInvoices.length})
-                  </h2>
-                  <ResponsiveTable
-                    caption="Monthly rent and utility invoices with real-time payment allocation balances"
-                    headers={['Invoice #', 'Period', 'Due Date', 'Total (KES)', 'Paid (KES)', 'Balance (KES)', 'Status']}
-                  >
-                    {orgInvoices.map((inv) => (
-                      <tr key={inv.id}>
-                        <th scope="row" className="mono">
-                          {inv.invoice_number}
-                        </th>
-                        <td>{inv.billing_period}</td>
-                        <td>{inv.due_date}</td>
-                        <td className="mono">{formatKes(inv.total_amount_kes)}</td>
-                        <td className="mono">{formatKes(inv.amount_paid_kes)}</td>
-                        <td className="mono" style={{ fontWeight: 700 }}>
-                          {formatKes(inv.balance_kes)}
-                        </td>
-                        <td>
-                          <StatusBadge
-                            status={inv.status}
-                            tone={
-                              inv.status === 'PAID'
-                                ? 'success'
-                                : inv.status === 'PARTIALLY_PAID'
-                                ? 'warning'
-                                : 'danger'
-                            }
+                            tone={t.status === 'ACTIVE' ? 'success' : 'info'}
                           />
                         </td>
                       </tr>
@@ -1583,946 +1447,803 @@ export function App() {
                   </ResponsiveTable>
                 </section>
               </div>
-            )}
 
-            {/* SECTION 9: PAYMENTS & M-PESA DARAJA */}
-            {activeSection === 'payments' && (
-              <section className="surface-card" aria-labelledby="payments-heading">
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBlockEnd: '1rem',
-                  }}
-                >
-                  <div>
-                    <h2 id="payments-heading">
-                      M-Pesa Daraja Payments & FIFO Invoice Allocations ({orgPayments.length})
-                    </h2>
-                    <p style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
-                      Supports partial payments (e.g. KES 15,000 invoice → KES 10,000 paid → KES 5,000 balance), multi-invoice FIFO allocation, and duplicate M-Pesa callback protection.
-                    </p>
+              <div className="stack-column">
+                <section className="surface-card">
+                  <div className="card-header">
+                    <div className="card-title-group">
+                      <ShieldCheck size={17} color="#4b5563" aria-hidden="true" />
+                      <h2>Data Protection Compliance</h2>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    className="btn btn-mpesa"
-                    onClick={() => setMpesaModalOpen(true)}
-                  >
-                    <CreditCard size={16} aria-hidden="true" />
-                    <span>Simulate Verified M-Pesa Callback</span>
-                  </button>
-                </div>
-                <ResponsiveTable
-                  caption="Payments and their invoice-level payment_allocations audit trail"
-                  headers={['Reference', 'M-Pesa Receipt', 'Phone', 'Amount Paid', 'Allocated / Unallocated', 'Invoice Allocations']}
-                >
-                  {orgPayments.map((p) => (
-                    <tr key={p.id}>
-                      <th scope="row" className="mono">
-                        {p.payment_reference}
-                      </th>
-                      <td className="mono" style={{ fontWeight: 700 }}>
-                        {p.mpesa_receipt_number}
-                      </td>
-                      <td className="mono">{p.payer_phone}</td>
-                      <td className="mono">{formatKes(p.amount_kes)}</td>
-                      <td className="mono">
-                        {formatKes(p.allocated_amount_kes)} / {formatKes(p.unallocated_amount_kes)}
-                      </td>
-                      <td>
-                        {p.allocations.map((a) => (
-                          <div key={a.id} style={{ fontSize: '0.82rem' }}>
-                            <code className="mono">{a.invoice_number}</code>: {formatKes(a.allocated_amount_kes)} (Rem:{' '}
-                            {formatKes(a.remaining_invoice_balance_kes)})
-                          </div>
-                        ))}
-                      </td>
-                    </tr>
-                  ))}
-                </ResponsiveTable>
-              </section>
-            )}
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    Kenyan National ID numbers are salted and hashed with SHA-256 per organization
+                    and displayed as <code>****5678</code> in compliance with the Kenya Data
+                    Protection Act (2019).
+                  </p>
+                </section>
+              </div>
+            </div>
+          )}
 
-            {/* SECTION 10: ACCOUNTING & SECURITY DEPOSITS */}
-            {activeSection === 'accounting' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <section className="surface-card" aria-labelledby="deposits-liability-heading">
-                  <h2 id="deposits-liability-heading" style={{ marginBlockEnd: '0.5rem' }}>
-                    Security Deposits Liability Ledger (Account 2100 — Never Rental Revenue)
-                  </h2>
+          {/* =================================================================
+              PAGE 5: PAYMENTS & M-PESA DARAJA RECONCILIATION
+             ================================================================= */}
+          {activeNav === 'payments' && (
+            <div className="dashboard-main-grid">
+              <div className="stack-column">
+                <section className="surface-card">
+                  <div className="card-header">
+                    <div className="card-title-group">
+                      <CreditCard size={17} color="#4b5563" aria-hidden="true" />
+                      <h2>Safaricom M-Pesa Payments & FIFO Allocations</h2>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        type="button"
+                        className="btn-outline"
+                        onClick={() => setIsInvoiceModalOpen(true)}
+                      >
+                        Generate Invoice
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-dark"
+                        onClick={() => setIsMpesaModalOpen(true)}
+                      >
+                        <Plus size={15} aria-hidden="true" />
+                        <span>Simulate M-Pesa Callback</span>
+                      </button>
+                    </div>
+                  </div>
+
                   <ResponsiveTable
-                    caption="Tenant security deposits held as refundable liabilities"
-                    headers={['Deposit ID', 'Lease', 'Required', 'Received', 'Deducted / Refunded', 'Current Liability Balance']}
+                    caption="Verified M-Pesa payments and invoice allocations"
+                    headers={['Receipt #', 'M-Pesa Code', 'Payer MSISDN', 'Amount', 'Allocated Invoices', 'Status']}
+                  >
+                    {orgPayments.map((p) => (
+                      <tr key={p.id}>
+                        <td style={{ fontWeight: 700 }}>{p.receipt_number}</td>
+                        <td style={{ fontFamily: 'monospace', fontWeight: 700 }}>
+                          {p.mpesa_receipt_number}
+                        </td>
+                        <td style={{ fontFamily: 'monospace' }}>{p.payer_phone}</td>
+                        <td style={{ fontWeight: 700 }}>{formatKes(p.amount_kes)}</td>
+                        <td style={{ fontSize: '0.76rem' }}>
+                          {p.allocations
+                            .map(
+                              (a) =>
+                                `${a.invoice_number} (${formatKes(a.allocated_amount_kes)}, Rem: ${formatKes(a.remaining_invoice_balance_kes)})`
+                            )
+                            .join(' • ')}
+                        </td>
+                        <td>
+                          <StatusBadge status="Confirmed" tone="success" />
+                        </td>
+                      </tr>
+                    ))}
+                  </ResponsiveTable>
+                </section>
+              </div>
+
+              <div className="stack-column">
+                <section className="surface-card">
+                  <div className="card-header">
+                    <div className="card-title-group">
+                      <Wallet size={17} color="#4b5563" aria-hidden="true" />
+                      <h2>Daraja Gateway Status</h2>
+                    </div>
+                    <StatusBadge status="Circuit Closed" tone="success" />
+                  </div>
+                  <div className="stat-kv-list">
+                    <div className="stat-kv-row">
+                      <span>Paybill Shortcode</span>
+                      <span className="stat-kv-val">{currentOrg.mpesa_paybill_shortcode}</span>
+                    </div>
+                    <div className="stat-kv-row">
+                      <span>Allocation Strategy</span>
+                      <span className="stat-kv-val">FIFO Oldest First</span>
+                    </div>
+                    <div className="stat-kv-row">
+                      <span>Webhook Verification</span>
+                      <span className="stat-kv-val">HMAC-SHA256</span>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          )}
+
+          {/* =================================================================
+              PAGE 6: LOCATIONS, ESTATES & SECURITY DEPOSITS
+             ================================================================= */}
+          {activeNav === 'locations' && (
+            <div className="dashboard-main-grid">
+              <div className="stack-column">
+                <section className="surface-card">
+                  <div className="card-header">
+                    <div className="card-title-group">
+                      <MapPin size={17} color="#4b5563" aria-hidden="true" />
+                      <h2>Security Deposits Held (Account 2100 Liability — Never Revenue)</h2>
+                    </div>
+                  </div>
+
+                  <ResponsiveTable
+                    caption="Tenant security deposits liability ledger"
+                    headers={['Unit', 'Tenant', 'Required Deposit', 'Received', 'Refunded/Deducted', 'Held Liability', 'Status']}
                   >
                     {orgDeposits.map((d) => {
-                      const lease = orgLeases.find((l) => l.id === d.lease_id);
+                      const u = orgUnits.find((x) => x.id === d.unit_id);
+                      const t = orgTenants.find((x) => x.id === d.tenant_id);
                       return (
                         <tr key={d.id}>
-                          <th scope="row" className="mono">
-                            {d.id}
-                          </th>
-                          <td className="mono">{lease?.lease_number ?? d.lease_id}</td>
-                          <td className="mono">{formatKes(d.required_amount_kes)}</td>
-                          <td className="mono">{formatKes(d.received_amount_kes)}</td>
-                          <td className="mono">
-                            {formatKes(d.deducted_amount_kes)} / {formatKes(d.refunded_amount_kes)}
-                          </td>
-                          <td className="mono" style={{ fontWeight: 700 }}>
+                          <td style={{ fontWeight: 700 }}>Unit {u?.unit_number}</td>
+                          <td>{t?.full_name}</td>
+                          <td>{formatKes(d.required_amount_kes)}</td>
+                          <td>{formatKes(d.received_amount_kes)}</td>
+                          <td>{formatKes(d.deducted_amount_kes + d.refunded_amount_kes)}</td>
+                          <td style={{ fontWeight: 700 }}>
                             {formatKes(d.current_liability_balance_kes)}
+                          </td>
+                          <td>
+                            <StatusBadge status={d.status} tone="info" />
                           </td>
                         </tr>
                       );
                     })}
                   </ResponsiveTable>
                 </section>
+              </div>
 
-                <section className="surface-card" aria-labelledby="record-expense-heading">
-                  <h2 id="record-expense-heading" style={{ marginBlockEnd: '1rem' }}>
-                    Record Property Operating Expense (Posts DR 5000 Expense / CR 1010 Cash)
-                  </h2>
-                  <form onSubmit={handleRecordExpense} className="form-grid">
-                    <div className="form-field">
-                      <label htmlFor="exp-vendor">Vendor Name</label>
-                      <input
-                        id="exp-vendor"
-                        type="text"
-                        value={expenseForm.vendorName}
-                        onChange={(e) =>
-                          setExpenseForm((p) => ({ ...p, vendorName: e.target.value }))
-                        }
-                        required
-                      />
+              <div className="stack-column">
+                <section className="surface-card">
+                  <div className="card-header">
+                    <div className="card-title-group">
+                      <Building2 size={17} color="#4b5563" aria-hidden="true" />
+                      <h2>Estates by County</h2>
                     </div>
-                    <div className="form-field">
-                      <label htmlFor="exp-desc">Expense Description</label>
-                      <input
-                        id="exp-desc"
-                        type="text"
-                        value={expenseForm.description}
-                        onChange={(e) =>
-                          setExpenseForm((p) => ({ ...p, description: e.target.value }))
-                        }
-                        required
-                      />
-                    </div>
-                    <div className="form-field">
-                      <label htmlFor="exp-amount">Amount (KES)</label>
-                      <input
-                        id="exp-amount"
-                        type="text"
-                        inputMode="numeric"
-                        value={expenseForm.amountKes}
-                        onChange={(e) =>
-                          setExpenseForm((p) => ({
-                            ...p,
-                            amountKes: Number(e.target.value.replace(/\D/g, '')) || 0,
-                          }))
-                        }
-                        required
-                      />
-                    </div>
-                    <div className="form-field" style={{ justifyContent: 'flex-end' }}>
-                      <button type="submit" className="btn btn-primary">
-                        Approve & Post Expense Journal
-                      </button>
-                    </div>
-                  </form>
-                </section>
-
-                <section className="surface-card" aria-labelledby="journals-heading">
-                  <h2 id="journals-heading" style={{ marginBlockEnd: '0.5rem' }}>
-                    Immutable Double-Entry General Journal ({orgJournals.length})
-                  </h2>
-                  <p style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)', marginBlockEnd: '1rem' }}>
-                    Every journal entry enforces <code className="mono">Total Debits == Total Credits</code>. Posted entries cannot be deleted; use Reversal to post an offsetting entry.
-                  </p>
-                  <ResponsiveTable
-                    caption="Double-entry accounting journal entries and balanced debit/credit lines"
-                    headers={['Entry #', 'Date', 'Source Event', 'Description & Lines', 'Total DR / CR', 'Action']}
-                  >
-                    {orgJournals.map((j) => (
-                      <tr key={j.id}>
-                        <th scope="row" className="mono">
-                          {j.entry_number}
-                        </th>
-                        <td>{j.entry_date}</td>
-                        <td>
-                          <StatusBadge
-                            status={`${j.source_event_type} (${j.status})`}
-                            tone={j.status === 'POSTED' ? 'success' : 'warning'}
-                          />
-                        </td>
-                        <td>
-                          <div style={{ fontWeight: 600, marginBlockEnd: '0.25rem' }}>
-                            {j.description}
-                          </div>
-                          {j.lines.map((l, idx) => (
-                            <div key={idx} className="mono" style={{ fontSize: '0.78rem', color: 'var(--color-slate-600)' }}>
-                              [{l.account_code} {l.account_name}] DR: {formatKes(l.debit_kes)} | CR:{' '}
-                              {formatKes(l.credit_kes)}
-                            </div>
-                          ))}
-                        </td>
-                        <td className="mono" style={{ fontWeight: 700 }}>
-                          {formatKes(j.total_debit_kes)}
-                        </td>
-                        <td>
-                          {j.status === 'POSTED' && j.source_event_type !== 'REVERSAL' && (
-                            <button
-                              type="button"
-                              className="btn btn-secondary"
-                              onClick={() => handleReverseJournal(j)}
-                            >
-                              Post Reversal
-                            </button>
-                          )}
-                        </td>
-                      </tr>
+                  </div>
+                  <div className="stat-kv-list">
+                    {orgProperties.map((p) => (
+                      <div key={p.id} className="stat-kv-row">
+                        <span>
+                          {p.name} ({p.estate_or_area})
+                        </span>
+                        <span className="stat-kv-val">{p.county}</span>
+                      </div>
                     ))}
-                  </ResponsiveTable>
-                </section>
-              </div>
-            )}
-
-            {/* SECTION 11: MAINTENANCE WORKFLOW */}
-            {activeSection === 'maintenance' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <section className="surface-card" aria-labelledby="submit-mnt-heading">
-                  <h2 id="submit-mnt-heading" style={{ marginBlockEnd: '1rem' }}>
-                    Submit Maintenance Request (8-Stage Workflow State Machine)
-                  </h2>
-                  <form onSubmit={handleSubmitMaintenance} className="form-grid">
-                    <div className="form-field">
-                      <label htmlFor="mnt-title">Issue Summary</label>
-                      <input
-                        id="mnt-title"
-                        type="text"
-                        value={maintenanceForm.title}
-                        onChange={(e) =>
-                          setMaintenanceForm((p) => ({ ...p, title: e.target.value }))
-                        }
-                        required
-                      />
-                    </div>
-                    <div className="form-field">
-                      <label htmlFor="mnt-cat">Category</label>
-                      <select
-                        id="mnt-cat"
-                        value={maintenanceForm.category}
-                        onChange={(e) =>
-                          setMaintenanceForm((p) => ({ ...p, category: e.target.value }))
-                        }
-                      >
-                        <option value="PLUMBING">PLUMBING</option>
-                        <option value="ELECTRICAL">ELECTRICAL</option>
-                        <option value="CARPENTRY">CARPENTRY</option>
-                        <option value="APPLIANCES">APPLIANCES</option>
-                      </select>
-                    </div>
-                    <div className="form-field">
-                      <label htmlFor="mnt-cost">Estimated Cost (KES)</label>
-                      <input
-                        id="mnt-cost"
-                        type="text"
-                        inputMode="numeric"
-                        value={maintenanceForm.estimatedCostKes}
-                        onChange={(e) =>
-                          setMaintenanceForm((p) => ({
-                            ...p,
-                            estimatedCostKes: Number(e.target.value.replace(/\D/g, '')) || 0,
-                          }))
-                        }
-                        required
-                      />
-                    </div>
-                    <div className="form-field" style={{ justifyContent: 'flex-end' }}>
-                      <button type="submit" className="btn btn-primary">
-                        Submit Request
-                      </button>
-                    </div>
-                  </form>
-                </section>
-
-                <section aria-labelledby="mnt-board-heading">
-                  <h2 id="mnt-board-heading" style={{ marginBlockEnd: '0.75rem' }}>
-                    Maintenance & Work Orders Board (Submitted → Reviewed → Approved → Assigned → In Progress → Completed → Verified → Closed)
-                  </h2>
-                  <div
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
-                      gap: '1rem',
-                    }}
-                  >
-                    {orgMaintenance.map((req) => {
-                      const nextStatuses = getNextMaintenanceStatuses(req.status);
-                      const unit = orgUnits.find((u) => u.id === req.unit_id);
-                      return (
-                        <article key={req.id} className="board-column">
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <strong className="mono">{req.request_number}</strong>
-                            <StatusBadge
-                              status={req.status}
-                              tone={
-                                req.status === 'CLOSED' || req.status === 'VERIFIED'
-                                  ? 'success'
-                                  : 'warning'
-                              }
-                            />
-                          </div>
-                          <h3 style={{ fontSize: '1rem' }}>{req.title}</h3>
-                          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                            {req.description}
-                          </p>
-                          <div style={{ fontSize: '0.82rem' }}>
-                            <div>
-                              <strong>Unit:</strong> {unit?.unit_number ?? req.unit_id} ({req.category})
-                            </div>
-                            <div>
-                              <strong>Estimated Budget:</strong> {formatKes(req.estimated_cost_kes)}
-                            </div>
-                            {req.work_order_number && (
-                              <div>
-                                <strong>Work Order:</strong> <code className="mono">{req.work_order_number}</code> ({req.assigned_vendor})
-                              </div>
-                            )}
-                          </div>
-                          {nextStatuses.length > 0 && (
-                            <div className="pill-group" style={{ marginBlockStart: '0.5rem' }}>
-                              {nextStatuses.map((nextSt) => (
-                                <button
-                                  key={nextSt}
-                                  type="button"
-                                  className="btn btn-primary"
-                                  onClick={() => handleTransitionMaintenance(req.id, nextSt)}
-                                >
-                                  Advance → {nextSt}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </article>
-                      );
-                    })}
                   </div>
                 </section>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* SECTION 12: PRIVATE DOCUMENTS VAULT */}
-            {activeSection === 'documents' && (
-              <section className="surface-card" aria-labelledby="docs-heading">
-                <h2 id="docs-heading" style={{ marginBlockEnd: '0.5rem' }}>
-                  Private S3 Document Vault ({orgDocuments.length})
-                </h2>
-                <p style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)', marginBlockEnd: '1rem' }}>
-                  Documents are stored in private S3 object keys scoped by <code className="mono">organization_id</code> and accessed exclusively via short-lived HMAC-SHA256 signed URLs.
-                </p>
-
-                {signedUrlPreview && (
-                  <div
-                    style={{
-                      background: 'var(--color-slate-100)',
-                      border: '1px solid var(--color-slate-300)',
-                      padding: '1rem',
-                      borderRadius: 'var(--radius-md)',
-                      marginBlockEnd: '1rem',
-                    }}
-                  >
-                    <div style={{ fontWeight: 700, marginBlockEnd: '0.25rem' }}>
-                      Generated Signed URL for {signedUrlPreview.fileName} (Expires {formatNairobiDate(signedUrlPreview.expiresAt)}):
-                    </div>
-                    <code
-                      className="mono"
-                      style={{
-                        display: 'block',
-                        wordBreak: 'break-all',
-                        fontSize: '0.82rem',
-                        color: 'var(--color-emerald-900)',
-                      }}
-                    >
-                      {signedUrlPreview.url}
-                    </code>
-                  </div>
-                )}
-
-                <ResponsiveTable
-                  caption="Private S3 documents with short-lived pre-signed URL generation"
-                  headers={['Category', 'File Name', 'Linked Entity', 'Size', 'Created', 'Signed Access']}
+          {/* =================================================================
+              PAGE 7: MAINTENANCE & WORK ORDERS (8-Stage Workflow)
+             ================================================================= */}
+          {activeNav === 'maintenance' && (
+            <section className="surface-card">
+              <div className="card-header">
+                <div className="card-title-group">
+                  <Wrench size={17} color="#4b5563" aria-hidden="true" />
+                  <h2>Maintenance Workflow (Submitted → Reviewed → Approved → Assigned → Completed → Closed)</h2>
+                </div>
+                <button
+                  type="button"
+                  className="btn-dark"
+                  onClick={() => setIsMaintenanceModalOpen(true)}
                 >
-                  {orgDocuments.map((doc) => (
-                    <tr key={doc.id}>
-                      <th scope="row">
-                        <StatusBadge status={doc.category} tone="neutral" />
-                      </th>
-                      <td className="mono">{doc.file_name}</td>
-                      <td>{doc.entity_label}</td>
-                      <td>{doc.file_size_kb} KB</td>
-                      <td>{formatNairobiDate(doc.created_at)}</td>
+                  <Plus size={15} aria-hidden="true" />
+                  <span>New Ticket</span>
+                </button>
+              </div>
+
+              <div className="kanban-grid">
+                {orgMaintenance.map((req) => {
+                  const unit = orgUnits.find((u) => u.id === req.unit_id);
+                  const nextSteps = getNextMaintenanceStatuses(req.status);
+                  return (
+                    <article key={req.id} className="board-column">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.8rem' }}>
+                          {req.request_number} • Unit {unit?.unit_number}
+                        </span>
+                        <StatusBadge
+                          status={req.status}
+                          tone={req.status === 'CLOSED' ? 'success' : 'warning'}
+                        />
+                      </div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{req.title}</div>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                        {req.description}
+                      </p>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                        Category: {req.category} • Est: {formatKes(req.estimated_cost_kes)}
+                      </div>
+                      {nextSteps.length > 0 && (
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBlockStart: '6px' }}>
+                          {nextSteps.map((next) => (
+                            <button
+                              key={next}
+                              type="button"
+                              className="btn-dark"
+                              style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
+                              onClick={() => handleAdvanceMaintenance(req.id, next)}
+                            >
+                              Advance to {next}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* =================================================================
+              PAGE 8: ANALYTICS, DOUBLE-ENTRY LEDGER, EXPENSES & DOCUMENTS
+             ================================================================= */}
+          {activeNav === 'analytics' && (
+            <section className="surface-card">
+              <div className="card-header">
+                <div className="pill-tabs" role="tablist" aria-label="Accounting and Analytics">
+                  {(['ledger', 'expenses', 'documents', 'reports'] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      role="tab"
+                      className="pill-tab"
+                      aria-selected={analyticsSubTab === tab}
+                      onClick={() => setAnalyticsSubTab(tab)}
+                    >
+                      {tab === 'ledger'
+                        ? 'Double-Entry Ledger'
+                        : tab === 'expenses'
+                        ? 'Property Expenses'
+                        : tab === 'documents'
+                        ? 'Private S3 Documents'
+                        : 'Executive KPI Summary'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {analyticsSubTab === 'ledger' && (
+                <ResponsiveTable
+                  caption="Immutable double-entry accounting journal entries"
+                  headers={['Entry #', 'Date', 'Event', 'Description', 'Debits = Credits', 'Status', 'Audit Action']}
+                >
+                  {orgJournals.map((j) => (
+                    <tr key={j.id}>
+                      <td style={{ fontWeight: 700 }}>{j.entry_number}</td>
+                      <td>{j.entry_date}</td>
+                      <td>
+                        <span className="badge-pill badge-neutral">{j.source_event_type}</span>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{j.description}</div>
+                        <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>
+                          {j.lines
+                            .map(
+                              (l) =>
+                                `${l.account_code} ${l.account_name}: ${
+                                  l.debit_kes > 0
+                                    ? `DR ${formatKes(l.debit_kes)}`
+                                    : `CR ${formatKes(l.credit_kes)}`
+                                }`
+                            )
+                            .join(' | ')}
+                        </div>
+                      </td>
+                      <td style={{ fontWeight: 700 }}>{formatKes(j.total_debit_kes)}</td>
+                      <td>
+                        <StatusBadge
+                          status={j.status}
+                          tone={j.status === 'POSTED' ? 'success' : 'warning'}
+                        />
+                      </td>
                       <td>
                         <button
                           type="button"
-                          className="btn btn-secondary"
-                          onClick={() => handleGenerateSignedUrl(doc)}
+                          className="btn-outline"
+                          style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
+                          disabled={j.status === 'REVERSED'}
+                          onClick={() => handleReverseJournal(j)}
                         >
-                          <Download size={16} aria-hidden="true" />
-                          <span>Generate 5m Signed URL</span>
+                          Reverse Entry
                         </button>
                       </td>
                     </tr>
                   ))}
                 </ResponsiveTable>
-              </section>
-            )}
+              )}
 
-            {/* SECTION 13: REPORTS & ANALYTICS */}
-            {activeSection === 'reports' && (
-              <section className="surface-card" aria-labelledby="reports-heading">
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBlockEnd: '1rem',
-                  }}
-                >
-                  <div>
-                    <h2 id="reports-heading">
-                      Reconciled Financial & Occupancy Statement
-                    </h2>
-                    <p style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
-                      Every figure reconciles directly with underlying invoices, M-Pesa allocations, expenses, and security deposit liabilities.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleExportCsv}
-                  >
-                    <Download size={16} aria-hidden="true" />
-                    <span>Export CSV Report</span>
-                  </button>
-                </div>
-
+              {analyticsSubTab === 'expenses' && (
                 <ResponsiveTable
-                  caption="Executive financial and operational reconciliation summary"
-                  headers={['Metric', 'Value', 'Accounting Treatment']}
+                  caption="Property maintenance and operating expenses"
+                  headers={['Expense #', 'Category', 'Vendor', 'Description', 'Date', 'Amount']}
                 >
-                  <tr>
-                    <th scope="row">Occupancy Rate</th>
-                    <td className="mono">
-                      {kpis.occupancyRate}% ({kpis.occupiedUnits} of {kpis.totalUnits} units)
-                    </td>
-                    <td>Operational KPI</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Expected Rental Revenue (Billed)</th>
-                    <td className="mono">{formatKes(kpis.expectedRevenue)}</td>
-                    <td>Credit Account 4000 (Rental Revenue) / Debit Account 1100 (AR)</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Actual Rental Collections</th>
-                    <td className="mono">{formatKes(kpis.actualCollections)}</td>
-                    <td>Debit Account 1010 (M-Pesa Clearing) / Credit Account 1100 (AR)</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Outstanding Arrears</th>
-                    <td className="mono">{formatKes(kpis.totalArrears)}</td>
-                    <td>Closing Debit Balance in Account 1100 (Accounts Receivable)</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Operating & Maintenance Expenditure</th>
-                    <td className="mono">{formatKes(kpis.totalExpenses)}</td>
-                    <td>Debit Account 5000 (Maintenance Expense)</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Net Operating Income (NOI)</th>
-                    <td className="mono" style={{ fontWeight: 700 }}>
-                      {formatKes(kpis.netOperatingIncome)}
-                    </td>
-                    <td>Actual Collections minus Operating Expenditure</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Tenant Security Deposits Held</th>
-                    <td className="mono">{formatKes(kpis.depositsLiability)}</td>
-                    <td>Credit Account 2100 (Balance Sheet Liability — Excluded from Revenue)</td>
-                  </tr>
+                  {orgExpenses.map((e: PropertyExpense) => (
+                    <tr key={e.id}>
+                      <td style={{ fontWeight: 700 }}>{e.expense_number}</td>
+                      <td>{e.category}</td>
+                      <td>{e.vendor_name}</td>
+                      <td>{e.description}</td>
+                      <td>{e.expense_date}</td>
+                      <td style={{ fontWeight: 700 }}>{formatKes(e.amount_kes)}</td>
+                    </tr>
+                  ))}
                 </ResponsiveTable>
-              </section>
-            )}
+              )}
 
-            {/* SECTION 14: TEAM & RBAC PERMISSIONS */}
-            {activeSection === 'team' && (
-              <section className="surface-card" aria-labelledby="rbac-heading">
-                <h2 id="rbac-heading" style={{ marginBlockEnd: '0.5rem' }}>
-                  Role-Based Access Control (RBAC) Matrix — Active Role: {state.currentRole}
-                </h2>
-                <p style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)', marginBlockEnd: '1rem' }}>
-                  Switch the active role in the top navigation bar to test backend & domain authorization enforcement.
-                </p>
+              {analyticsSubTab === 'documents' && (
                 <ResponsiveTable
-                  caption="System roles and their granted granular permissions"
-                  headers={['Role', 'Granted Permissions Count', 'Permissions List']}
+                  caption="Private S3 documents with short-lived pre-signed download URLs"
+                  headers={['Category', 'Linked Record', 'File Name', 'Size', 'Action']}
                 >
-                  {ROLES_LIST.map((role) => {
-                    const perms = ROLE_PERMISSIONS[role];
-                    return (
-                      <tr key={role}>
-                        <th scope="row" className="mono">
-                          {role}
-                        </th>
-                        <td>{perms.length} permissions</td>
-                        <td style={{ whiteSpace: 'normal' }}>{perms.join(', ')}</td>
-                      </tr>
-                    );
-                  })}
+                  {orgDocuments.map((d) => (
+                    <tr key={d.id}>
+                      <td>
+                        <span className="badge-pill badge-blue">{d.category}</span>
+                      </td>
+                      <td>{d.entity_label}</td>
+                      <td style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>{d.file_name}</td>
+                      <td>{d.file_size_kb} KB</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="btn-outline"
+                          style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
+                          onClick={() =>
+                            announce(
+                              `Generated 300s HMAC-SHA256 Signed S3 URL for ${d.file_name}`
+                            )
+                          }
+                        >
+                          Sign 5m URL
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </ResponsiveTable>
-              </section>
-            )}
+              )}
 
-            {/* SECTION 15: SETTINGS & STRATEGY CONFIGURATION */}
-            {activeSection === 'settings' && (
-              <section className="surface-card" aria-labelledby="settings-heading">
-                <h2 id="settings-heading" style={{ marginBlockEnd: '1rem' }}>
-                  Organization Billing & Strategy Pattern Configuration ({currentOrg.name})
-                </h2>
-                <div className="form-grid">
-                  <div className="form-field">
-                    <label htmlFor="set-rent-strategy">Rent Calculation Strategy</label>
-                    <select
-                      id="set-rent-strategy"
-                      value={currentOrg.rent_calculation_strategy}
-                      onChange={(e) => {
-                        const val = e.target.value as Organization['rent_calculation_strategy'];
-                        setState((prev) => ({
-                          ...prev,
-                          organizations: prev.organizations.map((o) =>
-                            o.id === currentOrg.id ? { ...o, rent_calculation_strategy: val } : o
-                          ),
-                        }));
-                        notify(`Updated RentCalculationStrategy to ${val}.`);
-                      }}
+              {analyticsSubTab === 'reports' && (
+                <div className="stat-kv-list" style={{ maxInlineSize: '640px' }}>
+                  <div className="stat-kv-row">
+                    <span>Expected Rental Revenue (Account 4000)</span>
+                    <span className="stat-kv-val">{formatKes(kpis.billedKes)}</span>
+                  </div>
+                  <div className="stat-kv-row">
+                    <span>Actual M-Pesa Collections (Account 1010)</span>
+                    <span className="stat-kv-val">{formatKes(kpis.collectedKes)}</span>
+                  </div>
+                  <div className="stat-kv-row">
+                    <span>Outstanding Tenant Arrears (Account 1100)</span>
+                    <span className="stat-kv-val">{formatKes(kpis.arrearsKes)}</span>
+                  </div>
+                  <div className="stat-kv-row">
+                    <span>Security Deposits Held as Liability (Account 2100)</span>
+                    <span className="stat-kv-val">{formatKes(kpis.depositsLiabilityKes)}</span>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* =================================================================
+              PAGE 9: SETTINGS, RBAC & MOBILE TENANT PORTAL
+             ================================================================= */}
+          {activeNav === 'settings' && (
+            <section className="surface-card">
+              <div className="card-header">
+                <div className="pill-tabs" role="tablist" aria-label="Settings and Portal">
+                  {(['org', 'rbac', 'portal'] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      role="tab"
+                      className="pill-tab"
+                      aria-selected={settingsSubTab === tab}
+                      onClick={() => setSettingsSubTab(tab)}
                     >
-                      <option value="FIXED_MONTHLY">FIXED_MONTHLY (Standard Kenyan Monthly Lease)</option>
-                      <option value="PRORATED_DAILY">PRORATED_DAILY (Mid-Month Move-In Proration)</option>
-                    </select>
-                  </div>
+                      {tab === 'org'
+                        ? 'Organization Settings'
+                        : tab === 'rbac'
+                        ? 'Role Permissions (9 Roles)'
+                        : 'Mobile Tenant Self-Service Portal'}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                  <div className="form-field">
-                    <label htmlFor="set-alloc-strategy">Payment Allocation Strategy</label>
-                    <select
-                      id="set-alloc-strategy"
-                      value={currentOrg.payment_allocation_strategy}
-                      onChange={(e) => {
-                        const val = e.target.value as Organization['payment_allocation_strategy'];
-                        setState((prev) => ({
-                          ...prev,
-                          organizations: prev.organizations.map((o) =>
-                            o.id === currentOrg.id ? { ...o, payment_allocation_strategy: val } : o
-                          ),
-                        }));
-                        notify(`Updated PaymentAllocationStrategy to ${val}.`);
-                      }}
-                    >
-                      <option value="FIFO_OLDEST_FIRST">FIFO_OLDEST_FIRST (Oldest Due Invoice First)</option>
-                      <option value="RENT_PRIORITY_FIRST">RENT_PRIORITY_FIRST (Base Rent Before Utilities)</option>
-                    </select>
+              {settingsSubTab === 'org' && (
+                <div className="stat-kv-list" style={{ maxInlineSize: '620px' }}>
+                  <div className="stat-kv-row">
+                    <span>Organization Name</span>
+                    <span className="stat-kv-val">{currentOrg.name}</span>
                   </div>
-
-                  <div className="form-field">
-                    <label htmlFor="set-paybill">Safaricom M-Pesa Paybill Shortcode</label>
-                    <input
-                      id="set-paybill"
-                      type="text"
-                      inputMode="numeric"
-                      value={currentOrg.mpesa_paybill_shortcode}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setState((prev) => ({
-                          ...prev,
-                          organizations: prev.organizations.map((o) =>
-                            o.id === currentOrg.id ? { ...o, mpesa_paybill_shortcode: val } : o
-                          ),
-                        }));
-                      }}
-                    />
+                  <div className="stat-kv-row">
+                    <span>KRA PIN</span>
+                    <span className="stat-kv-val">{currentOrg.kra_pin}</span>
+                  </div>
+                  <div className="stat-kv-row">
+                    <span>Default Currency & Timezone</span>
+                    <span className="stat-kv-val">
+                      {currentOrg.currency} ({currentOrg.timezone})
+                    </span>
+                  </div>
+                  <div className="stat-kv-row">
+                    <span>M-Pesa Paybill Shortcode</span>
+                    <span className="stat-kv-val">{currentOrg.mpesa_paybill_shortcode}</span>
+                  </div>
+                  <div className="stat-kv-row">
+                    <span>Payment Allocation Strategy</span>
+                    <span className="stat-kv-val">{currentOrg.payment_allocation_strategy}</span>
                   </div>
                 </div>
-              </section>
-            )}
+              )}
 
-            {/* SECTION 16: MOBILE-FIRST TENANT PORTAL */}
-            {activeSection === 'tenant-portal' && (
-              <section
-                className="surface-card"
-                aria-labelledby="tenant-portal-heading"
-                style={{ maxInlineSize: '580px', marginInline: 'auto', inlineSize: '100%' }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBlockEnd: '1rem' }}>
-                  <div>
-                    <h2 id="tenant-portal-heading">Tenant Self-Service Portal</h2>
-                    <p style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)' }}>
-                      Wanjiku Mwangi • Unit A-101 • Jacaranda Heights
-                    </p>
-                  </div>
-                  <StatusBadge status="ACTIVE LEASE" tone="success" />
-                </div>
-
-                <div
-                  style={{
-                    background: 'var(--color-emerald-950)',
-                    color: '#fff',
-                    padding: '1.25rem',
-                    borderRadius: 'var(--radius-md)',
-                    marginBlockEnd: '1.25rem',
-                  }}
-                >
-                  <div style={{ fontSize: '0.82rem', color: '#a7f3d0' }}>
-                    Current Outstanding Balance (Account Ref: RENT-A-101)
-                  </div>
-                  <div style={{ fontSize: '2rem', fontWeight: 800, marginBlock: '0.35rem' }}>
-                    {formatKes(
-                      orgInvoices
-                        .filter((i) => i.tenant_id === 'tnt-wanjiku-001')
-                        .reduce((acc, i) => acc + i.balance_kes, 0)
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    className="btn btn-mpesa"
-                    style={{ inlineSize: '100%', marginBlockStart: '0.5rem' }}
-                    onClick={() => setMpesaModalOpen(true)}
-                  >
-                    <Receipt size={18} aria-hidden="true" />
-                    <span>Pay Rent via M-Pesa STK Push (KES 5,000)</span>
-                  </button>
-                </div>
-
-                <h3 style={{ marginBlockEnd: '0.5rem' }}>Recent Receipts & Statements</h3>
-                <ResponsiveTable
-                  caption="Your M-Pesa rent receipts"
-                  headers={['Receipt #', 'M-Pesa Code', 'Amount Paid', 'Date']}
-                >
-                  {orgPayments
-                    .filter((p) => p.tenant_id === 'tnt-wanjiku-001')
-                    .map((p) => (
-                      <tr key={p.id}>
-                        <th scope="row" className="mono">
-                          {p.receipt_number}
-                        </th>
-                        <td className="mono">{p.mpesa_receipt_number}</td>
-                        <td className="mono">{formatKes(p.amount_kes)}</td>
-                        <td>{p.paid_at ? formatNairobiDate(p.paid_at) : '-'}</td>
-                      </tr>
+              {settingsSubTab === 'rbac' && (
+                <div>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBlockEnd: '12px' }}>
+                    Active Role: <strong>{state.currentRole}</strong> (
+                    {ROLE_PERMISSIONS[state.currentRole].length} granted permissions)
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {ROLE_PERMISSIONS[state.currentRole].map((perm) => (
+                      <span key={perm} className="badge-pill badge-green">
+                        <CheckCircle2 size={13} style={{ marginInlineEnd: '4px' }} />
+                        {perm}
+                      </span>
                     ))}
-                </ResponsiveTable>
-              </section>
-            )}
-          </main>
+                  </div>
+                </div>
+              )}
 
-          <footer
-            style={{
-              padding: '1rem 1.5rem',
-              borderBlockStart: '1px solid var(--color-border-subtle)',
-              fontSize: '0.82rem',
-              color: 'var(--color-text-secondary)',
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'space-between',
-              gap: '0.5rem',
-            }}
-          >
-            <span>
-              Guri24 Residential Rental Management System (RMS) • Built with Rust, Axum, PostgreSQL, Vite & React
-            </span>
-            <span>Kenya Data Protection Act 2019 Compliant • Double-Entry Accounting</span>
-          </footer>
-        </div>
+              {settingsSubTab === 'portal' && (
+                <div
+                  style={{
+                    maxInlineSize: '440px',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    background: 'var(--bg-sidebar)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBlockEnd: '14px' }}>
+                    <Smartphone size={20} color="#2563eb" />
+                    <div>
+                      <div style={{ fontWeight: 700 }}>Kenyan Tenant Mobile Portal</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        Unit A-101 • Wanjiku Mwangi (254722111222)
+                      </div>
+                    </div>
+                  </div>
+                  <div className="stat-kv-list">
+                    <div className="stat-kv-row">
+                      <span>Current Rent Balance</span>
+                      <span className="stat-kv-val">{formatKes(kpis.arrearsKes)}</span>
+                    </div>
+                    <div className="stat-kv-row">
+                      <span>Paybill / Account Ref</span>
+                      <span className="stat-kv-val">
+                        {currentOrg.mpesa_paybill_shortcode} / RENT-A-101
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-dark"
+                    style={{ inlineSize: '100%' }}
+                    onClick={() => setIsMpesaModalOpen(true)}
+                  >
+                    Pay Rent via M-Pesa STK Push
+                  </button>
+                </div>
+              )}
+            </section>
+          )}
+        </main>
       </div>
 
-      {/* NATIVE MODAL DIALOG 1: END-TO-END WORKFLOW WIZARD */}
+      {/* =================================================================
+          MODALS (Native <dialog> via ModalDialog)
+         ================================================================= */}
+
+      {/* 1. Organization & Role Switcher Modal */}
       <ModalDialog
-        open={wizardOpen}
-        onClose={() => setWizardOpen(false)}
-        title="Full Onboarding Workflow: Property → Building → Floor → Unit → Tenant → Lease"
+        open={isSwitcherModalOpen}
+        onClose={() => setIsSwitcherModalOpen(false)}
+        title="Switch Organization & RBAC Role"
       >
-        <form onSubmit={handleRunOnboardingChain}>
-          <fieldset
-            style={{
-              border: '1px solid var(--color-border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              padding: '1rem',
-              marginBlockEnd: '1rem',
-            }}
-          >
-            <legend style={{ fontWeight: 700, paddingInline: '0.4rem' }}>
-              1. Property, Building, Floor & Unit
-            </legend>
-            <div className="form-grid">
-              <div className="form-field">
-                <label htmlFor="wiz-prop-name">Property Name *</label>
-                <input
-                  id="wiz-prop-name"
-                  name="propertyName"
-                  type="text"
-                  value={wizardForm.propertyName}
-                  onChange={(e) =>
-                    setWizardForm((p) => ({ ...p, propertyName: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="form-field">
-                <label htmlFor="wiz-prop-code">Property Code *</label>
-                <input
-                  id="wiz-prop-code"
-                  name="propertyCode"
-                  type="text"
-                  autoCorrect="off"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  value={wizardForm.propertyCode}
-                  onChange={(e) =>
-                    setWizardForm((p) => ({ ...p, propertyCode: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="form-field">
-                <label htmlFor="wiz-bld-name">Building Name *</label>
-                <input
-                  id="wiz-bld-name"
-                  name="buildingName"
-                  type="text"
-                  value={wizardForm.buildingName}
-                  onChange={(e) =>
-                    setWizardForm((p) => ({ ...p, buildingName: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="form-field">
-                <label htmlFor="wiz-unit-no">Unit Number *</label>
-                <input
-                  id="wiz-unit-no"
-                  name="unitNumber"
-                  type="text"
-                  value={wizardForm.unitNumber}
-                  onChange={(e) =>
-                    setWizardForm((p) => ({ ...p, unitNumber: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="form-field">
-                <label htmlFor="wiz-rent">Monthly Rent (KES) *</label>
-                <input
-                  id="wiz-rent"
-                  name="monthlyRentKes"
-                  type="text"
-                  inputMode="numeric"
-                  value={wizardForm.monthlyRentKes}
-                  aria-invalid={wizardErrors.monthlyRentKes ? 'true' : undefined}
-                  aria-describedby={wizardErrors.monthlyRentKes ? 'wiz-rent-err' : undefined}
-                  onBlur={(e) => validateWizardField('monthlyRentKes', e.target.value)}
-                  onChange={(e) => {
-                    const val = Number(e.target.value.replace(/\D/g, '')) || 0;
-                    setWizardForm((p) => ({
-                      ...p,
-                      monthlyRentKes: val,
-                      depositKes: val,
-                    }));
-                    setWizardErrors((prev) => ({ ...prev, monthlyRentKes: '' }));
-                  }}
-                  required
-                />
-                {wizardErrors.monthlyRentKes && (
-                  <span id="wiz-rent-err" className="field-error">
-                    {wizardErrors.monthlyRentKes}
-                  </span>
-                )}
-              </div>
-            </div>
-          </fieldset>
-
-          <fieldset
-            style={{
-              border: '1px solid var(--color-border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              padding: '1rem',
-              marginBlockEnd: '1rem',
-            }}
-          >
-            <legend style={{ fontWeight: 700, paddingInline: '0.4rem' }}>
-              2. Kenyan Tenant & Active Lease Assignment
-            </legend>
-            <div className="form-grid">
-              <div className="form-field">
-                <label htmlFor="wiz-tenant-name">Tenant Full Name *</label>
-                <input
-                  id="wiz-tenant-name"
-                  name="tenantFullName"
-                  type="text"
-                  autoComplete="name"
-                  value={wizardForm.tenantFullName}
-                  onChange={(e) =>
-                    setWizardForm((p) => ({ ...p, tenantFullName: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="form-field">
-                <label htmlFor="wiz-tenant-phone">Kenyan M-Pesa Phone *</label>
-                <input
-                  id="wiz-tenant-phone"
-                  name="tenantPhone"
-                  type="tel"
-                  inputMode="numeric"
-                  autoComplete="tel"
-                  value={wizardForm.tenantPhone}
-                  aria-invalid={wizardErrors.tenantPhone ? 'true' : undefined}
-                  aria-describedby="wiz-phone-hint"
-                  onBlur={(e) => validateWizardField('tenantPhone', e.target.value)}
-                  onChange={(e) => {
-                    setWizardForm((p) => ({ ...p, tenantPhone: e.target.value }));
-                    setWizardErrors((prev) => ({ ...prev, tenantPhone: '' }));
-                  }}
-                  required
-                />
-                <span id="wiz-phone-hint" className="field-hint">
-                  Format: 07XXXXXXXX or 2547XXXXXXXX
-                </span>
-                {wizardErrors.tenantPhone && (
-                  <span className="field-error">{wizardErrors.tenantPhone}</span>
-                )}
-              </div>
-              <div className="form-field">
-                <label htmlFor="wiz-tenant-id">National ID (Masked per DPA 2019)</label>
-                <input
-                  id="wiz-tenant-id"
-                  name="tenantNationalId"
-                  type="text"
-                  inputMode="numeric"
-                  value={wizardForm.tenantNationalId}
-                  onChange={(e) =>
-                    setWizardForm((p) => ({ ...p, tenantNationalId: e.target.value }))
-                  }
-                  required
-                />
-                <span className="field-hint">
-                  Stored masked as {maskNationalId(wizardForm.tenantNationalId)}
-                </span>
-              </div>
-            </div>
-          </fieldset>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setWizardOpen(false)}
-            >
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary" autoFocus>
-              Execute Full Onboarding Workflow
-            </button>
-          </div>
-        </form>
-      </ModalDialog>
-
-      {/* NATIVE MODAL DIALOG 2: M-PESA DARAJA CALLBACK & RECONCILIATION */}
-      <ModalDialog
-        open={mpesaModalOpen}
-        onClose={() => setMpesaModalOpen(false)}
-        title="Safaricom M-Pesa Daraja STK Push & Callback Settlement"
-      >
-        <form onSubmit={handleProcessMpesaCallback}>
-          <div className="form-field">
-            <label htmlFor="mpesa-tenant">Select Tenant</label>
+        <div className="form-grid">
+          <div className="field-group">
+            <label htmlFor="org-select">Active SaaS Organization (Multi-Tenant Isolation)</label>
             <select
-              id="mpesa-tenant"
-              value={mpesaForm.tenantId}
-              onChange={(e) =>
-                setMpesaForm((p) => ({ ...p, tenantId: e.target.value }))
-              }
+              id="org-select"
+              className="form-control"
+              value={state.currentOrganizationId}
+              onChange={(e) => {
+                const nextOrgId = e.target.value;
+                setState((prev) => ({ ...prev, currentOrganizationId: nextOrgId }));
+                announce('Switched active SaaS organization context');
+              }}
             >
-              {orgTenants.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.full_name} ({t.phone})
+              {state.organizations.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {org.name} ({org.county})
                 </option>
               ))}
             </select>
           </div>
 
+          <div className="field-group">
+            <label htmlFor="role-select">Simulated RBAC Role</label>
+            <select
+              id="role-select"
+              className="form-control"
+              value={state.currentRole}
+              onChange={(e) => {
+                const nextRole = e.target.value as SystemRole;
+                setState((prev) => ({ ...prev, currentRole: nextRole }));
+                announce(`Switched active role to ${nextRole}`);
+              }}
+            >
+              {ROLES_LIST.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </ModalDialog>
+
+      {/* 2. End-to-End Property -> Building -> Floor -> Unit -> Tenant -> Lease Modal */}
+      <ModalDialog
+        open={isOnboardModalOpen}
+        onClose={() => setIsOnboardModalOpen(false)}
+        title="Onboard Property, Unit, Tenant & Activate Lease"
+      >
+        <form onSubmit={handleOnboardSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div className="form-grid">
-            <div className="form-field">
-              <label htmlFor="mpesa-phone">M-Pesa Phone Number *</label>
+            <div className="field-group">
+              <label htmlFor="prop-name">Property Name</label>
+              <input
+                id="prop-name"
+                type="text"
+                required
+                className="form-control"
+                value={onboardForm.propertyName}
+                onChange={(e) => setOnboardForm({ ...onboardForm, propertyName: e.target.value })}
+              />
+            </div>
+            <div className="field-group">
+              <label htmlFor="unit-no">Unit Number</label>
+              <input
+                id="unit-no"
+                type="text"
+                required
+                className="form-control"
+                value={onboardForm.unitNumber}
+                onChange={(e) => setOnboardForm({ ...onboardForm, unitNumber: e.target.value })}
+              />
+            </div>
+            <div className="field-group">
+              <label htmlFor="rent-kes">Monthly Rent (KES)</label>
+              <input
+                id="rent-kes"
+                type="text"
+                inputMode="numeric"
+                required
+                className="form-control"
+                value={onboardForm.monthlyRentKes}
+                onChange={(e) =>
+                  setOnboardForm({ ...onboardForm, monthlyRentKes: Number(e.target.value) || 0 })
+                }
+              />
+            </div>
+            <div className="field-group">
+              <label htmlFor="tnt-name">Tenant Full Name</label>
+              <input
+                id="tnt-name"
+                type="text"
+                required
+                className="form-control"
+                value={onboardForm.tenantFullName}
+                onChange={(e) => setOnboardForm({ ...onboardForm, tenantFullName: e.target.value })}
+              />
+            </div>
+            <div className="field-group">
+              <label htmlFor="tnt-phone">Kenyan M-Pesa Phone</label>
+              <input
+                id="tnt-phone"
+                type="tel"
+                inputMode="numeric"
+                required
+                className="form-control"
+                value={onboardForm.tenantPhone}
+                onChange={(e) => setOnboardForm({ ...onboardForm, tenantPhone: e.target.value })}
+              />
+            </div>
+            <div className="field-group">
+              <label htmlFor="tnt-id">National ID Number</label>
+              <input
+                id="tnt-id"
+                type="text"
+                inputMode="numeric"
+                required
+                className="form-control"
+                value={onboardForm.tenantNationalId}
+                onChange={(e) =>
+                  setOnboardForm({ ...onboardForm, tenantNationalId: e.target.value })
+                }
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            className="btn-dark"
+            disabled={!hasPermission(state.currentRole, 'properties.create')}
+          >
+            Create Property, Unit & Activate Lease
+          </button>
+        </form>
+      </ModalDialog>
+
+      {/* 3. M-Pesa Daraja Callback & FIFO Allocation Modal */}
+      <ModalDialog
+        open={isMpesaModalOpen}
+        onClose={() => setIsMpesaModalOpen(false)}
+        title="Process M-Pesa Daraja Payment (FIFO Allocation)"
+      >
+        <form onSubmit={handleMpesaCallbackSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div className="form-grid">
+            <div className="field-group">
+              <label htmlFor="mpesa-tenant">Tenant</label>
+              <select
+                id="mpesa-tenant"
+                className="form-control"
+                value={mpesaForm.tenantId}
+                onChange={(e) => setMpesaForm({ ...mpesaForm, tenantId: e.target.value })}
+              >
+                {orgTenants.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.full_name} ({t.phone})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field-group">
+              <label htmlFor="mpesa-phone">M-Pesa Phone Number</label>
               <input
                 id="mpesa-phone"
                 type="tel"
                 inputMode="numeric"
-                value={mpesaForm.payerPhone}
-                onChange={(e) =>
-                  setMpesaForm((p) => ({ ...p, payerPhone: e.target.value }))
-                }
                 required
+                className="form-control"
+                value={mpesaForm.payerPhone}
+                onChange={(e) => setMpesaForm({ ...mpesaForm, payerPhone: e.target.value })}
               />
             </div>
-
-            <div className="form-field">
-              <label htmlFor="mpesa-amount">Payment Amount (KES) *</label>
+            <div className="field-group">
+              <label htmlFor="mpesa-amount">Amount Paid (KES)</label>
               <input
                 id="mpesa-amount"
                 type="text"
                 inputMode="numeric"
+                required
+                className="form-control"
                 value={mpesaForm.amountKes}
                 onChange={(e) =>
-                  setMpesaForm((p) => ({
-                    ...p,
-                    amountKes: Number(e.target.value.replace(/\D/g, '')) || 0,
-                  }))
+                  setMpesaForm({ ...mpesaForm, amountKes: Number(e.target.value) || 0 })
                 }
-                required
               />
             </div>
-
-            <div className="form-field">
-              <label htmlFor="mpesa-receipt">M-Pesa Receipt Number (Idempotency Key) *</label>
+            <div className="field-group">
+              <label htmlFor="mpesa-receipt">M-Pesa Receipt Number (Idempotency Key)</label>
               <input
                 id="mpesa-receipt"
                 type="text"
-                autoCorrect="off"
-                autoCapitalize="none"
-                spellCheck={false}
+                required
+                className="form-control"
                 value={mpesaForm.mpesaReceiptNumber}
                 onChange={(e) =>
-                  setMpesaForm((p) => ({
-                    ...p,
-                    mpesaReceiptNumber: e.target.value.toUpperCase(),
-                  }))
+                  setMpesaForm({ ...mpesaForm, mpesaReceiptNumber: e.target.value })
                 }
-                required
               />
-              <span className="field-hint">
-                Submitting the same receipt twice tests Duplicate M-Pesa Callback Protection.
-              </span>
             </div>
           </div>
+          <button type="submit" className="btn-dark">
+            Verify Callback & Allocate Payment
+          </button>
+        </form>
+      </ModalDialog>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setMpesaModalOpen(false)}
-            >
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-mpesa" autoFocus>
-              Verify Callback & Allocate Payment ({formatKes(mpesaForm.amountKes)})
-            </button>
+      {/* 4. Idempotent Recurring Invoice Modal */}
+      <ModalDialog
+        open={isInvoiceModalOpen}
+        onClose={() => setIsInvoiceModalOpen(false)}
+        title="Generate Monthly Rent Invoice (Idempotent)"
+      >
+        <form onSubmit={handleGenerateInvoice} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div className="form-grid">
+            <div className="field-group">
+              <label htmlFor="inv-lease">Select Active Lease</label>
+              <select
+                id="inv-lease"
+                className="form-control"
+                value={invoiceForm.leaseId}
+                onChange={(e) => setInvoiceForm({ ...invoiceForm, leaseId: e.target.value })}
+              >
+                {orgLeases.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.lease_number} ({formatKes(l.monthly_rent_kes)}/mo)
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field-group">
+              <label htmlFor="inv-period">Billing Period (YYYY-MM)</label>
+              <input
+                id="inv-period"
+                type="text"
+                required
+                className="form-control"
+                value={invoiceForm.billingPeriod}
+                onChange={(e) => setInvoiceForm({ ...invoiceForm, billingPeriod: e.target.value })}
+              />
+            </div>
           </div>
+          <button type="submit" className="btn-dark">
+            Generate Invoice & Post Journal
+          </button>
+        </form>
+      </ModalDialog>
+
+      {/* 5. Submit Maintenance Ticket Modal */}
+      <ModalDialog
+        open={isMaintenanceModalOpen}
+        onClose={() => setIsMaintenanceModalOpen(false)}
+        title="Submit Maintenance Request"
+      >
+        <form onSubmit={handleMaintenanceSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div className="form-grid">
+            <div className="field-group">
+              <label htmlFor="mnt-title">Issue Title</label>
+              <input
+                id="mnt-title"
+                type="text"
+                required
+                className="form-control"
+                value={maintenanceForm.title}
+                onChange={(e) => setMaintenanceForm({ ...maintenanceForm, title: e.target.value })}
+              />
+            </div>
+            <div className="field-group">
+              <label htmlFor="mnt-cost">Estimated Cost (KES)</label>
+              <input
+                id="mnt-cost"
+                type="text"
+                inputMode="numeric"
+                required
+                className="form-control"
+                value={maintenanceForm.estimatedCostKes}
+                onChange={(e) =>
+                  setMaintenanceForm({
+                    ...maintenanceForm,
+                    estimatedCostKes: Number(e.target.value) || 0,
+                  })
+                }
+              />
+            </div>
+          </div>
+          <button type="submit" className="btn-dark">
+            Submit Maintenance Request
+          </button>
         </form>
       </ModalDialog>
     </>
