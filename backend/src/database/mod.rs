@@ -1,0 +1,148 @@
+use std::{sync::Arc, time::Duration};
+
+use crate::{
+    config::AppConfig,
+    core::{
+        events::{AuditLogObserver, EventBus, NotificationObserver},
+        middleware::RateLimiterDecorator,
+        security::TokenService,
+    },
+    integrations::{
+        ai::AIAdapter, email::EmailAdapter, mpesa::MpesaAdapter, sms::SmsAdapter,
+        storage::StorageAdapter, AIProviderFactory, NotificationProviderFactory,
+        PaymentProviderFactory, StorageProviderFactory,
+    },
+    modules::{
+        accounting::{AccountingRepository, InMemoryAccountingRepository},
+        auth::AuthService,
+        billing::{InMemoryInvoiceRepository, InvoiceRepository},
+        deposits::{DepositRepository, InMemoryDepositRepository},
+        documents::{DocumentRepository, InMemoryDocumentRepository},
+        leases::{InMemoryLeaseRepository, LeaseRepository},
+        maintenance::{InMemoryMaintenanceRepository, MaintenanceRepository},
+        organizations::{InMemoryOrganizationRepository, OrganizationRepository},
+        payments::{InMemoryPaymentRepository, PaymentRepository},
+        properties::{InMemoryPropertyUnitStore, PropertyRepository, UnitRepository},
+        tenants::{InMemoryTenantRepository, TenantRepository},
+    },
+};
+
+pub struct RepositoryRegistry {
+    pub organizations: Arc<dyn OrganizationRepository>,
+    pub properties: Arc<dyn PropertyRepository>,
+    pub units: Arc<dyn UnitRepository>,
+    pub tenants: Arc<dyn TenantRepository>,
+    pub leases: Arc<dyn LeaseRepository>,
+    pub invoices: Arc<dyn InvoiceRepository>,
+    pub payments: Arc<dyn PaymentRepository>,
+    pub deposits: Arc<dyn DepositRepository>,
+    pub accounting: Arc<dyn AccountingRepository>,
+    pub maintenance: Arc<dyn MaintenanceRepository>,
+    pub documents: Arc<dyn DocumentRepository>,
+}
+
+/// Section 5.5: Singleton Pattern
+/// Shared application-wide resources managed safely via `Arc<AppState>` without unsafe global mutability.
+pub struct AppState {
+    pub config: AppConfig,
+    pub token_service: Arc<TokenService>,
+    pub auth_service: Arc<AuthService>,
+    pub event_bus: EventBus,
+    pub audit_observer: Arc<AuditLogObserver>,
+    pub notification_observer: Arc<NotificationObserver>,
+    pub rate_limiter: RateLimiterDecorator,
+    pub mpesa_adapter: Arc<dyn MpesaAdapter>,
+    pub sms_adapter: Arc<dyn SmsAdapter>,
+    pub email_adapter: Arc<dyn EmailAdapter>,
+    pub storage_adapter: Arc<dyn StorageAdapter>,
+    pub ai_adapter: Arc<dyn AIAdapter>,
+    pub repositories: RepositoryRegistry,
+}
+
+impl AppState {
+    pub fn new(config: AppConfig) -> Arc<Self> {
+        let audit_observer = Arc::new(AuditLogObserver::new());
+        let notification_observer = Arc::new(NotificationObserver::new());
+        let event_bus = EventBus::new(vec![
+            audit_observer.clone(),
+            notification_observer.clone(),
+        ]);
+
+        let token_service = Arc::new(TokenService::new(
+            config.jwt_access_secret.clone(),
+            config.jwt_refresh_secret.clone(),
+            config.jwt_access_expiry_secs,
+            config.jwt_refresh_expiry_secs,
+        ));
+
+        let mpesa_adapter = PaymentProviderFactory::create(&config);
+        let sms_adapter = NotificationProviderFactory::create_sms(&config);
+        let email_adapter = NotificationProviderFactory::create_email(&config);
+        let storage_adapter = StorageProviderFactory::create(&config);
+        let ai_adapter = AIProviderFactory::create();
+
+        let org_repo: Arc<dyn OrganizationRepository> =
+            Arc::new(InMemoryOrganizationRepository::new());
+        let prop_unit_store = Arc::new(InMemoryPropertyUnitStore::new());
+        let prop_repo: Arc<dyn PropertyRepository> = prop_unit_store.clone();
+        let unit_repo: Arc<dyn UnitRepository> = prop_unit_store;
+        let tenant_repo: Arc<dyn TenantRepository> =
+            Arc::new(InMemoryTenantRepository::new(event_bus.clone()));
+        let lease_repo: Arc<dyn LeaseRepository> = Arc::new(InMemoryLeaseRepository::new(
+            unit_repo.clone(),
+            tenant_repo.clone(),
+            event_bus.clone(),
+        ));
+        let accounting_repo: Arc<dyn AccountingRepository> =
+            Arc::new(InMemoryAccountingRepository::new());
+        let deposit_repo: Arc<dyn DepositRepository> = Arc::new(InMemoryDepositRepository::new(
+            lease_repo.clone(),
+            accounting_repo.clone(),
+        ));
+        let invoice_repo: Arc<dyn InvoiceRepository> = Arc::new(InMemoryInvoiceRepository::new(
+            lease_repo.clone(),
+            accounting_repo.clone(),
+            event_bus.clone(),
+        ));
+        let payment_repo: Arc<dyn PaymentRepository> = Arc::new(InMemoryPaymentRepository::new(
+            invoice_repo.clone(),
+            accounting_repo.clone(),
+            mpesa_adapter.clone(),
+            event_bus.clone(),
+        ));
+        let maintenance_repo: Arc<dyn MaintenanceRepository> =
+            Arc::new(InMemoryMaintenanceRepository::new(event_bus.clone()));
+        let document_repo: Arc<dyn DocumentRepository> =
+            Arc::new(InMemoryDocumentRepository::new(storage_adapter.clone()));
+
+        let auth_service = Arc::new(AuthService::new(org_repo.clone(), token_service.clone()));
+
+        Arc::new(Self {
+            config,
+            token_service,
+            auth_service,
+            event_bus,
+            audit_observer,
+            notification_observer,
+            rate_limiter: RateLimiterDecorator::new(300, Duration::from_secs(60)),
+            mpesa_adapter,
+            sms_adapter,
+            email_adapter,
+            storage_adapter,
+            ai_adapter,
+            repositories: RepositoryRegistry {
+                organizations: org_repo,
+                properties: prop_repo,
+                units: unit_repo,
+                tenants: tenant_repo,
+                leases: lease_repo,
+                invoices: invoice_repo,
+                payments: payment_repo,
+                deposits: deposit_repo,
+                accounting: accounting_repo,
+                maintenance: maintenance_repo,
+                documents: document_repo,
+            },
+        })
+    }
+}

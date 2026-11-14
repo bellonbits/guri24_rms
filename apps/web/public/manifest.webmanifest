@@ -1,0 +1,17 @@
+{
+  "name": "Guri24 Residential Rental Management System (Kenya)",
+  "short_name": "Guri24 RMS",
+  "description": "Multi-tenant Kenyan Residential Property, Lease, M-Pesa Daraja & Accounting Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#064e3b",
+  "lang": "en-KE",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
