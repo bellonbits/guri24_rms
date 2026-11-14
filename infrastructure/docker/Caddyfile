@@ -15,15 +15,15 @@
     }
 
     handle /api/* {
-        reverse_proxy backend:8080
+        reverse_proxy backend:8085
     }
 
     handle /health {
-        reverse_proxy backend:8080
+        reverse_proxy backend:8085
     }
 
     handle /metrics {
-        reverse_proxy backend:8080
+        reverse_proxy backend:8085
     }
 
     handle {

@@ -35,15 +35,15 @@ impl AppConfig {
             port: env::var("APP_PORT")
                 .ok()
                 .and_then(|v| v.parse().ok())
-                .unwrap_or(8080),
+                .unwrap_or(8085),
             default_currency: env::var("DEFAULT_CURRENCY").unwrap_or_else(|_| "KES".to_string()),
             default_timezone: env::var("DEFAULT_TIMEZONE")
                 .unwrap_or_else(|_| "Africa/Nairobi".to_string()),
             database_url: env::var("DATABASE_URL").unwrap_or_else(|_| {
-                "postgres://rms_user:rms_password_dev_only@localhost:5432/guri24_rms".to_string()
+                "postgres://rms_user:rms_password_dev_only@127.0.0.1:5435/guri24_rms".to_string()
             }),
             redis_url: env::var("REDIS_URL")
-                .unwrap_or_else(|_| "redis://127.0.0.1:6379/0".to_string()),
+                .unwrap_or_else(|_| "redis://127.0.0.1:6382/0".to_string()),
             jwt_access_secret: env::var("JWT_ACCESS_SECRET").unwrap_or_else(|_| {
                 "dev_only_access_secret_must_be_overridden_in_production_64_bytes".to_string()
             }),

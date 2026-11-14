@@ -1,22 +1,20 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:16-alpine
     container_name: guri24_rms_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: rms_user
-      POSTGRES_PASSWORD: rms_password_dev_only
-      POSTGRES_DB: guri24_rms
+      POSTGRES_USER: ${POSTGRES_USER:-rms_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rms_password_dev_only}
+      POSTGRES_DB: ${POSTGRES_DB:-guri24_rms}
       TZ: Africa/Nairobi
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${RMS_POSTGRES_PORT:-5435}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/migrations:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rms_user -d guri24_rms"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-rms_user} -d ${POSTGRES_DB:-guri24_rms}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -27,7 +25,7 @@ services:
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
     ports:
-      - "6379:6379"
+      - "127.0.0.1:${RMS_REDIS_PORT:-6382}:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -42,11 +40,11 @@ services:
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin_secret_dev_only
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin_secret_dev_only}
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:${RMS_MINIO_API_PORT:-9010}:9000"
+      - "127.0.0.1:${RMS_MINIO_CONSOLE_PORT:-9011}:9001"
     volumes:
       - minio_data:/data
 
@@ -59,11 +57,12 @@ services:
     env_file:
       - .env.example
     environment:
-      DATABASE_URL: postgres://rms_user:rms_password_dev_only@postgres:5432/guri24_rms
+      APP_PORT: 8085
+      DATABASE_URL: postgres://${POSTGRES_USER:-rms_user}:${POSTGRES_PASSWORD:-rms_password_dev_only}@postgres:5432/${POSTGRES_DB:-guri24_rms}
       REDIS_URL: redis://redis:6379/0
       S3_ENDPOINT: http://minio:9000
     ports:
-      - "8080:8080"
+      - "127.0.0.1:${RMS_BACKEND_PORT:-8085}:8085"
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,7 +76,7 @@ services:
     container_name: guri24_rms_web
     restart: unless-stopped
     ports:
-      - "5173:80"
+      - "127.0.0.1:${RMS_WEB_PORT:-5175}:80"
     depends_on:
       - backend
 
@@ -86,8 +85,8 @@ services:
     container_name: guri24_rms_caddy
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "${RMS_CADDY_HTTP_PORT:-8088}:80"
+      - "${RMS_CADDY_HTTPS_PORT:-8448}:443"
     volumes:
       - ./infrastructure/docker/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -103,16 +102,16 @@ services:
     volumes:
       - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
-      - "9090:9090"
+      - "127.0.0.1:${RMS_PROMETHEUS_PORT:-9095}:9090"
 
   grafana:
     image: grafana/grafana:latest
     container_name: guri24_rms_grafana
     restart: unless-stopped
     ports:
-      - "3001:3000"
+      - "127.0.0.1:${RMS_GRAFANA_PORT:-3005}:3000"
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin_dev_only
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin_dev_only}
     depends_on:
       - prometheus
 

@@ -22,9 +22,9 @@ COPY --from=builder /app/target/release/guri24_rms_backend /app/guri24_rms_backe
 COPY --from=builder /app/migrations /app/migrations
 
 USER rmsuser
-EXPOSE 8080
+EXPOSE 8085
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:8080/health || exit 1
+  CMD curl -f http://localhost:8085/health || exit 1
 
 ENTRYPOINT ["/app/guri24_rms_backend"]
