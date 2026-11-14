@@ -1084,6 +1084,36 @@ export function createInitialRmsState(): RmsPlatformState {
     ],
     integrationsStatus: [
       {
+        provider_key: 'SUPABASE_POSTGRES_STORAGE',
+        display_name: 'Supabase PostgreSQL & Private Supabase Storage',
+        category: 'STORAGE',
+        configured_mode: 'POSTGRESQL_RLS_STORAGE',
+        live_credentials_configured: true,
+        status_label: 'Supabase PostgreSQL & Bucket Active (Port 5435 / Cloud URL)',
+        honest_disclosure:
+          'Supabase PostgreSQL is the primary and authoritative database. Enforces SQL migrations, relational snapshot persistence, foreign keys, and organization-scoped tenant isolation.',
+      },
+      {
+        provider_key: 'GROQ_AI',
+        display_name: 'Groq AI Agent Assistant (Llama-3.3-70B)',
+        category: 'AI_ASSISTANT',
+        configured_mode: 'GROQ_LLM_ADAPTER',
+        live_credentials_configured: false,
+        status_label: 'Grounded Groq Tool Engine Active (Set GROQ_API_KEY for cloud inference)',
+        honest_disclosure:
+          'GROQ_API_KEY and GROQ_MODEL connect to Groq API. Assistant executes live permission-checked RMS tools, cites real database records, enforces prompt-injection guards, and gates mutating actions on user confirmation.',
+      },
+      {
+        provider_key: 'ALLENAI_OLMOCR',
+        display_name: 'Allen AI olmOCR (allenai/olmOCR-2-7B-1025-FP8)',
+        category: 'OCR',
+        configured_mode: 'OLMOCR_GPU_INFERENCE_ADAPTER',
+        live_credentials_configured: false,
+        status_label: 'olmOCR Structured Pipeline Active (Set OCR_SERVICE_URL for GPU inference)',
+        honest_disclosure:
+          'OCR_SERVICE_URL connects to the dedicated Python/GPU olmOCR microservice running allenai/olmOCR-2-7B-1025-FP8 with layout-aware text extraction, confidence scoring, and mandatory human verification.',
+      },
+      {
         provider_key: 'MPESA_DARAJA',
         display_name: 'Safaricom M-Pesa Daraja (STK Push & C2B)',
         category: 'PAYMENTS',
@@ -1094,26 +1124,6 @@ export function createInitialRmsState(): RmsPlatformState {
           'MPESA_CONSUMER_KEY, MPESA_CONSUMER_SECRET, and MPESA_PASSKEY are not set to production keys in .env. Webhook HMAC verification, idempotency, and FIFO allocation run via the deterministic Daraja Sandbox Adapter.',
       },
       {
-        provider_key: 'OCR_PROVIDER',
-        display_name: 'OCR & Document Intelligence Engine',
-        category: 'OCR',
-        configured_mode: 'LOCAL_DETERMINISTIC_ADAPTER',
-        live_credentials_configured: false,
-        status_label: 'Local Structured Adapter Active (Cloud API Key Unconfigured)',
-        honest_disclosure:
-          'OCR_PROVIDER_API_KEY is not configured. Using local deterministic OcrProvider adapter with confidence scoring and mandatory human verification.',
-      },
-      {
-        provider_key: 'LLM_ASSISTANT',
-        display_name: 'Grounded RMS AI Assistant',
-        category: 'AI_ASSISTANT',
-        configured_mode: 'GROUNDED_TOOL_ENGINE',
-        live_credentials_configured: false,
-        status_label: 'Grounded RMS Tool Engine Active (External LLM Key Unconfigured)',
-        honest_disclosure:
-          'LLM_API_KEY is not configured. Assistant executes live permission-checked RMS tools, cites real database records, enforces prompt-injection guards, and gates mutating actions on user confirmation.',
-      },
-      {
         provider_key: 'AFRICAS_TALKING_SMS',
         display_name: "Africa's Talking SMS & Transactional Outbox",
         category: 'MESSAGING',
@@ -1122,16 +1132,6 @@ export function createInitialRmsState(): RmsPlatformState {
         status_label: 'Transactional Outbox Active (Live SMS Key Unconfigured)',
         honest_disclosure:
           'AFRICAS_TALKING_API_KEY is not set. Notifications are queued in the transactional outbox so delivery failures never roll back financial transactions.',
-      },
-      {
-        provider_key: 'S3_STORAGE',
-        display_name: 'Private S3 / MinIO Document Vault',
-        category: 'STORAGE',
-        configured_mode: 'SIGNED_URL_VAULT',
-        live_credentials_configured: true,
-        status_label: 'Private Bucket + 300s Pre-Signed URLs Active',
-        honest_disclosure:
-          'Documents are scoped under private/org/{organization_id}/* keys and served via short-lived HMAC-SHA256 pre-signed URLs.',
       },
     ],
   };

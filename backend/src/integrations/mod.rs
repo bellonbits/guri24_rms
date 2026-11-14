@@ -1,9 +1,12 @@
 pub mod ai;
 pub mod email;
+pub mod groq;
 pub mod mpesa;
 pub mod ocr;
+pub mod olmocr;
 pub mod sms;
 pub mod storage;
+pub mod supabase;
 
 use std::{sync::Arc, time::Duration};
 
@@ -13,10 +16,13 @@ use crate::{
     integrations::{
         ai::{AIAdapter, OperationalInsightsAiAdapter},
         email::{EmailAdapter, SmtpEmailAdapter},
+        groq::GroqLlmAdapter,
         mpesa::{MpesaAdapter, SafaricomDarajaAdapter},
-        ocr::{ConfigurableOcrProviderAdapter, OcrProvider},
+        ocr::OcrProvider,
+        olmocr::AllenAiOlmOcrAdapter,
         sms::{AfricasTalkingSmsAdapter, SmsAdapter},
-        storage::{PrivateS3StorageAdapter, StorageAdapter},
+        storage::StorageAdapter,
+        supabase::SupabasePrivateStorageAdapter,
     },
 };
 
@@ -41,10 +47,25 @@ pub struct OcrProviderFactory;
 
 impl OcrProviderFactory {
     pub fn create(config: &AppConfig) -> Arc<dyn OcrProvider> {
-        let breaker = CircuitBreaker::new("ocr_document_intelligence", 3, Duration::from_secs(30));
-        Arc::new(ConfigurableOcrProviderAdapter::new(
-            config.ocr_provider.clone(),
-            config.ocr_provider_api_key.clone(),
+        let breaker = CircuitBreaker::new("allenai_olmocr_service", 3, Duration::from_secs(30));
+        Arc::new(AllenAiOlmOcrAdapter::new(
+            config.ocr_model.clone(),
+            config.ocr_service_url.clone(),
+            config.ocr_service_api_key.clone(),
+            breaker,
+        ))
+    }
+}
+
+pub struct GroqProviderFactory;
+
+impl GroqProviderFactory {
+    pub fn create(config: &AppConfig) -> Arc<GroqLlmAdapter> {
+        let breaker = CircuitBreaker::new("groq_llm_api", 3, Duration::from_secs(30));
+        Arc::new(GroqLlmAdapter::new(
+            config.groq_base_url.clone(),
+            config.groq_model.clone(),
+            config.groq_api_key.clone(),
             breaker,
         ))
     }
@@ -71,8 +92,10 @@ pub struct StorageProviderFactory;
 
 impl StorageProviderFactory {
     pub fn create(config: &AppConfig) -> Arc<dyn StorageAdapter> {
-        Arc::new(PrivateS3StorageAdapter::new(
-            config.s3_bucket.clone(),
+        Arc::new(SupabasePrivateStorageAdapter::new(
+            config.supabase_url.clone(),
+            config.supabase_service_role_key.clone(),
+            config.supabase_storage_bucket.clone(),
             config.s3_signing_secret.clone(),
             config.s3_signed_url_expiry_secs,
         ))

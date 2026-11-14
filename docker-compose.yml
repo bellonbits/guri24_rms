@@ -58,9 +58,12 @@ services:
       - .env.example
     environment:
       APP_PORT: 8085
+      SUPABASE_DATABASE_URL: postgres://${POSTGRES_USER:-rms_user}:${POSTGRES_PASSWORD:-rms_password_dev_only}@postgres:5432/${POSTGRES_DB:-guri24_rms}
       DATABASE_URL: postgres://${POSTGRES_USER:-rms_user}:${POSTGRES_PASSWORD:-rms_password_dev_only}@postgres:5432/${POSTGRES_DB:-guri24_rms}
       REDIS_URL: redis://redis:6379/0
       S3_ENDPOINT: http://minio:9000
+    volumes:
+      - backend_data:/app/data
     ports:
       - "127.0.0.1:${RMS_BACKEND_PORT:-8085}:8085"
     depends_on:
@@ -117,6 +120,7 @@ services:
 
 volumes:
   postgres_data:
+  backend_data:
   redis_data:
   minio_data:
   caddy_data:

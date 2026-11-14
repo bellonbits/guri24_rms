@@ -9,12 +9,13 @@ use crate::{
         errors::{AppError, AppResult},
         tenant_context::TenantContext,
     },
+    integrations::groq::GroqLlmAdapter,
     modules::{
         accounting::AccountingRepository,
         billing::InvoiceRepository,
         deposits::DepositRepository,
         documents::DocumentRepository,
-        leases::LeaseRepository,
+        leases::{LeaseRepository, LeaseStatus},
         maintenance::{MaintenanceRepository, SubmitMaintenanceCommand},
         ocr::OcrRepository,
         payments::PaymentRepository,
@@ -110,6 +111,7 @@ pub trait AssistantServiceTrait: Send + Sync {
 }
 
 pub struct GroundedAssistantService {
+    groq: Option<Arc<GroqLlmAdapter>>,
     properties: Arc<dyn PropertyRepository>,
     units: Arc<dyn UnitRepository>,
     tenants: Arc<dyn TenantRepository>,
@@ -141,6 +143,7 @@ impl GroundedAssistantService {
         ocr: Arc<dyn OcrRepository>,
     ) -> Self {
         Self {
+            groq: None,
             properties,
             units,
             tenants,
@@ -157,7 +160,12 @@ impl GroundedAssistantService {
         }
     }
 
-    /// Section 12: Protect against prompt injection, SQL injection attempts, or instruction hijacking
+    pub fn with_groq(mut self, groq: Arc<GroqLlmAdapter>) -> Self {
+        self.groq = Some(groq);
+        self
+    }
+
+    /// Section 13: Protect against prompt injection, SQL injection attempts, or instruction hijacking
     fn guard_prompt_safety(prompt: &str) -> AppResult<()> {
         let lower = prompt.to_lowercase();
         let forbidden_patterns = [
@@ -196,7 +204,7 @@ impl AssistantServiceTrait for GroundedAssistantService {
         let mut tool_calls = Vec::new();
         let mut citations = Vec::new();
         let mut pending_confirmation = None;
-        let response_text: String;
+        let mut response_text: String;
 
         if q.contains("create maintenance") || q.contains("submit maintenance") || q.contains("log repair") {
             ctx.require_permission("maintenance.view")?;
@@ -345,7 +353,7 @@ impl AssistantServiceTrait for GroundedAssistantService {
             });
 
             if unpaid.is_empty() {
-                response_text = "All issued invoices in your organization are fully settled (KES 0.00 outstanding arrears).".to_string();
+                response_text = "All issued invoices in your organization are settled (KES 0.00 outstanding arrears).".to_string();
             } else {
                 response_text = format!(
                     "There are {} invoice(s) with an outstanding balance totaling KES {}. See the cited invoice records below for exact balances.",
@@ -353,6 +361,36 @@ impl AssistantServiceTrait for GroundedAssistantService {
                     total_arrears
                 );
             }
+        } else if q.contains("expir") || q.contains("lease") {
+            ctx.require_permission("leases.view")?;
+            let leases = self.leases.list_leases(ctx)?;
+            let active_or_expiring: Vec<_> = leases
+                .iter()
+                .filter(|l| l.status == LeaseStatus::Active || l.status == LeaseStatus::Expiring)
+                .collect();
+
+            for l in &active_or_expiring {
+                citations.push(AssistantCitation {
+                    record_type: "Lease".to_string(),
+                    record_code: l.lease_number.clone(),
+                    summary: format!("{} -> {} (KES {}/mo)", l.start_date, l.end_date, l.monthly_rent_kes),
+                });
+            }
+
+            tool_calls.push(AssistantToolCallRecord {
+                id: Uuid::new_v4(),
+                tool_name: "get_expiring_leases".to_string(),
+                required_permission: "leases.view".to_string(),
+                authorized: true,
+                result_summary: format!("Queried {} active/expiring lease(s)", active_or_expiring.len()),
+                executed_at: now,
+            });
+
+            response_text = format!(
+                "Your organization has {} active/expiring lease agreement(s) out of {} total persisted lease record(s).",
+                active_or_expiring.len(),
+                leases.len()
+            );
         } else if q.contains("vacant") || q.contains("available") || q.contains("unit") {
             ctx.require_permission("properties.view")?;
             let units = self.units.list_units(ctx, None)?;
@@ -425,12 +463,12 @@ impl AssistantServiceTrait for GroundedAssistantService {
                 tool_name: "search_documents".to_string(),
                 required_permission: "documents.view".to_string(),
                 authorized: true,
-                result_summary: format!("Found {} stored document(s) and {} OCR extraction job(s)", docs.len(), ocr_jobs.len()),
+                result_summary: format!("Found {} stored document(s) and {} olmOCR extraction job(s)", docs.len(), ocr_jobs.len()),
                 executed_at: now,
             });
 
             response_text = format!(
-                "Your organization has {} private S3 document(s) and {} OCR extraction job(s). Remember that OCR outputs in NEEDS_REVIEW status require human verification before becoming authoritative.",
+                "Your organization has {} private Supabase Storage document(s) and {} Allen AI olmOCR extraction job(s). Remember that OCR outputs in NEEDS_REVIEW status require human verification before becoming authoritative.",
                 docs.len(),
                 ocr_jobs.len()
             );
@@ -463,11 +501,29 @@ impl AssistantServiceTrait for GroundedAssistantService {
             });
 
             response_text = format!(
-                "Your organization currently manages {} residential property/properties, {} unit(s), and {} lease agreement(s). Ask me about rent collections, tenant arrears, vacant units, expiring leases, maintenance tickets, or OCR document extractions.",
+                "Your organization currently manages {} residential property/properties, {} unit(s), and {} lease agreement(s). Ask me about rent collections, tenant arrears, vacant units, expiring leases, maintenance tickets, or olmOCR document extractions.",
                 props.len(),
                 units.len(),
                 leases.len()
             );
+        }
+
+        // If Groq API key is configured and no pending confirmation is required, enrich response via Groq API
+        if pending_confirmation.is_none() {
+            if let Some(groq_adapter) = &self.groq {
+                if groq_adapter.is_configured() {
+                    let context_lines: Vec<String> = citations
+                        .iter()
+                        .map(|c| format!("- [{}] {}: {}", c.record_type, c.record_code, c.summary))
+                        .collect();
+                    let full_context = format!("{}\n{}", response_text, context_lines.join("\n"));
+                    if let Ok(Some(groq_reply)) =
+                        groq_adapter.complete_grounded_response(&cmd.prompt, &full_context)
+                    {
+                        response_text = groq_reply;
+                    }
+                }
+            }
         }
 
         let assistant_msg = AssistantMessage {

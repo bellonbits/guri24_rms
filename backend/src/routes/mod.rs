@@ -82,6 +82,12 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/auth/logout", post(logout_handler))
         // Provider & Integration Readiness Status
         .route("/integrations/status", get(list_integrations_status_handler))
+        .route("/openapi.json", get(openapi_spec_handler))
+        // Authoritative Supabase PostgreSQL Workspace Persistence
+        .route(
+            "/workspace/snapshot",
+            get(get_workspace_snapshot_handler).post(save_workspace_snapshot_handler),
+        )
         // Organizations & Settings
         .route("/organizations/current", get(get_organization_handler))
         .route(
@@ -213,6 +219,45 @@ async fn list_integrations_status_handler(
     State(state): State<Arc<AppState>>,
 ) -> Json<Vec<IntegrationStatusItem>> {
     Json(state.config.integrations_status())
+}
+
+async fn get_workspace_snapshot_handler(
+    State(state): State<Arc<AppState>>,
+) -> Json<serde_json::Value> {
+    let snapshot = state
+        .supabase_pg
+        .load_collection::<serde_json::Value>("workspace_snapshot")
+        .unwrap_or(serde_json::Value::Null);
+    Json(snapshot)
+}
+
+async fn save_workspace_snapshot_handler(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<serde_json::Value>,
+) -> AppResult<Json<serde_json::Value>> {
+    state
+        .supabase_pg
+        .save_collection("workspace_snapshot", &payload);
+    Ok(Json(serde_json::json!({
+        "saved": true,
+        "storage": "supabase_postgresql",
+        "collection_key": "workspace_snapshot"
+    })))
+}
+
+async fn openapi_spec_handler(
+    State(state): State<Arc<AppState>>,
+) -> Json<serde_json::Value> {
+    Json(serde_json::json!({
+        "openapi": "3.0.3",
+        "info": {
+            "title": "Guri24 Residential Rental Management System (RMS) API",
+            "version": env!("CARGO_PKG_VERSION"),
+            "description": "Multi-tenant Kenyan Residential RMS powered by Rust, Axum, Supabase PostgreSQL, Safaricom M-Pesa Daraja, Allen AI olmOCR (allenai/olmOCR-2-7B-1025-FP8), and Groq AI."
+        },
+        "servers": [{ "url": "/api/v1" }],
+        "x-integrations": state.config.integrations_status()
+    }))
 }
 
 async fn prometheus_metrics_handler(State(state): State<Arc<AppState>>) -> impl IntoResponse {

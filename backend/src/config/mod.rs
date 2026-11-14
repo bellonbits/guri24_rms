@@ -18,6 +18,11 @@ pub struct AppConfig {
     pub port: u16,
     pub default_currency: String,
     pub default_timezone: String,
+    pub supabase_url: Option<String>,
+    pub supabase_anon_key: Option<String>,
+    pub supabase_service_role_key: Option<String>,
+    pub supabase_database_url: String,
+    pub supabase_storage_bucket: String,
     pub database_url: String,
     pub redis_url: String,
     pub jwt_access_secret: String,
@@ -33,8 +38,14 @@ pub struct AppConfig {
     pub mpesa_callback_url: String,
     pub mpesa_callback_hmac_secret: String,
     pub ocr_provider: String,
+    pub ocr_model: String,
+    pub ocr_service_url: Option<String>,
+    pub ocr_service_api_key: Option<String>,
     pub ocr_provider_api_key: Option<String>,
     pub ocr_provider_endpoint: Option<String>,
+    pub groq_api_key: Option<String>,
+    pub groq_model: String,
+    pub groq_base_url: String,
     pub llm_provider: String,
     pub llm_model: String,
     pub llm_api_key: Option<String>,
@@ -58,8 +69,42 @@ fn non_empty_env(key: &str) -> Option<String> {
 impl AppConfig {
     pub fn from_env() -> Self {
         let _ = dotenvy::dotenv();
+        let db_url = non_empty_env("SUPABASE_DATABASE_URL")
+            .or_else(|| non_empty_env("DATABASE_URL"))
+            .unwrap_or_else(|| {
+                "postgres://rms_user:rms_password_dev_only@127.0.0.1:5435/guri24_rms".to_string()
+            });
+        let storage_bucket = non_empty_env("SUPABASE_STORAGE_BUCKET")
+            .or_else(|| non_empty_env("S3_BUCKET"))
+            .unwrap_or_else(|| "guri24-rms-private-docs".to_string());
+        let jwt_base = non_empty_env("JWT_SECRET");
+        let jwt_access_secret = non_empty_env("JWT_ACCESS_SECRET")
+            .or_else(|| jwt_base.clone())
+            .unwrap_or_else(|| {
+                "dev_only_access_secret_must_be_overridden_in_production_64_bytes".to_string()
+            });
+        let jwt_refresh_secret = non_empty_env("JWT_REFRESH_SECRET")
+            .or(jwt_base)
+            .unwrap_or_else(|| {
+                "dev_only_refresh_secret_must_be_overridden_in_production_64_byte".to_string()
+            });
+
+        let groq_api_key = non_empty_env("GROQ_API_KEY").or_else(|| non_empty_env("LLM_API_KEY"));
+        let groq_model = non_empty_env("GROQ_MODEL")
+            .or_else(|| non_empty_env("LLM_MODEL"))
+            .unwrap_or_else(|| "llama-3.3-70b-versatile".to_string());
+        let groq_base_url = non_empty_env("GROQ_BASE_URL")
+            .unwrap_or_else(|| "https://api.groq.com/openai/v1".to_string());
+
+        let ocr_service_url =
+            non_empty_env("OCR_SERVICE_URL").or_else(|| non_empty_env("OCR_PROVIDER_ENDPOINT"));
+        let ocr_service_api_key =
+            non_empty_env("OCR_SERVICE_API_KEY").or_else(|| non_empty_env("OCR_PROVIDER_API_KEY"));
+        let ocr_model = non_empty_env("OCR_MODEL")
+            .unwrap_or_else(|| "allenai/olmOCR-2-7B-1025-FP8".to_string());
+
         Self {
-            app_env: env::var("APP_ENV").unwrap_or_else(|_| "development".to_string()),
+            app_env: env::var("APP_ENV").unwrap_or_else(|_| "production".to_string()),
             host: env::var("APP_HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
             port: env::var("APP_PORT")
                 .ok()
@@ -68,17 +113,16 @@ impl AppConfig {
             default_currency: env::var("DEFAULT_CURRENCY").unwrap_or_else(|_| "KES".to_string()),
             default_timezone: env::var("DEFAULT_TIMEZONE")
                 .unwrap_or_else(|_| "Africa/Nairobi".to_string()),
-            database_url: env::var("DATABASE_URL").unwrap_or_else(|_| {
-                "postgres://rms_user:rms_password_dev_only@127.0.0.1:5435/guri24_rms".to_string()
-            }),
+            supabase_url: non_empty_env("SUPABASE_URL"),
+            supabase_anon_key: non_empty_env("SUPABASE_ANON_KEY"),
+            supabase_service_role_key: non_empty_env("SUPABASE_SERVICE_ROLE_KEY"),
+            supabase_database_url: db_url.clone(),
+            supabase_storage_bucket: storage_bucket.clone(),
+            database_url: db_url,
             redis_url: env::var("REDIS_URL")
                 .unwrap_or_else(|_| "redis://127.0.0.1:6382/0".to_string()),
-            jwt_access_secret: env::var("JWT_ACCESS_SECRET").unwrap_or_else(|_| {
-                "dev_only_access_secret_must_be_overridden_in_production_64_bytes".to_string()
-            }),
-            jwt_refresh_secret: env::var("JWT_REFRESH_SECRET").unwrap_or_else(|_| {
-                "dev_only_refresh_secret_must_be_overridden_in_production_64_byte".to_string()
-            }),
+            jwt_access_secret,
+            jwt_refresh_secret,
             jwt_access_expiry_secs: env::var("JWT_ACCESS_EXPIRY_SECONDS")
                 .ok()
                 .and_then(|v| v.parse().ok())
@@ -100,23 +144,29 @@ impl AppConfig {
             }),
             mpesa_callback_hmac_secret: env::var("MPESA_CALLBACK_HMAC_SECRET")
                 .unwrap_or_else(|_| "mpesa_callback_hmac_secret_dev".to_string()),
-            ocr_provider: env::var("OCR_PROVIDER")
-                .unwrap_or_else(|_| "google_document_ai".to_string()),
-            ocr_provider_api_key: non_empty_env("OCR_PROVIDER_API_KEY"),
-            ocr_provider_endpoint: non_empty_env("OCR_PROVIDER_ENDPOINT"),
-            llm_provider: env::var("LLM_PROVIDER").unwrap_or_else(|_| "gemini".to_string()),
-            llm_model: env::var("LLM_MODEL").unwrap_or_else(|_| "gemini-2.5-pro".to_string()),
-            llm_api_key: non_empty_env("LLM_API_KEY"),
+            ocr_provider: "allenai/olmocr".to_string(),
+            ocr_model,
+            ocr_service_url: ocr_service_url.clone(),
+            ocr_service_api_key: ocr_service_api_key.clone(),
+            ocr_provider_api_key: ocr_service_api_key,
+            ocr_provider_endpoint: ocr_service_url,
+            groq_api_key: groq_api_key.clone(),
+            groq_model: groq_model.clone(),
+            groq_base_url,
+            llm_provider: "groq".to_string(),
+            llm_model: groq_model,
+            llm_api_key: groq_api_key,
             sms_provider: env::var("SMS_PROVIDER")
                 .unwrap_or_else(|_| "africastalking".to_string()),
             sms_api_key: non_empty_env("AFRICASTALKING_API_KEY"),
             email_provider: env::var("EMAIL_PROVIDER").unwrap_or_else(|_| "smtp".to_string()),
             smtp_host: non_empty_env("SMTP_HOST"),
-            storage_provider: env::var("STORAGE_PROVIDER").unwrap_or_else(|_| "s3".to_string()),
-            s3_bucket: env::var("S3_BUCKET")
-                .unwrap_or_else(|_| "guri24-rms-private-docs".to_string()),
-            s3_signing_secret: env::var("S3_SECRET_KEY")
-                .unwrap_or_else(|_| "minioadmin_secret_dev_only".to_string()),
+            storage_provider: env::var("STORAGE_PROVIDER")
+                .unwrap_or_else(|_| "supabase_storage".to_string()),
+            s3_bucket: storage_bucket,
+            s3_signing_secret: non_empty_env("SUPABASE_SERVICE_ROLE_KEY")
+                .or_else(|| non_empty_env("S3_SECRET_KEY"))
+                .unwrap_or_else(|| "minioadmin_secret_dev_only".to_string()),
             s3_signed_url_expiry_secs: env::var("S3_SIGNED_URL_EXPIRY_SECONDS")
                 .ok()
                 .and_then(|v| v.parse().ok())
@@ -124,9 +174,30 @@ impl AppConfig {
         }
     }
 
-    /// Section 20: Honest reporting of external provider configuration & credential status.
+    /// Honest reporting of external provider configuration & credential status.
     /// Never claims an external cloud provider is live when its API keys are unconfigured.
     pub fn integrations_status(&self) -> Vec<IntegrationStatusItem> {
+        let mut supabase_missing = Vec::new();
+        if self.supabase_url.is_none() {
+            supabase_missing.push("SUPABASE_URL".to_string());
+        }
+        if self.supabase_service_role_key.is_none() {
+            supabase_missing.push("SUPABASE_SERVICE_ROLE_KEY".to_string());
+        }
+
+        let mut groq_missing = Vec::new();
+        if self.groq_api_key.is_none() {
+            groq_missing.push("GROQ_API_KEY".to_string());
+        }
+
+        let mut olmocr_missing = Vec::new();
+        if self.ocr_service_url.is_none() {
+            olmocr_missing.push("OCR_SERVICE_URL".to_string());
+        }
+        if self.ocr_service_api_key.is_none() {
+            olmocr_missing.push("OCR_SERVICE_API_KEY".to_string());
+        }
+
         let mut mpesa_missing = Vec::new();
         if self.mpesa_consumer_key.is_none() {
             mpesa_missing.push("MPESA_CONSUMER_KEY".to_string());
@@ -136,16 +207,6 @@ impl AppConfig {
         }
         if self.mpesa_passkey.is_none() {
             mpesa_missing.push("MPESA_PASSKEY".to_string());
-        }
-
-        let mut ocr_missing = Vec::new();
-        if self.ocr_provider_api_key.is_none() {
-            ocr_missing.push("OCR_PROVIDER_API_KEY".to_string());
-        }
-
-        let mut llm_missing = Vec::new();
-        if self.llm_api_key.is_none() {
-            llm_missing.push("LLM_API_KEY".to_string());
         }
 
         let mut sms_missing = Vec::new();
@@ -160,7 +221,43 @@ impl AppConfig {
 
         vec![
             IntegrationStatusItem {
-                service: "M-Pesa Daraja Gateway".to_string(),
+                service: "Supabase PostgreSQL & Private Storage".to_string(),
+                provider: format!("Supabase PostgreSQL + Bucket '{}'", self.supabase_storage_bucket),
+                environment: self.app_env.clone(),
+                credentials_configured: !self.supabase_database_url.is_empty(),
+                status: if supabase_missing.is_empty() {
+                    "SUPABASE_CLOUD_CONFIGURED".to_string()
+                } else {
+                    "POSTGRESQL_CONNECTED (Set SUPABASE_URL & SUPABASE_SERVICE_ROLE_KEY for Cloud Storage)".to_string()
+                },
+                missing_env_vars: supabase_missing,
+            },
+            IntegrationStatusItem {
+                service: "Groq AI Agent Assistant".to_string(),
+                provider: format!("Groq API ({})", self.groq_model),
+                environment: self.app_env.clone(),
+                credentials_configured: groq_missing.is_empty(),
+                status: if groq_missing.is_empty() {
+                    "GROQ_API_CONFIGURED".to_string()
+                } else {
+                    "UNCONFIGURED (Set GROQ_API_KEY & GROQ_MODEL in .env)".to_string()
+                },
+                missing_env_vars: groq_missing,
+            },
+            IntegrationStatusItem {
+                service: "Allen AI olmOCR Document Intelligence".to_string(),
+                provider: format!("allenai/olmocr ({})", self.ocr_model),
+                environment: self.app_env.clone(),
+                credentials_configured: olmocr_missing.is_empty(),
+                status: if olmocr_missing.is_empty() {
+                    "OLMOCR_GPU_ENDPOINT_CONFIGURED".to_string()
+                } else {
+                    "UNCONFIGURED (Set OCR_SERVICE_URL & OCR_SERVICE_API_KEY for GPU olmOCR Inference)".to_string()
+                },
+                missing_env_vars: olmocr_missing,
+            },
+            IntegrationStatusItem {
+                service: "Safaricom M-Pesa Daraja Gateway".to_string(),
                 provider: "Safaricom Daraja API".to_string(),
                 environment: self.mpesa_environment.clone(),
                 credentials_configured: mpesa_missing.is_empty(),
@@ -170,38 +267,6 @@ impl AppConfig {
                     "SANDBOX_ADAPTER_ONLY (Missing Safaricom Daraja Production Keys)".to_string()
                 },
                 missing_env_vars: mpesa_missing,
-            },
-            IntegrationStatusItem {
-                service: "OCR & Document Intelligence".to_string(),
-                provider: self.ocr_provider.clone(),
-                environment: self.app_env.clone(),
-                credentials_configured: ocr_missing.is_empty(),
-                status: if ocr_missing.is_empty() {
-                    "CLOUD_OCR_CONFIGURED".to_string()
-                } else {
-                    "LOCAL_STRUCTURED_PARSER_ACTIVE (Cloud OCR API Key Unconfigured)".to_string()
-                },
-                missing_env_vars: ocr_missing,
-            },
-            IntegrationStatusItem {
-                service: "AI Agent Assistant".to_string(),
-                provider: format!("{} ({})", self.llm_provider, self.llm_model),
-                environment: self.app_env.clone(),
-                credentials_configured: llm_missing.is_empty(),
-                status: if llm_missing.is_empty() {
-                    "CLOUD_LLM_CONFIGURED".to_string()
-                } else {
-                    "GROUNDED_TOOL_ENGINE_ACTIVE (External LLM API Key Unconfigured)".to_string()
-                },
-                missing_env_vars: llm_missing,
-            },
-            IntegrationStatusItem {
-                service: "Private Object Storage (S3/MinIO)".to_string(),
-                provider: self.storage_provider.clone(),
-                environment: self.app_env.clone(),
-                credentials_configured: !self.s3_signing_secret.is_empty(),
-                status: "CONFIGURED (MinIO / S3 Pre-Signed URLs Active)".to_string(),
-                missing_env_vars: vec![],
             },
             IntegrationStatusItem {
                 service: "Transactional SMS Gateway".to_string(),

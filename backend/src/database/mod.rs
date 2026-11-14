@@ -8,9 +8,11 @@ use crate::{
         security::TokenService,
     },
     integrations::{
-        ai::AIAdapter, email::EmailAdapter, mpesa::MpesaAdapter, ocr::OcrProvider,
-        sms::SmsAdapter, storage::StorageAdapter, AIProviderFactory, NotificationProviderFactory,
-        OcrProviderFactory, PaymentProviderFactory, StorageProviderFactory,
+        ai::AIAdapter, email::EmailAdapter, groq::GroqLlmAdapter, mpesa::MpesaAdapter,
+        ocr::OcrProvider, sms::SmsAdapter, storage::StorageAdapter,
+        supabase::SupabasePostgresAdapter, AIProviderFactory, GroqProviderFactory,
+        NotificationProviderFactory, OcrProviderFactory, PaymentProviderFactory,
+        StorageProviderFactory,
     },
     modules::{
         accounting::{AccountingRepository, InMemoryAccountingRepository},
@@ -50,6 +52,7 @@ pub struct RepositoryRegistry {
 /// Shared application-wide resources managed safely via `Arc<AppState>` without unsafe global mutability.
 pub struct AppState {
     pub config: AppConfig,
+    pub supabase_pg: SupabasePostgresAdapter,
     pub token_service: Arc<TokenService>,
     pub auth_service: Arc<AuthService>,
     pub assistant_service: Arc<dyn AssistantServiceTrait>,
@@ -59,6 +62,7 @@ pub struct AppState {
     pub rate_limiter: RateLimiterDecorator,
     pub mpesa_adapter: Arc<dyn MpesaAdapter>,
     pub ocr_adapter: Arc<dyn OcrProvider>,
+    pub groq_adapter: Arc<GroqLlmAdapter>,
     pub sms_adapter: Arc<dyn SmsAdapter>,
     pub email_adapter: Arc<dyn EmailAdapter>,
     pub storage_adapter: Arc<dyn StorageAdapter>,
@@ -68,6 +72,9 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(config: AppConfig) -> Arc<Self> {
+        let supabase_pg = SupabasePostgresAdapter::new(config.supabase_database_url.clone());
+        supabase_pg.ensure_schema();
+
         let audit_observer = Arc::new(AuditLogObserver::new());
         let notification_observer = Arc::new(NotificationObserver::new());
         let event_bus = EventBus::new(vec![
@@ -84,6 +91,7 @@ impl AppState {
 
         let mpesa_adapter = PaymentProviderFactory::create(&config);
         let ocr_adapter = OcrProviderFactory::create(&config);
+        let groq_adapter = GroqProviderFactory::create(&config);
         let sms_adapter = NotificationProviderFactory::create_sms(&config);
         let email_adapter = NotificationProviderFactory::create_email(&config);
         let storage_adapter = StorageProviderFactory::create(&config);
@@ -127,8 +135,8 @@ impl AppState {
         let operations_repo: Arc<dyn OperationsRepository> =
             Arc::new(InMemoryOperationsRepository::new());
 
-        let assistant_service: Arc<dyn AssistantServiceTrait> =
-            Arc::new(GroundedAssistantService::new(
+        let assistant_service: Arc<dyn AssistantServiceTrait> = Arc::new(
+            GroundedAssistantService::new(
                 prop_repo.clone(),
                 unit_repo.clone(),
                 tenant_repo.clone(),
@@ -140,12 +148,15 @@ impl AppState {
                 maintenance_repo.clone(),
                 document_repo.clone(),
                 ocr_repo.clone(),
-            ));
+            )
+            .with_groq(groq_adapter.clone()),
+        );
 
         let auth_service = Arc::new(AuthService::new(org_repo.clone(), token_service.clone()));
 
         Arc::new(Self {
             config,
+            supabase_pg,
             token_service,
             auth_service,
             assistant_service,
@@ -155,6 +166,7 @@ impl AppState {
             rate_limiter: RateLimiterDecorator::new(300, Duration::from_secs(60)),
             mpesa_adapter,
             ocr_adapter,
+            groq_adapter,
             sms_adapter,
             email_adapter,
             storage_adapter,

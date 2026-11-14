@@ -15,8 +15,9 @@ RUN cargo build --release
 FROM debian:bookworm-slim
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y ca-certificates libssl3 curl && rm -rf /var/lib/apt/lists/* \
-    && useradd -m -u 10001 rmsuser
+RUN apt-get update && apt-get install -y ca-certificates libssl3 curl postgresql-client && rm -rf /var/lib/apt/lists/* \
+    && useradd -m -u 10001 rmsuser \
+    && mkdir -p /app/data && chown -R rmsuser:rmsuser /app
 
 COPY --from=builder /app/target/release/guri24_rms_backend /app/guri24_rms_backend
 COPY --from=builder /app/migrations /app/migrations
