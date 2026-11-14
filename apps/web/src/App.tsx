@@ -41,8 +41,6 @@ import {
 import {
   formatKes,
   formatNairobiDate,
-  maskNationalId,
-  normalizeKenyanPhone,
   yieldToMain,
 } from './lib/formatters';
 import {
@@ -77,36 +75,36 @@ const MAIN_MENU_ITEMS: {
   icon: React.ReactNode;
   hasChevron?: boolean;
 }[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: <Home size={17} aria-hidden="true" /> },
+  { id: 'dashboard', label: 'Dashboard', icon: <Home size={16} aria-hidden="true" /> },
   {
     id: 'leases',
     label: 'Leases & Bookings',
-    icon: <Calendar size={17} aria-hidden="true" />,
+    icon: <Calendar size={16} aria-hidden="true" />,
   },
   {
     id: 'properties',
     label: 'Properties & Units',
-    icon: <Building2 size={17} aria-hidden="true" />,
+    icon: <Building2 size={16} aria-hidden="true" />,
   },
-  { id: 'tenants', label: 'Tenants', icon: <Users size={17} aria-hidden="true" /> },
+  { id: 'tenants', label: 'Tenants', icon: <Users size={16} aria-hidden="true" /> },
   {
     id: 'payments',
     label: 'Payments & M-Pesa',
-    icon: <CreditCard size={17} aria-hidden="true" />,
+    icon: <CreditCard size={16} aria-hidden="true" />,
   },
   {
     id: 'locations',
     label: 'Estates & Deposits',
-    icon: <MapPin size={17} aria-hidden="true" />,
+    icon: <MapPin size={16} aria-hidden="true" />,
   },
-  { id: 'maintenance', label: 'Maintenance', icon: <Wrench size={17} aria-hidden="true" /> },
+  { id: 'maintenance', label: 'Maintenance', icon: <Wrench size={16} aria-hidden="true" /> },
   {
     id: 'analytics',
     label: 'Analytics & Ledger',
-    icon: <BarChart3 size={17} aria-hidden="true" />,
+    icon: <BarChart3 size={16} aria-hidden="true" />,
     hasChevron: true,
   },
-  { id: 'settings', label: 'Settings & Portal', icon: <Settings size={17} aria-hidden="true" /> },
+  { id: 'settings', label: 'Settings & Portal', icon: <Settings size={16} aria-hidden="true" /> },
 ];
 
 const MONTHLY_CHART_DATA = [
@@ -135,6 +133,14 @@ const ROLES_LIST: SystemRole[] = [
   'TENANT',
   'VENDOR',
 ];
+
+function formatUnitTypeLabel(rawType: string, bedrooms?: number): string {
+  const clean = rawType
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return bedrooms !== undefined ? `${clean} (${bedrooms}BR)` : clean;
+}
 
 export function App() {
   const [state, setState] = useState<RmsPlatformState>(() => createInitialRmsState());
@@ -487,7 +493,7 @@ export function App() {
       {/* Card 1: Total Revenue */}
       <article className="kpi-card">
         <div className="kpi-header">
-          <CircleDollarSign size={16} color="#4b5563" aria-hidden="true" />
+          <CircleDollarSign size={15} color="#4b5563" aria-hidden="true" />
           <span>Total Revenue</span>
         </div>
         <div className="kpi-value">{formatKes(kpis.collectedKes || 1284500)}</div>
@@ -501,7 +507,7 @@ export function App() {
       {/* Card 2: Active Leases (mirrors Active Rentals) */}
       <article className="kpi-card">
         <div className="kpi-header">
-          <Calendar size={16} color="#4b5563" aria-hidden="true" />
+          <Calendar size={15} color="#4b5563" aria-hidden="true" />
           <span>Active Leases</span>
         </div>
         <div className="kpi-value">{orgLeases.length}</div>
@@ -515,7 +521,7 @@ export function App() {
       {/* Card 3: Available Units (mirrors Available Cars) */}
       <article className="kpi-card">
         <div className="kpi-header">
-          <Home size={16} color="#4b5563" aria-hidden="true" />
+          <Home size={15} color="#4b5563" aria-hidden="true" />
           <span>Available Units</span>
         </div>
         <div className="kpi-value">{kpis.vacantUnits}</div>
@@ -529,7 +535,7 @@ export function App() {
       {/* Card 4: Units in Maintenance (mirrors Cars in Maintenance) */}
       <article className="kpi-card">
         <div className="kpi-header">
-          <Wrench size={16} color="#4b5563" aria-hidden="true" />
+          <Wrench size={15} color="#4b5563" aria-hidden="true" />
           <span>Units in Maintenance</span>
         </div>
         <div className="kpi-value">{kpis.openMaintenance}</div>
@@ -561,9 +567,9 @@ export function App() {
         <aside className="sidebar" aria-label="Sidebar">
           <div className="brand-header">
             <div className="brand-logo-box" aria-hidden="true">
-              <Building2 size={20} />
+              <Building2 size={19} />
             </div>
-            <div>
+            <div style={{ minInlineSize: 0 }}>
               <div className="brand-title">Guri24 Rentals</div>
               <div className="brand-subtitle">Residential Rental Management</div>
             </div>
@@ -578,7 +584,7 @@ export function App() {
                 announce(`Filtered view by "${searchQuery}"`);
               }}
             >
-              <Search size={15} color="#8e95a2" aria-hidden="true" />
+              <Search size={14} color="#8e95a2" aria-hidden="true" />
               <input
                 type="search"
                 value={searchQuery}
@@ -623,15 +629,14 @@ export function App() {
             </ul>
           </nav>
 
-          {/* Upgrade to Pro Card */}
+          {/* Upgrade to Enterprise Card */}
           <div className="promo-card">
             <div className="promo-icon" aria-hidden="true">
-              <Crown size={15} />
+              <Crown size={14} />
             </div>
-            <div className="promo-title">Upgrade to Enterprise</div>
+            <div className="promo-title">Upgrade to Pro</div>
             <p className="promo-desc">
-              Unlock automated KRA eTIMS exports, unlimited estates and priority M-Pesa Daraja
-              settlement.
+              Unlock automated KRA eTIMS exports, unlimited estates and priority M-Pesa settlement.
             </p>
             <button
               type="button"
@@ -645,14 +650,14 @@ export function App() {
 
           {/* User Profile & Multi-Tenant Switcher Footer */}
           <div className="profile-footer">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minInlineSize: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '9px', minInlineSize: 0 }}>
               <div className="profile-avatar" aria-hidden="true">
                 {currentOrg.name.slice(0, 2).toUpperCase()}
               </div>
               <div style={{ minInlineSize: 0 }}>
                 <div
                   style={{
-                    fontSize: '0.84rem',
+                    fontSize: '0.82rem',
                     fontWeight: 700,
                     color: 'var(--text-primary)',
                     whiteSpace: 'nowrap',
@@ -662,8 +667,21 @@ export function App() {
                 >
                   {currentOrg.name.split(' ')[0]} {currentOrg.name.split(' ')[1] ?? 'Admin'}
                 </div>
-                <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>
-                  {state.currentRole.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}
+                <div
+                  style={{
+                    fontSize: '0.71rem',
+                    color: 'var(--text-muted)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {state.currentRole === 'ORGANIZATION_ADMINISTRATOR'
+                    ? 'Administrator'
+                    : state.currentRole
+                        .replace(/_/g, ' ')
+                        .toLowerCase()
+                        .replace(/\b\w/g, (c) => c.toUpperCase())}
                 </div>
               </div>
             </div>
@@ -683,7 +701,7 @@ export function App() {
         <main className="workspace">
           {/* Top Page Header Bar */}
           <header className="topbar">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               <h1 id="main-heading" ref={mainHeadingRef} tabIndex={-1}>
                 {pageTitle}
               </h1>
@@ -694,7 +712,7 @@ export function App() {
 
             <div className="topbar-actions">
               <button type="button" className="btn-dark" onClick={handleExportCsv}>
-                <Download size={15} aria-hidden="true" />
+                <Download size={14} aria-hidden="true" />
                 <span>Export</span>
               </button>
               <button
@@ -702,7 +720,7 @@ export function App() {
                 className="btn-outline"
                 onClick={() => setIsMpesaModalOpen(true)}
               >
-                <Share2 size={15} aria-hidden="true" />
+                <Share2 size={14} aria-hidden="true" />
                 <span>M-Pesa Pay</span>
               </button>
               <button
@@ -710,7 +728,7 @@ export function App() {
                 className="btn-outline"
                 onClick={() => setIsOnboardModalOpen(true)}
               >
-                <MoreVertical size={15} aria-hidden="true" />
+                <MoreVertical size={14} aria-hidden="true" />
                 <span>More</span>
               </button>
             </div>
@@ -734,7 +752,7 @@ export function App() {
               <span>{toastMessage}</span>
               <button
                 type="button"
-                style={{ color: '#9ca3af', fontSize: '0.76rem' }}
+                style={{ color: '#9ca3af', fontSize: '0.76rem', whiteSpace: 'nowrap' }}
                 onClick={() => setToastMessage(null)}
               >
                 Dismiss
@@ -763,10 +781,10 @@ export function App() {
                       <button
                         type="button"
                         className="btn-outline"
-                        style={{ minBlockSize: '32px', padding: '4px 11px', fontSize: '0.78rem' }}
+                        style={{ minBlockSize: '32px', padding: '4px 11px', fontSize: '0.76rem' }}
                         onClick={() => setIsInvoiceModalOpen(true)}
                       >
-                        <Calendar size={14} aria-hidden="true" />
+                        <Calendar size={13} aria-hidden="true" />
                         <span>Monthly</span>
                         <ChevronDown size={13} aria-hidden="true" />
                       </button>
@@ -784,15 +802,16 @@ export function App() {
                   <div>
                     <div
                       style={{
-                        fontSize: '1.75rem',
+                        fontSize: '1.65rem',
                         fontWeight: 700,
                         letterSpacing: '-0.02em',
                         color: 'var(--text-primary)',
+                        lineHeight: 1.15,
                       }}
                     >
                       1,285
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBlockStart: '2px' }}>
                       Total Lease Bookings & Renewals
                     </div>
                   </div>
@@ -858,14 +877,15 @@ export function App() {
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '4px',
-                        fontSize: '0.8rem',
+                        fontSize: '0.78rem',
                         fontWeight: 600,
                         color: 'var(--text-secondary)',
+                        whiteSpace: 'nowrap',
                       }}
                       onClick={() => setActiveNav('leases')}
                     >
                       <span>View all</span>
-                      <ChevronRight size={15} aria-hidden="true" />
+                      <ChevronRight size={14} aria-hidden="true" />
                     </button>
                   </div>
 
@@ -897,13 +917,13 @@ export function App() {
                       return (
                         <tr key={inv.id}>
                           <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minInlineSize: '165px' }}>
                               <div
                                 className="profile-avatar"
                                 style={{
-                                  inlineSize: '34px',
-                                  blockSize: '34px',
-                                  fontSize: '0.76rem',
+                                  inlineSize: '32px',
+                                  blockSize: '32px',
+                                  fontSize: '0.74rem',
                                   background: '#e0e7ff',
                                   color: '#1d4ed8',
                                 }}
@@ -915,49 +935,46 @@ export function App() {
                                   .join('')
                                   .slice(0, 2)}
                               </div>
-                              <div>
-                                <div style={{ fontWeight: 600, fontSize: '0.84rem' }}>
+                              <div style={{ minInlineSize: 0 }}>
+                                <div className="cell-nowrap" style={{ fontWeight: 600, fontSize: '0.82rem' }}>
                                   {tenant?.full_name ?? 'Registered Tenant'}
                                 </div>
-                                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                                <div className="cell-nowrap" style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                                   {tenant?.email ?? tenant?.phone}
                                 </div>
                               </div>
                             </div>
                           </td>
                           <td>
-                            <div>
-                              <div style={{ fontWeight: 600, fontSize: '0.84rem' }}>
-                                {prop?.name.split(' ')[0]} • Unit {unit?.unit_number ?? 'A-101'}
-                              </div>
-                              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                                {unit?.unit_type.replace('_', ' ') ?? '2 Bedroom'}
-                              </div>
+                            <div className="cell-nowrap" style={{ fontWeight: 600, fontSize: '0.82rem' }}>
+                              {prop?.name.split(' ')[0]} • Unit {unit?.unit_number ?? 'A-101'}
+                            </div>
+                            <div className="cell-nowrap" style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                              {formatUnitTypeLabel(unit?.unit_type ?? 'TWO_BEDROOM', unit?.bedrooms)}
                             </div>
                           </td>
-                          <td>
-                            <div style={{ fontWeight: 500, fontSize: '0.82rem' }}>
+                          <td className="cell-nowrap">
+                            <div style={{ fontWeight: 500, fontSize: '0.8rem' }}>
                               {formatNairobiDate(inv.due_date)}
                             </div>
-                            <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>
+                            <div style={{ fontSize: '0.71rem', color: 'var(--text-muted)' }}>
                               09:30 AM EAT
                             </div>
                           </td>
-                          <td>
+                          <td className="cell-nowrap">
                             <StatusBadge status={label} tone={tone} />
                           </td>
-                          <td>
+                          <td className="cell-currency">
                             <div
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
                                 gap: '8px',
-                                fontWeight: 700,
                               }}
                             >
                               <span>{formatKes(inv.total_amount_kes)}</span>
-                              <ChevronRight size={15} color="#8e95a2" aria-hidden="true" />
+                              <ChevronRight size={14} color="#8e95a2" aria-hidden="true" />
                             </div>
                           </td>
                         </tr>
@@ -987,10 +1004,10 @@ export function App() {
                   </div>
 
                   <div>
-                    <div style={{ fontSize: '1.08rem', fontWeight: 700 }}>
+                    <div style={{ fontSize: '1.02rem', fontWeight: 700, lineHeight: 1.25 }}>
                       {featuredProperty?.name ?? 'Kilimani Jacaranda Heights'}
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBlockStart: '2px' }}>
+                    <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBlockStart: '2px' }}>
                       {featuredProperty?.estate_or_area ?? 'Kilimani'}, {featuredProperty?.county ?? 'Nairobi'} • Executive Apartments
                     </div>
                   </div>
@@ -1028,10 +1045,10 @@ export function App() {
                   <button
                     type="button"
                     className="btn-dark"
-                    style={{ inlineSize: '100%', minBlockSize: '42px' }}
+                    style={{ inlineSize: '100%', minBlockSize: '40px' }}
                     onClick={() => setActiveNav('properties')}
                   >
-                    <Building2 size={16} aria-hidden="true" />
+                    <Building2 size={15} aria-hidden="true" />
                     <span>View Properties & Units</span>
                   </button>
                 </section>
@@ -1043,16 +1060,16 @@ export function App() {
                       <Layers size={17} color="#4b5563" aria-hidden="true" />
                       <h2 id="portfolio-perf-heading">Portfolio Performance</h2>
                     </div>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                    <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', fontWeight: 500, whiteSpace: 'nowrap' }}>
                       This Month ⌄
                     </span>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '1.5rem', fontWeight: 700 }}>
+                    <span style={{ fontSize: '1.4rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
                       {formatKes(kpis.billedKes || 1284500)}
                     </span>
-                    <span className="trend-up" style={{ fontSize: '0.76rem' }}>
+                    <span className="trend-up" style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                       ↑ 12.4% <span className="trend-muted">vs last month</span>
                     </span>
                   </div>
@@ -1069,50 +1086,50 @@ export function App() {
 
                   <div className="legend-list">
                     <div className="legend-row">
-                      <span>
+                      <span className="legend-label">
                         <span className="legend-dot" style={{ background: '#2563eb' }} />
-                        2 Bedroom Units
+                        <span>2 Bedroom Units</span>
                       </span>
-                      <strong style={{ fontWeight: 600 }}>KES 488,100</strong>
-                      <span style={{ color: 'var(--text-muted)', textAlign: 'end' }}>38%</span>
+                      <strong className="cell-nowrap" style={{ fontWeight: 600 }}>KES 488,100</strong>
+                      <span className="cell-nowrap" style={{ color: 'var(--text-muted)', textAlign: 'end' }}>38%</span>
                     </div>
                     <div className="legend-row">
-                      <span>
+                      <span className="legend-label">
                         <span className="legend-dot" style={{ background: '#0d9488' }} />
-                        3 Bedroom Units
+                        <span>3 Bedroom Units</span>
                       </span>
-                      <strong style={{ fontWeight: 600 }}>KES 359,660</strong>
-                      <span style={{ color: 'var(--text-muted)', textAlign: 'end' }}>28%</span>
+                      <strong className="cell-nowrap" style={{ fontWeight: 600 }}>KES 359,660</strong>
+                      <span className="cell-nowrap" style={{ color: 'var(--text-muted)', textAlign: 'end' }}>28%</span>
                     </div>
                     <div className="legend-row">
-                      <span>
+                      <span className="legend-label">
                         <span className="legend-dot" style={{ background: '#10b981' }} />
-                        1 Bedroom Suites
+                        <span>1 Bedroom Suites</span>
                       </span>
-                      <strong style={{ fontWeight: 600 }}>KES 256,900</strong>
-                      <span style={{ color: 'var(--text-muted)', textAlign: 'end' }}>20%</span>
+                      <strong className="cell-nowrap" style={{ fontWeight: 600 }}>KES 256,900</strong>
+                      <span className="cell-nowrap" style={{ color: 'var(--text-muted)', textAlign: 'end' }}>20%</span>
                     </div>
                     <div className="legend-row">
-                      <span>
+                      <span className="legend-label">
                         <span className="legend-dot" style={{ background: '#38bdf8' }} />
-                        Executive Duplex
+                        <span>Executive Duplex</span>
                       </span>
-                      <strong style={{ fontWeight: 600 }}>KES 115,600</strong>
-                      <span style={{ color: 'var(--text-muted)', textAlign: 'end' }}>9%</span>
+                      <strong className="cell-nowrap" style={{ fontWeight: 600 }}>KES 115,600</strong>
+                      <span className="cell-nowrap" style={{ color: 'var(--text-muted)', textAlign: 'end' }}>9%</span>
                     </div>
                     <div className="legend-row">
-                      <span>
+                      <span className="legend-label">
                         <span className="legend-dot" style={{ background: '#f59e0b' }} />
-                        Studio / Bedsitter
+                        <span>Studio / Bedsitter</span>
                       </span>
-                      <strong style={{ fontWeight: 600 }}>KES 64,240</strong>
-                      <span style={{ color: 'var(--text-muted)', textAlign: 'end' }}>5%</span>
+                      <strong className="cell-nowrap" style={{ fontWeight: 600 }}>KES 64,240</strong>
+                      <span className="cell-nowrap" style={{ color: 'var(--text-muted)', textAlign: 'end' }}>5%</span>
                     </div>
                   </div>
 
                   <div
                     style={{
-                      marginBlockStart: '16px',
+                      marginBlockStart: '14px',
                       paddingBlockStart: '12px',
                       borderBlockStart: '1px solid var(--border-subtle)',
                       textAlign: 'center',
@@ -1121,7 +1138,7 @@ export function App() {
                     <button
                       type="button"
                       style={{
-                        fontSize: '0.8rem',
+                        fontSize: '0.78rem',
                         fontWeight: 600,
                         color: 'var(--text-secondary)',
                       }}
@@ -1136,266 +1153,250 @@ export function App() {
           )}
 
           {/* =================================================================
-              PAGE 2: LEASES & BOOKINGS (Reservations Equivalent)
+              PAGE 2: LEASES & BOOKINGS (Full-width Table + Secondary Cards)
              ================================================================= */}
           {activeNav === 'leases' && (
-            <div className="dashboard-main-grid">
-              <div className="stack-column">
-                <section className="surface-card">
-                  <div className="card-header">
-                    <div className="card-title-group">
-                      <KeyRound size={17} color="#4b5563" aria-hidden="true" />
-                      <h2>Active Residential Leases</h2>
-                    </div>
-                    <button
-                      type="button"
-                      className="btn-dark"
-                      onClick={() => setIsOnboardModalOpen(true)}
-                    >
-                      <Plus size={15} aria-hidden="true" />
-                      <span>New Lease</span>
-                    </button>
+            <div className="stack-column">
+              <section className="surface-card">
+                <div className="card-header">
+                  <div className="card-title-group">
+                    <KeyRound size={17} color="#4b5563" aria-hidden="true" />
+                    <h2>Active Residential Leases</h2>
                   </div>
-
-                  <ResponsiveTable
-                    caption="Active residential lease agreements"
-                    headers={['Lease #', 'Tenant', 'Unit', 'Period', 'Monthly Rent', 'Status', 'Action']}
+                  <button
+                    type="button"
+                    className="btn-dark"
+                    onClick={() => setIsOnboardModalOpen(true)}
                   >
-                    {orgLeases.map((lease) => {
-                      const tenant = orgTenants.find((t) => t.id === lease.primary_tenant_id);
-                      const unit = orgUnits.find((u) => u.id === lease.unit_id);
+                    <Plus size={15} aria-hidden="true" />
+                    <span>New Lease</span>
+                  </button>
+                </div>
+
+                <ResponsiveTable
+                  caption="Active residential lease agreements"
+                  headers={['Lease #', 'Tenant', 'Unit', 'Lease Term', 'Billing Cycle', 'Monthly Rent', 'Status', 'Action']}
+                >
+                  {orgLeases.map((lease) => {
+                    const tenant = orgTenants.find((t) => t.id === lease.primary_tenant_id);
+                    const unit = orgUnits.find((u) => u.id === lease.unit_id);
+                    return (
+                      <tr key={lease.id}>
+                        <td className="cell-code">{lease.lease_number}</td>
+                        <td>
+                          <div className="cell-nowrap" style={{ fontWeight: 600 }}>{tenant?.full_name}</div>
+                          <div className="cell-mono" style={{ color: 'var(--text-muted)' }}>
+                            {tenant?.phone}
+                          </div>
+                        </td>
+                        <td className="cell-nowrap">
+                          <span className="badge-pill badge-neutral">
+                            Unit {unit?.unit_number}
+                          </span>
+                        </td>
+                        <td className="cell-nowrap">
+                          <span style={{ fontWeight: 500 }}>{lease.start_date}</span>
+                          <span style={{ color: 'var(--text-muted)', marginInline: '6px' }}>→</span>
+                          <span style={{ fontWeight: 500 }}>{lease.end_date}</span>
+                        </td>
+                        <td className="cell-nowrap" style={{ color: 'var(--text-secondary)' }}>
+                          Due Day {lease.billing_day}
+                        </td>
+                        <td className="cell-currency">{formatKes(lease.monthly_rent_kes)}</td>
+                        <td className="cell-nowrap">
+                          <StatusBadge
+                            status={lease.status}
+                            tone={lease.status === 'ACTIVE' ? 'success' : 'warning'}
+                          />
+                        </td>
+                        <td className="cell-nowrap">
+                          <button
+                            type="button"
+                            className="btn-outline"
+                            style={{ minBlockSize: '30px', padding: '4px 12px', fontSize: '0.75rem' }}
+                            onClick={() => {
+                              setInvoiceForm({ leaseId: lease.id, billingPeriod: '2026-12' });
+                              setIsInvoiceModalOpen(true);
+                            }}
+                          >
+                            Bill Month
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </ResponsiveTable>
+              </section>
+
+              <section className="surface-card">
+                <div className="card-header">
+                  <div className="card-title-group">
+                    <Calendar size={17} color="#4b5563" aria-hidden="true" />
+                    <h2>Tenant Applications & Screening</h2>
+                  </div>
+                  <StatusBadge status={`${orgApplications.length} Approved`} tone="info" />
+                </div>
+                <div className="secondary-cards-grid">
+                  {orgApplications.map((app) => {
+                    const t = orgTenants.find((x) => x.id === app.tenant_id);
+                    const u = orgUnits.find((x) => x.id === app.unit_id);
+                    return (
+                      <div
+                        key={app.id}
+                        style={{
+                          padding: '14px 16px',
+                          borderRadius: '12px',
+                          border: '1px solid var(--border-subtle)',
+                          background: 'var(--bg-sidebar)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '12px',
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.86rem' }}>
+                            {t?.full_name ?? 'Applicant'} — Unit {u?.unit_number}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBlockStart: '3px' }}>
+                            Move-in: {app.proposed_move_in_date} • Verified Income:{' '}
+                            {formatKes(app.monthly_income_kes ?? 120000)}
+                          </div>
+                        </div>
+                        <StatusBadge status={app.status} tone="success" />
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            </div>
+          )}
+
+          {/* =================================================================
+              PAGE 3: PROPERTIES, BUILDINGS, FLOORS & UNITS
+             ================================================================= */}
+          {activeNav === 'properties' && (
+            <div className="stack-column">
+              <section className="surface-card">
+                <div className="card-header">
+                  <div className="pill-tabs" role="tablist" aria-label="Property Hierarchy">
+                    {(['units', 'properties', 'buildings', 'floors'] as const).map((tab) => (
+                      <button
+                        key={tab}
+                        type="button"
+                        role="tab"
+                        className="pill-tab"
+                        aria-selected={propertySubTab === tab}
+                        onClick={() => setPropertySubTab(tab)}
+                      >
+                        {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-dark"
+                    onClick={() => setIsOnboardModalOpen(true)}
+                  >
+                    <Plus size={15} aria-hidden="true" />
+                    <span>Add Property / Unit</span>
+                  </button>
+                </div>
+
+                {propertySubTab === 'units' && (
+                  <ResponsiveTable
+                    caption="Residential rental units inventory"
+                    headers={['Unit #', 'Property', 'Unit Configuration', 'Utility Meters (Water / KPLC)', 'Monthly Rent', 'Status']}
+                  >
+                    {orgUnits.map((u) => {
+                      const prop = orgProperties.find((p) => p.id === u.property_id);
                       return (
-                        <tr key={lease.id}>
-                          <td style={{ fontWeight: 700 }}>{lease.lease_number}</td>
-                          <td>
-                            <div style={{ fontWeight: 600 }}>{tenant?.full_name}</div>
-                            <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                              {tenant?.phone}
-                            </div>
+                        <tr key={u.id}>
+                          <td className="cell-code">{u.unit_number}</td>
+                          <td className="cell-nowrap" style={{ fontWeight: 600 }}>{prop?.name}</td>
+                          <td className="cell-nowrap">
+                            {formatUnitTypeLabel(u.unit_type, u.bedrooms)}
                           </td>
                           <td>
-                            <span className="badge-pill badge-neutral">
-                              Unit {unit?.unit_number}
-                            </span>
-                          </td>
-                          <td>
-                            <div style={{ fontSize: '0.8rem' }}>
-                              {lease.start_date} → {lease.end_date}
-                            </div>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                              Due Day {lease.billing_day}
+                            <div className="meter-stack">
+                              <span className="meter-chip">
+                                💧 {u.water_meter_number ?? 'N/A'}
+                              </span>
+                              <span className="meter-chip">
+                                ⚡ {u.kplc_meter_number ?? 'N/A'}
+                              </span>
                             </div>
                           </td>
-                          <td style={{ fontWeight: 700 }}>{formatKes(lease.monthly_rent_kes)}</td>
-                          <td>
+                          <td className="cell-currency">{formatKes(u.monthly_rent_kes)}</td>
+                          <td className="cell-nowrap">
                             <StatusBadge
-                              status={lease.status}
-                              tone={lease.status === 'ACTIVE' ? 'success' : 'warning'}
+                              status={u.status}
+                              tone={u.status === 'OCCUPIED' ? 'success' : 'info'}
                             />
-                          </td>
-                          <td>
-                            <button
-                              type="button"
-                              className="btn-outline"
-                              style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.75rem' }}
-                              onClick={() => {
-                                setInvoiceForm({ leaseId: lease.id, billingPeriod: '2026-12' });
-                                setIsInvoiceModalOpen(true);
-                              }}
-                            >
-                              Bill Month
-                            </button>
                           </td>
                         </tr>
                       );
                     })}
                   </ResponsiveTable>
-                </section>
-              </div>
+                )}
 
-              <div className="stack-column">
-                <section className="surface-card">
-                  <div className="card-header">
-                    <div className="card-title-group">
-                      <Calendar size={17} color="#4b5563" aria-hidden="true" />
-                      <h2>Tenant Applications</h2>
-                    </div>
-                    <StatusBadge status={`${orgApplications.length} Pending`} tone="info" />
-                  </div>
-                  <div className="stat-kv-list">
-                    {orgApplications.map((app) => {
-                      const t = orgTenants.find((x) => x.id === app.tenant_id);
-                      const u = orgUnits.find((x) => x.id === app.unit_id);
+                {propertySubTab === 'properties' && (
+                  <ResponsiveTable
+                    caption="Properties in organization"
+                    headers={['Code', 'Property Name', 'Estate & County', 'LR Number', 'Commission']}
+                  >
+                    {orgProperties.map((p) => (
+                      <tr key={p.id}>
+                        <td className="cell-code">{p.code}</td>
+                        <td className="cell-nowrap" style={{ fontWeight: 600 }}>{p.name}</td>
+                        <td className="cell-nowrap">
+                          {p.estate_or_area}, {p.county}
+                        </td>
+                        <td className="cell-mono">{p.lr_number}</td>
+                        <td className="cell-nowrap" style={{ fontWeight: 600 }}>{p.management_commission_pct}%</td>
+                      </tr>
+                    ))}
+                  </ResponsiveTable>
+                )}
+
+                {propertySubTab === 'buildings' && (
+                  <ResponsiveTable
+                    caption="Buildings in portfolio"
+                    headers={['Code', 'Building Name', 'Property', 'Total Floors']}
+                  >
+                    {orgBuildings.map((b) => {
+                      const prop = orgProperties.find((p) => p.id === b.property_id);
                       return (
-                        <div
-                          key={app.id}
-                          style={{
-                            padding: '12px',
-                            borderRadius: '12px',
-                            border: '1px solid var(--border-subtle)',
-                            background: 'var(--bg-sidebar)',
-                          }}
-                        >
-                          <div style={{ fontWeight: 700, fontSize: '0.86rem' }}>
-                            {t?.full_name ?? 'Applicant'} — Unit {u?.unit_number}
-                          </div>
-                          <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBlock: '4px 8px' }}>
-                            Move-in: {app.proposed_move_in_date} • Verified Income:{' '}
-                            {formatKes(app.monthly_income_kes ?? 120000)}
-                          </div>
-                          <StatusBadge status={app.status} tone="success" />
-                        </div>
+                        <tr key={b.id}>
+                          <td className="cell-code">{b.code}</td>
+                          <td className="cell-nowrap" style={{ fontWeight: 600 }}>{b.name}</td>
+                          <td className="cell-nowrap">{prop?.name}</td>
+                          <td className="cell-nowrap">{b.total_floors} Floors</td>
+                        </tr>
                       );
                     })}
-                  </div>
-                </section>
-              </div>
-            </div>
-          )}
+                  </ResponsiveTable>
+                )}
 
-          {/* =================================================================
-              PAGE 3: PROPERTIES, BUILDINGS, FLOORS & UNITS (Fleet Equivalent)
-             ================================================================= */}
-          {activeNav === 'properties' && (
-            <div className="dashboard-main-grid">
-              <div className="stack-column">
-                <section className="surface-card">
-                  <div className="card-header">
-                    <div className="pill-tabs" role="tablist" aria-label="Property Hierarchy">
-                      {(['units', 'properties', 'buildings', 'floors'] as const).map((tab) => (
-                        <button
-                          key={tab}
-                          type="button"
-                          role="tab"
-                          className="pill-tab"
-                          aria-selected={propertySubTab === tab}
-                          onClick={() => setPropertySubTab(tab)}
-                        >
-                          {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                        </button>
-                      ))}
-                    </div>
-                    <button
-                      type="button"
-                      className="btn-dark"
-                      onClick={() => setIsOnboardModalOpen(true)}
-                    >
-                      <Plus size={15} aria-hidden="true" />
-                      <span>Add Property / Unit</span>
-                    </button>
-                  </div>
-
-                  {propertySubTab === 'units' && (
-                    <ResponsiveTable
-                      caption="Residential rental units inventory"
-                      headers={['Unit #', 'Property', 'Type', 'Meters (Water / KPLC)', 'Monthly Rent', 'Status']}
-                    >
-                      {orgUnits.map((u) => {
-                        const prop = orgProperties.find((p) => p.id === u.property_id);
-                        return (
-                          <tr key={u.id}>
-                            <td style={{ fontWeight: 700 }}>{u.unit_number}</td>
-                            <td>{prop?.name}</td>
-                            <td>{u.unit_type.replace('_', ' ')} ({u.bedrooms}BR)</td>
-                            <td style={{ fontSize: '0.76rem', color: 'var(--text-secondary)' }}>
-                              {u.water_meter_number ?? 'N/A'} • {u.kplc_meter_number ?? 'N/A'}
-                            </td>
-                            <td style={{ fontWeight: 700 }}>{formatKes(u.monthly_rent_kes)}</td>
-                            <td>
-                              <StatusBadge
-                                status={u.status}
-                                tone={u.status === 'OCCUPIED' ? 'success' : 'info'}
-                              />
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </ResponsiveTable>
-                  )}
-
-                  {propertySubTab === 'properties' && (
-                    <ResponsiveTable
-                      caption="Properties in organization"
-                      headers={['Code', 'Property Name', 'Estate & County', 'LR Number', 'Commission']}
-                    >
-                      {orgProperties.map((p) => (
-                        <tr key={p.id}>
-                          <td style={{ fontWeight: 700 }}>{p.code}</td>
-                          <td style={{ fontWeight: 600 }}>{p.name}</td>
-                          <td>
-                            {p.estate_or_area}, {p.county}
-                          </td>
-                          <td>{p.lr_number}</td>
-                          <td>{p.management_commission_pct}%</td>
+                {propertySubTab === 'floors' && (
+                  <ResponsiveTable
+                    caption="Floors across buildings"
+                    headers={['Floor #', 'Label', 'Building']}
+                  >
+                    {orgFloors.map((f) => {
+                      const bld = orgBuildings.find((b) => b.id === f.building_id);
+                      return (
+                        <tr key={f.id}>
+                          <td className="cell-code">Floor {f.floor_number}</td>
+                          <td className="cell-nowrap">{f.label}</td>
+                          <td className="cell-nowrap">{bld?.name}</td>
                         </tr>
-                      ))}
-                    </ResponsiveTable>
-                  )}
-
-                  {propertySubTab === 'buildings' && (
-                    <ResponsiveTable
-                      caption="Buildings in portfolio"
-                      headers={['Code', 'Building Name', 'Property', 'Total Floors']}
-                    >
-                      {orgBuildings.map((b) => {
-                        const prop = orgProperties.find((p) => p.id === b.property_id);
-                        return (
-                          <tr key={b.id}>
-                            <td style={{ fontWeight: 700 }}>{b.code}</td>
-                            <td style={{ fontWeight: 600 }}>{b.name}</td>
-                            <td>{prop?.name}</td>
-                            <td>{b.total_floors} Floors</td>
-                          </tr>
-                        );
-                      })}
-                    </ResponsiveTable>
-                  )}
-
-                  {propertySubTab === 'floors' && (
-                    <ResponsiveTable
-                      caption="Floors across buildings"
-                      headers={['Floor #', 'Label', 'Building']}
-                    >
-                      {orgFloors.map((f) => {
-                        const bld = orgBuildings.find((b) => b.id === f.building_id);
-                        return (
-                          <tr key={f.id}>
-                            <td style={{ fontWeight: 700 }}>Floor {f.floor_number}</td>
-                            <td>{f.label}</td>
-                            <td>{bld?.name}</td>
-                          </tr>
-                        );
-                      })}
-                    </ResponsiveTable>
-                  )}
-                </section>
-              </div>
-
-              <div className="stack-column">
-                <section className="surface-card">
-                  <div className="card-header">
-                    <div className="card-title-group">
-                      <Star size={17} color="#4b5563" aria-hidden="true" />
-                      <h2>Featured Property</h2>
-                    </div>
-                  </div>
-                  <FeaturedPropertyIllustration />
-                  <div className="stat-kv-list">
-                    <div className="stat-kv-row">
-                      <span>Properties</span>
-                      <span className="stat-kv-val">{orgProperties.length}</span>
-                    </div>
-                    <div className="stat-kv-row">
-                      <span>Buildings</span>
-                      <span className="stat-kv-val">{orgBuildings.length}</span>
-                    </div>
-                    <div className="stat-kv-row">
-                      <span>Total Units</span>
-                      <span className="stat-kv-val">{orgUnits.length}</span>
-                    </div>
-                  </div>
-                </section>
-              </div>
+                      );
+                    })}
+                  </ResponsiveTable>
+                )}
+              </section>
             </div>
           )}
 
@@ -1403,66 +1404,63 @@ export function App() {
               PAGE 4: TENANTS (Customers Equivalent)
              ================================================================= */}
           {activeNav === 'tenants' && (
-            <div className="dashboard-main-grid">
-              <div className="stack-column">
-                <section className="surface-card">
-                  <div className="card-header">
-                    <div className="card-title-group">
-                      <Users size={17} color="#4b5563" aria-hidden="true" />
-                      <h2>Registered Kenyan Tenants (DPA 2019 Masked IDs)</h2>
-                    </div>
-                    <button
-                      type="button"
-                      className="btn-dark"
-                      onClick={() => setIsOnboardModalOpen(true)}
-                    >
-                      <Plus size={15} aria-hidden="true" />
-                      <span>Register Tenant</span>
-                    </button>
+            <div className="stack-column">
+              <section className="surface-card">
+                <div className="card-header">
+                  <div className="card-title-group">
+                    <Users size={17} color="#4b5563" aria-hidden="true" />
+                    <h2>Registered Kenyan Tenants</h2>
+                    <span className="badge-pill badge-neutral">DPA 2019 Masked ID</span>
                   </div>
-
-                  <ResponsiveTable
-                    caption="Registered tenants directory"
-                    headers={['Code', 'Tenant', 'Phone (M-Pesa MSISDN)', 'National ID (Masked)', 'Status']}
+                  <button
+                    type="button"
+                    className="btn-dark"
+                    onClick={() => setIsOnboardModalOpen(true)}
                   >
-                    {orgTenants.map((t) => (
-                      <tr key={t.id}>
-                        <td style={{ fontWeight: 700 }}>{t.tenant_code}</td>
-                        <td>
-                          <div style={{ fontWeight: 600 }}>{t.full_name}</div>
-                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                            {t.email}
-                          </div>
-                        </td>
-                        <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{t.phone}</td>
-                        <td style={{ fontFamily: 'monospace' }}>{t.national_id_masked}</td>
-                        <td>
-                          <StatusBadge
-                            status={t.status}
-                            tone={t.status === 'ACTIVE' ? 'success' : 'info'}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </ResponsiveTable>
-                </section>
-              </div>
+                    <Plus size={15} aria-hidden="true" />
+                    <span>Register Tenant</span>
+                  </button>
+                </div>
 
-              <div className="stack-column">
-                <section className="surface-card">
-                  <div className="card-header">
-                    <div className="card-title-group">
-                      <ShieldCheck size={17} color="#4b5563" aria-hidden="true" />
-                      <h2>Data Protection Compliance</h2>
-                    </div>
+                <ResponsiveTable
+                  caption="Registered tenants directory"
+                  headers={['Code', 'Tenant', 'Phone (M-Pesa MSISDN)', 'National ID (Masked)', 'Status']}
+                >
+                  {orgTenants.map((t) => (
+                    <tr key={t.id}>
+                      <td className="cell-code">{t.tenant_code}</td>
+                      <td>
+                        <div className="cell-nowrap" style={{ fontWeight: 600 }}>{t.full_name}</div>
+                        <div className="cell-nowrap" style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                          {t.email}
+                        </div>
+                      </td>
+                      <td className="cell-mono" style={{ fontWeight: 600 }}>{t.phone}</td>
+                      <td className="cell-mono">{t.national_id_masked}</td>
+                      <td className="cell-nowrap">
+                        <StatusBadge
+                          status={t.status}
+                          tone={t.status === 'ACTIVE' ? 'success' : 'info'}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </ResponsiveTable>
+              </section>
+
+              <section className="surface-card">
+                <div className="card-header" style={{ marginBlockEnd: '8px' }}>
+                  <div className="card-title-group">
+                    <ShieldCheck size={17} color="#4b5563" aria-hidden="true" />
+                    <h2>Data Protection Act (2019) Compliance</h2>
                   </div>
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                    Kenyan National ID numbers are salted and hashed with SHA-256 per organization
-                    and displayed as <code>****5678</code> in compliance with the Kenya Data
-                    Protection Act (2019).
-                  </p>
-                </section>
-              </div>
+                </div>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                  Kenyan National ID numbers are salted and hashed with SHA-256 per organization
+                  and displayed as <code>****5678</code> in compliance with the Kenya Data
+                  Protection Act (2019).
+                </p>
+              </section>
             </div>
           )}
 
@@ -1470,87 +1468,84 @@ export function App() {
               PAGE 5: PAYMENTS & M-PESA DARAJA RECONCILIATION
              ================================================================= */}
           {activeNav === 'payments' && (
-            <div className="dashboard-main-grid">
-              <div className="stack-column">
-                <section className="surface-card">
-                  <div className="card-header">
-                    <div className="card-title-group">
-                      <CreditCard size={17} color="#4b5563" aria-hidden="true" />
-                      <h2>Safaricom M-Pesa Payments & FIFO Allocations</h2>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        type="button"
-                        className="btn-outline"
-                        onClick={() => setIsInvoiceModalOpen(true)}
-                      >
-                        Generate Invoice
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-dark"
-                        onClick={() => setIsMpesaModalOpen(true)}
-                      >
-                        <Plus size={15} aria-hidden="true" />
-                        <span>Simulate M-Pesa Callback</span>
-                      </button>
-                    </div>
+            <div className="stack-column">
+              <section className="surface-card">
+                <div className="card-header">
+                  <div className="card-title-group">
+                    <CreditCard size={17} color="#4b5563" aria-hidden="true" />
+                    <h2>M-Pesa Daraja Payments & FIFO Allocations</h2>
                   </div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="btn-outline"
+                      onClick={() => setIsInvoiceModalOpen(true)}
+                    >
+                      Generate Invoice
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-dark"
+                      onClick={() => setIsMpesaModalOpen(true)}
+                    >
+                      <Plus size={15} aria-hidden="true" />
+                      <span>Simulate M-Pesa Callback</span>
+                    </button>
+                  </div>
+                </div>
 
-                  <ResponsiveTable
-                    caption="Verified M-Pesa payments and invoice allocations"
-                    headers={['Receipt #', 'M-Pesa Code', 'Payer MSISDN', 'Amount', 'Allocated Invoices', 'Status']}
-                  >
-                    {orgPayments.map((p) => (
-                      <tr key={p.id}>
-                        <td style={{ fontWeight: 700 }}>{p.receipt_number}</td>
-                        <td style={{ fontFamily: 'monospace', fontWeight: 700 }}>
-                          {p.mpesa_receipt_number}
-                        </td>
-                        <td style={{ fontFamily: 'monospace' }}>{p.payer_phone}</td>
-                        <td style={{ fontWeight: 700 }}>{formatKes(p.amount_kes)}</td>
-                        <td style={{ fontSize: '0.76rem' }}>
-                          {p.allocations
-                            .map(
-                              (a) =>
-                                `${a.invoice_number} (${formatKes(a.allocated_amount_kes)}, Rem: ${formatKes(a.remaining_invoice_balance_kes)})`
-                            )
-                            .join(' • ')}
-                        </td>
-                        <td>
-                          <StatusBadge status="Confirmed" tone="success" />
-                        </td>
-                      </tr>
-                    ))}
-                  </ResponsiveTable>
-                </section>
-              </div>
+                <ResponsiveTable
+                  caption="Verified M-Pesa payments and invoice allocations"
+                  headers={['Receipt #', 'M-Pesa Code', 'Payer MSISDN', 'Amount', 'Allocated Invoices', 'Status']}
+                >
+                  {orgPayments.map((p) => (
+                    <tr key={p.id}>
+                      <td className="cell-code">{p.receipt_number}</td>
+                      <td className="cell-mono" style={{ fontWeight: 700 }}>
+                        {p.mpesa_receipt_number}
+                      </td>
+                      <td className="cell-mono">{p.payer_phone}</td>
+                      <td className="cell-currency">{formatKes(p.amount_kes)}</td>
+                      <td>
+                        <div className="meter-stack">
+                          {p.allocations.map((a) => (
+                            <span key={a.invoice_id} className="meter-chip">
+                              {a.invoice_number}: {formatKes(a.allocated_amount_kes)} (Bal: {formatKes(a.remaining_invoice_balance_kes)})
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="cell-nowrap">
+                        <StatusBadge status="Confirmed" tone="success" />
+                      </td>
+                    </tr>
+                  ))}
+                </ResponsiveTable>
+              </section>
 
-              <div className="stack-column">
-                <section className="surface-card">
-                  <div className="card-header">
-                    <div className="card-title-group">
-                      <Wallet size={17} color="#4b5563" aria-hidden="true" />
-                      <h2>Daraja Gateway Status</h2>
-                    </div>
-                    <StatusBadge status="Circuit Closed" tone="success" />
+              <section className="surface-card">
+                <div className="card-header">
+                  <div className="card-title-group">
+                    <Wallet size={17} color="#4b5563" aria-hidden="true" />
+                    <h2>Daraja Gateway Status</h2>
                   </div>
-                  <div className="stat-kv-list">
-                    <div className="stat-kv-row">
-                      <span>Paybill Shortcode</span>
-                      <span className="stat-kv-val">{currentOrg.mpesa_paybill_shortcode}</span>
-                    </div>
-                    <div className="stat-kv-row">
-                      <span>Allocation Strategy</span>
-                      <span className="stat-kv-val">FIFO Oldest First</span>
-                    </div>
-                    <div className="stat-kv-row">
-                      <span>Webhook Verification</span>
-                      <span className="stat-kv-val">HMAC-SHA256</span>
-                    </div>
+                  <StatusBadge status="Circuit Closed" tone="success" />
+                </div>
+                <div className="secondary-cards-grid">
+                  <div className="stat-kv-row">
+                    <span>Paybill Shortcode</span>
+                    <span className="stat-kv-val">{currentOrg.mpesa_paybill_shortcode}</span>
                   </div>
-                </section>
-              </div>
+                  <div className="stat-kv-row">
+                    <span>Allocation Strategy</span>
+                    <span className="stat-kv-val">FIFO Oldest First</span>
+                  </div>
+                  <div className="stat-kv-row">
+                    <span>Webhook Verification</span>
+                    <span className="stat-kv-val">HMAC-SHA256</span>
+                  </div>
+                </div>
+              </section>
             </div>
           )}
 
@@ -1558,63 +1553,72 @@ export function App() {
               PAGE 6: LOCATIONS, ESTATES & SECURITY DEPOSITS
              ================================================================= */}
           {activeNav === 'locations' && (
-            <div className="dashboard-main-grid">
-              <div className="stack-column">
-                <section className="surface-card">
-                  <div className="card-header">
-                    <div className="card-title-group">
-                      <MapPin size={17} color="#4b5563" aria-hidden="true" />
-                      <h2>Security Deposits Held (Account 2100 Liability — Never Revenue)</h2>
-                    </div>
+            <div className="stack-column">
+              <section className="surface-card">
+                <div className="card-header">
+                  <div className="card-title-group">
+                    <MapPin size={17} color="#4b5563" aria-hidden="true" />
+                    <h2>Security Deposits Held</h2>
+                    <span className="badge-pill badge-blue">Account 2100 Liability</span>
                   </div>
+                </div>
 
-                  <ResponsiveTable
-                    caption="Tenant security deposits liability ledger"
-                    headers={['Unit', 'Tenant', 'Required Deposit', 'Received', 'Refunded/Deducted', 'Held Liability', 'Status']}
-                  >
-                    {orgDeposits.map((d) => {
-                      const u = orgUnits.find((x) => x.id === d.unit_id);
-                      const t = orgTenants.find((x) => x.id === d.tenant_id);
-                      return (
-                        <tr key={d.id}>
-                          <td style={{ fontWeight: 700 }}>Unit {u?.unit_number}</td>
-                          <td>{t?.full_name}</td>
-                          <td>{formatKes(d.required_amount_kes)}</td>
-                          <td>{formatKes(d.received_amount_kes)}</td>
-                          <td>{formatKes(d.deducted_amount_kes + d.refunded_amount_kes)}</td>
-                          <td style={{ fontWeight: 700 }}>
-                            {formatKes(d.current_liability_balance_kes)}
-                          </td>
-                          <td>
-                            <StatusBadge status={d.status} tone="info" />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </ResponsiveTable>
-                </section>
-              </div>
+                <ResponsiveTable
+                  caption="Tenant security deposits liability ledger"
+                  headers={['Unit', 'Tenant', 'Required Deposit', 'Received', 'Refunded / Deducted', 'Held Liability', 'Status']}
+                >
+                  {orgDeposits.map((d) => {
+                    const u = orgUnits.find((x) => x.id === d.unit_id);
+                    const t = orgTenants.find((x) => x.id === d.tenant_id);
+                    return (
+                      <tr key={d.id}>
+                        <td className="cell-code">Unit {u?.unit_number}</td>
+                        <td className="cell-nowrap" style={{ fontWeight: 600 }}>{t?.full_name}</td>
+                        <td className="cell-currency">{formatKes(d.required_amount_kes)}</td>
+                        <td className="cell-currency">{formatKes(d.received_amount_kes)}</td>
+                        <td className="cell-currency">{formatKes(d.deducted_amount_kes + d.refunded_amount_kes)}</td>
+                        <td className="cell-currency">
+                          {formatKes(d.current_liability_balance_kes)}
+                        </td>
+                        <td className="cell-nowrap">
+                          <StatusBadge status={d.status} tone="info" />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </ResponsiveTable>
+              </section>
 
-              <div className="stack-column">
-                <section className="surface-card">
-                  <div className="card-header">
-                    <div className="card-title-group">
-                      <Building2 size={17} color="#4b5563" aria-hidden="true" />
-                      <h2>Estates by County</h2>
+              <section className="surface-card">
+                <div className="card-header">
+                  <div className="card-title-group">
+                    <Building2 size={17} color="#4b5563" aria-hidden="true" />
+                    <h2>Estates by County</h2>
+                  </div>
+                </div>
+                <div className="secondary-cards-grid">
+                  {orgProperties.map((p) => (
+                    <div
+                      key={p.id}
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '12px',
+                        border: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-sidebar)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '10px',
+                      }}
+                    >
+                      <span style={{ fontWeight: 600, fontSize: '0.84rem' }}>
+                        {p.name} ({p.estate_or_area})
+                      </span>
+                      <span className="badge-pill badge-neutral">{p.county}</span>
                     </div>
-                  </div>
-                  <div className="stat-kv-list">
-                    {orgProperties.map((p) => (
-                      <div key={p.id} className="stat-kv-row">
-                        <span>
-                          {p.name} ({p.estate_or_area})
-                        </span>
-                        <span className="stat-kv-val">{p.county}</span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              </div>
+                  ))}
+                </div>
+              </section>
             </div>
           )}
 
@@ -1626,7 +1630,7 @@ export function App() {
               <div className="card-header">
                 <div className="card-title-group">
                   <Wrench size={17} color="#4b5563" aria-hidden="true" />
-                  <h2>Maintenance Workflow (Submitted → Reviewed → Approved → Assigned → Completed → Closed)</h2>
+                  <h2>Maintenance & Work Orders</h2>
                 </div>
                 <button
                   type="button"
@@ -1638,14 +1642,25 @@ export function App() {
                 </button>
               </div>
 
+              <div className="workflow-strip" aria-label="8-Stage Maintenance Lifecycle">
+                {['Submitted', 'Reviewed', 'Approved', 'Assigned', 'In Progress', 'Completed', 'Closed'].map(
+                  (stage, idx, arr) => (
+                    <span key={stage} className="workflow-step">
+                      <span>{stage}</span>
+                      {idx < arr.length - 1 && <span style={{ color: 'var(--text-muted)' }}>→</span>}
+                    </span>
+                  )
+                )}
+              </div>
+
               <div className="kanban-grid">
                 {orgMaintenance.map((req) => {
                   const unit = orgUnits.find((u) => u.id === req.unit_id);
                   const nextSteps = getNextMaintenanceStatuses(req.status);
                   return (
                     <article key={req.id} className="board-column">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 700, fontSize: '0.8rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                        <span className="cell-code" style={{ fontSize: '0.8rem' }}>
                           {req.request_number} • Unit {unit?.unit_number}
                         </span>
                         <StatusBadge
@@ -1670,7 +1685,7 @@ export function App() {
                               style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
                               onClick={() => handleAdvanceMaintenance(req.id, next)}
                             >
-                              Advance to {next}
+                              Advance to {next.replace(/_/g, ' ')}
                             </button>
                           ))}
                         </div>
@@ -1713,38 +1728,36 @@ export function App() {
               {analyticsSubTab === 'ledger' && (
                 <ResponsiveTable
                   caption="Immutable double-entry accounting journal entries"
-                  headers={['Entry #', 'Date', 'Event', 'Description', 'Debits = Credits', 'Status', 'Audit Action']}
+                  headers={['Entry #', 'Date', 'Event', 'Description & Balanced Lines', 'Debits = Credits', 'Status', 'Audit Action']}
                 >
                   {orgJournals.map((j) => (
                     <tr key={j.id}>
-                      <td style={{ fontWeight: 700 }}>{j.entry_number}</td>
-                      <td>{j.entry_date}</td>
-                      <td>
+                      <td className="cell-code">{j.entry_number}</td>
+                      <td className="cell-nowrap">{j.entry_date}</td>
+                      <td className="cell-nowrap">
                         <span className="badge-pill badge-neutral">{j.source_event_type}</span>
                       </td>
                       <td>
                         <div style={{ fontWeight: 600 }}>{j.description}</div>
-                        <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>
-                          {j.lines
-                            .map(
-                              (l) =>
-                                `${l.account_code} ${l.account_name}: ${
-                                  l.debit_kes > 0
-                                    ? `DR ${formatKes(l.debit_kes)}`
-                                    : `CR ${formatKes(l.credit_kes)}`
-                                }`
-                            )
-                            .join(' | ')}
+                        <div className="meter-stack" style={{ marginBlockStart: '4px' }}>
+                          {j.lines.map((l, idx) => (
+                            <span key={idx} className="meter-chip">
+                              {l.account_code} {l.account_name}:{' '}
+                              {l.debit_kes > 0
+                                ? `DR ${formatKes(l.debit_kes)}`
+                                : `CR ${formatKes(l.credit_kes)}`}
+                            </span>
+                          ))}
                         </div>
                       </td>
-                      <td style={{ fontWeight: 700 }}>{formatKes(j.total_debit_kes)}</td>
-                      <td>
+                      <td className="cell-currency">{formatKes(j.total_debit_kes)}</td>
+                      <td className="cell-nowrap">
                         <StatusBadge
                           status={j.status}
                           tone={j.status === 'POSTED' ? 'success' : 'warning'}
                         />
                       </td>
-                      <td>
+                      <td className="cell-nowrap">
                         <button
                           type="button"
                           className="btn-outline"
@@ -1767,12 +1780,12 @@ export function App() {
                 >
                   {orgExpenses.map((e: PropertyExpense) => (
                     <tr key={e.id}>
-                      <td style={{ fontWeight: 700 }}>{e.expense_number}</td>
-                      <td>{e.category}</td>
-                      <td>{e.vendor_name}</td>
+                      <td className="cell-code">{e.expense_number}</td>
+                      <td className="cell-nowrap">{e.category}</td>
+                      <td className="cell-nowrap">{e.vendor_name}</td>
                       <td>{e.description}</td>
-                      <td>{e.expense_date}</td>
-                      <td style={{ fontWeight: 700 }}>{formatKes(e.amount_kes)}</td>
+                      <td className="cell-nowrap">{e.expense_date}</td>
+                      <td className="cell-currency">{formatKes(e.amount_kes)}</td>
                     </tr>
                   ))}
                 </ResponsiveTable>
@@ -1785,13 +1798,13 @@ export function App() {
                 >
                   {orgDocuments.map((d) => (
                     <tr key={d.id}>
-                      <td>
+                      <td className="cell-nowrap">
                         <span className="badge-pill badge-blue">{d.category}</span>
                       </td>
-                      <td>{d.entity_label}</td>
-                      <td style={{ fontFamily: 'monospace', fontSize: '0.78rem' }}>{d.file_name}</td>
-                      <td>{d.file_size_kb} KB</td>
-                      <td>
+                      <td className="cell-nowrap">{d.entity_label}</td>
+                      <td className="cell-mono">{d.file_name}</td>
+                      <td className="cell-nowrap">{d.file_size_kb} KB</td>
+                      <td className="cell-nowrap">
                         <button
                           type="button"
                           className="btn-outline"
@@ -1961,7 +1974,7 @@ export function App() {
       >
         <div className="form-grid">
           <div className="field-group">
-            <label htmlFor="org-select">Active SaaS Organization (Multi-Tenant Isolation)</label>
+            <label htmlFor="org-select">Active SaaS Organization</label>
             <select
               id="org-select"
               className="form-control"
@@ -1994,7 +2007,7 @@ export function App() {
             >
               {ROLES_LIST.map((r) => (
                 <option key={r} value={r}>
-                  {r}
+                  {r.replace(/_/g, ' ')}
                 </option>
               ))}
             </select>
@@ -2087,6 +2100,7 @@ export function App() {
           <button
             type="submit"
             className="btn-dark"
+            style={{ inlineSize: '100%', minBlockSize: '42px' }}
             disabled={!hasPermission(state.currentRole, 'properties.create')}
           >
             Create Property, Unit & Activate Lease
@@ -2103,7 +2117,7 @@ export function App() {
         <form onSubmit={handleMpesaCallbackSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div className="form-grid">
             <div className="field-group">
-              <label htmlFor="mpesa-tenant">Tenant</label>
+              <label htmlFor="mpesa-tenant">Tenant Account</label>
               <select
                 id="mpesa-tenant"
                 className="form-control"
@@ -2112,7 +2126,7 @@ export function App() {
               >
                 {orgTenants.map((t) => (
                   <option key={t.id} value={t.id}>
-                    {t.full_name} ({t.phone})
+                    {t.full_name} • {t.phone}
                   </option>
                 ))}
               </select>
@@ -2144,7 +2158,7 @@ export function App() {
               />
             </div>
             <div className="field-group">
-              <label htmlFor="mpesa-receipt">M-Pesa Receipt Number (Idempotency Key)</label>
+              <label htmlFor="mpesa-receipt">M-Pesa Receipt No.</label>
               <input
                 id="mpesa-receipt"
                 type="text"
@@ -2157,7 +2171,11 @@ export function App() {
               />
             </div>
           </div>
-          <button type="submit" className="btn-dark">
+          <button
+            type="submit"
+            className="btn-dark"
+            style={{ inlineSize: '100%', minBlockSize: '42px' }}
+          >
             Verify Callback & Allocate Payment
           </button>
         </form>
@@ -2181,7 +2199,7 @@ export function App() {
               >
                 {orgLeases.map((l) => (
                   <option key={l.id} value={l.id}>
-                    {l.lease_number} ({formatKes(l.monthly_rent_kes)}/mo)
+                    {l.lease_number} • {formatKes(l.monthly_rent_kes)}/mo
                   </option>
                 ))}
               </select>
@@ -2198,7 +2216,11 @@ export function App() {
               />
             </div>
           </div>
-          <button type="submit" className="btn-dark">
+          <button
+            type="submit"
+            className="btn-dark"
+            style={{ inlineSize: '100%', minBlockSize: '42px' }}
+          >
             Generate Invoice & Post Journal
           </button>
         </form>
@@ -2241,7 +2263,11 @@ export function App() {
               />
             </div>
           </div>
-          <button type="submit" className="btn-dark">
+          <button
+            type="submit"
+            className="btn-dark"
+            style={{ inlineSize: '100%', minBlockSize: '42px' }}
+          >
             Submit Maintenance Request
           </button>
         </form>
