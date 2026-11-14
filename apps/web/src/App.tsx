@@ -1,6 +1,10 @@
 import React, { useMemo, useRef, useState } from 'react';
 import {
+  ArrowRight,
+  ArrowUpRight,
   BarChart3,
+  BedDouble,
+  Bookmark,
   Bot,
   Building2,
   Calendar,
@@ -9,9 +13,12 @@ import {
   ChevronRight,
   ChevronUp,
   CircleDollarSign,
+  ClipboardCheck,
+  Command,
   CreditCard,
   Crown,
   Download,
+  Droplets,
   FileSearch,
   FileText,
   Home,
@@ -32,6 +39,7 @@ import {
   Users,
   Wallet,
   Wrench,
+  Zap,
 } from 'lucide-react';
 import {
   createInitialRmsState,
@@ -669,7 +677,10 @@ export function App() {
         </div>
         <div className="kpi-value">{formatKes(kpis.collectedKes || 1284500)}</div>
         <div className="kpi-trend-row">
-          <span className="trend-up">↑ 12.4%</span>
+          <span className="trend-up" style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+            <ArrowUpRight size={13} aria-hidden="true" />
+            <span>12.4%</span>
+          </span>
           <span className="trend-muted">vs last month</span>
         </div>
         <MiniSparkline seed={1} activeColor="#3b82f6" />
@@ -683,7 +694,10 @@ export function App() {
         </div>
         <div className="kpi-value">{orgLeases.length}</div>
         <div className="kpi-trend-row">
-          <span className="trend-up">↑ 8.7%</span>
+          <span className="trend-up" style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+            <ArrowUpRight size={13} aria-hidden="true" />
+            <span>8.7%</span>
+          </span>
           <span className="trend-muted">vs last month</span>
         </div>
         <MiniSparkline seed={3} activeColor="#3b82f6" />
@@ -697,7 +711,10 @@ export function App() {
         </div>
         <div className="kpi-value">{kpis.vacantUnits}</div>
         <div className="kpi-trend-row">
-          <span className="trend-up">↑ 5.3%</span>
+          <span className="trend-up" style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+            <ArrowUpRight size={13} aria-hidden="true" />
+            <span>5.3%</span>
+          </span>
           <span className="trend-muted">vs last month</span>
         </div>
         <MiniSparkline seed={5} activeColor="#3b82f6" />
@@ -711,7 +728,10 @@ export function App() {
         </div>
         <div className="kpi-value">{kpis.openMaintenance}</div>
         <div className="kpi-trend-row">
-          <span className="trend-down">↑ 2.1%</span>
+          <span className="trend-down" style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+            <ArrowUpRight size={13} aria-hidden="true" />
+            <span>2.1%</span>
+          </span>
           <span className="trend-muted">vs last month</span>
         </div>
         <MiniSparkline seed={7} activeColor="#3b82f6" />
@@ -763,8 +783,8 @@ export function App() {
                 placeholder="Search"
                 aria-label="Search properties, units, or tenants"
               />
-              <span className="kbd-badge" aria-hidden="true">
-                ⌘K
+              <span className="kbd-badge" aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                <Command size={11} aria-hidden="true" />K
               </span>
             </form>
           </search>
@@ -815,7 +835,7 @@ export function App() {
               onClick={() => setIsOnboardModalOpen(true)}
             >
               <span>Onboard Property</span>
-              <span aria-hidden="true">→</span>
+              <ArrowRight size={13} aria-hidden="true" />
             </button>
           </div>
 
@@ -1186,27 +1206,51 @@ export function App() {
                   <FeaturedPropertyIllustration />
 
                   <div className="spec-pills-row">
-                    <span className="spec-pill">🛏 2–3 Beds</span>
-                    <span className="spec-pill">⚡ Backup Gen</span>
-                    <span className="spec-pill">💧 Borehole</span>
-                    <span className="spec-pill">🛡 24/7 CCTV</span>
+                    <span className="spec-pill">
+                      <BedDouble size={13} color="#4b5563" aria-hidden="true" />
+                      <span>2–3 Beds</span>
+                    </span>
+                    <span className="spec-pill">
+                      <Zap size={13} color="#4b5563" aria-hidden="true" />
+                      <span>Backup Gen</span>
+                    </span>
+                    <span className="spec-pill">
+                      <Droplets size={13} color="#4b5563" aria-hidden="true" />
+                      <span>Borehole</span>
+                    </span>
+                    <span className="spec-pill">
+                      <ShieldCheck size={13} color="#4b5563" aria-hidden="true" />
+                      <span>24/7 CCTV</span>
+                    </span>
                   </div>
 
                   <div className="stat-kv-list">
                     <div className="stat-kv-row">
-                      <span>🏢 Total Units</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
+                        <Building2 size={14} color="#6b7280" aria-hidden="true" />
+                        <span>Total Units</span>
+                      </span>
                       <span className="stat-kv-val">{kpis.totalUnits}</span>
                     </div>
                     <div className="stat-kv-row">
-                      <span>🔑 Available</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
+                        <KeyRound size={14} color="#6b7280" aria-hidden="true" />
+                        <span>Available</span>
+                      </span>
                       <span className="stat-kv-val">{kpis.vacantUnits}</span>
                     </div>
                     <div className="stat-kv-row">
-                      <span>📋 Occupied / Leased</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
+                        <ClipboardCheck size={14} color="#6b7280" aria-hidden="true" />
+                        <span>Occupied / Leased</span>
+                      </span>
                       <span className="stat-kv-val">{kpis.occupiedUnits}</span>
                     </div>
                     <div className="stat-kv-row">
-                      <span>🔧 In Maintenance</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>
+                        <Wrench size={14} color="#6b7280" aria-hidden="true" />
+                        <span>In Maintenance</span>
+                      </span>
                       <span className="stat-kv-val" style={{ color: 'var(--accent-red)' }}>
                         {kpis.openMaintenance}
                       </span>
@@ -1231,8 +1275,19 @@ export function App() {
                       <Layers size={17} color="#4b5563" aria-hidden="true" />
                       <h2 id="portfolio-perf-heading">Portfolio Performance</h2>
                     </div>
-                    <span style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                      This Month ⌄
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '0.76rem',
+                        color: 'var(--text-secondary)',
+                        fontWeight: 500,
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <span>This Month</span>
+                      <ChevronDown size={13} aria-hidden="true" />
                     </span>
                   </div>
 
@@ -1240,8 +1295,19 @@ export function App() {
                     <span style={{ fontSize: '1.4rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
                       {formatKes(kpis.billedKes || 1284500)}
                     </span>
-                    <span className="trend-up" style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
-                      ↑ 12.4% <span className="trend-muted">vs last month</span>
+                    <span
+                      className="trend-up"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px',
+                        fontSize: '0.75rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <ArrowUpRight size={13} aria-hidden="true" />
+                      <span>12.4%</span>
+                      <span className="trend-muted">vs last month</span>
                     </span>
                   </div>
 
@@ -1309,13 +1375,17 @@ export function App() {
                     <button
                       type="button"
                       style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
                         fontSize: '0.78rem',
                         fontWeight: 600,
                         color: 'var(--text-secondary)',
                       }}
                       onClick={() => setActiveNav('analytics')}
                     >
-                      View full report →
+                      <span>View full report</span>
+                      <ArrowRight size={13} aria-hidden="true" />
                     </button>
                   </div>
                 </section>
@@ -1366,9 +1436,11 @@ export function App() {
                           </span>
                         </td>
                         <td className="cell-nowrap">
-                          <span style={{ fontWeight: 500 }}>{lease.start_date}</span>
-                          <span style={{ color: 'var(--text-muted)', marginInline: '6px' }}>→</span>
-                          <span style={{ fontWeight: 500 }}>{lease.end_date}</span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                            <span style={{ fontWeight: 500 }}>{lease.start_date}</span>
+                            <ArrowRight size={12} color="#8e95a2" aria-hidden="true" />
+                            <span style={{ fontWeight: 500 }}>{lease.end_date}</span>
+                          </span>
                         </td>
                         <td className="cell-nowrap" style={{ color: 'var(--text-secondary)' }}>
                           Due Day {lease.billing_day}
@@ -1492,10 +1564,12 @@ export function App() {
                           <td>
                             <div className="meter-stack">
                               <span className="meter-chip">
-                                💧 {u.water_meter_number ?? 'N/A'}
+                                <Droplets size={12} color="#2563eb" aria-hidden="true" />
+                                <span>{u.water_meter_number ?? 'N/A'}</span>
                               </span>
                               <span className="meter-chip">
-                                ⚡ {u.kplc_meter_number ?? 'N/A'}
+                                <Zap size={12} color="#d97706" aria-hidden="true" />
+                                <span>{u.kplc_meter_number ?? 'N/A'}</span>
                               </span>
                             </div>
                           </td>
@@ -1842,7 +1916,9 @@ export function App() {
                     ].map((stage, idx, arr) => (
                       <span key={stage} className="workflow-step">
                         <span>{stage}</span>
-                        {idx < arr.length - 1 && <span style={{ color: 'var(--text-muted)' }}>→</span>}
+                        {idx < arr.length - 1 && (
+                          <ArrowRight size={12} color="#8e95a2" aria-hidden="true" />
+                        )}
                       </span>
                     ))}
                   </div>
@@ -1903,7 +1979,12 @@ export function App() {
                       <td className="cell-nowrap">{v.specialty}</td>
                       <td className="cell-mono">{v.phone}</td>
                       <td className="cell-mono">{v.kra_pin}</td>
-                      <td className="cell-nowrap" style={{ fontWeight: 700 }}>★ {v.rating}</td>
+                      <td className="cell-nowrap" style={{ fontWeight: 700 }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Star size={13} color="#f59e0b" fill="#f59e0b" aria-hidden="true" />
+                          <span>{v.rating}</span>
+                        </span>
+                      </td>
                       <td className="cell-nowrap">
                         <StatusBadge status={v.status} tone="success" />
                       </td>
@@ -1971,7 +2052,7 @@ export function App() {
                       <span key={stage} className="workflow-step">
                         <span>{stage}</span>
                         {idx < arr.length - 1 && (
-                          <span style={{ color: 'var(--text-muted)' }}>→</span>
+                          <ArrowRight size={12} color="#8e95a2" aria-hidden="true" />
                         )}
                       </span>
                     )
@@ -2250,8 +2331,12 @@ export function App() {
                         <div className="meter-stack" style={{ marginBlockStart: '8px' }}>
                           {msg.tool_calls.map((tc) => (
                             <span key={tc.id} className="meter-chip">
-                              🛠 Tool: {tc.tool_name} (RBAC: {tc.permission_checked}) →{' '}
-                              {tc.result_summary}
+                              <Wrench size={12} color="#4b5563" aria-hidden="true" />
+                              <span>
+                                Tool: {tc.tool_name} (RBAC: {tc.permission_checked})
+                              </span>
+                              <ArrowRight size={11} color="#8e95a2" aria-hidden="true" />
+                              <span>{tc.result_summary}</span>
                             </span>
                           ))}
                         </div>
@@ -2263,9 +2348,12 @@ export function App() {
                             <span
                               key={`${cit.record_id}-${idx}`}
                               className="badge-pill badge-blue"
-                              style={{ fontSize: '0.71rem' }}
+                              style={{ fontSize: '0.71rem', gap: '4px' }}
                             >
-                              📌 [{cit.record_type}] {cit.reference_code}: {cit.summary}
+                              <Bookmark size={12} aria-hidden="true" />
+                              <span>
+                                [{cit.record_type}] {cit.reference_code}: {cit.summary}
+                              </span>
                             </span>
                           ))}
                         </div>

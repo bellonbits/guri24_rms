@@ -269,10 +269,19 @@ impl AssistantServiceTrait for GroundedAssistantService {
             let total_expenses: Decimal = expenses.iter().map(|e| e.amount_kes).sum();
 
             for p in payments.iter().take(5) {
+                let record_code = p
+                    .receipt
+                    .as_ref()
+                    .map(|r| r.receipt_number.clone())
+                    .unwrap_or_else(|| p.payment_reference.clone());
+                let provider_ref = p
+                    .provider_receipt_number
+                    .clone()
+                    .unwrap_or_else(|| p.payment_reference.clone());
                 citations.push(AssistantCitation {
                     record_type: "Payment".to_string(),
-                    record_code: p.receipt_number.clone(),
-                    summary: format!("KES {} (M-Pesa {})", p.amount_kes, p.mpesa_receipt_number.clone().unwrap_or_default()),
+                    record_code,
+                    summary: format!("KES {} (M-Pesa {})", p.amount_kes, provider_ref),
                 });
             }
             for inv in invoices.iter().take(5) {
