@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::{
     circuit_breaker::CircuitBreaker,
-    errors::{AppError, AppResult},
+    errors::AppResult,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -106,7 +106,7 @@ impl GroqLlmAdapter {
             };
 
             let body = serde_json::to_string(&payload)
-                .map_err(|e| AppError::Internal(format!("Groq JSON serialize error: {e}")))?;
+                .map_err(|e| format!("Groq JSON serialize error: {e}"))?;
 
             let mut child = Command::new("curl")
                 .arg("-sS")
@@ -125,7 +125,7 @@ impl GroqLlmAdapter {
                 .stdout(Stdio::piped())
                 .stderr(Stdio::piped())
                 .spawn()
-                .map_err(|e| AppError::ExternalProvider(format!("Groq HTTP spawn error: {e}")))?;
+                .map_err(|e| format!("Groq HTTP spawn error: {e}"))?;
 
             if let Some(mut stdin) = child.stdin.take() {
                 let _ = stdin.write_all(body.as_bytes());
@@ -133,7 +133,7 @@ impl GroqLlmAdapter {
 
             let out = child
                 .wait_with_output()
-                .map_err(|e| AppError::ExternalProvider(format!("Groq HTTP wait error: {e}")))?;
+                .map_err(|e| format!("Groq HTTP wait error: {e}"))?;
 
             if !out.status.success() {
                 return Ok(None);
