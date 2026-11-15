@@ -82,7 +82,7 @@ impl SmsAdapter for OpenSmsAdapter {
             let payload = serde_json::json!({
                 "to": recipient,
                 "message": text,
-                "sender_id": self.sender_id.as_deref().unwrap_or("GURI24RMS"),
+                "sender_id": self.sender_id.as_deref().unwrap_or("OPENSMS"),
             });
             let body = payload.to_string();
 

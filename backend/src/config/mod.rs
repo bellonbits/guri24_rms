@@ -59,6 +59,7 @@ pub struct AppConfig {
     pub smtp_host: Option<String>,
     pub resend_api_key: Option<String>,
     pub resend_from_email: Option<String>,
+    pub cloudinary_url: Option<String>,
     pub storage_provider: String,
     pub s3_bucket: String,
     pub s3_signing_secret: String,
@@ -106,11 +107,11 @@ impl AppConfig {
             .unwrap_or_else(|| "qwen/qwen3.8-27b".to_string());
 
         let opensms_api_endpoint = non_empty_env("OPENSMS_API_ENDPOINT")
-            .unwrap_or_else(|| "https://www.opensms.co.ke/api/v3/".to_string());
-        let opensms_api_token = non_empty_env("OPENSMS_API_TOKEN")
-            .or_else(|| Some("481|br5WjcwK4zN6YHKsR42SMQfe9q5JGfOJLeHr74jp743c6d5e".to_string()));
+            .or_else(|| non_empty_env("OPENSMS_API_URL"))
+            .unwrap_or_else(|| "https://www.opensms.co.ke/api/v3".to_string());
+        let opensms_api_token = non_empty_env("OPENSMS_API_TOKEN");
         let opensms_sender_id = non_empty_env("OPENSMS_SENDER_ID")
-            .or_else(|| Some("GURI24RMS".to_string()));
+            .or_else(|| Some("OPENSMS".to_string()));
 
         let ocr_service_url =
             non_empty_env("OCR_SERVICE_URL").or_else(|| non_empty_env("OCR_PROVIDER_ENDPOINT"));
@@ -181,7 +182,10 @@ impl AppConfig {
             email_provider: env::var("EMAIL_PROVIDER").unwrap_or_else(|_| "resend".to_string()),
             smtp_host: non_empty_env("SMTP_HOST"),
             resend_api_key: non_empty_env("RESEND_API_KEY"),
-            resend_from_email: non_empty_env("RESEND_FROM_EMAIL"),
+            resend_from_email: non_empty_env("RESEND_FROM_EMAIL")
+                .or_else(|| non_empty_env("EMAIL_FROM"))
+                .or_else(|| Some("Guri24 RMS <guri24@aqivo.shop>".to_string())),
+            cloudinary_url: non_empty_env("CLOUDINARY_URL"),
             storage_provider: env::var("STORAGE_PROVIDER")
                 .unwrap_or_else(|_| "supabase_storage".to_string()),
             s3_bucket: storage_bucket,
@@ -338,6 +342,22 @@ impl AppConfig {
                     "UNCONFIGURED (Outbox Queuing Active)".to_string()
                 },
                 missing_env_vars: email_missing,
+            },
+            IntegrationStatusItem {
+                service: "Cloudinary CDN Image Storage".to_string(),
+                provider: "Cloudinary Media Cloud API".to_string(),
+                environment: self.app_env.clone(),
+                credentials_configured: self.cloudinary_url.is_some(),
+                status: if self.cloudinary_url.is_some() {
+                    "CLOUDINARY_CONFIGURED".to_string()
+                } else {
+                    "UNCONFIGURED (Set CLOUDINARY_URL in .env)".to_string()
+                },
+                missing_env_vars: if self.cloudinary_url.is_none() {
+                    vec!["CLOUDINARY_URL".to_string()]
+                } else {
+                    Vec::new()
+                },
             },
         ]
     }

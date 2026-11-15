@@ -30,7 +30,7 @@ impl EmailAdapter for ResendEmailAdapter {
     fn send_email(&self, recipient: &str, subject: &str, body: &str) -> AppResult<String> {
         let api_key = self.api_key.clone().unwrap_or_default();
         let from_email = if self.from_email.is_empty() {
-            "Guri24 RMS <onboarding@resend.dev>".to_string()
+            "Guri24 RMS <guri24@aqivo.shop>".to_string()
         } else {
             self.from_email.clone()
         };

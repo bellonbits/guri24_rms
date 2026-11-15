@@ -99,7 +99,7 @@ impl NotificationProviderFactory {
         if config.email_provider.eq_ignore_ascii_case("resend") || config.resend_api_key.is_some() {
             Arc::new(ResendEmailAdapter::new(
                 config.resend_api_key.clone(),
-                config.resend_from_email.clone().unwrap_or_else(|| "Guri24 RMS <onboarding@resend.dev>".to_string()),
+                config.resend_from_email.clone().unwrap_or_else(|| "Guri24 RMS <guri24@aqivo.shop>".to_string()),
                 breaker,
             ))
         } else {
