@@ -105,16 +105,19 @@ services:
     volumes:
       - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
-      - "127.0.0.1:${RMS_PROMETHEUS_PORT:-9095}:9090"
+      - "${RMS_PROMETHEUS_PORT:-9095}:9090"
 
   grafana:
     image: grafana/grafana:latest
     container_name: guri24_rms_grafana
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${RMS_GRAFANA_PORT:-3005}:3000"
+      - "${RMS_GRAFANA_PORT:-3005}:3000"
+    volumes:
+      - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin_dev_only}
+      GF_USERS_ALLOW_SIGN_UP: "false"
     depends_on:
       - prometheus
 
