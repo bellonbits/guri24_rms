@@ -232,6 +232,54 @@ export function createInitialRmsState(): RmsPlatformState {
   return createEmptyRmsState();
 }
 
+/**
+ * Sanitizes workspace state loaded from persistent snapshot store.
+ * Eliminates any lingering legacy simulated payment records (e.g. SJK99201KL)
+ * and legacy mock OCR records (e.g. signed_lease_amina_A201.pdf).
+ */
+export function sanitizeWorkspaceState(raw: any): RmsPlatformState {
+  if (!raw || typeof raw !== 'object') {
+    return createEmptyRmsState();
+  }
+  const clean = { ...raw };
+
+  // 1. Purge legacy simulated payments
+  if (Array.isArray(clean.payments)) {
+    clean.payments = clean.payments.filter((p: any) => {
+      const code = (
+        (p.provider_receipt_number || '') +
+        ' ' +
+        (p.payment_reference || '') +
+        ' ' +
+        (p.mpesa_receipt_number || '') +
+        ' ' +
+        (p.receipt_number || '')
+      ).toUpperCase();
+      return (
+        !code.includes('SJK99201KL') &&
+        !code.includes('SJKDEP001') &&
+        !code.includes('SJK10000AA') &&
+        !code.includes('SJK20000BB')
+      );
+    });
+  }
+
+  // 2. Purge legacy mock OCR jobs
+  if (Array.isArray(clean.ocrJobs)) {
+    clean.ocrJobs = clean.ocrJobs.filter((j: any) => {
+      const name = (j.file_name || '').toLowerCase();
+      const id = (j.id || '').toLowerCase();
+      return (
+        !name.includes('signed_lease_amina') &&
+        !name.includes('screenshot 2026-11-13') &&
+        !(id === 'ocr-job-0001' && name.includes('amina'))
+      );
+    });
+  }
+
+  return clean as RmsPlatformState;
+}
+
 export function hasPermission(role: SystemRole, permission: string): boolean {
   return (ROLE_PERMISSIONS[role] ?? []).includes(permission);
 }
@@ -1158,18 +1206,90 @@ export function sendAssistantPrompt(
       });
       replyText = `Uploaded document **${attachment.name}** processed successfully via olmOCR & Groq Vision. Extracted key parameters: Kenyan Tenancy Agreement, Monthly Rent: KES 45,000, Security Deposit: KES 45,000, Term: 12 Months. Staged in OCR workbench awaiting 1-click human verification.`;
     }
+  } else if (lower.includes('lease') || lower.includes('tenancy')) {
+    assertPermission(state.currentRole, 'leases.view');
+    const targetUnit =
+      orgUnits.find((u) => lower.includes(u.unit_number.toLowerCase())) ??
+      orgUnits.find((u) => u.status === 'VACANT' || u.status === 'VACANT_AVAILABLE') ??
+      orgUnits[0];
+
+    if (targetUnit) {
+      const confId = `conf-${Date.now()}`;
+      const rentAmount = targetUnit.monthly_rent_kes || 35000;
+      pendingConfirmation = {
+        id: confId,
+        organization_id: orgId,
+        conversation_id: conversationId,
+        action_type: 'DRAFT_LEASE_AGREEMENT',
+        title: `Draft Residential Lease for Unit ${targetUnit.unit_number}`,
+        summary: `Prepare standard 12-month lease agreement for Unit ${targetUnit.unit_number} (Rent: KES ${rentAmount.toLocaleString()}/mo, Deposit: KES ${rentAmount.toLocaleString()}). Requires human confirmation.`,
+        target_reference: `Unit ${targetUnit.unit_number}`,
+        payload: {
+          unit_id: targetUnit.id,
+          unit_number: targetUnit.unit_number,
+          monthly_rent_kes: rentAmount,
+          security_deposit_kes: rentAmount,
+          tenure_months: 12,
+        },
+        status: 'PENDING',
+        created_at: nowIso,
+      };
+      toolCalls.push({
+        id: `tc-${Date.now()}`,
+        tool_name: 'prepare_lease_agreement',
+        permission_checked: 'leases.view',
+        arguments_summary: JSON.stringify({ unit_number: targetUnit.unit_number, rent_kes: rentAmount }),
+        result_summary: `Prepared draft lease agreement for Unit ${targetUnit.unit_number}`,
+        executed_at: nowIso,
+      });
+      citations.push({
+        record_type: 'UNIT',
+        record_id: targetUnit.id,
+        reference_code: `Unit ${targetUnit.unit_number}`,
+        summary: `${targetUnit.unit_type} (${targetUnit.bedrooms}BR) — Rent: KES ${rentAmount.toLocaleString()}/mo`,
+      });
+      replyText = `### Draft Lease Agreement Prepared\n- **Target Unit:** Unit ${targetUnit.unit_number} (${targetUnit.unit_type})\n- **Monthly Rent:** KES ${rentAmount.toLocaleString()}\n- **Security Deposit:** KES ${rentAmount.toLocaleString()} (Refundable)\n- **Term:** 12 Months Standard Kenya Residential Lease\n- **Governing Law:** Landlord and Tenant Act (Cap 301, Kenya)\n\nPer Guri24 safety policy, no database mutation is performed until you review and click **Confirm & Execute**.`;
+    } else {
+      replyText = `### Residential Tenancy Agreement Template\n- **Standard Term:** 12 Months fixed tenure\n- **Statutory Terms:** 1-month deposit, 5-day grace period, M-Pesa Daraja payment allocation\n- **Portfolio Notice:** No units are registered yet in your portfolio. You can onboard properties and units in the **Properties** tab to assign authoritative tenant leases.`;
+    }
+  } else if (
+    lower.includes('dashboard') ||
+    lower.includes('report') ||
+    lower.includes('performance') ||
+    lower.includes('build a dashboard')
+  ) {
+    assertPermission(state.currentRole, 'reports.export');
+    const totalUnits = orgUnits.length;
+    const occupied = orgUnits.filter((u) => u.status === 'OCCUPIED').length;
+    const vacant = orgUnits.filter((u) => u.status === 'VACANT' || u.status === 'VACANT_AVAILABLE').length;
+    const occupancyRate = totalUnits > 0 ? Math.round((occupied / totalUnits) * 100) : 0;
+    const totalBilled = orgInvoices.reduce((acc, i) => acc + (i.total_amount_kes || 0), 0);
+    const totalPaid = orgInvoices.reduce((acc, i) => acc + (i.amount_paid_kes || 0), 0);
+    const totalArrears = orgInvoices.reduce((acc, i) => acc + (i.balance_kes || 0), 0);
+    const collectionRate = totalBilled > 0 ? Math.round((totalPaid / totalBilled) * 100) : 100;
+
+    toolCalls.push({
+      id: `tc-${Date.now()}`,
+      tool_name: 'generate_dashboard_kpis',
+      permission_checked: 'reports.export',
+      arguments_summary: JSON.stringify({ organization_id: orgId }),
+      result_summary: `Occupancy: ${occupancyRate}%, Collections: ${collectionRate}%`,
+      executed_at: nowIso,
+    });
+
+    replyText = `### Portfolio Analytics & Performance Dashboard\n- **Total Registered Units:** ${totalUnits} (${occupied} Occupied, ${vacant} Vacant)\n- **Occupancy Rate:** ${occupancyRate}%\n- **Total Expected Billing:** KES ${totalBilled.toLocaleString()}\n- **Actual Collections:** KES ${totalPaid.toLocaleString()} (${collectionRate}% Collection Rate)\n- **Outstanding Arrears:** KES ${totalArrears.toLocaleString()} (${orgInvoices.filter((i) => i.balance_kes > 0).length} overdue accounts)\n- **Active Leases:** ${orgLeases.filter((l) => l.status === 'ACTIVE').length}\n\nAll metrics are aggregated directly from live database ledger entries.`;
   } else if (
     lower.includes('create maintenance') ||
     lower.includes('log maintenance') ||
     lower.includes('open ticket') ||
-    lower.includes('draft reminder') ||
-    lower.includes('send arrears')
+    lower.includes('repair') ||
+    lower.includes('plumbing')
   ) {
-    // Check permission for maintenance or invoice reminder
-    if (lower.includes('maintenance') || lower.includes('ticket')) {
-      assertPermission(state.currentRole, 'maintenance.view');
-      const targetUnit =
-        orgUnits.find((u) => lower.includes(u.unit_number.toLowerCase())) ?? orgUnits[0];
+    assertPermission(state.currentRole, 'maintenance.view');
+    const targetUnit =
+      orgUnits.find((u) => lower.includes(u.unit_number.toLowerCase())) ?? orgUnits[0];
+
+    if (targetUnit) {
       const confId = `conf-${Date.now()}`;
       pendingConfirmation = {
         id: confId,
@@ -1177,13 +1297,13 @@ export function sendAssistantPrompt(
         conversation_id: conversationId,
         action_type: 'CREATE_MAINTENANCE_REQUEST',
         title: `Create Maintenance Ticket for Unit ${targetUnit.unit_number}`,
-        summary: `Log PLUMBING / GENERAL inspection ticket for Unit ${targetUnit.unit_number} (Estimated KES 2,500). Requires your explicit confirmation before writing to RMS records.`,
+        summary: `Log urgent PLUMBING maintenance ticket for Unit ${targetUnit.unit_number} (Estimated KES 2,500). Requires your explicit confirmation before writing to RMS records.`,
         target_reference: `Unit ${targetUnit.unit_number}`,
         payload: {
           unit_id: targetUnit.id,
           unit_number: targetUnit.unit_number,
           category: 'PLUMBING',
-          title: `Assistant-logged inspection for Unit ${targetUnit.unit_number}`,
+          title: `Urgent plumbing maintenance for Unit ${targetUnit.unit_number}`,
           estimated_cost_kes: 2500,
         },
         status: 'PENDING',
@@ -1203,14 +1323,24 @@ export function sendAssistantPrompt(
         reference_code: `Unit ${targetUnit.unit_number}`,
         summary: `${targetUnit.unit_type} — Status: ${targetUnit.status}`,
       });
-      replyText = `I have prepared a maintenance ticket draft for Unit ${targetUnit.unit_number}. Per Guri24 safety policy, no database mutation has been executed yet—please click **Confirm & Execute** on the confirmation card below to create the ticket.`;
+      replyText = `### Urgent Maintenance Ticket Drafted\n- **Target Unit:** Unit ${targetUnit.unit_number}\n- **Category:** Plumbing & Sanitation\n- **Estimated Cost:** KES 2,500\n- **Technician Dispatch:** Ready for vetted contractor assignment\n\nPer Guri24 safety policy, no database mutation has been executed yet. Click **Confirm & Execute** on the card below to create the ticket.`;
     } else {
-      assertPermission(state.currentRole, 'invoices.view');
-      const overdueInv =
-        orgInvoices.find((i) => i.balance_kes > 0 && i.status === 'OVERDUE') ??
-        orgInvoices.find((i) => i.balance_kes > 0) ??
-        orgInvoices[0];
-      const tenant = orgTenants.find((t) => t.id === overdueInv?.tenant_id);
+      replyText = `### Maintenance Dispatch System\n- **Notice:** No units are registered in your organization yet. To log unit-specific maintenance tickets and dispatch technicians, please register properties and units in the **Properties** tab first.\n- **General Service Desk:** Support channels remain operational for general building inquiries.`;
+    }
+  } else if (
+    lower.includes('draft reminder') ||
+    lower.includes('send arrears') ||
+    lower.includes('reminder') ||
+    lower.includes('remind') ||
+    lower.includes('launch m-pesa reminders')
+  ) {
+    assertPermission(state.currentRole, 'invoices.view');
+    const overdueInv =
+      orgInvoices.find((i) => i.balance_kes > 0 && i.status === 'OVERDUE') ??
+      orgInvoices.find((i) => i.balance_kes > 0);
+
+    if (overdueInv) {
+      const tenant = orgTenants.find((t) => t.id === overdueInv.tenant_id);
       const confId = `conf-${Date.now()}`;
       pendingConfirmation = {
         id: confId,
@@ -1243,11 +1373,13 @@ export function sendAssistantPrompt(
         reference_code: overdueInv.invoice_number,
         summary: `${tenant?.full_name ?? 'Tenant'} — Balance KES ${overdueInv.balance_kes.toLocaleString()}`,
       });
-      replyText = `I drafted an arrears reminder for ${tenant?.full_name ?? 'Tenant'} referencing ${overdueInv.invoice_number} (Balance: KES ${overdueInv.balance_kes.toLocaleString()}). Please confirm below before queuing to the transactional outbox.`;
+      replyText = `### M-Pesa Arrears Reminder Queued\n- **Tenant:** ${tenant?.full_name ?? 'Tenant'}\n- **Invoice:** ${overdueInv.invoice_number}\n- **Outstanding Balance:** KES ${overdueInv.balance_kes.toLocaleString()}\n- **Delivery Channel:** SMS (OpenSMS Kenya) & Email (Resend)\n\nPlease confirm below before the notification is dispatched to the transactional outbox.`;
+    } else {
+      replyText = `### Automated M-Pesa Reminders Status\n- **Overdue Accounts:** 0 pending arrears accounts\n- **Portfolio Health:** All tenant accounts are fully settled or no rent invoices are overdue.\n- **Action:** No payment reminder notifications are required at this time.`;
     }
   } else if (lower.includes('vacant') || lower.includes('available unit')) {
     assertPermission(state.currentRole, 'properties.view');
-    const vacant = orgUnits.filter((u) => u.status === 'VACANT');
+    const vacant = orgUnits.filter((u) => u.status === 'VACANT' || u.status === 'VACANT_AVAILABLE');
     toolCalls.push({
       id: `tc-${Date.now()}`,
       tool_name: 'get_unit_availability',
@@ -1264,10 +1396,16 @@ export function sendAssistantPrompt(
         summary: `${u.unit_type} (${u.bedrooms}BR) — KES ${u.monthly_rent_kes.toLocaleString()}/mo`,
       });
     }
-    replyText = `There are currently **${vacant.length} vacant units** available in your organization: ${vacant
-      .map((u) => `Unit ${u.unit_number} (KES ${u.monthly_rent_kes.toLocaleString()}/mo)`)
-      .join(', ')}.`;
-  } else if (lower.includes('ocr') || lower.includes('document')) {
+    if (orgUnits.length === 0) {
+      replyText = `### Vacant Units Inventory\n- **Registered Units:** 0\n- **Notice:** No units are registered yet. Onboard properties, buildings, and units in the **Properties** tab to begin tracking vacancy and leasing.`;
+    } else if (vacant.length === 0) {
+      replyText = `### Vacant Units Inventory\n- **Status:** 100% Occupied\n- **Available Units:** 0 vacant units available across your ${orgUnits.length} registered units.\n- **Readiness:** All units currently have active tenant leases.`;
+    } else {
+      replyText = `### Vacant Units Inventory\nThere are currently **${vacant.length} vacant units** available for immediate leasing:\n${vacant
+        .map((u) => `- **Unit ${u.unit_number}**: ${u.unit_type} (${u.bedrooms}BR) @ KES ${u.monthly_rent_kes.toLocaleString()}/mo`)
+        .join('\n')}`;
+    }
+  } else if (lower.includes('ocr') || lower.includes('document') || lower.includes('design to code')) {
     assertPermission(state.currentRole, 'documents.view');
     toolCalls.push({
       id: `tc-${Date.now()}`,
@@ -1287,7 +1425,11 @@ export function sendAssistantPrompt(
     }
     const needsReview = orgOcrJobs.filter((j) => j.status === 'NEEDS_REVIEW').length;
     const verified = orgOcrJobs.filter((j) => j.status === 'VERIFIED').length;
-    replyText = `Your OCR pipeline has **${orgOcrJobs.length} document jobs**: **${verified} Verified** and **${needsReview} Needs Human Review**. Unverified OCR extractions remain staged and have not overwritten authoritative RMS records.`;
+    if (orgOcrJobs.length === 0) {
+      replyText = `### OCR & Document Intelligence Pipeline\n- **Status:** Pipeline operational and awaiting uploads\n- **Queue:** 0 active document jobs\n- **Supported Documents:** Kenyan Residential Leases, Title Deeds, National IDs, and Utility Invoices\n- **Extraction Engine:** Allen AI olmOCR & Groq Vision with strict Human-in-the-Loop verification policy.`;
+    } else {
+      replyText = `Your OCR pipeline has **${orgOcrJobs.length} document jobs**: **${verified} Verified** and **${needsReview} Needs Human Review**. Unverified OCR extractions remain staged and have not overwritten authoritative RMS records.`;
+    }
   } else if (lower.includes('maintenance') || lower.includes('work order')) {
     assertPermission(state.currentRole, 'maintenance.view');
     toolCalls.push({
@@ -1312,9 +1454,9 @@ export function sendAssistantPrompt(
   } else {
     // Default: Collections, Arrears & Lease summary
     assertPermission(state.currentRole, 'invoices.view');
-    const totalBilled = orgInvoices.reduce((acc, i) => acc + i.total_amount_kes, 0);
-    const totalPaid = orgInvoices.reduce((acc, i) => acc + i.amount_paid_kes, 0);
-    const totalArrears = orgInvoices.reduce((acc, i) => acc + i.balance_kes, 0);
+    const totalBilled = orgInvoices.reduce((acc, i) => acc + (i.total_amount_kes || 0), 0);
+    const totalPaid = orgInvoices.reduce((acc, i) => acc + (i.amount_paid_kes || 0), 0);
+    const totalArrears = orgInvoices.reduce((acc, i) => acc + (i.balance_kes || 0), 0);
     const openInvoices = orgInvoices.filter((i) => i.balance_kes > 0);
 
     toolCalls.push({
@@ -1344,7 +1486,7 @@ export function sendAssistantPrompt(
       });
     }
 
-    replyText = `Grounded Ledger Summary: Total billed across **${orgInvoices.length} invoices** is **KES ${totalBilled.toLocaleString()}**, collected is **KES ${totalPaid.toLocaleString()}**, and outstanding arrears total **KES ${totalArrears.toLocaleString()}** across ${openInvoices.map((i) => `${i.invoice_number} (KES ${i.balance_kes.toLocaleString()})`).join(', ')}.`;
+    replyText = `### Portfolio Ledger Summary\n- **Total Billed:** KES ${totalBilled.toLocaleString()} across ${orgInvoices.length} invoices\n- **Collections:** KES ${totalPaid.toLocaleString()}\n- **Outstanding Arrears:** KES ${totalArrears.toLocaleString()} (${openInvoices.length} open accounts)\n- **Active Leases:** ${orgLeases.filter((l) => l.status === 'ACTIVE').length}\n- **Total Units:** ${orgUnits.length}\n\nAll records are scoped exclusively to ${state.organizations.find((o) => o.id === orgId)?.name ?? 'your organization'}.`;
   }
 
   const assistantReply: AssistantMessage = {

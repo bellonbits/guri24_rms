@@ -373,12 +373,14 @@ class ApiClient {
   }
 
   // AI Assistant (Groq openai/gpt-oss-120b & qwen/qwen3.8-27b)
-  async askAssistant(message: string, conversationId?: string): Promise<{ reply: string; citations: string[] }> {
+  async askAssistant(message: string, conversationId?: string): Promise<{ reply?: string; content?: string; citations?: any[]; tool_calls?: any[] }> {
+    const isUuid = !!conversationId && conversationId.length === 36 && conversationId.includes('-');
     return this.request('/assistant/chat', {
       method: 'POST',
       body: JSON.stringify({
+        prompt: message,
         message,
-        conversation_id: conversationId,
+        conversation_id: isUuid ? conversationId : undefined,
       }),
     });
   }
