@@ -139,10 +139,20 @@ export interface AssistantActionConfirmation {
   resolved_at?: string;
 }
 
+export interface AssistantAttachment {
+  name: string;
+  size?: number;
+  type?: string;
+  kind?: 'document' | 'audio' | 'image';
+  previewUrl?: string;
+  duration?: string;
+}
+
 export interface AssistantMessage {
   id: string;
   role: 'USER' | 'ASSISTANT';
   content: string;
+  attachment?: AssistantAttachment;
   citations: AssistantCitation[];
   tool_calls: AssistantToolCall[];
   pending_confirmation_id?: string;

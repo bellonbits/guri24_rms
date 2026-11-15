@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AlertTriangle,
   ArrowRight,
   ArrowUpRight,
   BarChart3,
@@ -8,6 +9,7 @@ import {
   Bot,
   Building2,
   Calendar,
+  Check,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
@@ -19,14 +21,22 @@ import {
   Crown,
   Download,
   Droplets,
+  FileCheck2,
   FileSearch,
   FileText,
   Home,
+  Hourglass,
   KeyRound,
   Layers,
   MapPin,
+  Mic,
+  MoreHorizontal,
   MoreVertical,
+  Paperclip,
+  PenSquare,
+  Play,
   Plus,
+  Scan,
   Search,
   Send,
   Settings,
@@ -34,13 +44,18 @@ import {
   ShieldAlert,
   ShieldCheck,
   Smartphone,
+  Sparkles,
   Star,
   Upload,
+  UploadCloud,
+  User,
   Users,
   Wallet,
   Wrench,
+  X,
   Zap,
 } from 'lucide-react';
+import { AssistantAttachment } from './types';
 import { apiClient } from './lib/apiClient';
 import {
   createEmptyRmsState,
@@ -160,6 +175,127 @@ function formatUnitTypeLabel(rawType: string, bedrooms?: number): string {
   return bedrooms !== undefined ? `${clean} (${bedrooms}BR)` : clean;
 }
 
+function StructuredAssistantResponse({
+  content,
+  blockedReason,
+}: {
+  content: string;
+  blockedReason?: string;
+}) {
+  if (blockedReason) {
+    return (
+      <div
+        style={{
+          background: 'rgba(239, 68, 68, 0.12)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          borderRadius: '12px',
+          padding: '12px 14px',
+          color: '#fca5a5',
+          fontSize: '0.84rem',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '10px',
+        }}
+      >
+        <ShieldAlert size={18} color="#ef4444" style={{ flexShrink: 0, marginTop: '2px' }} />
+        <div>
+          <strong style={{ color: '#f87171', display: 'block', marginBottom: '2px' }}>
+            Security & Grounding Guard
+          </strong>
+          {content}
+        </div>
+      </div>
+    );
+  }
+
+  const cleanLine = (str: string) => str.replace(/\*\*/g, '').replace(/###\s*/g, '').trim();
+  const kesMatches = content.match(/KES\s?[\d,]+(\.\d{2})?/gi);
+  const lines = content.split('\n').map((l) => l.trim()).filter(Boolean);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.85rem', lineHeight: 1.55 }}>
+      {kesMatches && kesMatches.length > 0 && (
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBlockEnd: '4px' }}>
+          {Array.from(new Set(kesMatches)).slice(0, 3).map((amt, i) => (
+            <span
+              key={i}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: '#13281c',
+                border: '1px solid #22543d',
+                borderRadius: '8px',
+                padding: '4px 10px',
+                color: '#4ade80',
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              <CircleDollarSign size={13} color="#4ade80" />
+              <span>{amt}</span>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {lines.map((line, idx) => {
+        const isBullet = line.startsWith('- ') || line.startsWith('* ') || /^\d+\.\s/.test(line);
+        const isHeading = line.startsWith('###') || (line.endsWith(':') && line.length < 50);
+
+        if (isHeading) {
+          return (
+            <div
+              key={idx}
+              style={{
+                fontSize: '0.88rem',
+                fontWeight: 700,
+                color: '#4ade80',
+                marginBlockStart: idx > 0 ? '6px' : '0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <Sparkles size={14} color="#4ade80" />
+              <span>{cleanLine(line)}</span>
+            </div>
+          );
+        }
+
+        if (isBullet) {
+          const textOnly = line.replace(/^[-*]\s+|\d+\.\s+/, '');
+          return (
+            <div
+              key={idx}
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '8px',
+                background: '#131e18',
+                border: '1px solid #1e3327',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                color: '#e2e8f0',
+              }}
+            >
+              <CheckCircle2 size={14} color="#22c55e" style={{ flexShrink: 0, marginTop: '3px' }} />
+              <span>{cleanLine(textOnly)}</span>
+            </div>
+          );
+        }
+
+        return (
+          <p key={idx} style={{ margin: 0, color: '#f1f5f9' }}>
+            {cleanLine(line)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 export function App() {
   const [state, setState] = useState<RmsPlatformState>(() => createInitialRmsState());
   const [activeNav, setActiveNav] = useState<NavSection>('dashboard');
@@ -198,6 +334,18 @@ export function App() {
     'Verified against original physical document.'
   );
   const [assistantPromptInput, setAssistantPromptInput] = useState<string>('');
+  const [assistantAttachedFile, setAssistantAttachedFile] = useState<{
+    name: string;
+    sizeKb: number;
+    mimeType: string;
+    kind: 'document' | 'audio' | 'image';
+  } | null>(null);
+  const [assistantAudioPlaying, setAssistantAudioPlaying] = useState(false);
+  const assistantFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // OCR Interactive Drag-Drop & Direct Upload
+  const [ocrDragActive, setOcrDragActive] = useState(false);
+  const ocrDirectFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const mainHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
@@ -790,27 +938,72 @@ export function App() {
     }
   };
 
-  const handleAssistantSend = async (promptText?: string) => {
+  const handleAssistantSend = async (
+    promptText?: string,
+    customAttachment?: AssistantAttachment
+  ) => {
     const query = (promptText ?? assistantPromptInput).trim();
-    if (!query) return;
+    const attachment: AssistantAttachment | undefined =
+      customAttachment ??
+      (assistantAttachedFile
+        ? {
+            name: assistantAttachedFile.name,
+            size: assistantAttachedFile.sizeKb * 1024,
+            type: assistantAttachedFile.mimeType,
+            kind: assistantAttachedFile.kind,
+          }
+        : undefined);
+
+    if (!query && !attachment) return;
     setAssistantPromptInput('');
+    setAssistantAttachedFile(null);
+
+    // If an uploaded document is attached, automatically stage it into the OCR pipeline!
+    if (attachment && (attachment.kind === 'document' || !attachment.kind)) {
+      try {
+        const ocrRes = submitOcrDocumentJob(state, {
+          fileName: attachment.name,
+          mimeType: attachment.type || 'application/pdf',
+          fileSizeKb: Math.max(1, Math.round((attachment.size || 1024) / 1024)),
+          pageCount: 2,
+          documentCategory: 'LEASE_AGREEMENT',
+          linkedEntityLabel: `Assistant Upload: ${attachment.name}`,
+          rawSampleText: `KENYA RESIDENTIAL LEASE AGREEMENT — Uploaded via Guri24 AI Assistant | File: ${attachment.name} | Staged for review`,
+        });
+        setState(ocrRes.nextState);
+        setSelectedOcrJobId(ocrRes.job.id);
+      } catch {
+        // Continue
+      }
+    }
 
     // Attempt real backend AI Assistant (Groq openai/gpt-oss-120b)
     try {
-      const apiRes = await apiClient.askAssistant(query, activeConversation?.id);
+      const apiRes = await apiClient.askAssistant(
+        query || `Analyze uploaded document: ${attachment?.name}`,
+        activeConversation?.id
+      );
       if (apiRes && apiRes.reply) {
-        const userMsg = {
+        const userMsg: AssistantMessage = {
           id: `msg-${Date.now()}-user`,
-          role: 'USER' as const,
-          content: query,
-          timestamp: new Date().toISOString(),
+          role: 'USER',
+          content:
+            query ||
+            (attachment?.kind === 'audio'
+              ? 'Voice memo inquiry'
+              : `Uploaded document for analysis: ${attachment?.name}`),
+          attachment,
+          citations: [],
+          tool_calls: [],
+          created_at: new Date().toISOString(),
         };
-        const assistantMsg = {
+        const assistantMsg: AssistantMessage = {
           id: `msg-${Date.now()}-ast`,
-          role: 'ASSISTANT' as const,
+          role: 'ASSISTANT',
           content: apiRes.reply,
-          timestamp: new Date().toISOString(),
           citations: apiRes.citations || [],
+          tool_calls: [],
+          created_at: new Date().toISOString(),
         };
         setState((prev) => {
           const targetConvId = activeConversation?.id ?? 'conv-0001';
@@ -826,8 +1019,8 @@ export function App() {
                 {
                   id: targetConvId,
                   organization_id: currentOrg.id,
-                  title: query.slice(0, 32),
-                  created_at: new Date().toISOString(),
+                  title: query.slice(0, 32) || 'Document Analysis',
+                  updated_at: new Date().toISOString(),
                   messages: [userMsg, assistantMsg],
                 },
               ];
@@ -843,7 +1036,12 @@ export function App() {
     }
 
     try {
-      const res = sendAssistantPrompt(state, query, activeConversation?.id ?? 'conv-0001');
+      const res = sendAssistantPrompt(
+        state,
+        query,
+        activeConversation?.id ?? 'conv-0001',
+        attachment
+      );
       setState(res.nextState);
       apiClient.saveWorkspaceSnapshot(res.nextState).catch(console.error);
       if (res.reply.blocked_reason) {
@@ -2239,6 +2437,121 @@ export function App() {
                   </button>
                 </div>
 
+                {/* Interactive Drag-and-Drop Document Uploader */}
+                <div
+                  className="ocr-interactive-dropzone"
+                  style={{
+                    borderColor: ocrDragActive ? '#22c55e' : 'var(--border-subtle)',
+                    background: ocrDragActive ? 'rgba(34, 197, 94, 0.08)' : 'var(--bg-subtle)',
+                    marginBlock: '12px 16px',
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setOcrDragActive(true);
+                  }}
+                  onDragLeave={() => setOcrDragActive(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setOcrDragActive(false);
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                      const file = e.dataTransfer.files[0];
+                      try {
+                        const isId = file.name.toLowerCase().includes('id');
+                        const isInv =
+                          file.name.toLowerCase().includes('inv') ||
+                          file.name.toLowerCase().includes('receipt');
+                        const cat = isId
+                          ? 'TENANT_IDENTIFICATION'
+                          : isInv
+                          ? 'RECEIPT_OR_INVOICE'
+                          : 'LEASE_AGREEMENT';
+                        const res = submitOcrDocumentJob(state, {
+                          fileName: file.name,
+                          mimeType: file.type || 'application/pdf',
+                          fileSizeKb: Math.max(1, Math.round(file.size / 1024)),
+                          pageCount: file.name.endsWith('.pdf') ? 3 : 1,
+                          documentCategory: cat,
+                          linkedEntityLabel: `Direct Upload: ${file.name}`,
+                          rawSampleText: `KENYA RESIDENTIAL PROPERTY DOCUMENT — File: ${file.name} | Category: ${cat} | Processed via olmOCR`,
+                        });
+                        setState(res.nextState);
+                        setSelectedOcrJobId(res.job.id);
+                        setOcrCorrections({});
+                        announce(
+                          `OCR document ${file.name} uploaded and staged in NEEDS_REVIEW awaiting human verification`
+                        );
+                      } catch (err) {
+                        announce((err as Error).message);
+                      }
+                    }
+                  }}
+                  onClick={() => ocrDirectFileInputRef.current?.click()}
+                >
+                  <input
+                    ref={ocrDirectFileInputRef}
+                    type="file"
+                    accept=".pdf,image/png,image/jpeg,image/webp"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        try {
+                          const isId = file.name.toLowerCase().includes('id');
+                          const isInv =
+                            file.name.toLowerCase().includes('inv') ||
+                            file.name.toLowerCase().includes('receipt');
+                          const cat = isId
+                            ? 'TENANT_IDENTIFICATION'
+                            : isInv
+                            ? 'RECEIPT_OR_INVOICE'
+                            : 'LEASE_AGREEMENT';
+                          const res = submitOcrDocumentJob(state, {
+                            fileName: file.name,
+                            mimeType: file.type || 'application/pdf',
+                            fileSizeKb: Math.max(1, Math.round(file.size / 1024)),
+                            pageCount: file.name.endsWith('.pdf') ? 3 : 1,
+                            documentCategory: cat,
+                            linkedEntityLabel: `Direct Upload: ${file.name}`,
+                            rawSampleText: `KENYA RESIDENTIAL PROPERTY DOCUMENT — File: ${file.name} | Category: ${cat} | Processed via olmOCR`,
+                          });
+                          setState(res.nextState);
+                          setSelectedOcrJobId(res.job.id);
+                          setOcrCorrections({});
+                          announce(
+                            `OCR document ${file.name} uploaded and staged in NEEDS_REVIEW awaiting human verification`
+                          );
+                        } catch (err) {
+                          announce((err as Error).message);
+                        }
+                      }
+                    }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <UploadCloud size={34} color="#10b981" />
+                    <div style={{ fontWeight: 700, fontSize: '0.94rem' }}>
+                      Drag & Drop Lease Agreement, Tenant ID, or Invoice here, or click to browse
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                      Supports PDF, PNG, JPEG, WEBP (up to 15 MB) • Automated olmOCR & Groq Vision extraction
+                    </div>
+                    <span
+                      className="btn-outline"
+                      style={{
+                        minBlockSize: '30px',
+                        padding: '4px 14px',
+                        fontSize: '0.74rem',
+                        marginBlockStart: '4px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <Upload size={13} aria-hidden="true" />
+                      <span>Choose Document File</span>
+                    </span>
+                  </div>
+                </div>
+
                 <div className="workflow-strip" aria-label="OCR Pipeline Lifecycle">
                   {['UPLOADED', 'QUEUED', 'PROCESSING', 'NEEDS_REVIEW', 'VERIFIED / FAILED'].map(
                     (stage, idx, arr) => (
@@ -2423,22 +2736,66 @@ export function App() {
           )}
 
           {/* =================================================================
-              PAGE 9: GROUNDED AI AGENT ASSISTANT (Module 20)
+              PAGE 9: GROUNDED AI AGENT ASSISTANT & OCR DOCUMENT INTELLIGENCE
              ================================================================= */}
           {activeNav === 'assistant' && (
-            <div className="stack-column">
-              <section className="surface-card">
-                <div className="card-header">
-                  <div className="card-title-group">
-                    <Bot size={17} color="#2563eb" aria-hidden="true" />
-                    <h2>Grounded Guri24 RMS AI Assistant</h2>
-                    <span className="badge-pill badge-green">
+            <div className="assistant-grid-layout">
+              {/* Left Column: Chat Conversation Panel */}
+              <section className="assistant-card-dark">
+                <div className="assistant-header-bar">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Bot size={18} color="#22c55e" aria-hidden="true" />
+                    <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#f8fafc' }}>
+                      Chat
+                    </span>
+                    <span
+                      style={{
+                        background: '#14221b',
+                        border: '1px solid #20382b',
+                        color: '#4ade80',
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: '9999px',
+                      }}
+                    >
                       Scoped to {currentOrg.name}
                     </span>
                   </div>
-                  <span className="badge-pill badge-neutral">
-                    Role: {state.currentRole}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <button
+                      type="button"
+                      className="assistant-icon-btn"
+                      title="New Chat Session"
+                      onClick={() => {
+                        const newId = `conv-${Date.now()}`;
+                        setState((prev) => ({
+                          ...prev,
+                          assistantConversations: [
+                            {
+                              id: newId,
+                              organization_id: currentOrg.id,
+                              title: 'New Conversation',
+                              updated_at: new Date().toISOString(),
+                              messages: [],
+                            },
+                            ...prev.assistantConversations,
+                          ],
+                        }));
+                        announce('Started new fresh Assistant conversation session');
+                      }}
+                    >
+                      <PenSquare size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      className="assistant-icon-btn"
+                      title="More Options"
+                      onClick={() => setActiveNav('settings')}
+                    >
+                      <MoreHorizontal size={16} />
+                    </button>
+                  </div>
                 </div>
 
                 <div
@@ -2459,8 +2816,24 @@ export function App() {
                     <button
                       key={quickPrompt}
                       type="button"
-                      className="btn-outline"
-                      style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
+                      style={{
+                        background: '#121c17',
+                        border: '1px solid #1f3126',
+                        borderRadius: '8px',
+                        padding: '5px 10px',
+                        color: '#94a3b8',
+                        fontSize: '0.74rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = '#22c55e';
+                        e.currentTarget.style.color = '#f8fafc';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = '#1f3126';
+                        e.currentTarget.style.color = '#94a3b8';
+                      }}
                       onClick={() => handleAssistantSend(quickPrompt)}
                     >
                       {quickPrompt}
@@ -2472,89 +2845,258 @@ export function App() {
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '12px',
-                    maxBlockSize: '420px',
+                    gap: '14px',
+                    maxBlockSize: '460px',
                     overflowY: 'auto',
-                    padding: '12px',
-                    borderRadius: '14px',
-                    background: 'var(--bg-sidebar)',
-                    border: '1px solid var(--border-subtle)',
-                    marginBlockEnd: '14px',
+                    padding: '14px',
+                    borderRadius: '16px',
+                    background: '#080d0a',
+                    border: '1px solid #16221b',
+                    marginBlockEnd: '16px',
                   }}
                 >
-                  {(activeConversation?.messages ?? []).map((msg) => (
-                    <article
-                      key={msg.id}
-                      style={{
-                        padding: '12px 14px',
-                        borderRadius: '12px',
-                        background: msg.role === 'USER' ? '#14171f' : '#ffffff',
-                        color: msg.role === 'USER' ? '#ffffff' : 'var(--text-primary)',
-                        border:
-                          msg.role === 'USER' ? 'none' : '1px solid var(--border-subtle)',
-                        alignSelf: msg.role === 'USER' ? 'flex-end' : 'stretch',
-                        maxInlineSize: msg.role === 'USER' ? '82%' : '100%',
-                      }}
-                    >
-                      <div
+                  {(activeConversation?.messages ?? []).length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '36px 16px', color: '#64748b' }}>
+                      <Bot size={32} color="#22c55e" style={{ margin: '0 auto 10px' }} />
+                      <div style={{ fontWeight: 600, color: '#94a3b8' }}>Guri24 RMS AI Ready</div>
+                      <div style={{ fontSize: '0.78rem', marginBlockStart: '4px' }}>
+                        Ask any questions regarding rent collections, leases, units, or upload documents for real-time OCR extraction.
+                      </div>
+                    </div>
+                  ) : (
+                    (activeConversation?.messages ?? []).map((msg) => (
+                      <article
+                        key={msg.id}
                         style={{
                           display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          gap: '8px',
-                          marginBlockEnd: '6px',
-                          fontSize: '0.72rem',
-                          opacity: 0.8,
+                          flexDirection: 'column',
+                          gap: '6px',
+                          alignSelf: msg.role === 'USER' ? 'flex-end' : 'stretch',
+                          maxInlineSize: msg.role === 'USER' ? '82%' : '100%',
                         }}
                       >
-                        <strong>
-                          {msg.role === 'USER' ? 'You' : 'Guri24 Grounded Assistant'}
-                        </strong>
-                        {msg.blocked_reason && (
-                          <span className="badge-pill badge-red">
-                            <ShieldAlert size={12} style={{ marginInlineEnd: '4px' }} />
-                            {msg.blocked_reason}
-                          </span>
-                        )}
-                      </div>
-
-                      <p style={{ fontSize: '0.84rem', lineHeight: 1.5 }}>{msg.content}</p>
-
-                      {msg.tool_calls.length > 0 && (
-                        <div className="meter-stack" style={{ marginBlockStart: '8px' }}>
-                          {msg.tool_calls.map((tc) => (
-                            <span key={tc.id} className="meter-chip">
-                              <Wrench size={12} color="#4b5563" aria-hidden="true" />
-                              <span>
-                                Tool: {tc.tool_name} (RBAC: {tc.permission_checked})
-                              </span>
-                              <ArrowRight size={11} color="#8e95a2" aria-hidden="true" />
-                              <span>{tc.result_summary}</span>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      {msg.citations.length > 0 && (
-                        <div className="meter-stack" style={{ marginBlockStart: '8px' }}>
-                          {msg.citations.map((cit, idx) => (
+                        {/* Header with avatar, name, and role badge */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            justifyContent: msg.role === 'USER' ? 'flex-end' : 'flex-start',
+                            fontSize: '0.74rem',
+                            color: '#94a3b8',
+                          }}
+                        >
+                          {msg.role === 'ASSISTANT' && (
                             <span
-                              key={`${cit.record_id}-${idx}`}
-                              className="badge-pill badge-blue"
-                              style={{ fontSize: '0.71rem', gap: '4px' }}
+                              style={{
+                                inlineSize: '24px',
+                                blockSize: '24px',
+                                borderRadius: '50%',
+                                background: '#14291d',
+                                border: '1px solid #22c55e',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
                             >
-                              <Bookmark size={12} aria-hidden="true" />
-                              <span>
-                                [{cit.record_type}] {cit.reference_code}: {cit.summary}
-                              </span>
+                              <Bot size={13} color="#4ade80" />
                             </span>
-                          ))}
+                          )}
+                          <strong style={{ color: msg.role === 'USER' ? '#f1f5f9' : '#4ade80' }}>
+                            {msg.role === 'USER' ? 'Property Admin' : 'Guri24 RMS AI'}
+                          </strong>
+                          <span
+                            style={{
+                              background: msg.role === 'USER' ? '#1e293b' : '#14281c',
+                              color: msg.role === 'USER' ? '#94a3b8' : '#86efac',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              fontSize: '0.65rem',
+                              fontWeight: 700,
+                            }}
+                          >
+                            {msg.role === 'USER' ? 'User' : 'Grounded AI'}
+                          </span>
                         </div>
-                      )}
-                    </article>
-                  ))}
+
+                        {/* Audio Waveform pill if attachment is audio */}
+                        {msg.attachment?.kind === 'audio' && (
+                          <div className="audio-waveform-bubble">
+                            <button
+                              type="button"
+                              onClick={() => setAssistantAudioPlaying((prev) => !prev)}
+                              style={{
+                                background: '#22c55e',
+                                border: 'none',
+                                borderRadius: '50%',
+                                inlineSize: '24px',
+                                blockSize: '24px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                color: '#052e16',
+                              }}
+                            >
+                              <Play size={11} fill="#052e16" />
+                            </button>
+                            <div className="waveform-bars">
+                              {[4, 10, 16, 7, 14, 11, 8, 15, 12, 6, 9, 14, 5].map((h, i) => (
+                                <span
+                                  key={i}
+                                  className="waveform-bar"
+                                  style={{
+                                    blockSize: assistantAudioPlaying
+                                      ? `${((i % 4) + 1) * 4}px`
+                                      : `${h}px`,
+                                    transition: 'block-size 0.2s ease',
+                                  }}
+                                />
+                              ))}
+                            </div>
+                            <span>{msg.attachment.duration || 'Recording 01:48.56'}</span>
+                          </div>
+                        )}
+
+                        {/* Document Attachment Pill if attachment is document */}
+                        {msg.attachment && msg.attachment.kind !== 'audio' && (
+                          <div
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              background: '#15241c',
+                              border: '1px solid #233b2e',
+                              borderRadius: '10px',
+                              padding: '6px 12px',
+                              color: '#e2e8f0',
+                              fontSize: '0.78rem',
+                              marginBlockEnd: '4px',
+                            }}
+                          >
+                            <FileText size={15} color="#4ade80" />
+                            <span style={{ fontWeight: 600 }}>{msg.attachment.name}</span>
+                            <span
+                              style={{
+                                background: '#0e2b1b',
+                                color: '#4ade80',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontSize: '0.66rem',
+                                fontWeight: 700,
+                              }}
+                            >
+                              OCR Staged
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Message body */}
+                        {msg.role === 'USER' ? (
+                          <div
+                            style={{
+                              padding: '10px 14px',
+                              borderRadius: '14px',
+                              background: '#152119',
+                              border: '1px solid #22372a',
+                              color: '#f1f5f9',
+                              fontSize: '0.84rem',
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            {msg.content}
+                          </div>
+                        ) : (
+                          <div
+                            style={{
+                              padding: '12px 16px',
+                              borderRadius: '14px',
+                              background: '#0d1511',
+                              border: '1px solid #1a2920',
+                              color: '#e2e8f0',
+                            }}
+                          >
+                            <StructuredAssistantResponse
+                              content={msg.content}
+                              blockedReason={msg.blocked_reason}
+                            />
+
+                            {msg.tool_calls.length > 0 && (
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '4px',
+                                  marginBlockStart: '10px',
+                                }}
+                              >
+                                {msg.tool_calls.map((tc) => (
+                                  <span
+                                    key={tc.id}
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '6px',
+                                      background: '#121e17',
+                                      border: '1px solid #1b2e23',
+                                      borderRadius: '6px',
+                                      padding: '4px 8px',
+                                      fontSize: '0.7rem',
+                                      color: '#94a3b8',
+                                    }}
+                                  >
+                                    <Wrench size={11} color="#4ade80" />
+                                    <span>
+                                      Tool: {tc.tool_name} (RBAC: {tc.permission_checked})
+                                    </span>
+                                    <ArrowRight size={10} color="#64748b" />
+                                    <span style={{ color: '#cbd5e1' }}>{tc.result_summary}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            {msg.citations.length > 0 && (
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  flexWrap: 'wrap',
+                                  gap: '6px',
+                                  marginBlockStart: '10px',
+                                }}
+                              >
+                                {msg.citations.map((cit, idx) => (
+                                  <span
+                                    key={`${cit.record_id}-${idx}`}
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                      background: '#0e2b1b',
+                                      border: '1px solid #1a4d2e',
+                                      color: '#86efac',
+                                      borderRadius: '6px',
+                                      padding: '3px 8px',
+                                      fontSize: '0.7rem',
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    <Bookmark size={11} color="#4ade80" />
+                                    <span>
+                                      [{cit.record_type}] {cit.reference_code}: {cit.summary}
+                                    </span>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </article>
+                    ))
+                  )}
                 </div>
 
+                {/* Pending Confirmation Box */}
                 {orgConfirmations.filter((c) => c.status === 'PENDING').length > 0 && (
                   <div
                     style={{
@@ -2572,8 +3114,8 @@ export function App() {
                           style={{
                             padding: '14px 16px',
                             borderRadius: '12px',
-                            border: '1px solid #bfdbfe',
-                            background: '#eff6ff',
+                            border: '1px solid #22c55e',
+                            background: '#0c1b12',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
@@ -2582,10 +3124,10 @@ export function App() {
                           }}
                         >
                           <div>
-                            <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#1e3a8a' }}>
+                            <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#4ade80' }}>
                               Action Confirmation Required: {conf.title}
                             </div>
-                            <div style={{ fontSize: '0.78rem', color: '#1e40af', marginBlockStart: '2px' }}>
+                            <div style={{ fontSize: '0.78rem', color: '#cbd5e1', marginBlockStart: '2px' }}>
                               {conf.summary}
                             </div>
                           </div>
@@ -2593,7 +3135,14 @@ export function App() {
                             <button
                               type="button"
                               className="btn-dark"
-                              style={{ minBlockSize: '32px', padding: '5px 12px', fontSize: '0.76rem' }}
+                              style={{
+                                minBlockSize: '32px',
+                                padding: '5px 12px',
+                                fontSize: '0.76rem',
+                                background: '#22c55e',
+                                color: '#052e16',
+                                fontWeight: 700,
+                              }}
                               onClick={() => handleResolveConfirmation(conf.id, true)}
                             >
                               Confirm & Execute
@@ -2601,7 +3150,13 @@ export function App() {
                             <button
                               type="button"
                               className="btn-outline"
-                              style={{ minBlockSize: '32px', padding: '5px 12px', fontSize: '0.76rem' }}
+                              style={{
+                                minBlockSize: '32px',
+                                padding: '5px 12px',
+                                fontSize: '0.76rem',
+                                borderColor: '#334155',
+                                color: '#94a3b8',
+                              }}
                               onClick={() => handleResolveConfirmation(conf.id, false)}
                             >
                               Cancel
@@ -2612,27 +3167,308 @@ export function App() {
                   </div>
                 )}
 
+                {/* Floating Attached File Preview Chip */}
+                {assistantAttachedFile && (
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: '#16281e',
+                      border: '1px solid #22c55e',
+                      borderRadius: '8px',
+                      padding: '5px 10px',
+                      marginBlockEnd: '8px',
+                      fontSize: '0.78rem',
+                      color: '#f8fafc',
+                    }}
+                  >
+                    <FileText size={14} color="#4ade80" />
+                    <span>
+                      {assistantAttachedFile.name} ({assistantAttachedFile.sizeKb} KB)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setAssistantAttachedFile(null)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#94a3b8',
+                        cursor: 'pointer',
+                        padding: '2px',
+                      }}
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Pill-Shaped Chat Input Bar Matching Reference Screenshot */}
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
                     handleAssistantSend();
                   }}
-                  style={{ display: 'flex', gap: '10px', alignItems: 'center' }}
+                  className="chat-input-pill"
                 >
                   <input
                     type="text"
-                    className="form-control"
-                    placeholder="Ask about arrears, collections, vacant units, OCR jobs, or request a confirmed action..."
+                    className="chat-input-field"
+                    placeholder="Ask Anything..."
                     value={assistantPromptInput}
                     onChange={(e) => setAssistantPromptInput(e.target.value)}
-                    aria-label="Ask the Grounded RMS AI Assistant"
+                    aria-label="Ask Anything..."
                   />
-                  <button type="submit" className="btn-dark" style={{ minBlockSize: '42px' }}>
-                    <Send size={15} aria-hidden="true" />
-                    <span>Ask Assistant</span>
+
+                  {/* Voice Note Simulation Button */}
+                  <button
+                    type="button"
+                    className="assistant-icon-btn"
+                    title="Send Voice Memo"
+                    onClick={() =>
+                      handleAssistantSend('Voice inquiry: Check arrears and lease renewal terms', {
+                        name: 'Voice_Inquiry_0148.wav',
+                        kind: 'audio',
+                        duration: 'Recording 01:48.56',
+                      })
+                    }
+                  >
+                    <Mic size={17} color="#94a3b8" />
+                  </button>
+
+                  {/* File Upload Button */}
+                  <input
+                    ref={assistantFileInputRef}
+                    type="file"
+                    accept=".pdf,image/png,image/jpeg,image/webp,.docx"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        const f = e.target.files[0];
+                        setAssistantAttachedFile({
+                          name: f.name,
+                          sizeKb: Math.max(1, Math.round(f.size / 1024)),
+                          mimeType: f.type || 'application/pdf',
+                          kind: f.type?.startsWith('image/') ? 'image' : 'document',
+                        });
+                        announce(`Attached ${f.name} for AI analysis & OCR staging`);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="assistant-icon-btn"
+                    title="Upload document or photo for OCR"
+                    onClick={() => assistantFileInputRef.current?.click()}
+                  >
+                    <Upload size={17} color="#94a3b8" />
+                  </button>
+
+                  {/* Send Button */}
+                  <button
+                    type="submit"
+                    style={{
+                      background: '#22c55e',
+                      border: 'none',
+                      borderRadius: '50%',
+                      inlineSize: '34px',
+                      blockSize: '34px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                    }}
+                    title="Send"
+                  >
+                    <Send size={15} color="#052e16" />
                   </button>
                 </form>
               </section>
+
+              {/* Right Column: Intelligence Detection & Recommendations (Directly Matching Screenshot) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* Top Card: Document & Inspection Detection (Replicating Leaf Disease Detection Card) */}
+                <section className="assistant-card-dark">
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBlockEnd: '6px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Scan size={16} color="#4ade80" />
+                      <strong style={{ fontSize: '0.94rem', color: '#f8fafc' }}>
+                        Inspection & Document Detection
+                      </strong>
+                    </div>
+                    <button type="button" className="assistant-icon-btn" title="Options">
+                      <MoreHorizontal size={16} />
+                    </button>
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: '#64748b', marginBlockEnd: '14px' }}>
+                    Today, 04:30 AM • Live olmOCR & Vision
+                  </div>
+
+                  {/* Radiant Glowing Shield / Leaf Inspection Badge */}
+                  <div className="glow-detector-container">
+                    <div className="glow-shield-badge">
+                      <ShieldCheck size={44} color="#4ade80" />
+                    </div>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#f8fafc' }}>
+                      Portfolio Status: Verified
+                    </div>
+                    <div style={{ fontSize: '0.74rem', color: '#86efac', marginBlockStart: '2px' }}>
+                      98.4% Document Confidence • 0 Violations
+                    </div>
+                  </div>
+
+                  {/* Thumbnails strip matching screenshot */}
+                  <div className="detection-thumbs-strip">
+                    <div className="detection-thumb" title="Signed Lease Agreement">
+                      <FileText size={18} />
+                      <span>Lease</span>
+                    </div>
+                    <div className="detection-thumb" title="Kenyan National ID">
+                      <Users size={18} />
+                      <span>ID Card</span>
+                    </div>
+                    <div className="detection-thumb" title="Property Title LR">
+                      <Building2 size={18} />
+                      <span>Title</span>
+                    </div>
+                    <div
+                      className="detection-thumb"
+                      style={{
+                        background: '#0e291b',
+                        borderColor: '#22c55e',
+                        color: '#4ade80',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => setActiveNav('ocr')}
+                      title="View all OCR documents"
+                    >
+                      <span style={{ fontWeight: 700, fontSize: '0.76rem' }}>+02</span>
+                      <span>Docs More</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn-outline"
+                    style={{
+                      inlineSize: '100%',
+                      minBlockSize: '36px',
+                      marginBlockStart: '16px',
+                      borderColor: '#1e382b',
+                      color: '#4ade80',
+                      fontSize: '0.78rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                    }}
+                    onClick={() => {
+                      setIsOcrUploadModalOpen(true);
+                    }}
+                  >
+                    <Upload size={14} />
+                    <span>Upload Document for OCR Scan</span>
+                  </button>
+                </section>
+
+                {/* Bottom Card: AI Recommendations (Replicating AI Recommendation Card) */}
+                <section className="assistant-card-dark">
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBlockEnd: '6px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Sparkles size={16} color="#38bdf8" />
+                      <strong style={{ fontSize: '0.94rem', color: '#f8fafc' }}>
+                        AI Recommendations
+                      </strong>
+                    </div>
+                    <button type="button" className="assistant-icon-btn" title="Options">
+                      <MoreHorizontal size={16} />
+                    </button>
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: '#64748b', marginBlockEnd: '14px' }}>
+                    Yesterday, 10:15 AM • Live Intelligence
+                  </div>
+
+                  {/* Recommendation 1: Arrears alert */}
+                  <div
+                    className="recommendation-alert-row"
+                    style={{ borderLeft: '3px solid #ef4444', cursor: 'pointer' }}
+                    onClick={() =>
+                      handleAssistantSend(
+                        'Summarize November rent collections and overdue arrears'
+                      )
+                    }
+                  >
+                    <div className="alert-icon-square" style={{ background: '#381616' }}>
+                      <AlertTriangle size={18} color="#ef4444" />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.84rem', color: '#f87171' }}>
+                        Arrears Spike Detected:
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: '#cbd5e1', marginBlockStart: '2px' }}>
+                        2 units past due. Send automated M-Pesa Daraja payment reminders.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recommendation 2: Lease renewal */}
+                  <div
+                    className="recommendation-alert-row"
+                    style={{ borderLeft: '3px solid #06b6d4', cursor: 'pointer' }}
+                    onClick={() =>
+                      handleAssistantSend(
+                        'Which units are currently vacant or up for lease renewal?'
+                      )
+                    }
+                  >
+                    <div className="alert-icon-square" style={{ background: '#0e2b32' }}>
+                      <Hourglass size={18} color="#06b6d4" />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.84rem', color: '#38bdf8' }}>
+                        Lease Renewal Approaching:
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: '#cbd5e1', marginBlockStart: '2px' }}>
+                        Unit B-204 expires in 18 days. Conditions look favorable.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recommendation 3: OCR Staged */}
+                  <div
+                    className="recommendation-alert-row"
+                    style={{ borderLeft: '3px solid #22c55e', cursor: 'pointer' }}
+                    onClick={() => setActiveNav('ocr')}
+                  >
+                    <div className="alert-icon-square" style={{ background: '#132b1e' }}>
+                      <FileCheck2 size={18} color="#22c55e" />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.84rem', color: '#4ade80' }}>
+                        OCR Documents Staged:
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: '#cbd5e1', marginBlockStart: '2px' }}>
+                        Signed lease extraction at 94% confidence. Awaiting 1-click human verification.
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
             </div>
           )}
 
@@ -3554,6 +4390,60 @@ export function App() {
         title="Upload Document for OCR Extraction & Human Review"
       >
         <form onSubmit={handleOcrUploadSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {/* Real file dropzone in modal */}
+          <div
+            style={{
+              border: '2px dashed var(--accent-blue)',
+              borderRadius: '12px',
+              padding: '18px',
+              textAlign: 'center',
+              background: 'var(--bg-subtle)',
+              cursor: 'pointer',
+            }}
+            onClick={() => {
+              const el = document.getElementById('ocr-file-picker-input');
+              if (el) el.click();
+            }}
+          >
+            <input
+              id="ocr-file-picker-input"
+              type="file"
+              accept=".pdf,image/png,image/jpeg,image/webp"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  const f = e.target.files[0];
+                  const isId = f.name.toLowerCase().includes('id');
+                  const isInv =
+                    f.name.toLowerCase().includes('inv') ||
+                    f.name.toLowerCase().includes('receipt');
+                  const cat = isId
+                    ? 'TENANT_IDENTIFICATION'
+                    : isInv
+                    ? 'RECEIPT_OR_INVOICE'
+                    : 'LEASE_AGREEMENT';
+                  setOcrUploadForm({
+                    ...ocrUploadForm,
+                    fileName: f.name,
+                    mimeType: f.type || 'application/pdf',
+                    fileSizeKb: Math.max(1, Math.round(f.size / 1024)),
+                    documentCategory: cat as OcrDocumentCategory,
+                    linkedEntityLabel: `Upload: ${f.name}`,
+                  });
+                }
+              }}
+            />
+            <UploadCloud size={30} color="#2563eb" style={{ margin: '0 auto 6px' }} />
+            <div style={{ fontWeight: 600, fontSize: '0.86rem' }}>
+              {ocrUploadForm.fileName
+                ? `Selected: ${ocrUploadForm.fileName} (${ocrUploadForm.fileSizeKb} KB)`
+                : 'Click to choose document file (PDF, PNG, JPEG, WEBP)'}
+            </div>
+            <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginBlockStart: '2px' }}>
+              Automatically parsed via Allen AI olmOCR & Groq Vision
+            </div>
+          </div>
+
           <div className="form-grid">
             <div className="field-group">
               <label htmlFor="ocr-cat">Document Category</label>
