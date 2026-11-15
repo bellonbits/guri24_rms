@@ -80,6 +80,8 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/auth/login", post(login_handler))
         .route("/auth/refresh", post(refresh_token_handler))
         .route("/auth/logout", post(logout_handler))
+        .route("/auth/otp/send", post(send_otp_handler))
+        .route("/auth/otp/verify", post(verify_otp_handler))
         // Provider & Integration Readiness Status
         .route("/integrations/status", get(list_integrations_status_handler))
         .route("/openapi.json", get(openapi_spec_handler))
@@ -328,6 +330,85 @@ async fn logout_handler(
         .auth_service
         .revoke_refresh_token(&cmd.refresh_token)?;
     Ok(StatusCode::NO_CONTENT)
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct SendOtpRequest {
+    pub target: String,
+    pub channel: String,
+    pub purpose: Option<String>,
+}
+
+#[derive(Debug, serde::Serialize)]
+pub struct SendOtpResponse {
+    pub status: String,
+    pub target: String,
+    pub channel: String,
+    pub expires_in_seconds: u64,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct VerifyOtpRequest {
+    pub target: String,
+    pub code: String,
+}
+
+#[derive(Debug, serde::Serialize)]
+pub struct VerifyOtpResponse {
+    pub verified: bool,
+    pub target: String,
+}
+
+async fn send_otp_handler(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<SendOtpRequest>,
+) -> AppResult<Json<SendOtpResponse>> {
+    let target = payload.target.trim().to_string();
+    if target.is_empty() {
+        return Err(AppError::Validation("Target recipient is required".to_string()));
+    }
+
+    let code = state.otp_service.generate_and_store(&target);
+
+    if payload.channel.eq_ignore_ascii_case("sms") {
+        let message = format!(
+            "Your Guri24 RMS verification code is: {}. Valid for 10 minutes. Do not share this code.",
+            code
+        );
+        state.sms_adapter.send_sms(&target, &message)?;
+    } else {
+        let subject = format!("Your Guri24 RMS Verification Code: {}", code);
+        let body = format!(
+            "<div style=\"font-family: sans-serif; padding: 20px; color: #111827;\">\
+            <h2>Guri24 RMS Account Verification</h2>\
+            <p>Your 6-digit verification code is:</p>\
+            <h1 style=\"font-size: 32px; letter-spacing: 4px; color: #ea580c;\">{}</h1>\
+            <p>This code will expire in 10 minutes. If you did not request this, please disregard.</p>\
+            </div>",
+            code
+        );
+        state.email_adapter.send_email(&target, &subject, &body)?;
+    }
+
+    Ok(Json(SendOtpResponse {
+        status: "sent".to_string(),
+        target,
+        channel: payload.channel,
+        expires_in_seconds: 600,
+    }))
+}
+
+async fn verify_otp_handler(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<VerifyOtpRequest>,
+) -> AppResult<Json<VerifyOtpResponse>> {
+    let target = payload.target.trim().to_string();
+    state.otp_service.verify(&target, &payload.code)?;
+
+    Ok(Json(VerifyOtpResponse {
+        verified: true,
+        target,
+    }))
 }
 
 async fn get_organization_handler(

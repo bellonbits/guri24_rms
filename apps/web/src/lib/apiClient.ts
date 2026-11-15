@@ -119,6 +119,27 @@ class ApiClient {
   }
 
   // Auth & Identity
+  async sendOtp(cmd: {
+    target: string;
+    channel: 'email' | 'sms';
+    purpose?: string;
+  }): Promise<{ status: string; target: string; channel: string; expires_in_seconds: number }> {
+    return this.request('/auth/otp/send', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async verifyOtp(cmd: {
+    target: string;
+    code: string;
+  }): Promise<{ verified: boolean; target: string }> {
+    return this.request('/auth/otp/verify', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
   async register(cmd: {
     organization_name: string;
     organization_type: string;

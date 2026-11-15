@@ -17,7 +17,7 @@ use crate::{
     modules::{
         accounting::{AccountingRepository, InMemoryAccountingRepository},
         assistant::{AssistantServiceTrait, GroundedAssistantService},
-        auth::AuthService,
+        auth::{AuthService, OtpService},
         billing::{InMemoryInvoiceRepository, InvoiceRepository},
         deposits::{DepositRepository, InMemoryDepositRepository},
         documents::{DocumentRepository, InMemoryDocumentRepository},
@@ -55,6 +55,7 @@ pub struct AppState {
     pub supabase_pg: SupabasePostgresAdapter,
     pub token_service: Arc<TokenService>,
     pub auth_service: Arc<AuthService>,
+    pub otp_service: Arc<OtpService>,
     pub assistant_service: Arc<dyn AssistantServiceTrait>,
     pub event_bus: EventBus,
     pub audit_observer: Arc<AuditLogObserver>,
@@ -153,12 +154,14 @@ impl AppState {
         );
 
         let auth_service = Arc::new(AuthService::new(org_repo.clone(), token_service.clone()));
+        let otp_service = Arc::new(OtpService::new());
 
         Arc::new(Self {
             config,
             supabase_pg,
             token_service,
             auth_service,
+            otp_service,
             assistant_service,
             event_bus,
             audit_observer,

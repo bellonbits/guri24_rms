@@ -225,3 +225,78 @@ impl AuthService {
         Ok(())
     }
 }
+
+use std::time::Instant;
+
+#[derive(Debug, Clone)]
+pub struct OtpRecord {
+    pub code: String,
+    pub expires_at: Instant,
+    pub verified: bool,
+}
+
+pub struct OtpService {
+    records: Arc<RwLock<std::collections::HashMap<String, OtpRecord>>>,
+}
+
+impl Default for OtpService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl OtpService {
+    pub fn new() -> Self {
+        Self {
+            records: Arc::new(RwLock::new(std::collections::HashMap::new())),
+        }
+    }
+
+    pub fn generate_and_store(&self, target: &str) -> String {
+        use std::time::{SystemTime, UNIX_EPOCH};
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .subsec_nanos();
+        let code = format!("{:06}", (100_000 + (nanos % 900_000)));
+
+        let record = OtpRecord {
+            code: code.clone(),
+            expires_at: Instant::now() + std::time::Duration::from_secs(600),
+            verified: false,
+        };
+
+        let mut store = self.records.write().unwrap_or_else(|e| e.into_inner());
+        store.insert(target.trim().to_lowercase(), record);
+        code
+    }
+
+    pub fn verify(&self, target: &str, entered_code: &str) -> AppResult<bool> {
+        let key = target.trim().to_lowercase();
+        let mut store = self.records.write().unwrap_or_else(|e| e.into_inner());
+        if let Some(record) = store.get_mut(&key) {
+            if Instant::now() > record.expires_at {
+                return Err(AppError::Validation(
+                    "Verification code has expired. Please request a new one.".to_string(),
+                ));
+            }
+            if record.code == entered_code.trim() {
+                record.verified = true;
+                return Ok(true);
+            }
+        }
+        Err(AppError::Validation(
+            "Invalid verification code. Please check your SMS or email.".to_string(),
+        ))
+    }
+
+    pub fn is_verified(&self, target: &str) -> bool {
+        let key = target.trim().to_lowercase();
+        let store = self.records.read().unwrap_or_else(|e| e.into_inner());
+        if let Some(record) = store.get(&key) {
+            return record.verified && Instant::now() <= record.expires_at;
+        }
+        false
+    }
+}
+
