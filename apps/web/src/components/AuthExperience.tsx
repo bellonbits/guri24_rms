@@ -164,8 +164,8 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
         email: (res as any).email || res.user?.email || email.trim(),
         phone: phone.trim() || undefined,
         role: (res as any).role || 'ORGANIZATION_ADMINISTRATOR',
-        organizationId: res.organization?.id || (res as any).organization_id || 'org-guri24-001',
-        organizationName: res.organization?.name || 'Jacaranda Heights Properties',
+        organizationId: res.organization?.id || (res as any).organization_id || `org-${Date.now()}`,
+        organizationName: res.organization?.name || `${fullName.trim() || email.split('@')[0]}'s Properties`,
         token: res.access_token,
       };
 

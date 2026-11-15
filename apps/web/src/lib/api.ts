@@ -286,6 +286,15 @@ export function executeEndToEndOnboardingChain(
   if (!normalizedPhone) {
     throw new Error('Invalid Kenyan phone number. Use 07XXXXXXXX, 01XXXXXXXX, or 2547XXXXXXXX.');
   }
+  if (!input.propertyName?.trim()) {
+    throw new Error('Property name is required.');
+  }
+  if (!input.unitNumber?.trim()) {
+    throw new Error('Unit number is required.');
+  }
+  if (!input.tenantFullName?.trim()) {
+    throw new Error('Tenant full name is required.');
+  }
   if (input.monthlyRentKes <= 0) {
     throw new Error('Monthly rent must be greater than KES 0.');
   }
@@ -295,15 +304,19 @@ export function executeEndToEndOnboardingChain(
 
   const orgId = state.currentOrganizationId;
   const suffix = Math.random().toString(36).slice(2, 7).toUpperCase();
+  const propCode = (input.propertyCode || '').trim().toUpperCase() || input.propertyName.trim().slice(0, 4).toUpperCase();
+  const bldCode = (input.buildingCode || '').trim().toUpperCase() || 'MAIN';
+  const bldName = (input.buildingName || '').trim() || `${input.propertyName.trim()} Main Wing`;
+  const estateName = (input.estate || '').trim() || input.county.trim() || 'Nairobi';
 
   const property: Property = {
     id: `prop-${suffix}`,
     organization_id: orgId,
-    code: input.propertyCode.trim().toUpperCase(),
+    code: propCode,
     name: input.propertyName.trim(),
-    county: input.county.trim(),
-    estate_or_area: input.estate.trim(),
-    physical_address: input.address.trim(),
+    county: input.county.trim() || 'Nairobi',
+    estate_or_area: estateName,
+    physical_address: input.address.trim() || `${estateName}, ${input.county || 'Nairobi'}`,
     lr_number: `LR 209/${Math.floor(10000 + Math.random() * 89999)}`,
     management_commission_pct: 7.5,
     amenities: ['Borehole Water', '24/7 Security'],
@@ -313,8 +326,8 @@ export function executeEndToEndOnboardingChain(
     id: `bld-${suffix}`,
     organization_id: orgId,
     property_id: property.id,
-    code: input.buildingCode.trim().toUpperCase(),
-    name: input.buildingName.trim(),
+    code: bldCode,
+    name: bldName,
     total_floors: Math.max(1, input.floorNumber),
   };
 
@@ -324,7 +337,7 @@ export function executeEndToEndOnboardingChain(
     property_id: property.id,
     building_id: building.id,
     floor_number: input.floorNumber,
-    label: input.floorLabel.trim(),
+    label: (input.floorLabel || '').trim() || `Floor ${input.floorNumber}`,
   };
 
   const tenantId = `tnt-${suffix}`;
@@ -343,8 +356,8 @@ export function executeEndToEndOnboardingChain(
     monthly_rent_kes: input.monthlyRentKes,
     deposit_amount_kes: input.depositKes,
     status: 'OCCUPIED',
-    water_meter_number: `NCWSC-${suffix}`,
-    kplc_meter_number: `KPLC-${suffix}`,
+    water_meter_number: '',
+    kplc_meter_number: '',
     current_tenant_id: tenantId,
     current_lease_id: leaseId,
   };

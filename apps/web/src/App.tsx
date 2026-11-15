@@ -427,6 +427,15 @@ export function App() {
     []
   );
 
+  // Synchronize API client token with active user session
+  useEffect(() => {
+    if (currentUserSession?.token) {
+      apiClient.setToken(currentUserSession.token);
+    } else {
+      apiClient.setToken(null);
+    }
+  }, [currentUserSession]);
+
   // Strict multi-tenant scoping
   const currentOrg = useMemo(
     () =>
@@ -455,6 +464,7 @@ export function App() {
           setState((prev) => ({
             ...prev,
             ...snapshot,
+            currentOrganizationId: currentUserSession?.organizationId || snapshot.currentOrganizationId || prev.currentOrganizationId,
             integrationsStatus: liveIntegrations.length > 0 ? liveIntegrations : (snapshot.integrationsStatus || []),
           }));
         } else {
@@ -475,10 +485,31 @@ export function App() {
           const liveInvs = invsRes.status === 'fulfilled' ? invsRes.value : [];
           const livePays = paysRes.status === 'fulfilled' ? paysRes.value : [];
 
+          const activeOrgId = currentUserSession?.organizationId || defaultOrg.id;
+          const userOrg = {
+            id: activeOrgId,
+            name: currentUserSession?.organizationName || defaultOrg.name,
+            slug: (currentUserSession?.organizationName || defaultOrg.name).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            organization_type: 'PROPERTY_MANAGEMENT_COMPANY' as const,
+            kra_pin: 'P051892341K',
+            contact_email: currentUserSession?.email || defaultOrg.contact_email,
+            contact_phone: currentUserSession?.phone || defaultOrg.contact_phone,
+            county: 'Nairobi',
+            currency: 'KES' as const,
+            timezone: 'Africa/Nairobi' as const,
+            mpesa_paybill_shortcode: '174379',
+            late_fee_percentage: 5.0,
+            late_fee_grace_days: 5,
+            rent_calculation_strategy: 'FIXED_MONTHLY' as const,
+            payment_allocation_strategy: 'FIFO_OLDEST_FIRST' as const,
+          };
+
           setState((prev) => ({
             ...prev,
-            currentOrganizationId: prev.currentOrganizationId || defaultOrg.id,
-            organizations: prev.organizations.length > 0 ? prev.organizations : [defaultOrg],
+            currentOrganizationId: activeOrgId,
+            organizations: prev.organizations.some((o) => o.id === activeOrgId)
+              ? prev.organizations
+              : [userOrg, ...(prev.organizations.length > 0 ? prev.organizations : [defaultOrg])],
             properties: liveProps,
             units: liveUnits,
             leases: liveLeases,
@@ -496,7 +527,7 @@ export function App() {
     return () => {
       mounted = false;
     };
-  }, [defaultOrg]);
+  }, [defaultOrg, currentUserSession]);
 
   const orgProperties = useMemo(
     () => state.properties.filter((p) => p.organization_id === currentOrg.id),
@@ -665,64 +696,63 @@ export function App() {
 
   // Forms State
   const [onboardForm, setOnboardForm] = useState({
-    propertyName: 'Lavington Green Residences',
-    propertyCode: 'LAV-03',
+    propertyName: '',
+    propertyCode: '',
     county: 'Nairobi',
-    estate: 'Lavington',
-    address: 'James Gichuru Road',
-    buildingName: 'Block C — Cedar Wing',
-    buildingCode: 'BLK-C',
-    floorNumber: 2,
-    floorLabel: '2nd Floor',
-    unitNumber: 'C-204',
+    estate: '',
+    address: '',
+    buildingName: '',
+    buildingCode: '',
+    floorNumber: 1,
+    floorLabel: 'Ground Floor',
+    unitNumber: '',
     unitType: 'TWO_BEDROOM',
     bedrooms: 2,
-    monthlyRentKes: 28000,
-    depositKes: 28000,
-    tenantFullName: 'David Njoroge Kamau',
-    tenantPhone: '0722334455',
-    tenantEmail: 'david.njoroge@example.co.ke',
-    tenantNationalId: '34567890',
-    leaseStartDate: '2026-11-01',
-    leaseEndDate: '2027-10-31',
+    monthlyRentKes: 25000,
+    depositKes: 25000,
+    tenantFullName: '',
+    tenantPhone: '',
+    tenantEmail: '',
+    tenantNationalId: '',
+    leaseStartDate: new Date().toISOString().slice(0, 10),
+    leaseEndDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
     billingDay: 5,
   });
 
   const [mpesaForm, setMpesaForm] = useState({
-    tenantId: 'tnt-wanjiku-001',
-    payerPhone: '0722111222',
-    amountKes: 5000,
-    mpesaReceiptNumber: 'SJK99201KL',
-    checkoutRequestId: 'ws_CO_174379_5000_BAL',
+    tenantId: '',
+    payerPhone: '',
+    amountKes: 10000,
+    mpesaReceiptNumber: '',
+    checkoutRequestId: '',
   });
 
   const [invoiceForm, setInvoiceForm] = useState({
-    leaseId: 'lse-2026-0001',
-    billingPeriod: '2026-12',
+    leaseId: '',
+    billingPeriod: new Date().toISOString().slice(0, 7),
   });
 
   const [maintenanceForm, setMaintenanceForm] = useState({
-    propertyId: 'prop-kil-jacaranda',
-    buildingId: 'bld-acacia-a',
-    floorId: 'flr-a-1',
-    unitId: 'unit-a-101',
+    propertyId: '',
+    buildingId: '',
+    floorId: '',
+    unitId: '',
     category: 'PLUMBING',
-    priority: 'HIGH' as 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY',
-    title: 'Solar hot water valve replacement',
-    description: 'Low hot water pressure in master bathroom shower.',
-    estimatedCostKes: 3200,
-    preferredInspectionAt: '2026-11-20T10:00',
+    priority: 'MEDIUM' as 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY',
+    title: '',
+    description: '',
+    estimatedCostKes: 0,
+    preferredInspectionAt: new Date(Date.now() + 86400000).toISOString().slice(0, 16),
   });
 
   const [ocrUploadForm, setOcrUploadForm] = useState({
-    fileName: 'signed_lease_amina_A201.pdf',
+    fileName: '',
     mimeType: 'application/pdf',
-    fileSizeKb: 380,
-    pageCount: 2,
+    fileSizeKb: 0,
+    pageCount: 1,
     documentCategory: 'LEASE_AGREEMENT' as OcrDocumentCategory,
-    linkedEntityLabel: 'Unit A-201 — Amina Hassan Noor',
-    rawSampleText:
-      'RESIDENTIAL LEASE AGREEMENT — Property: Jacaranda Heights Apartments | Unit: A-201 | Tenant: Amina Hassan Noor | Monthly Rent: KES 35,000.00 | Deposit: KES 35,000.00 | Term: 2026-12-01 to 2027-11-30',
+    linkedEntityLabel: '',
+    rawSampleText: '',
   });
 
   const dependentHierarchy = useMemo(
@@ -832,38 +862,45 @@ export function App() {
       return;
     }
     setDarajaForm((prev) => ({ ...prev, status: 'CONNECTED' }));
-    setState((prev) => ({
-      ...prev,
-      organizations: prev.organizations.map((org) =>
-        org.id === currentOrg.id
-          ? {
-              ...org,
-              mpesa_paybill_shortcode: darajaForm.shortcode.trim(),
-              mpesa_consumer_key: darajaForm.consumerKey.trim(),
-              mpesa_consumer_secret: darajaForm.consumerSecret.trim(),
-              mpesa_passkey: darajaForm.passkey.trim(),
-              mpesa_callback_url: darajaForm.callbackUrl.trim(),
-            }
-          : org
-      ),
-      integrationsStatus: prev.integrationsStatus.map((item) =>
-        item.provider_key === 'MPESA_DARAJA'
-          ? {
-              ...item,
-              live_credentials_configured: true,
-              status_label: `Daraja Live Connected (Paybill ${darajaForm.shortcode.trim()})`,
-              honest_disclosure: `Safaricom Daraja credentials active for organization ${currentOrg.name}. Shortcode ${darajaForm.shortcode.trim()} configured for STK push and C2B payment callbacks.`,
-            }
-          : item
-      ),
-    }));
+    const nextOrgs = state.organizations.map((org) =>
+      org.id === currentOrg.id
+        ? {
+            ...org,
+            mpesa_paybill_shortcode: darajaForm.shortcode.trim(),
+            mpesa_consumer_key: darajaForm.consumerKey.trim(),
+            mpesa_consumer_secret: darajaForm.consumerSecret.trim(),
+            mpesa_passkey: darajaForm.passkey.trim(),
+            mpesa_callback_url: darajaForm.callbackUrl.trim(),
+          }
+        : org
+    );
+    const nextIntegrations = state.integrationsStatus.map((item) =>
+      item.provider_key === 'MPESA_DARAJA'
+        ? {
+            ...item,
+            live_credentials_configured: true,
+            status_label: `Daraja Live Connected (Paybill ${darajaForm.shortcode.trim()})`,
+            honest_disclosure: `Safaricom Daraja credentials active for organization ${currentOrg.name}. Shortcode ${darajaForm.shortcode.trim()} configured for STK push and C2B payment callbacks.`,
+          }
+        : item
+    );
+    const nextState = {
+      ...state,
+      organizations: nextOrgs,
+      integrationsStatus: nextIntegrations,
+    };
+    setState(nextState);
+    apiClient.saveWorkspaceSnapshot(nextState).catch(console.error);
     announce(`M-Pesa Daraja shortcode ${darajaForm.shortcode.trim()} connected successfully for ${currentOrg.name}!`);
   };
 
   const handleMaintenanceSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const unit = orgUnits.find((u) => u.id === maintenanceForm.unitId) ?? orgUnits[0];
-    if (!unit) return;
+    if (!unit) {
+      announce('Please register or onboard a unit before creating maintenance tickets.');
+      return;
+    }
     const seq = orgMaintenance.length + 1;
     const newReq = {
       id: `mnt-${Date.now()}`,
@@ -882,18 +919,20 @@ export function App() {
       actual_cost_kes: 0,
       created_at: new Date().toISOString(),
     };
-    setState((prev) => ({
-      ...prev,
-      maintenance: [newReq, ...prev.maintenance],
-    }));
+    const nextState = {
+      ...state,
+      maintenance: [newReq, ...state.maintenance],
+    };
+    setState(nextState);
+    apiClient.saveWorkspaceSnapshot(nextState).catch(console.error);
     setIsMaintenanceModalOpen(false);
     announce(`Submitted maintenance request ${newReq.request_number} for Unit ${unit.unit_number}`);
   };
 
   const handleAdvanceMaintenance = (reqId: string, nextStatus: MaintenanceStatus) => {
-    setState((prev) => ({
-      ...prev,
-      maintenance: prev.maintenance.map((m) =>
+    const nextState = {
+      ...state,
+      maintenance: state.maintenance.map((m) =>
         m.id === reqId
           ? {
               ...m,
@@ -909,7 +948,9 @@ export function App() {
             }
           : m
       ),
-    }));
+    };
+    setState(nextState);
+    apiClient.saveWorkspaceSnapshot(nextState).catch(console.error);
     announce(`Maintenance ticket transitioned to ${nextStatus}`);
   };
 
@@ -937,13 +978,15 @@ export function App() {
         memo: `Contra-entry reversal of ${entry.entry_number}`,
       })),
     };
-    setState((prev) => ({
-      ...prev,
+    const nextState = {
+      ...state,
       journals: [
         reversal,
-        ...prev.journals.map((j) => (j.id === entry.id ? { ...j, status: 'REVERSED' as const } : j)),
+        ...state.journals.map((j) => (j.id === entry.id ? { ...j, status: 'REVERSED' as const } : j)),
       ],
-    }));
+    };
+    setState(nextState);
+    apiClient.saveWorkspaceSnapshot(nextState).catch(console.error);
     announce(`Posted contra-entry ${reversal.entry_number} reversing ${entry.entry_number}`);
   };
 
@@ -1606,93 +1649,101 @@ export function App() {
                     caption="Recent residential leases and monthly rent billing"
                     headers={['Tenant', 'Residence & Unit', 'Due Date', 'Status', 'Amount']}
                   >
-                    {orgInvoices.map((inv) => {
-                      const tenant = orgTenants.find((t) => t.id === inv.tenant_id);
-                      const unit = orgUnits.find((u) => u.id === inv.unit_id);
-                      const prop = orgProperties.find((p) => p.id === inv.property_id);
-                      const tone =
-                        inv.status === 'PAID'
-                          ? 'success'
-                          : inv.status === 'PARTIALLY_PAID'
-                          ? 'warning'
-                          : inv.status === 'OVERDUE'
-                          ? 'danger'
-                          : 'info';
-                      const label =
-                        inv.status === 'PAID'
-                          ? 'Confirmed'
-                          : inv.status === 'PARTIALLY_PAID'
-                          ? 'Partial'
-                          : inv.status === 'OVERDUE'
-                          ? 'Pending'
-                          : 'Issued';
+                    {orgInvoices.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                          No recent billing invoices or rent transactions found for this organization.
+                        </td>
+                      </tr>
+                    ) : (
+                      orgInvoices.map((inv) => {
+                        const tenant = orgTenants.find((t) => t.id === inv.tenant_id);
+                        const unit = orgUnits.find((u) => u.id === inv.unit_id);
+                        const prop = orgProperties.find((p) => p.id === inv.property_id);
+                        const tone =
+                          inv.status === 'PAID'
+                            ? 'success'
+                            : inv.status === 'PARTIALLY_PAID'
+                            ? 'warning'
+                            : inv.status === 'OVERDUE'
+                            ? 'danger'
+                            : 'info';
+                        const label =
+                          inv.status === 'PAID'
+                            ? 'Confirmed'
+                            : inv.status === 'PARTIALLY_PAID'
+                            ? 'Partial'
+                            : inv.status === 'OVERDUE'
+                            ? 'Pending'
+                            : 'Issued';
 
-                      return (
-                        <tr key={inv.id}>
-                          <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minInlineSize: '165px' }}>
+                        return (
+                          <tr key={inv.id}>
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minInlineSize: '165px' }}>
+                                <div
+                                  className="profile-avatar"
+                                  style={{
+                                    inlineSize: '32px',
+                                    blockSize: '32px',
+                                    fontSize: '0.74rem',
+                                    background: '#e0e7ff',
+                                    color: '#1d4ed8',
+                                  }}
+                                  aria-hidden="true"
+                                >
+                                  {(tenant?.full_name ?? 'TN')
+                                    .split(' ')
+                                    .map((n) => n[0])
+                                    .join('')
+                                    .slice(0, 2)}
+                                </div>
+                                <div style={{ minInlineSize: 0 }}>
+                                  <div className="cell-nowrap" style={{ fontWeight: 600, fontSize: '0.82rem' }}>
+                                    {tenant?.full_name ?? 'Registered Tenant'}
+                                  </div>
+                                  <div className="cell-nowrap" style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                    {tenant?.email ?? tenant?.phone ?? '—'}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div className="cell-nowrap" style={{ fontWeight: 600, fontSize: '0.82rem' }}>
+                                {prop ? `${prop.name} • ` : ''}Unit {unit?.unit_number ?? '—'}
+                              </div>
+                              <div className="cell-nowrap" style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                {unit ? formatUnitTypeLabel(unit.unit_type, unit.bedrooms) : 'Residential Unit'}
+                              </div>
+                            </td>
+                            <td className="cell-nowrap">
+                              <div style={{ fontWeight: 500, fontSize: '0.8rem' }}>
+                                {formatNairobiDate(inv.due_date)}
+                              </div>
+                              <div style={{ fontSize: '0.71rem', color: 'var(--text-muted)' }}>
+                                09:30 AM EAT
+                              </div>
+                            </td>
+                            <td className="cell-nowrap">
+                              <StatusBadge status={label} tone={tone} />
+                            </td>
+                            <td className="cell-currency">
                               <div
-                                className="profile-avatar"
                                 style={{
-                                  inlineSize: '32px',
-                                  blockSize: '32px',
-                                  fontSize: '0.74rem',
-                                  background: '#e0e7ff',
-                                  color: '#1d4ed8',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  gap: '8px',
                                 }}
-                                aria-hidden="true"
                               >
-                                {(tenant?.full_name ?? 'TN')
-                                  .split(' ')
-                                  .map((n) => n[0])
-                                  .join('')
-                                  .slice(0, 2)}
+                                <span>{formatKes(inv.total_amount_kes)}</span>
+                                <ChevronRight size={14} color="#8e95a2" aria-hidden="true" />
                               </div>
-                              <div style={{ minInlineSize: 0 }}>
-                                <div className="cell-nowrap" style={{ fontWeight: 600, fontSize: '0.82rem' }}>
-                                  {tenant?.full_name ?? 'Registered Tenant'}
-                                </div>
-                                <div className="cell-nowrap" style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                                  {tenant?.email ?? tenant?.phone}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            <div className="cell-nowrap" style={{ fontWeight: 600, fontSize: '0.82rem' }}>
-                              {prop?.name.split(' ')[0]} • Unit {unit?.unit_number ?? 'A-101'}
-                            </div>
-                            <div className="cell-nowrap" style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                              {formatUnitTypeLabel(unit?.unit_type ?? 'TWO_BEDROOM', unit?.bedrooms)}
-                            </div>
-                          </td>
-                          <td className="cell-nowrap">
-                            <div style={{ fontWeight: 500, fontSize: '0.8rem' }}>
-                              {formatNairobiDate(inv.due_date)}
-                            </div>
-                            <div style={{ fontSize: '0.71rem', color: 'var(--text-muted)' }}>
-                              09:30 AM EAT
-                            </div>
-                          </td>
-                          <td className="cell-nowrap">
-                            <StatusBadge status={label} tone={tone} />
-                          </td>
-                          <td className="cell-currency">
-                            <div
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                gap: '8px',
-                              }}
-                            >
-                              <span>{formatKes(inv.total_amount_kes)}</span>
-                              <ChevronRight size={14} color="#8e95a2" aria-hidden="true" />
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </ResponsiveTable>
                 </section>
               </div>
@@ -1718,10 +1769,12 @@ export function App() {
 
                   <div>
                     <div style={{ fontSize: '1.02rem', fontWeight: 700, lineHeight: 1.25 }}>
-                      {featuredProperty?.name ?? 'Kilimani Jacaranda Heights'}
+                      {featuredProperty?.name || (orgProperties.length > 0 ? orgProperties[0].name : 'No Properties Registered')}
                     </div>
                     <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBlockStart: '2px' }}>
-                      {featuredProperty?.estate_or_area ?? 'Kilimani'}, {featuredProperty?.county ?? 'Nairobi'} • Executive Apartments
+                      {featuredProperty
+                        ? `${featuredProperty.estate_or_area}, ${featuredProperty.county} • ${featuredProperty.code}`
+                        : 'Onboard your first property or estate to start managing units'}
                     </div>
                   </div>
 
@@ -1921,56 +1974,64 @@ export function App() {
                   caption="Active residential lease agreements"
                   headers={['Lease #', 'Tenant', 'Unit', 'Period', 'Monthly Rent', 'Status', 'Action']}
                 >
-                  {orgLeases.map((lease) => {
-                    const tenant = orgTenants.find((t) => t.id === lease.primary_tenant_id);
-                    const unit = orgUnits.find((u) => u.id === lease.unit_id);
-                    return (
-                      <tr key={lease.id}>
-                        <td className="cell-code" style={{ fontWeight: 700 }}>{lease.lease_number}</td>
-                        <td>
-                          <div className="cell-nowrap" style={{ fontWeight: 700 }}>{tenant?.full_name}</div>
-                          <div className="cell-mono" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                            {tenant?.phone}
-                          </div>
-                        </td>
-                        <td className="cell-nowrap">
-                          <span className="badge-pill badge-neutral">
-                            Unit {unit?.unit_number}
-                          </span>
-                        </td>
-                        <td className="cell-nowrap">
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                            <span style={{ fontWeight: 500 }}>{lease.start_date}</span>
-                            <ArrowRight size={12} color="#8e95a2" aria-hidden="true" />
-                            <span style={{ fontWeight: 500 }}>{lease.end_date}</span>
-                          </div>
-                          <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBlockStart: '2px' }}>
-                            Due Day {lease.billing_day}
-                          </div>
-                        </td>
-                        <td className="cell-currency" style={{ fontWeight: 700 }}>{formatKes(lease.monthly_rent_kes)}</td>
-                        <td className="cell-nowrap">
-                          <StatusBadge
-                            status={lease.status}
-                            tone={lease.status === 'ACTIVE' ? 'success' : 'warning'}
-                          />
-                        </td>
-                        <td className="cell-nowrap">
-                          <button
-                            type="button"
-                            className="btn-outline"
-                            style={{ minBlockSize: '30px', padding: '4px 14px', fontSize: '0.78rem', borderRadius: '8px' }}
-                            onClick={() => {
-                              setInvoiceForm({ leaseId: lease.id, billingPeriod: '2026-12' });
-                              setIsInvoiceModalOpen(true);
-                            }}
-                          >
-                            Bill Month
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {orgLeases.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                        No active residential leases found. Onboard a property and activate a lease to populate records.
+                      </td>
+                    </tr>
+                  ) : (
+                    orgLeases.map((lease) => {
+                      const tenant = orgTenants.find((t) => t.id === lease.primary_tenant_id);
+                      const unit = orgUnits.find((u) => u.id === lease.unit_id);
+                      return (
+                        <tr key={lease.id}>
+                          <td className="cell-code" style={{ fontWeight: 700 }}>{lease.lease_number}</td>
+                          <td>
+                            <div className="cell-nowrap" style={{ fontWeight: 700 }}>{tenant?.full_name ?? '—'}</div>
+                            <div className="cell-mono" style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                              {tenant?.phone ?? '—'}
+                            </div>
+                          </td>
+                          <td className="cell-nowrap">
+                            <span className="badge-pill badge-neutral">
+                              Unit {unit?.unit_number ?? '—'}
+                            </span>
+                          </td>
+                          <td className="cell-nowrap">
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                              <span style={{ fontWeight: 500 }}>{lease.start_date}</span>
+                              <ArrowRight size={12} color="#8e95a2" aria-hidden="true" />
+                              <span style={{ fontWeight: 500 }}>{lease.end_date}</span>
+                            </div>
+                            <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBlockStart: '2px' }}>
+                              Due Day {lease.billing_day}
+                            </div>
+                          </td>
+                          <td className="cell-currency" style={{ fontWeight: 700 }}>{formatKes(lease.monthly_rent_kes)}</td>
+                          <td className="cell-nowrap">
+                            <StatusBadge
+                              status={lease.status}
+                              tone={lease.status === 'ACTIVE' ? 'success' : 'warning'}
+                            />
+                          </td>
+                          <td className="cell-nowrap">
+                            <button
+                              type="button"
+                              className="btn-outline"
+                              style={{ minBlockSize: '30px', padding: '4px 14px', fontSize: '0.78rem', borderRadius: '8px' }}
+                              onClick={() => {
+                                setInvoiceForm({ leaseId: lease.id, billingPeriod: new Date().toISOString().slice(0, 7) });
+                                setIsInvoiceModalOpen(true);
+                              }}
+                            >
+                              Bill Month
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </ResponsiveTable>
               </section>
 
@@ -1980,41 +2041,47 @@ export function App() {
                     <Calendar size={17} color="#4b5563" aria-hidden="true" />
                     <h2>Tenant Applications & Screening</h2>
                   </div>
-                  <StatusBadge status={`${orgApplications.length} Approved`} tone="info" />
+                  <StatusBadge status={`${orgApplications.length} Recorded`} tone="info" />
                 </div>
-                <div className="secondary-cards-grid">
-                  {orgApplications.map((app) => {
-                    const t = orgTenants.find((x) => x.id === app.tenant_id);
-                    const u = orgUnits.find((x) => x.id === app.unit_id);
-                    return (
-                      <div
-                        key={app.id}
-                        style={{
-                          padding: '14px 16px',
-                          borderRadius: '12px',
-                          border: '1px solid var(--border-subtle)',
-                          background: 'var(--bg-sidebar)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '12px',
-                          flexWrap: 'wrap',
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontWeight: 700, fontSize: '0.86rem' }}>
-                            {t?.full_name ?? 'Applicant'} — Unit {u?.unit_number}
+                {orgApplications.length === 0 ? (
+                  <div style={{ padding: '28px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.84rem' }}>
+                    No tenant screening applications pending review in this organization.
+                  </div>
+                ) : (
+                  <div className="secondary-cards-grid">
+                    {orgApplications.map((app) => {
+                      const t = orgTenants.find((x) => x.id === app.tenant_id);
+                      const u = orgUnits.find((x) => x.id === app.unit_id);
+                      return (
+                        <div
+                          key={app.id}
+                          style={{
+                            padding: '14px 16px',
+                            borderRadius: '12px',
+                            border: '1px solid var(--border-subtle)',
+                            background: 'var(--bg-sidebar)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '12px',
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: '0.86rem' }}>
+                              {t?.full_name ?? 'Applicant'} — Unit {u?.unit_number}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBlockStart: '3px' }}>
+                              Move-in: {app.proposed_move_in_date} • Verified Income:{' '}
+                              {formatKes(app.monthly_income_kes ?? 0)}
+                            </div>
                           </div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBlockStart: '3px' }}>
-                            Move-in: {app.proposed_move_in_date} • Verified Income:{' '}
-                            {formatKes(app.monthly_income_kes ?? 120000)}
-                          </div>
+                          <StatusBadge status={app.status} tone="success" />
                         </div>
-                        <StatusBadge status={app.status} tone="success" />
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
               </section>
             </div>
           )}
@@ -2055,29 +2122,37 @@ export function App() {
                     caption="Residential rental units inventory"
                     headers={['Unit #', 'Property', 'Type', 'Meters (Water / KPLC)', 'Monthly Rent', 'Status']}
                   >
-                    {orgUnits.map((u) => {
-                      const prop = orgProperties.find((p) => p.id === u.property_id);
-                      return (
-                        <tr key={u.id}>
-                          <td className="cell-code" style={{ fontWeight: 700 }}>{u.unit_number}</td>
-                          <td className="cell-nowrap" style={{ fontWeight: 600 }}>{prop?.name}</td>
-                          <td className="cell-nowrap" style={{ textTransform: 'uppercase', fontSize: '0.82rem' }}>
-                            {formatUnitTypeLabel(u.unit_type, u.bedrooms)}
-                          </td>
-                          <td className="cell-nowrap" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                            {u.water_meter_number ? `NCWSC-${u.water_meter_number}` : 'NCWSC-88101'} ·{' '}
-                            {u.kplc_meter_number ? `KPLC-${u.kplc_meter_number}` : 'KPLC-142091101'}
-                          </td>
-                          <td className="cell-currency" style={{ fontWeight: 700 }}>{formatKes(u.monthly_rent_kes)}</td>
-                          <td className="cell-nowrap">
-                            <StatusBadge
-                              status={u.status === 'OCCUPIED' ? 'Occupied' : 'Vacant'}
-                              tone={u.status === 'OCCUPIED' ? 'success' : 'info'}
-                            />
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {orgUnits.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                          No rental units registered yet. Click &quot;Add Property / Unit&quot; to add your first unit.
+                        </td>
+                      </tr>
+                    ) : (
+                      orgUnits.map((u) => {
+                        const prop = orgProperties.find((p) => p.id === u.property_id);
+                        return (
+                          <tr key={u.id}>
+                            <td className="cell-code" style={{ fontWeight: 700 }}>{u.unit_number}</td>
+                            <td className="cell-nowrap" style={{ fontWeight: 600 }}>{prop?.name ?? '—'}</td>
+                            <td className="cell-nowrap" style={{ textTransform: 'uppercase', fontSize: '0.82rem' }}>
+                              {formatUnitTypeLabel(u.unit_type, u.bedrooms)}
+                            </td>
+                            <td className="cell-nowrap" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                              {u.water_meter_number ? `NCWSC-${u.water_meter_number}` : '—'} ·{' '}
+                              {u.kplc_meter_number ? `KPLC-${u.kplc_meter_number}` : '—'}
+                            </td>
+                            <td className="cell-currency" style={{ fontWeight: 700 }}>{formatKes(u.monthly_rent_kes)}</td>
+                            <td className="cell-nowrap">
+                              <StatusBadge
+                                status={u.status === 'OCCUPIED' ? 'Occupied' : 'Vacant'}
+                                tone={u.status === 'OCCUPIED' ? 'success' : 'info'}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </ResponsiveTable>
                 )}
 
@@ -2086,17 +2161,25 @@ export function App() {
                     caption="Properties in organization"
                     headers={['Code', 'Property Name', 'Estate & County', 'LR Number', 'Commission']}
                   >
-                    {orgProperties.map((p) => (
-                      <tr key={p.id}>
-                        <td className="cell-code">{p.code}</td>
-                        <td className="cell-nowrap" style={{ fontWeight: 600 }}>{p.name}</td>
-                        <td className="cell-nowrap">
-                          {p.estate_or_area}, {p.county}
+                    {orgProperties.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                          No properties registered in this organization. Click &quot;Add Property / Unit&quot; to register your first estate.
                         </td>
-                        <td className="cell-mono">{p.lr_number}</td>
-                        <td className="cell-nowrap" style={{ fontWeight: 600 }}>{p.management_commission_pct}%</td>
                       </tr>
-                    ))}
+                    ) : (
+                      orgProperties.map((p) => (
+                        <tr key={p.id}>
+                          <td className="cell-code">{p.code}</td>
+                          <td className="cell-nowrap" style={{ fontWeight: 600 }}>{p.name}</td>
+                          <td className="cell-nowrap">
+                            {p.estate_or_area}, {p.county}
+                          </td>
+                          <td className="cell-mono">{p.lr_number}</td>
+                          <td className="cell-nowrap" style={{ fontWeight: 600 }}>{p.management_commission_pct}%</td>
+                        </tr>
+                      ))
+                    )}
                   </ResponsiveTable>
                 )}
 
@@ -2105,17 +2188,25 @@ export function App() {
                     caption="Buildings in portfolio"
                     headers={['Code', 'Building Name', 'Property', 'Total Floors']}
                   >
-                    {orgBuildings.map((b) => {
-                      const prop = orgProperties.find((p) => p.id === b.property_id);
-                      return (
-                        <tr key={b.id}>
-                          <td className="cell-code">{b.code}</td>
-                          <td className="cell-nowrap" style={{ fontWeight: 600 }}>{b.name}</td>
-                          <td className="cell-nowrap">{prop?.name}</td>
-                          <td className="cell-nowrap">{b.total_floors} Floors</td>
-                        </tr>
-                      );
-                    })}
+                    {orgBuildings.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                          No buildings recorded in this organization.
+                        </td>
+                      </tr>
+                    ) : (
+                      orgBuildings.map((b) => {
+                        const prop = orgProperties.find((p) => p.id === b.property_id);
+                        return (
+                          <tr key={b.id}>
+                            <td className="cell-code">{b.code}</td>
+                            <td className="cell-nowrap" style={{ fontWeight: 600 }}>{b.name}</td>
+                            <td className="cell-nowrap">{prop?.name ?? '—'}</td>
+                            <td className="cell-nowrap">{b.total_floors} Floors</td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </ResponsiveTable>
                 )}
 
@@ -2124,16 +2215,24 @@ export function App() {
                     caption="Floors across buildings"
                     headers={['Floor #', 'Label', 'Building']}
                   >
-                    {orgFloors.map((f) => {
-                      const bld = orgBuildings.find((b) => b.id === f.building_id);
-                      return (
-                        <tr key={f.id}>
-                          <td className="cell-code">Floor {f.floor_number}</td>
-                          <td className="cell-nowrap">{f.label}</td>
-                          <td className="cell-nowrap">{bld?.name}</td>
-                        </tr>
-                      );
-                    })}
+                    {orgFloors.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                          No floors recorded in this organization.
+                        </td>
+                      </tr>
+                    ) : (
+                      orgFloors.map((f) => {
+                        const bld = orgBuildings.find((b) => b.id === f.building_id);
+                        return (
+                          <tr key={f.id}>
+                            <td className="cell-code">Floor {f.floor_number}</td>
+                            <td className="cell-nowrap">{f.label}</td>
+                            <td className="cell-nowrap">{bld?.name ?? '—'}</td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </ResponsiveTable>
                 )}
               </section>
@@ -2166,25 +2265,33 @@ export function App() {
                   caption="Registered tenants directory"
                   headers={['Code', 'Tenant', 'Phone (M-Pesa MSISDN)', 'National ID (Masked)', 'Status']}
                 >
-                  {orgTenants.map((t) => (
-                    <tr key={t.id}>
-                      <td className="cell-code">{t.tenant_code}</td>
-                      <td>
-                        <div className="cell-nowrap" style={{ fontWeight: 600 }}>{t.full_name}</div>
-                        <div className="cell-nowrap" style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                          {t.email}
-                        </div>
-                      </td>
-                      <td className="cell-mono" style={{ fontWeight: 600 }}>{t.phone}</td>
-                      <td className="cell-mono">{t.national_id_masked}</td>
-                      <td className="cell-nowrap">
-                        <StatusBadge
-                          status={t.status}
-                          tone={t.status === 'ACTIVE' ? 'success' : 'info'}
-                        />
+                  {orgTenants.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                        No tenants registered yet. Register your first tenant or onboard a property.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    orgTenants.map((t) => (
+                      <tr key={t.id}>
+                        <td className="cell-code">{t.tenant_code}</td>
+                        <td>
+                          <div className="cell-nowrap" style={{ fontWeight: 600 }}>{t.full_name}</div>
+                          <div className="cell-nowrap" style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                            {t.email}
+                          </div>
+                        </td>
+                        <td className="cell-mono" style={{ fontWeight: 600 }}>{t.phone}</td>
+                        <td className="cell-mono">{t.national_id_masked}</td>
+                        <td className="cell-nowrap">
+                          <StatusBadge
+                            status={t.status}
+                            tone={t.status === 'ACTIVE' ? 'success' : 'info'}
+                          />
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </ResponsiveTable>
               </section>
 
@@ -2229,7 +2336,7 @@ export function App() {
                       onClick={() => setIsMpesaModalOpen(true)}
                     >
                       <Plus size={15} aria-hidden="true" />
-                      <span>Simulate M-Pesa Callback</span>
+                      <span>Record M-Pesa Payment</span>
                     </button>
                   </div>
                 </div>
@@ -2238,28 +2345,36 @@ export function App() {
                   caption="Verified M-Pesa payments and invoice allocations"
                   headers={['Receipt #', 'M-Pesa Code', 'Payer MSISDN', 'Amount', 'Allocated Invoices', 'Status']}
                 >
-                  {orgPayments.map((p) => (
-                    <tr key={p.id}>
-                      <td className="cell-code">{p.receipt_number}</td>
-                      <td className="cell-mono" style={{ fontWeight: 700 }}>
-                        {p.mpesa_receipt_number}
-                      </td>
-                      <td className="cell-mono">{p.payer_phone}</td>
-                      <td className="cell-currency">{formatKes(p.amount_kes)}</td>
-                      <td>
-                        <div className="meter-stack">
-                          {p.allocations.map((a) => (
-                            <span key={a.invoice_id} className="meter-chip">
-                              {a.invoice_number}: {formatKes(a.allocated_amount_kes)} (Bal: {formatKes(a.remaining_invoice_balance_kes)})
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="cell-nowrap">
-                        <StatusBadge status="Confirmed" tone="success" />
+                  {orgPayments.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                        No payment transactions recorded yet. Payments processed via M-Pesa or bank transfer will appear here.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    orgPayments.map((p) => (
+                      <tr key={p.id}>
+                        <td className="cell-code">{p.receipt_number}</td>
+                        <td className="cell-mono" style={{ fontWeight: 700 }}>
+                          {p.mpesa_receipt_number}
+                        </td>
+                        <td className="cell-mono">{p.payer_phone}</td>
+                        <td className="cell-currency">{formatKes(p.amount_kes)}</td>
+                        <td>
+                          <div className="meter-stack">
+                            {p.allocations.map((a) => (
+                              <span key={a.invoice_id} className="meter-chip">
+                                {a.invoice_number}: {formatKes(a.allocated_amount_kes)} (Bal: {formatKes(a.remaining_invoice_balance_kes)})
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="cell-nowrap">
+                          <StatusBadge status="Confirmed" tone="success" />
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </ResponsiveTable>
               </section>
 
@@ -2307,25 +2422,33 @@ export function App() {
                   caption="Tenant security deposits liability ledger"
                   headers={['Unit', 'Tenant', 'Required Deposit', 'Received', 'Refunded / Deducted', 'Held Liability', 'Status']}
                 >
-                  {orgDeposits.map((d) => {
-                    const u = orgUnits.find((x) => x.id === d.unit_id);
-                    const t = orgTenants.find((x) => x.id === d.tenant_id);
-                    return (
-                      <tr key={d.id}>
-                        <td className="cell-code">Unit {u?.unit_number}</td>
-                        <td className="cell-nowrap" style={{ fontWeight: 600 }}>{t?.full_name}</td>
-                        <td className="cell-currency">{formatKes(d.required_amount_kes)}</td>
-                        <td className="cell-currency">{formatKes(d.received_amount_kes)}</td>
-                        <td className="cell-currency">{formatKes(d.deducted_amount_kes + d.refunded_amount_kes)}</td>
-                        <td className="cell-currency">
-                          {formatKes(d.current_liability_balance_kes)}
-                        </td>
-                        <td className="cell-nowrap">
-                          <StatusBadge status={d.status} tone="info" />
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {orgDeposits.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                        No security deposits recorded. Security deposits collected during onboarding are tracked here as Account 2100 liabilities.
+                      </td>
+                    </tr>
+                  ) : (
+                    orgDeposits.map((d) => {
+                      const u = orgUnits.find((x) => x.id === d.unit_id);
+                      const t = orgTenants.find((x) => x.id === d.tenant_id);
+                      return (
+                        <tr key={d.id}>
+                          <td className="cell-code">Unit {u?.unit_number ?? '—'}</td>
+                          <td className="cell-nowrap" style={{ fontWeight: 600 }}>{t?.full_name ?? '—'}</td>
+                          <td className="cell-currency">{formatKes(d.required_amount_kes)}</td>
+                          <td className="cell-currency">{formatKes(d.received_amount_kes)}</td>
+                          <td className="cell-currency">{formatKes(d.deducted_amount_kes + d.refunded_amount_kes)}</td>
+                          <td className="cell-currency">
+                            {formatKes(d.current_liability_balance_kes)}
+                          </td>
+                          <td className="cell-nowrap">
+                            <StatusBadge status={d.status} tone="info" />
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </ResponsiveTable>
               </section>
 
@@ -2336,28 +2459,34 @@ export function App() {
                     <h2>Estates by County</h2>
                   </div>
                 </div>
-                <div className="secondary-cards-grid">
-                  {orgProperties.map((p) => (
-                    <div
-                      key={p.id}
-                      style={{
-                        padding: '12px 14px',
-                        borderRadius: '12px',
-                        border: '1px solid var(--border-subtle)',
-                        background: 'var(--bg-sidebar)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: '10px',
-                      }}
-                    >
-                      <span style={{ fontWeight: 600, fontSize: '0.84rem' }}>
-                        {p.name} ({p.estate_or_area})
-                      </span>
-                      <span className="badge-pill badge-neutral">{p.county}</span>
-                    </div>
-                  ))}
-                </div>
+                {orgProperties.length === 0 ? (
+                  <div style={{ padding: '28px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.84rem' }}>
+                    No estates or properties registered in this organization yet.
+                  </div>
+                ) : (
+                  <div className="secondary-cards-grid">
+                    {orgProperties.map((p) => (
+                      <div
+                        key={p.id}
+                        style={{
+                          padding: '12px 14px',
+                          borderRadius: '12px',
+                          border: '1px solid var(--border-subtle)',
+                          background: 'var(--bg-sidebar)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '10px',
+                        }}
+                      >
+                        <span style={{ fontWeight: 600, fontSize: '0.84rem' }}>
+                          {p.name} ({p.estate_or_area})
+                        </span>
+                        <span className="badge-pill badge-neutral">{p.county}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
             </div>
           )}
@@ -2418,47 +2547,53 @@ export function App() {
                     ))}
                   </div>
 
-                  <div className="kanban-grid">
-                    {orgMaintenance.map((req) => {
-                      const unit = orgUnits.find((u) => u.id === req.unit_id);
-                      const nextSteps = getNextMaintenanceStatuses(req.status);
-                      return (
-                        <article key={req.id} className="board-column">
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-                            <span className="cell-code" style={{ fontSize: '0.8rem' }}>
-                              {req.request_number} • Unit {unit?.unit_number}
-                            </span>
-                            <StatusBadge
-                              status={req.status}
-                              tone={req.status === 'CLOSED' ? 'success' : 'warning'}
-                            />
-                          </div>
-                          <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{req.title}</div>
-                          <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                            {req.description}
-                          </p>
-                          <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                            Category: {req.category} • Est: {formatKes(req.estimated_cost_kes)}
-                          </div>
-                          {nextSteps.length > 0 && (
-                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBlockStart: '6px' }}>
-                              {nextSteps.map((next) => (
-                                <button
-                                  key={next}
-                                  type="button"
-                                  className="btn-dark"
-                                  style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
-                                  onClick={() => handleAdvanceMaintenance(req.id, next)}
-                                >
-                                  Advance to {next.replace(/_/g, ' ')}
-                                </button>
-                              ))}
+                  {orgMaintenance.length === 0 ? (
+                    <div style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.86rem' }}>
+                      No maintenance requests submitted yet. Click &quot;Log Maintenance Issue&quot; to log a repair request.
+                    </div>
+                  ) : (
+                    <div className="kanban-grid">
+                      {orgMaintenance.map((req) => {
+                        const unit = orgUnits.find((u) => u.id === req.unit_id);
+                        const nextSteps = getNextMaintenanceStatuses(req.status);
+                        return (
+                          <article key={req.id} className="board-column">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                              <span className="cell-code" style={{ fontSize: '0.8rem' }}>
+                                {req.request_number} • Unit {unit?.unit_number ?? '—'}
+                              </span>
+                              <StatusBadge
+                                status={req.status}
+                                tone={req.status === 'CLOSED' ? 'success' : 'warning'}
+                              />
                             </div>
-                          )}
-                        </article>
-                      );
-                    })}
-                  </div>
+                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{req.title}</div>
+                            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                              {req.description}
+                            </p>
+                            <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                              Category: {req.category} • Est: {formatKes(req.estimated_cost_kes)}
+                            </div>
+                            {nextSteps.length > 0 && (
+                              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBlockStart: '6px' }}>
+                                {nextSteps.map((next) => (
+                                  <button
+                                    key={next}
+                                    type="button"
+                                    className="btn-dark"
+                                    style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
+                                    onClick={() => handleAdvanceMaintenance(req.id, next)}
+                                  >
+                                    Advance to {next.replace(/_/g, ' ')}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </article>
+                        );
+                      })}
+                    </div>
+                  )}
                 </>
               )}
 
@@ -2467,24 +2602,32 @@ export function App() {
                   caption="Approved Kenyan maintenance contractors and vendors"
                   headers={['Vendor Code', 'Company Name', 'Specialty', 'M-Pesa / Phone', 'KRA PIN', 'Rating', 'Status']}
                 >
-                  {orgVendors.map((v) => (
-                    <tr key={v.id}>
-                      <td className="cell-code">{v.vendor_code}</td>
-                      <td className="cell-nowrap" style={{ fontWeight: 600 }}>{v.company_name}</td>
-                      <td className="cell-nowrap">{v.specialty}</td>
-                      <td className="cell-mono">{v.phone}</td>
-                      <td className="cell-mono">{v.kra_pin}</td>
-                      <td className="cell-nowrap" style={{ fontWeight: 700 }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                          <Star size={13} color="#f59e0b" fill="#f59e0b" aria-hidden="true" />
-                          <span>{v.rating}</span>
-                        </span>
-                      </td>
-                      <td className="cell-nowrap">
-                        <StatusBadge status={v.status} tone="success" />
+                  {orgVendors.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                        No approved maintenance contractors recorded for this organization.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    orgVendors.map((v) => (
+                      <tr key={v.id}>
+                        <td className="cell-code">{v.vendor_code}</td>
+                        <td className="cell-nowrap" style={{ fontWeight: 600 }}>{v.company_name}</td>
+                        <td className="cell-nowrap">{v.specialty}</td>
+                        <td className="cell-mono">{v.phone}</td>
+                        <td className="cell-mono">{v.kra_pin}</td>
+                        <td className="cell-nowrap" style={{ fontWeight: 700 }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <Star size={13} color="#f59e0b" fill="#f59e0b" aria-hidden="true" />
+                            <span>{v.rating}</span>
+                          </span>
+                        </td>
+                        <td className="cell-nowrap">
+                          <StatusBadge status={v.status} tone="success" />
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </ResponsiveTable>
               )}
 
@@ -2493,27 +2636,35 @@ export function App() {
                   caption="Move-in, move-out and routine unit inspections"
                   headers={['Inspection #', 'Type', 'Unit', 'Scheduled Date/Time', 'Condition', 'Deposit Deduction', 'Status']}
                 >
-                  {orgInspections.map((insp) => {
-                    const u = orgUnits.find((x) => x.id === insp.unit_id);
-                    return (
-                      <tr key={insp.id}>
-                        <td className="cell-code">{insp.inspection_number}</td>
-                        <td className="cell-nowrap">
-                          <span className="badge-pill badge-neutral">{insp.inspection_type}</span>
-                        </td>
-                        <td className="cell-code">Unit {u?.unit_number}</td>
-                        <td className="cell-mono">{insp.scheduled_at.replace('T', ' ')} EAT</td>
-                        <td className="cell-nowrap">{insp.overall_condition}</td>
-                        <td className="cell-currency">{formatKes(insp.recommended_deposit_deduction_kes)}</td>
-                        <td className="cell-nowrap">
-                          <StatusBadge
-                            status={insp.status}
-                            tone={insp.status === 'SIGNED_OFF' ? 'success' : 'info'}
-                          />
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {orgInspections.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                        No unit inspections scheduled or recorded.
+                      </td>
+                    </tr>
+                  ) : (
+                    orgInspections.map((insp) => {
+                      const u = orgUnits.find((x) => x.id === insp.unit_id);
+                      return (
+                        <tr key={insp.id}>
+                          <td className="cell-code">{insp.inspection_number}</td>
+                          <td className="cell-nowrap">
+                            <span className="badge-pill badge-neutral">{insp.inspection_type}</span>
+                          </td>
+                          <td className="cell-code">Unit {u?.unit_number ?? '—'}</td>
+                          <td className="cell-mono">{insp.scheduled_at.replace('T', ' ')} EAT</td>
+                          <td className="cell-nowrap">{insp.overall_condition}</td>
+                          <td className="cell-currency">{formatKes(insp.recommended_deposit_deduction_kes)}</td>
+                          <td className="cell-nowrap">
+                            <StatusBadge
+                              status={insp.status}
+                              tone={insp.status === 'SIGNED_OFF' ? 'success' : 'info'}
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </ResponsiveTable>
               )}
             </section>
@@ -2682,51 +2833,59 @@ export function App() {
                     'Action',
                   ]}
                 >
-                  {orgOcrJobs.map((job) => (
-                    <tr key={job.id}>
-                      <td className="cell-code">{job.id}</td>
-                      <td className="cell-mono">{job.file_name}</td>
-                      <td className="cell-nowrap">
-                        <span className="badge-pill badge-neutral">{job.document_category}</span>
-                      </td>
-                      <td className="cell-nowrap">{job.page_count} pg</td>
-                      <td className="cell-nowrap" style={{ fontWeight: 700 }}>
-                        {Math.round(job.overall_confidence * 100)}%
-                      </td>
-                      <td className="cell-nowrap">
-                        <StatusBadge
-                          status={job.status}
-                          tone={
-                            job.status === 'VERIFIED'
-                              ? 'success'
-                              : job.status === 'NEEDS_REVIEW'
-                              ? 'warning'
-                              : 'danger'
-                          }
-                        />
-                      </td>
-                      <td className="cell-nowrap">
-                        {job.authoritative_record_applied ? (
-                          <span className="badge-pill badge-green">Verified & Applied</span>
-                        ) : (
-                          <span className="badge-pill badge-amber">Staged (Unverified)</span>
-                        )}
-                      </td>
-                      <td className="cell-nowrap">
-                        <button
-                          type="button"
-                          className="btn-outline"
-                          style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
-                          onClick={() => {
-                            setSelectedOcrJobId(job.id);
-                            setOcrCorrections({});
-                          }}
-                        >
-                          Inspect & Verify
-                        </button>
+                  {orgOcrJobs.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                        No OCR jobs processed yet. Drag &amp; drop or upload a document to begin optical extraction.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    orgOcrJobs.map((job) => (
+                      <tr key={job.id}>
+                        <td className="cell-code">{job.id}</td>
+                        <td className="cell-mono">{job.file_name}</td>
+                        <td className="cell-nowrap">
+                          <span className="badge-pill badge-neutral">{job.document_category}</span>
+                        </td>
+                        <td className="cell-nowrap">{job.page_count} pg</td>
+                        <td className="cell-nowrap" style={{ fontWeight: 700 }}>
+                          {Math.round(job.overall_confidence * 100)}%
+                        </td>
+                        <td className="cell-nowrap">
+                          <StatusBadge
+                            status={job.status}
+                            tone={
+                              job.status === 'VERIFIED'
+                                ? 'success'
+                                : job.status === 'NEEDS_REVIEW'
+                                ? 'warning'
+                                : 'danger'
+                            }
+                          />
+                        </td>
+                        <td className="cell-nowrap">
+                          {job.authoritative_record_applied ? (
+                            <span className="badge-pill badge-green">Verified & Applied</span>
+                          ) : (
+                            <span className="badge-pill badge-amber">Staged (Unverified)</span>
+                          )}
+                        </td>
+                        <td className="cell-nowrap">
+                          <button
+                            type="button"
+                            className="btn-outline"
+                            style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
+                            onClick={() => {
+                              setSelectedOcrJobId(job.id);
+                              setOcrCorrections({});
+                            }}
+                          >
+                            Inspect & Verify
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </ResponsiveTable>
               </section>
 
@@ -3075,7 +3234,7 @@ export function App() {
                             flexShrink: 0,
                           }}
                         >
-                          {(currentUserSession?.fullName || 'Yousuf Hossain').charAt(0)}
+                          {(currentUserSession?.fullName || 'U').charAt(0)}
                         </div>
                         <div style={{ minWidth: 0, flex: 1 }}>
                           <div
@@ -3088,7 +3247,7 @@ export function App() {
                               textOverflow: 'ellipsis',
                             }}
                           >
-                            {currentUserSession?.fullName || 'Yousuf Hossain'}
+                            {currentUserSession?.fullName || 'Property Manager'}
                           </div>
                           <div
                             style={{
@@ -3099,7 +3258,7 @@ export function App() {
                               textOverflow: 'ellipsis',
                             }}
                           >
-                            {currentUserSession?.email || 'yousufm100@gmail.com'}
+                            {currentUserSession?.email || ''}
                           </div>
                         </div>
                       </div>
@@ -4440,46 +4599,54 @@ export function App() {
                   caption="Immutable double-entry accounting journal entries"
                   headers={['Entry #', 'Date', 'Event', 'Description & Balanced Lines', 'Debits = Credits', 'Status', 'Audit Action']}
                 >
-                  {orgJournals.map((j) => (
-                    <tr key={j.id}>
-                      <td className="cell-code">{j.entry_number}</td>
-                      <td className="cell-nowrap">{j.entry_date}</td>
-                      <td className="cell-nowrap">
-                        <span className="badge-pill badge-neutral">{j.source_event_type}</span>
-                      </td>
-                      <td>
-                        <div style={{ fontWeight: 600 }}>{j.description}</div>
-                        <div className="meter-stack" style={{ marginBlockStart: '4px' }}>
-                          {j.lines.map((l, idx) => (
-                            <span key={idx} className="meter-chip">
-                              {l.account_code} {l.account_name}:{' '}
-                              {l.debit_kes > 0
-                                ? `DR ${formatKes(l.debit_kes)}`
-                                : `CR ${formatKes(l.credit_kes)}`}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="cell-currency">{formatKes(j.total_debit_kes)}</td>
-                      <td className="cell-nowrap">
-                        <StatusBadge
-                          status={j.status}
-                          tone={j.status === 'POSTED' ? 'success' : 'warning'}
-                        />
-                      </td>
-                      <td className="cell-nowrap">
-                        <button
-                          type="button"
-                          className="btn-outline"
-                          style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
-                          disabled={j.status === 'REVERSED'}
-                          onClick={() => handleReverseJournal(j)}
-                        >
-                          Reverse Entry
-                        </button>
+                  {orgJournals.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                        No double-entry journal records found. Financial transactions automatically post balanced journal entries here.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    orgJournals.map((j) => (
+                      <tr key={j.id}>
+                        <td className="cell-code">{j.entry_number}</td>
+                        <td className="cell-nowrap">{j.entry_date}</td>
+                        <td className="cell-nowrap">
+                          <span className="badge-pill badge-neutral">{j.source_event_type}</span>
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 600 }}>{j.description}</div>
+                          <div className="meter-stack" style={{ marginBlockStart: '4px' }}>
+                            {j.lines.map((l, idx) => (
+                              <span key={idx} className="meter-chip">
+                                {l.account_code} {l.account_name}:{' '}
+                                {l.debit_kes > 0
+                                  ? `DR ${formatKes(l.debit_kes)}`
+                                  : `CR ${formatKes(l.credit_kes)}`}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="cell-currency">{formatKes(j.total_debit_kes)}</td>
+                        <td className="cell-nowrap">
+                          <StatusBadge
+                            status={j.status}
+                            tone={j.status === 'POSTED' ? 'success' : 'warning'}
+                          />
+                        </td>
+                        <td className="cell-nowrap">
+                          <button
+                            type="button"
+                            className="btn-outline"
+                            style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
+                            disabled={j.status === 'REVERSED'}
+                            onClick={() => handleReverseJournal(j)}
+                          >
+                            Reverse Entry
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </ResponsiveTable>
               )}
 
@@ -4488,16 +4655,24 @@ export function App() {
                   caption="Property maintenance and operating expenses"
                   headers={['Expense #', 'Category', 'Vendor', 'Description', 'Date', 'Amount']}
                 >
-                  {orgExpenses.map((e: PropertyExpense) => (
-                    <tr key={e.id}>
-                      <td className="cell-code">{e.expense_number}</td>
-                      <td className="cell-nowrap">{e.category}</td>
-                      <td className="cell-nowrap">{e.vendor_name}</td>
-                      <td>{e.description}</td>
-                      <td className="cell-nowrap">{e.expense_date}</td>
-                      <td className="cell-currency">{formatKes(e.amount_kes)}</td>
+                  {orgExpenses.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                        No operational expenses recorded.
+                      </td>
                     </tr>
-                  ))}
+                  ) : (
+                    orgExpenses.map((e: PropertyExpense) => (
+                      <tr key={e.id}>
+                        <td className="cell-code">{e.expense_number}</td>
+                        <td className="cell-nowrap">{e.category}</td>
+                        <td className="cell-nowrap">{e.vendor_name}</td>
+                        <td>{e.description}</td>
+                        <td className="cell-nowrap">{e.expense_date}</td>
+                        <td className="cell-currency">{formatKes(e.amount_kes)}</td>
+                      </tr>
+                    ))
+                  )}
                 </ResponsiveTable>
               )}
 
@@ -4506,30 +4681,38 @@ export function App() {
                   caption="Private S3 documents with short-lived pre-signed download URLs"
                   headers={['Category', 'Linked Record', 'File Name', 'Size', 'Action']}
                 >
-                  {orgDocuments.map((d) => (
-                    <tr key={d.id}>
-                      <td className="cell-nowrap">
-                        <span className="badge-pill badge-blue">{d.category}</span>
-                      </td>
-                      <td className="cell-nowrap">{d.entity_label}</td>
-                      <td className="cell-mono">{d.file_name}</td>
-                      <td className="cell-nowrap">{d.file_size_kb} KB</td>
-                      <td className="cell-nowrap">
-                        <button
-                          type="button"
-                          className="btn-outline"
-                          style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
-                          onClick={() =>
-                            announce(
-                              `Generated 300s HMAC-SHA256 Signed S3 URL for ${d.file_name}`
-                            )
-                          }
-                        >
-                          Sign 5m URL
-                        </button>
+                  {orgDocuments.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
+                        No documents uploaded to private storage yet.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    orgDocuments.map((d) => (
+                      <tr key={d.id}>
+                        <td className="cell-nowrap">
+                          <span className="badge-pill badge-blue">{d.category}</span>
+                        </td>
+                        <td className="cell-nowrap">{d.entity_label}</td>
+                        <td className="cell-mono">{d.file_name}</td>
+                        <td className="cell-nowrap">{d.file_size_kb} KB</td>
+                        <td className="cell-nowrap">
+                          <button
+                            type="button"
+                            className="btn-outline"
+                            style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
+                            onClick={() =>
+                              announce(
+                                `Generated 300s HMAC-SHA256 Signed S3 URL for ${d.file_name}`
+                              )
+                            }
+                          >
+                            Sign 5m URL
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </ResponsiveTable>
               )}
 
@@ -4831,7 +5014,7 @@ export function App() {
                     <div>
                       <div style={{ fontWeight: 700 }}>Kenyan Tenant Mobile Portal</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        Unit A-101 • Wanjiku Mwangi (254722111222)
+                        {orgUnits.length > 0 ? `Unit ${orgUnits[0].unit_number}` : 'No active unit'} • {orgTenants.length > 0 ? `${orgTenants[0].full_name} (${orgTenants[0].phone})` : 'No tenant assigned'}
                       </div>
                     </div>
                   </div>
@@ -4843,7 +5026,7 @@ export function App() {
                     <div className="stat-kv-row">
                       <span>Paybill / Account Ref</span>
                       <span className="stat-kv-val">
-                        {currentOrg.mpesa_paybill_shortcode} / RENT-A-101
+                        {currentOrg.mpesa_paybill_shortcode} / RENT-{orgUnits[0]?.unit_number ?? '001'}
                       </span>
                     </div>
                   </div>
@@ -4894,7 +5077,7 @@ export function App() {
           </div>
 
           <div className="field-group">
-            <label htmlFor="role-select">Simulated RBAC Role</label>
+            <label htmlFor="role-select">Active RBAC Role</label>
             <select
               id="role-select"
               className="form-control"
