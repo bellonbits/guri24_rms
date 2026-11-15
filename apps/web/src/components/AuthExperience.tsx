@@ -129,6 +129,11 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
       return;
     }
 
+    if (password.trim().length < 8) {
+      setErrorMessage('Password must be at least 8 characters long.');
+      return;
+    }
+
     if (verifyChannel === 'sms' && (!phone.trim() || phone.trim().length < 9)) {
       setErrorMessage('Please enter your mobile phone number for SMS delivery.');
       return;
@@ -208,6 +213,11 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
     const entered = otpDigits.join('');
     if (entered.length < 6) {
       setErrorMessage('Please enter the 6-digit code received on your device.');
+      return;
+    }
+
+    if (password.trim().length < 8) {
+      setErrorMessage('Password must be at least 8 characters long. Please enter a valid password below.');
       return;
     }
 
@@ -364,6 +374,58 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
               )}
 
               <form onSubmit={handleVerifyOtpSubmit}>
+                {password.trim().length < 8 && (
+                  <div style={{ marginBottom: '18px', maxWidth: '320px' }}>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        color: '#b91c1c',
+                        marginBottom: '6px',
+                      }}
+                    >
+                      Account Password (min. 8 characters required)
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Enter at least 8 characters"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        minLength={8}
+                        required
+                        style={{
+                          width: '100%',
+                          height: '42px',
+                          border: '1.5px solid #f87171',
+                          borderRadius: '10px',
+                          padding: '0 38px 0 14px',
+                          fontSize: '0.88rem',
+                          color: '#111827',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{
+                          position: 'absolute',
+                          right: '12px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#9ca3af',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <div
                   style={{
                     display: 'flex',
@@ -640,23 +702,29 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                 )}
 
                 <div style={{ marginBottom: '16px' }}>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      color: '#374151',
-                      marginBottom: '6px',
-                    }}
-                  >
-                    Password
-                  </label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label
+                      style={{
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        color: '#374151',
+                      }}
+                    >
+                      Password
+                    </label>
+                    {authMode === 'signup' && (
+                      <span style={{ fontSize: '0.72rem', color: password.length >= 8 ? '#16a34a' : '#9ca3af', fontWeight: 500 }}>
+                        {password.length >= 8 ? '✓ 8+ characters' : 'min. 8 characters'}
+                      </span>
+                    )}
+                  </div>
                   <div style={{ position: 'relative' }}>
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Create a password"
+                      placeholder={authMode === 'signup' ? 'Create a password (min. 8 characters)' : 'Enter your password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      minLength={authMode === 'signup' ? 8 : undefined}
                       required
                       style={{
                         width: '100%',

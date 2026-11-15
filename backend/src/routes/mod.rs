@@ -378,15 +378,7 @@ async fn send_otp_handler(
         state.sms_adapter.send_sms(&target, &message)?;
     } else {
         let subject = format!("Your Guri24 RMS Verification Code: {}", code);
-        let body = format!(
-            "<div style=\"font-family: sans-serif; padding: 20px; color: #111827;\">\
-            <h2>Guri24 RMS Account Verification</h2>\
-            <p>Your 6-digit verification code is:</p>\
-            <h1 style=\"font-size: 32px; letter-spacing: 4px; color: #ea580c;\">{}</h1>\
-            <p>This code will expire in 10 minutes. If you did not request this, please disregard.</p>\
-            </div>",
-            code
-        );
+        let body = crate::integrations::email::templates::render_otp_email_template(&target, &code);
         state.email_adapter.send_email(&target, &subject, &body)?;
     }
 

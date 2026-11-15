@@ -4,6 +4,8 @@ use std::{
 };
 use crate::core::{circuit_breaker::CircuitBreaker, errors::AppResult};
 
+pub mod templates;
+
 /// Section 5.10: Adapter Pattern for Transactional Email Provider
 pub trait EmailAdapter: Send + Sync {
     fn send_email(&self, recipient: &str, subject: &str, body: &str) -> AppResult<String>;
