@@ -28,6 +28,7 @@ import {
   Hourglass,
   KeyRound,
   Layers,
+  LogOut,
   MapPin,
   Mic,
   MoreHorizontal,
@@ -56,6 +57,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { AssistantAttachment } from './types';
+import { AuthExperience, AuthUserSession } from './components/AuthExperience';
 import { apiClient } from './lib/apiClient';
 import {
   createEmptyRmsState,
@@ -346,6 +348,22 @@ export function App() {
   // OCR Interactive Drag-Drop & Direct Upload
   const [ocrDragActive, setOcrDragActive] = useState(false);
   const ocrDirectFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // User Authentication & Session State
+  const [currentUserSession, setCurrentUserSession] = useState<AuthUserSession | null>(() => {
+    try {
+      const stored = localStorage.getItem('guri24_rms_auth_session');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleLogout = () => {
+    localStorage.removeItem('guri24_rms_auth_session');
+    setCurrentUserSession(null);
+    announce('Logged out of Guri24 RMS');
+  };
 
   const mainHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
@@ -1152,6 +1170,17 @@ export function App() {
     </section>
   );
 
+  if (!currentUserSession) {
+    return (
+      <AuthExperience
+        onSuccess={(session) => {
+          setCurrentUserSession(session);
+          announce(`Welcome, ${session.fullName}! Logged in to ${session.organizationName}`);
+        }}
+      />
+    );
+  }
+
   return (
     <>
       <a
@@ -1335,6 +1364,51 @@ export function App() {
                 <MoreVertical size={14} aria-hidden="true" />
                 <span>More</span>
               </button>
+
+              {/* User Session Profile & Sign Out Button */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  paddingLeft: '10px',
+                  borderLeft: '1px solid var(--border-subtle)',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    fontSize: '0.74rem',
+                    lineHeight: 1.25,
+                  }}
+                >
+                  <strong style={{ color: 'var(--text-primary)' }}>
+                    {currentUserSession.fullName}
+                  </strong>
+                  <span style={{ color: 'var(--text-muted)' }}>{state.currentRole}</span>
+                </div>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  style={{
+                    minBlockSize: '32px',
+                    padding: '4px 10px',
+                    fontSize: '0.72rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    color: '#ef4444',
+                    borderColor: 'rgba(239, 68, 68, 0.25)',
+                  }}
+                  title="Sign Out of Session"
+                  onClick={handleLogout}
+                >
+                  <LogOut size={13} color="#ef4444" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
             </div>
           </header>
 

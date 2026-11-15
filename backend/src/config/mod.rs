@@ -57,6 +57,8 @@ pub struct AppConfig {
     pub opensms_sender_id: Option<String>,
     pub email_provider: String,
     pub smtp_host: Option<String>,
+    pub resend_api_key: Option<String>,
+    pub resend_from_email: Option<String>,
     pub storage_provider: String,
     pub s3_bucket: String,
     pub s3_signing_secret: String,
@@ -176,8 +178,10 @@ impl AppConfig {
             opensms_api_endpoint,
             opensms_api_token,
             opensms_sender_id,
-            email_provider: env::var("EMAIL_PROVIDER").unwrap_or_else(|_| "smtp".to_string()),
+            email_provider: env::var("EMAIL_PROVIDER").unwrap_or_else(|_| "resend".to_string()),
             smtp_host: non_empty_env("SMTP_HOST"),
+            resend_api_key: non_empty_env("RESEND_API_KEY"),
+            resend_from_email: non_empty_env("RESEND_FROM_EMAIL"),
             storage_provider: env::var("STORAGE_PROVIDER")
                 .unwrap_or_else(|_| "supabase_storage".to_string()),
             s3_bucket: storage_bucket,
@@ -236,8 +240,13 @@ impl AppConfig {
             sms_missing.push("AFRICASTALKING_API_KEY".to_string());
         }
 
+        let is_resend = self.email_provider.eq_ignore_ascii_case("resend") || self.resend_api_key.is_some();
         let mut email_missing = Vec::new();
-        if self.smtp_host.is_none() {
+        if is_resend {
+            if self.resend_api_key.is_none() {
+                email_missing.push("RESEND_API_KEY".to_string());
+            }
+        } else if self.smtp_host.is_none() {
             email_missing.push("SMTP_HOST".to_string());
         }
 
@@ -311,12 +320,20 @@ impl AppConfig {
                 missing_env_vars: sms_missing,
             },
             IntegrationStatusItem {
-                service: "Transactional Email (SMTP)".to_string(),
-                provider: self.email_provider.clone(),
+                service: "Transactional Email & Verification".to_string(),
+                provider: if is_resend {
+                    "Resend API (https://resend.com)".to_string()
+                } else {
+                    format!("SMTP ({})", self.email_provider)
+                },
                 environment: self.app_env.clone(),
                 credentials_configured: email_missing.is_empty(),
                 status: if email_missing.is_empty() {
-                    "CONFIGURED".to_string()
+                    if is_resend {
+                        "RESEND_CONFIGURED".to_string()
+                    } else {
+                        "CONFIGURED".to_string()
+                    }
                 } else {
                     "UNCONFIGURED (Outbox Queuing Active)".to_string()
                 },

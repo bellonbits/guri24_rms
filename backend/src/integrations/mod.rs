@@ -15,7 +15,7 @@ use crate::{
     core::circuit_breaker::CircuitBreaker,
     integrations::{
         ai::{AIAdapter, OperationalInsightsAiAdapter},
-        email::{EmailAdapter, SmtpEmailAdapter},
+        email::{EmailAdapter, ResendEmailAdapter, SmtpEmailAdapter},
         groq::GroqLlmAdapter,
         mpesa::{MpesaAdapter, SafaricomDarajaAdapter},
         ocr::OcrProvider,
@@ -96,7 +96,15 @@ impl NotificationProviderFactory {
 
     pub fn create_email(config: &AppConfig) -> Arc<dyn EmailAdapter> {
         let breaker = CircuitBreaker::new("email_gateway", 3, Duration::from_secs(20));
-        Arc::new(SmtpEmailAdapter::new(config.email_provider.clone(), breaker))
+        if config.email_provider.eq_ignore_ascii_case("resend") || config.resend_api_key.is_some() {
+            Arc::new(ResendEmailAdapter::new(
+                config.resend_api_key.clone(),
+                config.resend_from_email.clone().unwrap_or_else(|| "Guri24 RMS <onboarding@resend.dev>".to_string()),
+                breaker,
+            ))
+        } else {
+            Arc::new(SmtpEmailAdapter::new(config.email_provider.clone(), breaker))
+        }
     }
 }
 
