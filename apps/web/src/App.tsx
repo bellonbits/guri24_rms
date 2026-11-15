@@ -4390,7 +4390,6 @@ export function App() {
               )}
             </div>
           )}
-          )}
 
           {/* =================================================================
               PAGE 8: ANALYTICS, DOUBLE-ENTRY LEDGER, EXPENSES & DOCUMENTS
