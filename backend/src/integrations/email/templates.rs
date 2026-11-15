@@ -7,7 +7,7 @@
 //! - Attachment reference cards
 //! - Bottom action bar ("Ask AI", primary action button)
 
-pub const GURI24_LOGO_BASE64: &str = include_str!("../../../../apps/web/public/guri24_logo_email.base64");
+pub const GURI24_LOGO_BASE64: &str = include_str!("guri24_logo_email.base64");
 
 /// Renders a responsive, modern HTML email for OTP verification
 pub fn render_otp_email_template(recipient: &str, code: &str) -> String {
