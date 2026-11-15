@@ -103,7 +103,20 @@ export function ResponsiveTable({ caption, headers, children }: ResponsiveTableP
             ))}
           </tr>
         </thead>
-        <tbody>{children}</tbody>
+        <tbody>
+          {React.Children.count(children) === 0 ? (
+            <tr>
+              <td colSpan={headers.length} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-secondary)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>No live records found</span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Connected to live API. Add records to see them appear here.</span>
+                </div>
+              </td>
+            </tr>
+          ) : (
+            children
+          )}
+        </tbody>
       </table>
     </div>
   );

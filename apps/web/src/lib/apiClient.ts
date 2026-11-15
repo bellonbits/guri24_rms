@@ -1,0 +1,371 @@
+/**
+ * GURI24 RMS - Real Backend API Client
+ * Communicates directly with the Rust backend running on Axum + Supabase PostgreSQL.
+ * No mock data.
+ */
+
+import type {
+  Organization,
+  Property,
+  Building,
+  Floor,
+  Unit,
+  Tenant,
+  Lease,
+  Invoice,
+  Payment,
+  JournalEntry,
+  PropertyExpense,
+  MaintenanceRequest,
+  Vendor,
+  InspectionRecord,
+  DocumentItem,
+  OcrJobRecord,
+  IntegrationStatusItem,
+  SubscriptionSummary,
+  RmsPlatformState,
+} from '../types';
+
+const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) || '/api/v1';
+
+class ApiClient {
+  private token: string | null = null;
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this.token = localStorage.getItem('guri24_token');
+    }
+  }
+
+  public setToken(token: string) {
+    this.token = token;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('guri24_token', token);
+    }
+  }
+
+  public clearToken() {
+    this.token = null;
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('guri24_token');
+    }
+  }
+
+  private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(options.headers as Record<string, string>),
+    };
+
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    const url = `${API_BASE_URL.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
+
+    if (!response.ok) {
+      let errorMessage = `API error ${response.status}: ${response.statusText}`;
+      try {
+        const errorJson = await response.json();
+        if (errorJson && typeof errorJson === 'object' && 'message' in errorJson) {
+          errorMessage = String(errorJson.message);
+        } else if (errorJson && typeof errorJson === 'object' && 'error' in errorJson) {
+          errorMessage = String(errorJson.error);
+        }
+      } catch {
+        // Fallback to text
+      }
+      throw new Error(errorMessage);
+    }
+
+    if (response.status === 204) {
+      return {} as T;
+    }
+
+    return response.json() as Promise<T>;
+  }
+
+  // System & Health
+  async getHealth(): Promise<{ status: string; service: string; version: string }> {
+    return this.request('/health');
+  }
+
+  async getIntegrationsStatus(): Promise<IntegrationStatusItem[]> {
+    return this.request('/integrations/status');
+  }
+
+  // Workspace snapshot persistence (Supabase PostgreSQL)
+  async getWorkspaceSnapshot(): Promise<Partial<RmsPlatformState> | null> {
+    try {
+      const data = await this.request<any>('/workspace/snapshot');
+      if (data && typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length > 0) {
+        return data as Partial<RmsPlatformState>;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  async saveWorkspaceSnapshot(snapshot: Partial<RmsPlatformState>): Promise<void> {
+    await this.request('/workspace/snapshot', {
+      method: 'POST',
+      body: JSON.stringify(snapshot),
+    });
+  }
+
+  // Auth & Identity
+  async register(cmd: {
+    organization_name: string;
+    organization_type: string;
+    county: string;
+    kra_pin?: string;
+    admin_full_name: string;
+    admin_email: string;
+    admin_phone: string;
+    admin_password: string;
+  }): Promise<{ access_token: string; refresh_token: string; user: any; organization: Organization }> {
+    const res = await this.request<any>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+    if (res.access_token) {
+      this.setToken(res.access_token);
+    }
+    return res;
+  }
+
+  async login(cmd: {
+    email: string;
+    password: string;
+    organization_id?: string;
+  }): Promise<{ access_token: string; refresh_token: string; user: any; organization: Organization }> {
+    const res = await this.request<any>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+    if (res.access_token) {
+      this.setToken(res.access_token);
+    }
+    return res;
+  }
+
+  // Current Organization & Settings
+  async getCurrentOrganization(): Promise<Organization> {
+    return this.request('/organizations/current');
+  }
+
+  async getOrganizationSettings(): Promise<any> {
+    return this.request('/organizations/settings');
+  }
+
+  async updateOrganizationSettings(settings: any): Promise<any> {
+    return this.request('/organizations/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(settings),
+    });
+  }
+
+  async getCurrentSubscription(): Promise<SubscriptionSummary> {
+    return this.request('/subscriptions/current');
+  }
+
+  // Properties, Buildings, Floors & Units
+  async getProperties(): Promise<Property[]> {
+    const res = await this.request<{ items: Property[] } | Property[]>('/properties');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  async createProperty(cmd: any): Promise<Property> {
+    return this.request('/properties', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async getBuildings(): Promise<Building[]> {
+    const res = await this.request<{ items: Building[] } | Building[]>('/buildings');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  async createBuilding(cmd: any): Promise<Building> {
+    return this.request('/buildings', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async getFloors(): Promise<Floor[]> {
+    const res = await this.request<{ items: Floor[] } | Floor[]>('/floors');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  async createFloor(cmd: any): Promise<Floor> {
+    return this.request('/floors', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async getUnits(): Promise<Unit[]> {
+    const res = await this.request<{ items: Unit[] } | Unit[]>('/units');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  async createUnit(cmd: any): Promise<Unit> {
+    return this.request('/units', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  // Tenants & Leases
+  async getTenants(): Promise<Tenant[]> {
+    const res = await this.request<{ items: Tenant[] } | Tenant[]>('/tenants');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  async registerTenant(cmd: any): Promise<Tenant> {
+    return this.request('/tenants', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async getLeases(): Promise<Lease[]> {
+    const res = await this.request<{ items: Lease[] } | Lease[]>('/leases');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  async createLease(cmd: any): Promise<Lease> {
+    return this.request('/leases', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async activateLease(id: string): Promise<Lease> {
+    return this.request(`/leases/${id}/activate`, { method: 'POST' });
+  }
+
+  // Invoices & Billing
+  async getInvoices(): Promise<Invoice[]> {
+    const res = await this.request<{ items: Invoice[] } | Invoice[]>('/invoices');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  async generateInvoice(cmd: any): Promise<Invoice> {
+    return this.request('/invoices', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  // Payments & M-Pesa Daraja
+  async getPayments(): Promise<Payment[]> {
+    const res = await this.request<{ items: Payment[] } | Payment[]>('/payments');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  async initiateMpesaPayment(cmd: {
+    lease_id: string;
+    tenant_id: string;
+    amount_kes: number;
+    phone_number: string;
+    account_reference: string;
+    idempotency_key: string;
+  }): Promise<Payment> {
+    return this.request('/payments/initiate', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async postMpesaCallback(cmd: any): Promise<Payment> {
+    return this.request('/payments/mpesa/callback', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  // Accounting & Expenses
+  async getJournals(): Promise<JournalEntry[]> {
+    const res = await this.request<{ items: JournalEntry[] } | JournalEntry[]>('/accounting/journals');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  async getExpenses(): Promise<PropertyExpense[]> {
+    const res = await this.request<{ items: PropertyExpense[] } | PropertyExpense[]>('/accounting/expenses');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  async recordExpense(cmd: any): Promise<PropertyExpense> {
+    return this.request('/accounting/expenses', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  // Maintenance & Vendors
+  async getMaintenance(): Promise<MaintenanceRequest[]> {
+    const res = await this.request<{ items: MaintenanceRequest[] } | MaintenanceRequest[]>('/maintenance');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  async createMaintenance(cmd: any): Promise<MaintenanceRequest> {
+    return this.request('/maintenance', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async getVendors(): Promise<Vendor[]> {
+    const res = await this.request<{ items: Vendor[] } | Vendor[]>('/vendors');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  async getInspections(): Promise<InspectionRecord[]> {
+    const res = await this.request<{ items: InspectionRecord[] } | InspectionRecord[]>('/inspections');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  // Documents & OCR
+  async getDocuments(): Promise<DocumentItem[]> {
+    const res = await this.request<{ items: DocumentItem[] } | DocumentItem[]>('/documents');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  async getOcrJobs(): Promise<OcrJobRecord[]> {
+    const res = await this.request<{ items: OcrJobRecord[] } | OcrJobRecord[]>('/ocr/jobs');
+    return Array.isArray(res) ? res : res.items || [];
+  }
+
+  async reviewOcrJob(id: string, cmd: any): Promise<OcrJobRecord> {
+    return this.request(`/ocr/jobs/${id}/review`, {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  // AI Assistant (Groq openai/gpt-oss-120b & qwen/qwen3.8-27b)
+  async askAssistant(message: string, conversationId?: string): Promise<{ reply: string; citations: string[] }> {
+    return this.request('/assistant/chat', {
+      method: 'POST',
+      body: JSON.stringify({
+        message,
+        conversation_id: conversationId,
+      }),
+    });
+  }
+
+  // Portfolio Report
+  async getPortfolioSummary(): Promise<any> {
+    return this.request('/reports/summary');
+  }
+}
+
+export const apiClient = new ApiClient();

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -41,7 +41,9 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react';
+import { apiClient } from './lib/apiClient';
 import {
+  createEmptyRmsState,
   createInitialRmsState,
   executeEndToEndOnboardingChain,
   generateIdempotentInvoice,
@@ -222,13 +224,98 @@ export function App() {
     }, 4500);
   };
 
+  // Default fallback organization structure for clean bootstrapping
+  const defaultOrg = useMemo(
+    () => ({
+      id: 'org-guri24-001',
+      name: 'Guri24 Rental Management Ltd',
+      slug: 'guri24-ke',
+      organization_type: 'PROPERTY_MANAGEMENT_COMPANY' as const,
+      kra_pin: 'P051892341K',
+      contact_email: 'admin@guri24rms.co.ke',
+      contact_phone: '254712345678',
+      county: 'Nairobi',
+      currency: 'KES' as const,
+      timezone: 'Africa/Nairobi' as const,
+      mpesa_paybill_shortcode: '174379',
+      late_fee_percentage: 5.0,
+      late_fee_grace_days: 5,
+      rent_calculation_strategy: 'FIXED_MONTHLY' as const,
+      payment_allocation_strategy: 'FIFO_OLDEST_FIRST' as const,
+    }),
+    []
+  );
+
   // Strict multi-tenant scoping
   const currentOrg = useMemo(
     () =>
       state.organizations.find((o) => o.id === state.currentOrganizationId) ??
-      state.organizations[0],
-    [state.organizations, state.currentOrganizationId]
+      state.organizations[0] ??
+      defaultOrg,
+    [state.organizations, state.currentOrganizationId, defaultOrg]
   );
+
+  // Real backend API initialization
+  useEffect(() => {
+    let mounted = true;
+    async function loadBackendData() {
+      try {
+        const [integrationsRes, snapshotRes] = await Promise.allSettled([
+          apiClient.getIntegrationsStatus(),
+          apiClient.getWorkspaceSnapshot(),
+        ]);
+
+        if (!mounted) return;
+
+        const liveIntegrations = integrationsRes.status === 'fulfilled' ? integrationsRes.value : [];
+        const snapshot = snapshotRes.status === 'fulfilled' ? snapshotRes.value : null;
+
+        if (snapshot && snapshot.organizations && snapshot.organizations.length > 0) {
+          setState((prev) => ({
+            ...prev,
+            ...snapshot,
+            integrationsStatus: liveIntegrations.length > 0 ? liveIntegrations : (snapshot.integrationsStatus || []),
+          }));
+        } else {
+          // If no remote snapshot yet, fetch collections from backend REST API
+          const [propsRes, unitsRes, leasesRes, invsRes, paysRes] = await Promise.allSettled([
+            apiClient.getProperties(),
+            apiClient.getUnits(),
+            apiClient.getLeases(),
+            apiClient.getInvoices(),
+            apiClient.getPayments(),
+          ]);
+
+          if (!mounted) return;
+
+          const liveProps = propsRes.status === 'fulfilled' ? propsRes.value : [];
+          const liveUnits = unitsRes.status === 'fulfilled' ? unitsRes.value : [];
+          const liveLeases = leasesRes.status === 'fulfilled' ? leasesRes.value : [];
+          const liveInvs = invsRes.status === 'fulfilled' ? invsRes.value : [];
+          const livePays = paysRes.status === 'fulfilled' ? paysRes.value : [];
+
+          setState((prev) => ({
+            ...prev,
+            currentOrganizationId: prev.currentOrganizationId || defaultOrg.id,
+            organizations: prev.organizations.length > 0 ? prev.organizations : [defaultOrg],
+            properties: liveProps,
+            units: liveUnits,
+            leases: liveLeases,
+            invoices: liveInvs,
+            payments: livePays,
+            integrationsStatus: liveIntegrations,
+          }));
+        }
+      } catch (err) {
+        console.warn('Real backend sync check:', err);
+      }
+    }
+
+    loadBackendData();
+    return () => {
+      mounted = false;
+    };
+  }, [defaultOrg]);
 
   const orgProperties = useMemo(
     () => state.properties.filter((p) => p.organization_id === currentOrg.id),
@@ -461,6 +548,7 @@ export function App() {
     try {
       const next = executeEndToEndOnboardingChain(state, onboardForm);
       setState(next);
+      apiClient.saveWorkspaceSnapshot(next).catch(console.error);
       setIsOnboardModalOpen(false);
       announce(
         `Created ${onboardForm.propertyName} • Unit ${onboardForm.unitNumber} and activated lease for ${onboardForm.tenantFullName}`
@@ -475,6 +563,7 @@ export function App() {
     try {
       const res = generateIdempotentInvoice(state, invoiceForm.leaseId, invoiceForm.billingPeriod);
       setState(res.nextState);
+      apiClient.saveWorkspaceSnapshot(res.nextState).catch(console.error);
       setIsInvoiceModalOpen(false);
       if (res.created) {
         announce(
@@ -495,6 +584,7 @@ export function App() {
     try {
       const res = processVerifiedMpesaPayment(state, mpesaForm);
       setState(res.nextState);
+      apiClient.saveWorkspaceSnapshot(res.nextState).catch(console.error);
       setIsMpesaModalOpen(false);
       if (res.duplicateIgnored) {
         announce(
@@ -637,6 +727,7 @@ export function App() {
     try {
       const res = submitOcrDocumentJob(state, ocrUploadForm);
       setState(res.nextState);
+      apiClient.saveWorkspaceSnapshot(res.nextState).catch(console.error);
       setSelectedOcrJobId(res.job.id);
       setOcrCorrections({});
       setIsOcrUploadModalOpen(false);
@@ -659,6 +750,7 @@ export function App() {
         notes: ocrReviewNotes,
       });
       setState(res.nextState);
+      apiClient.saveWorkspaceSnapshot(res.nextState).catch(console.error);
       announce(
         approve
           ? `Human Verification Approved: OCR job ${res.job.id} marked VERIFIED and linked to authoritative RMS records`
@@ -669,13 +761,62 @@ export function App() {
     }
   };
 
-  const handleAssistantSend = (promptText?: string) => {
+  const handleAssistantSend = async (promptText?: string) => {
     const query = (promptText ?? assistantPromptInput).trim();
     if (!query) return;
+    setAssistantPromptInput('');
+
+    // Attempt real backend AI Assistant (Groq openai/gpt-oss-120b)
+    try {
+      const apiRes = await apiClient.askAssistant(query, activeConversation?.id);
+      if (apiRes && apiRes.reply) {
+        const userMsg = {
+          id: `msg-${Date.now()}-user`,
+          role: 'USER' as const,
+          content: query,
+          timestamp: new Date().toISOString(),
+        };
+        const assistantMsg = {
+          id: `msg-${Date.now()}-ast`,
+          role: 'ASSISTANT' as const,
+          content: apiRes.reply,
+          timestamp: new Date().toISOString(),
+          citations: apiRes.citations || [],
+        };
+        setState((prev) => {
+          const targetConvId = activeConversation?.id ?? 'conv-0001';
+          const convExists = prev.assistantConversations.some((c) => c.id === targetConvId);
+          const conversations = convExists
+            ? prev.assistantConversations.map((c) =>
+                c.id === targetConvId
+                  ? { ...c, messages: [...c.messages, userMsg, assistantMsg] }
+                  : c
+              )
+            : [
+                ...prev.assistantConversations,
+                {
+                  id: targetConvId,
+                  organization_id: currentOrg.id,
+                  title: query.slice(0, 32),
+                  created_at: new Date().toISOString(),
+                  messages: [userMsg, assistantMsg],
+                },
+              ];
+          const nextState = { ...prev, assistantConversations: conversations };
+          apiClient.saveWorkspaceSnapshot(nextState).catch(console.error);
+          return nextState;
+        });
+        announce(`AI Assistant responded via Groq (${apiRes.citations?.length ?? 0} citations)`);
+        return;
+      }
+    } catch {
+      // Fallback to grounded local assistant tool executor
+    }
+
     try {
       const res = sendAssistantPrompt(state, query, activeConversation?.id ?? 'conv-0001');
       setState(res.nextState);
-      setAssistantPromptInput('');
+      apiClient.saveWorkspaceSnapshot(res.nextState).catch(console.error);
       if (res.reply.blocked_reason) {
         announce('AI Security Guard blocked prompt-injection or unauthorized cross-tenant query');
       } else if (res.pendingConfirmation) {
