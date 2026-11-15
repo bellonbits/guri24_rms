@@ -310,11 +310,6 @@ impl AppConfig {
                 },
                 missing_env_vars: sms_missing,
             },
-                } else {
-                    "UNCONFIGURED (Outbox Queuing Active)".to_string()
-                },
-                missing_env_vars: sms_missing,
-            },
             IntegrationStatusItem {
                 service: "Transactional Email (SMTP)".to_string(),
                 provider: self.email_provider.clone(),
