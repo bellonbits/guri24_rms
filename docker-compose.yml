@@ -65,7 +65,7 @@ services:
     volumes:
       - backend_data:/app/data
     ports:
-      - "127.0.0.1:${RMS_BACKEND_PORT:-8085}:8085"
+      - "${RMS_BACKEND_PORT:-8085}:8085"
     depends_on:
       postgres:
         condition: service_healthy
@@ -79,7 +79,7 @@ services:
     container_name: guri24_rms_web
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${RMS_WEB_PORT:-5175}:80"
+      - "${RMS_WEB_PORT:-5175}:80"
     depends_on:
       - backend
 

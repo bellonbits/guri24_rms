@@ -363,11 +363,26 @@ export function App() {
   const [ocrDragActive, setOcrDragActive] = useState(false);
   const ocrDirectFileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // User Authentication & Session State
+  // User Authentication & Session State (Only accepts verified JWT tokens)
   const [currentUserSession, setCurrentUserSession] = useState<AuthUserSession | null>(() => {
     try {
+      if (typeof window !== 'undefined' && (window.location.search.includes('auth') || window.location.search.includes('logout'))) {
+        localStorage.removeItem('guri24_rms_auth_session');
+        localStorage.removeItem('guri24_token');
+        return null;
+      }
       const stored = localStorage.getItem('guri24_rms_auth_session');
-      return stored ? JSON.parse(stored) : null;
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Only accept real cryptographic JWT tokens (format: eyJ...)
+        if (parsed && typeof parsed.token === 'string' && parsed.token.startsWith('eyJ')) {
+          return parsed;
+        }
+      }
+      // Purge any stale legacy mock sessions
+      localStorage.removeItem('guri24_rms_auth_session');
+      localStorage.removeItem('guri24_token');
+      return null;
     } catch {
       return null;
     }
@@ -375,6 +390,7 @@ export function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('guri24_rms_auth_session');
+    localStorage.removeItem('guri24_token');
     setCurrentUserSession(null);
     announce('Logged out of Guri24 RMS');
   };
