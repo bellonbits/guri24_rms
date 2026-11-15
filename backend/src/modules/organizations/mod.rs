@@ -43,6 +43,10 @@ pub struct OrganizationSettings {
     pub default_deposit_months: Decimal,
     pub default_billing_day: u8,
     pub mpesa_paybill_shortcode: Option<String>,
+    pub mpesa_consumer_key: Option<String>,
+    pub mpesa_consumer_secret: Option<String>,
+    pub mpesa_passkey: Option<String>,
+    pub mpesa_callback_url: Option<String>,
     pub sms_notifications_enabled: bool,
     pub email_notifications_enabled: bool,
 }
@@ -61,6 +65,10 @@ impl OrganizationSettings {
             default_deposit_months: dec!(1.00),
             default_billing_day: 5,
             mpesa_paybill_shortcode: Some("4098123".to_string()),
+            mpesa_consumer_key: None,
+            mpesa_consumer_secret: None,
+            mpesa_passkey: None,
+            mpesa_callback_url: None,
             sms_notifications_enabled: true,
             email_notifications_enabled: true,
         }

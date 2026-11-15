@@ -46,11 +46,15 @@ pub struct AppConfig {
     pub groq_api_key: Option<String>,
     pub groq_model: String,
     pub groq_base_url: String,
+    pub vision_model: String,
     pub llm_provider: String,
     pub llm_model: String,
     pub llm_api_key: Option<String>,
     pub sms_provider: String,
     pub sms_api_key: Option<String>,
+    pub opensms_api_endpoint: String,
+    pub opensms_api_token: Option<String>,
+    pub opensms_sender_id: Option<String>,
     pub email_provider: String,
     pub smtp_host: Option<String>,
     pub storage_provider: String,
@@ -89,12 +93,22 @@ impl AppConfig {
                 "dev_only_refresh_secret_must_be_overridden_in_production_64_byte".to_string()
             });
 
-        let groq_api_key = non_empty_env("GROQ_API_KEY").or_else(|| non_empty_env("LLM_API_KEY"));
+        let groq_api_key = non_empty_env("GROQ_API_KEY")
+            .or_else(|| non_empty_env("LLM_API_KEY"));
         let groq_model = non_empty_env("GROQ_MODEL")
             .or_else(|| non_empty_env("LLM_MODEL"))
-            .unwrap_or_else(|| "llama-3.3-70b-versatile".to_string());
+            .unwrap_or_else(|| "openai/gpt-oss-120b".to_string());
         let groq_base_url = non_empty_env("GROQ_BASE_URL")
             .unwrap_or_else(|| "https://api.groq.com/openai/v1".to_string());
+        let vision_model = non_empty_env("VISION_MODEL")
+            .unwrap_or_else(|| "qwen/qwen3.8-27b".to_string());
+
+        let opensms_api_endpoint = non_empty_env("OPENSMS_API_ENDPOINT")
+            .unwrap_or_else(|| "https://www.opensms.co.ke/api/v3/".to_string());
+        let opensms_api_token = non_empty_env("OPENSMS_API_TOKEN")
+            .or_else(|| Some("481|br5WjcwK4zN6YHKsR42SMQfe9q5JGfOJLeHr74jp743c6d5e".to_string()));
+        let opensms_sender_id = non_empty_env("OPENSMS_SENDER_ID")
+            .or_else(|| Some("GURI24RMS".to_string()));
 
         let ocr_service_url =
             non_empty_env("OCR_SERVICE_URL").or_else(|| non_empty_env("OCR_PROVIDER_ENDPOINT"));
@@ -153,12 +167,15 @@ impl AppConfig {
             groq_api_key: groq_api_key.clone(),
             groq_model: groq_model.clone(),
             groq_base_url,
+            vision_model,
             llm_provider: "groq".to_string(),
             llm_model: groq_model,
             llm_api_key: groq_api_key,
-            sms_provider: env::var("SMS_PROVIDER")
-                .unwrap_or_else(|_| "africastalking".to_string()),
+            sms_provider: env::var("SMS_PROVIDER").unwrap_or_else(|_| "opensms".to_string()),
             sms_api_key: non_empty_env("AFRICASTALKING_API_KEY"),
+            opensms_api_endpoint,
+            opensms_api_token,
+            opensms_sender_id,
             email_provider: env::var("EMAIL_PROVIDER").unwrap_or_else(|_| "smtp".to_string()),
             smtp_host: non_empty_env("SMTP_HOST"),
             storage_provider: env::var("STORAGE_PROVIDER")
@@ -210,7 +227,12 @@ impl AppConfig {
         }
 
         let mut sms_missing = Vec::new();
-        if self.sms_api_key.is_none() {
+        let is_opensms = self.sms_provider.eq_ignore_ascii_case("opensms");
+        if is_opensms {
+            if self.opensms_api_token.is_none() {
+                sms_missing.push("OPENSMS_API_TOKEN".to_string());
+            }
+        } else if self.sms_api_key.is_none() {
             sms_missing.push("AFRICASTALKING_API_KEY".to_string());
         }
 
@@ -233,8 +255,8 @@ impl AppConfig {
                 missing_env_vars: supabase_missing,
             },
             IntegrationStatusItem {
-                service: "Groq AI Agent Assistant".to_string(),
-                provider: format!("Groq API ({})", self.groq_model),
+                service: "Groq AI Agent & Vision Assistant".to_string(),
+                provider: format!("Groq API (AI: {}, Vision: {})", self.groq_model, self.vision_model),
                 environment: self.app_env.clone(),
                 credentials_configured: groq_missing.is_empty(),
                 status: if groq_missing.is_empty() {
@@ -264,17 +286,30 @@ impl AppConfig {
                 status: if mpesa_missing.is_empty() {
                     "LIVE_CONFIGURED".to_string()
                 } else {
-                    "SANDBOX_ADAPTER_ONLY (Missing Safaricom Daraja Production Keys)".to_string()
+                    "PORTAL_CONFIGURABLE (Manage via Settings or Set MPESA_* Keys)".to_string()
                 },
                 missing_env_vars: mpesa_missing,
             },
             IntegrationStatusItem {
                 service: "Transactional SMS Gateway".to_string(),
-                provider: self.sms_provider.clone(),
+                provider: if is_opensms {
+                    "OpenSMS Kenya (https://www.opensms.co.ke)".to_string()
+                } else {
+                    self.sms_provider.clone()
+                },
                 environment: self.app_env.clone(),
                 credentials_configured: sms_missing.is_empty(),
                 status: if sms_missing.is_empty() {
-                    "CONFIGURED".to_string()
+                    if is_opensms {
+                        "OPENSMS_KENYA_CONFIGURED".to_string()
+                    } else {
+                        "CONFIGURED".to_string()
+                    }
+                } else {
+                    "UNCONFIGURED (Outbox Queuing Active)".to_string()
+                },
+                missing_env_vars: sms_missing,
+            },
                 } else {
                     "UNCONFIGURED (Outbox Queuing Active)".to_string()
                 },

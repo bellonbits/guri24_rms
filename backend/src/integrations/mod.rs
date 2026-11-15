@@ -20,7 +20,7 @@ use crate::{
         mpesa::{MpesaAdapter, SafaricomDarajaAdapter},
         ocr::OcrProvider,
         olmocr::AllenAiOlmOcrAdapter,
-        sms::{AfricasTalkingSmsAdapter, SmsAdapter},
+        sms::{AfricasTalkingSmsAdapter, OpenSmsAdapter, SmsAdapter},
         storage::StorageAdapter,
         supabase::SupabasePrivateStorageAdapter,
     },
@@ -76,10 +76,19 @@ pub struct NotificationProviderFactory;
 impl NotificationProviderFactory {
     pub fn create_sms(config: &AppConfig) -> Arc<dyn SmsAdapter> {
         let breaker = CircuitBreaker::new("sms_gateway", 3, Duration::from_secs(20));
-        Arc::new(AfricasTalkingSmsAdapter::new(
-            config.sms_provider.clone(),
-            breaker,
-        ))
+        if config.sms_provider.eq_ignore_ascii_case("opensms") || config.opensms_api_token.is_some() {
+            Arc::new(OpenSmsAdapter::new(
+                config.opensms_api_endpoint.clone(),
+                config.opensms_api_token.clone().unwrap_or_default(),
+                config.opensms_sender_id.clone(),
+                breaker,
+            ))
+        } else {
+            Arc::new(AfricasTalkingSmsAdapter::new(
+                config.sms_provider.clone(),
+                breaker,
+            ))
+        }
     }
 
     pub fn create_email(config: &AppConfig) -> Arc<dyn EmailAdapter> {
