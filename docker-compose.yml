@@ -55,11 +55,11 @@ services:
     container_name: guri24_rms_backend
     restart: unless-stopped
     env_file:
-      - .env.example
+      - .env
     environment:
       APP_PORT: 8085
-      SUPABASE_DATABASE_URL: postgres://${POSTGRES_USER:-rms_user}:${POSTGRES_PASSWORD:-rms_password_dev_only}@postgres:5432/${POSTGRES_DB:-guri24_rms}
-      DATABASE_URL: postgres://${POSTGRES_USER:-rms_user}:${POSTGRES_PASSWORD:-rms_password_dev_only}@postgres:5432/${POSTGRES_DB:-guri24_rms}
+      SUPABASE_DATABASE_URL: ${SUPABASE_DATABASE_URL:-postgres://${POSTGRES_USER:-rms_user}:${POSTGRES_PASSWORD:-rms_password_dev_only}@postgres:5432/${POSTGRES_DB:-guri24_rms}}
+      DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:-rms_user}:${POSTGRES_PASSWORD:-rms_password_dev_only}@postgres:5432/${POSTGRES_DB:-guri24_rms}}
       REDIS_URL: redis://redis:6379/0
       S3_ENDPOINT: http://minio:9000
     volumes:

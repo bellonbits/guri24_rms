@@ -140,21 +140,6 @@ const MAIN_MENU_ITEMS: {
   { id: 'settings', label: 'Settings & Portal', icon: <Settings size={16} aria-hidden="true" /> },
 ];
 
-const MONTHLY_CHART_DATA = [
-  { month: 'Jan', count: 84, revenueKes: 640000 },
-  { month: 'Feb', count: 102, revenueKes: 720000 },
-  { month: 'Mar', count: 118, revenueKes: 810000 },
-  { month: 'Apr', count: 146, revenueKes: 935000 },
-  { month: 'May', count: 168, revenueKes: 1090000 },
-  { month: 'Jun', count: 212, revenueKes: 1284500 },
-  { month: 'Jul', count: 142, revenueKes: 920000 },
-  { month: 'Aug', count: 114, revenueKes: 790000 },
-  { month: 'Sep', count: 164, revenueKes: 1050000 },
-  { month: 'Oct', count: 186, revenueKes: 1190000 },
-  { month: 'Nov', count: 148, revenueKes: 980000 },
-  { month: 'Dec', count: 121, revenueKes: 845000 },
-];
-
 const ROLES_LIST: SystemRole[] = [
   'SAAS_SUPER_ADMINISTRATOR',
   'ORGANIZATION_ADMINISTRATOR',
@@ -412,14 +397,14 @@ export function App() {
   const kpis = useMemo(() => {
     const totalUnits = orgUnits.length;
     const occupiedUnits = orgUnits.filter((u) => u.status === 'OCCUPIED').length;
-    const vacantUnits = orgUnits.filter((u) => u.status === 'VACANT').length;
-    const billedKes = orgInvoices.reduce((acc, i) => acc + i.total_amount_kes, 0);
+    const vacantUnits = orgUnits.filter((u) => u.status === 'VACANT' || u.status === 'VACANT_AVAILABLE').length;
+    const billedKes = orgInvoices.reduce((acc, i) => acc + (i.total_amount_kes || 0), 0);
     const collectedKes = orgPayments
-      .filter((p) => p.status === 'COMPLETED')
-      .reduce((acc, p) => acc + p.allocated_amount_kes, 0);
-    const arrearsKes = orgInvoices.reduce((acc, i) => acc + i.balance_kes, 0);
+      .filter((p) => p.status === 'COMPLETED' || p.status === 'CONFIRMED' || !p.status)
+      .reduce((acc, p) => acc + (p.allocated_amount_kes || p.amount_kes || 0), 0);
+    const arrearsKes = orgInvoices.reduce((acc, i) => acc + (i.balance_kes || 0), 0);
     const depositsLiabilityKes = orgDeposits.reduce(
-      (acc, d) => acc + d.current_liability_balance_kes,
+      (acc, d) => acc + (d.current_liability_balance_kes || 0),
       0
     );
     const openMaintenance = orgMaintenance.filter(
@@ -437,6 +422,50 @@ export function App() {
       openMaintenance,
     };
   }, [orgUnits, orgInvoices, orgPayments, orgDeposits, orgMaintenance]);
+
+  const monthlyChartData = useMemo(() => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months.map((m, idx) => {
+      const monthPrefix = `2026-${String(idx + 1).padStart(2, '0')}`;
+      const invoices = orgInvoices.filter(
+        (i) => i.billing_period?.startsWith(monthPrefix) || i.due_date?.startsWith(monthPrefix)
+      );
+      const payments = orgPayments.filter((p) => p.payment_date?.startsWith(monthPrefix));
+      const revenue = payments.reduce((acc, p) => acc + (p.allocated_amount_kes || p.amount_kes || 0), 0);
+      return {
+        month: m,
+        count: invoices.length,
+        revenueKes: revenue,
+      };
+    });
+  }, [orgInvoices, orgPayments]);
+
+  const maxChartCount = useMemo(() => {
+    const maxVal = Math.max(...monthlyChartData.map((d) => d.count), 1);
+    return maxVal;
+  }, [monthlyChartData]);
+
+  const unitTypePerformance = useMemo(() => {
+    if (orgUnits.length === 0) return [];
+    const map = new Map<string, { count: number; totalRent: number }>();
+    orgUnits.forEach((u) => {
+      const label = formatUnitTypeLabel(u.unit_type, u.bedrooms);
+      const cur = map.get(label) || { count: 0, totalRent: 0 };
+      map.set(label, {
+        count: cur.count + 1,
+        totalRent: cur.totalRent + (u.monthly_rent_kes || 0),
+      });
+    });
+    const totalRent = Array.from(map.values()).reduce((acc, v) => acc + v.totalRent, 0);
+    const colors = ['#2563eb', '#0d9488', '#10b981', '#38bdf8', '#f59e0b', '#8b5cf6'];
+    return Array.from(map.entries()).map(([label, val], idx) => ({
+      label,
+      totalRent: val.totalRent,
+      count: val.count,
+      color: colors[idx % colors.length],
+      percentage: totalRent > 0 ? Math.round((val.totalRent / totalRent) * 100) : 0,
+    }));
+  }, [orgUnits]);
 
   // Forms State
   const [onboardForm, setOnboardForm] = useState({
@@ -861,7 +890,7 @@ export function App() {
           <CircleDollarSign size={15} color="#4b5563" aria-hidden="true" />
           <span>Total Revenue</span>
         </div>
-        <div className="kpi-value">{formatKes(kpis.collectedKes || 1284500)}</div>
+        <div className="kpi-value">{formatKes(kpis.collectedKes)}</div>
         <div className="kpi-trend-row">
           <span className="trend-up" style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
             <ArrowUpRight size={13} aria-hidden="true" />
@@ -1186,25 +1215,28 @@ export function App() {
                         lineHeight: 1.15,
                       }}
                     >
-                      1,285
+                      {orgLeases.length}
                     </div>
                     <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBlockStart: '2px' }}>
-                      Total Lease Bookings & Renewals
+                      Active Leases in Portfolio
                     </div>
                   </div>
 
                   <div className="bar-chart-stage" role="img" aria-label="Monthly lease bookings chart">
                     <div className="bar-y-axis" aria-hidden="true">
-                      <span>800</span>
-                      <span>600</span>
-                      <span>400</span>
-                      <span>200</span>
+                      <span>{maxChartCount}</span>
+                      <span>{Math.round(maxChartCount * 0.75)}</span>
+                      <span>{Math.round(maxChartCount * 0.5)}</span>
+                      <span>{Math.round(maxChartCount * 0.25)}</span>
                       <span>0</span>
                     </div>
                     <div className="bar-columns">
-                      {MONTHLY_CHART_DATA.map((item) => {
+                      {monthlyChartData.map((item) => {
                         const isSelected = item.month === selectedMonth;
-                        const heightPct = Math.round((item.count / 240) * 100);
+                        const hasActivity = monthlyChartData.some((d) => d.count > 0);
+                        const heightPct = hasActivity
+                          ? Math.max(8, Math.round((item.count / maxChartCount) * 100))
+                          : 8;
                         return (
                           <div
                             key={item.month}
@@ -1212,7 +1244,7 @@ export function App() {
                             onClick={() => setSelectedMonth(item.month)}
                             role="button"
                             tabIndex={0}
-                            aria-label={`${item.month}: ${item.count} leases`}
+                            aria-label={`${item.month}: ${item.count} invoices, ${formatKes(item.revenueKes)}`}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
@@ -1221,7 +1253,9 @@ export function App() {
                             }}
                           >
                             {isSelected && (
-                              <div className="bar-tooltip">{item.count} leases</div>
+                              <div className="bar-tooltip">
+                                {item.count} inv • {formatKes(item.revenueKes)}
+                              </div>
                             )}
                             <div
                               className={`bar-pill ${isSelected ? 'bar-pill-active' : ''}`}
@@ -1479,7 +1513,7 @@ export function App() {
 
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '1.4rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-                      {formatKes(kpis.billedKes || 1284500)}
+                      {formatKes(kpis.billedKes)}
                     </span>
                     <span
                       className="trend-up"
@@ -1498,56 +1532,37 @@ export function App() {
                   </div>
 
                   <SegmentedTickBar
-                    segments={[
-                      { percentage: 38, color: '#2563eb' },
-                      { percentage: 28, color: '#0d9488' },
-                      { percentage: 20, color: '#10b981' },
-                      { percentage: 9, color: '#38bdf8' },
-                      { percentage: 5, color: '#f59e0b' },
-                    ]}
+                    segments={
+                      unitTypePerformance.length > 0
+                        ? unitTypePerformance.map((p) => ({
+                            percentage: p.percentage,
+                            color: p.color,
+                          }))
+                        : [{ percentage: 100, color: 'var(--border-subtle)' }]
+                    }
                   />
 
                   <div className="legend-list">
-                    <div className="legend-row">
-                      <span className="legend-label">
-                        <span className="legend-dot" style={{ background: '#2563eb' }} />
-                        <span>2 Bedroom Units</span>
-                      </span>
-                      <strong className="cell-nowrap" style={{ fontWeight: 600 }}>KES 488,100</strong>
-                      <span className="cell-nowrap" style={{ color: 'var(--text-muted)', textAlign: 'end' }}>38%</span>
-                    </div>
-                    <div className="legend-row">
-                      <span className="legend-label">
-                        <span className="legend-dot" style={{ background: '#0d9488' }} />
-                        <span>3 Bedroom Units</span>
-                      </span>
-                      <strong className="cell-nowrap" style={{ fontWeight: 600 }}>KES 359,660</strong>
-                      <span className="cell-nowrap" style={{ color: 'var(--text-muted)', textAlign: 'end' }}>28%</span>
-                    </div>
-                    <div className="legend-row">
-                      <span className="legend-label">
-                        <span className="legend-dot" style={{ background: '#10b981' }} />
-                        <span>1 Bedroom Suites</span>
-                      </span>
-                      <strong className="cell-nowrap" style={{ fontWeight: 600 }}>KES 256,900</strong>
-                      <span className="cell-nowrap" style={{ color: 'var(--text-muted)', textAlign: 'end' }}>20%</span>
-                    </div>
-                    <div className="legend-row">
-                      <span className="legend-label">
-                        <span className="legend-dot" style={{ background: '#38bdf8' }} />
-                        <span>Executive Duplex</span>
-                      </span>
-                      <strong className="cell-nowrap" style={{ fontWeight: 600 }}>KES 115,600</strong>
-                      <span className="cell-nowrap" style={{ color: 'var(--text-muted)', textAlign: 'end' }}>9%</span>
-                    </div>
-                    <div className="legend-row">
-                      <span className="legend-label">
-                        <span className="legend-dot" style={{ background: '#f59e0b' }} />
-                        <span>Studio / Bedsitter</span>
-                      </span>
-                      <strong className="cell-nowrap" style={{ fontWeight: 600 }}>KES 64,240</strong>
-                      <span className="cell-nowrap" style={{ color: 'var(--text-muted)', textAlign: 'end' }}>5%</span>
-                    </div>
+                    {unitTypePerformance.length === 0 ? (
+                      <div style={{ padding: '16px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                        No unit inventory to display breakdown
+                      </div>
+                    ) : (
+                      unitTypePerformance.map((item) => (
+                        <div key={item.label} className="legend-row">
+                          <span className="legend-label">
+                            <span className="legend-dot" style={{ background: item.color }} />
+                            <span>{item.label}</span>
+                          </span>
+                          <strong className="cell-nowrap" style={{ fontWeight: 600 }}>
+                            {formatKes(item.totalRent)}
+                          </strong>
+                          <span className="cell-nowrap" style={{ color: 'var(--text-muted)', textAlign: 'end' }}>
+                            {item.percentage}%
+                          </span>
+                        </div>
+                      ))
+                    )}
                   </div>
 
                   <div
