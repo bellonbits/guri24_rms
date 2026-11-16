@@ -15,22 +15,22 @@ export const RowErrorViewer: React.FC<RowErrorViewerProps> = ({ errors, onSelect
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px',
+        gap: '10px',
         maxHeight: '260px',
         overflowY: 'auto',
-        padding: '12px',
-        background: 'rgba(239, 68, 68, 0.05)',
-        border: '1px solid rgba(239, 68, 68, 0.25)',
+        padding: '14px 16px',
+        background: '#FEF2F2',
+        border: '1px solid #FECACA',
         borderRadius: '10px',
-        marginBlock: '10px 14px',
+        marginBlock: '8px 12px',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', fontWeight: 700, color: '#f87171' }}>
-        <AlertCircle size={15} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.84rem', fontWeight: 700, color: '#DC2626' }}>
+        <AlertCircle size={16} />
         <span>Validation Issues Found ({errors.length})</span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {errors.map((err, idx) => (
           <div
             key={idx}
@@ -40,33 +40,33 @@ export const RowErrorViewer: React.FC<RowErrorViewerProps> = ({ errors, onSelect
               alignItems: 'flex-start',
               justifyContent: 'space-between',
               gap: '12px',
-              padding: '8px 10px',
-              background: '#1e293b',
-              border: '1px solid #334155',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
+              padding: '10px 12px',
+              background: '#FFFFFF',
+              border: '1px solid #FCA5A5',
+              borderRadius: '8px',
+              fontSize: '0.8rem',
               cursor: onSelectRow ? 'pointer' : 'default',
             }}
           >
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontWeight: 700, color: '#f8fafc', background: '#334155', padding: '1px 6px', borderRadius: '4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontWeight: 700, color: '#0F172A', background: '#F1F5F9', padding: '2px 8px', borderRadius: '4px', fontSize: '0.74rem' }}>
                   Row {err.rowIndex}
                 </span>
-                <span style={{ color: '#93c5fd', fontWeight: 600 }}>{err.field}</span>
-                <span style={{ color: '#f87171' }}>• {err.errorMessage}</span>
+                <span style={{ color: '#2563EB', fontWeight: 600 }}>{err.field}</span>
+                <span style={{ color: '#DC2626', fontWeight: 500 }}>• {err.errorMessage}</span>
               </div>
               {err.suggestion && (
-                <div style={{ color: '#94a3b8', fontSize: '0.73rem', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <HelpCircle size={12} color="#38bdf8" />
+                <div style={{ color: '#64748B', fontSize: '0.75rem', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <HelpCircle size={13} color="#2563EB" />
                   <span>Fix suggestion: {err.suggestion}</span>
                 </div>
               )}
             </div>
 
             {onSelectRow && (
-              <span style={{ color: '#38bdf8', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                Inspect <ArrowRight size={11} />
+              <span style={{ color: '#2563EB', fontSize: '0.74rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '3px' }}>
+                Inspect <ArrowRight size={12} />
               </span>
             )}
           </div>

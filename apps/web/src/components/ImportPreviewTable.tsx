@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle2, AlertCircle, AlertTriangle, Eye, EyeOff } from 'lucide-react';
+import { CheckCircle2, AlertCircle, AlertTriangle } from 'lucide-react';
 import { FieldDefinition, PreviewRow } from '../lib/importEngine';
 
 interface ImportPreviewTableProps {
@@ -23,7 +23,7 @@ export const ImportPreviewTable: React.FC<ImportPreviewTableProps> = ({
   const displayedRows = filteredRows.slice(0, maxDisplay);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       {/* Filter tabs */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', gap: '6px' }}>
@@ -33,14 +33,15 @@ export const ImportPreviewTable: React.FC<ImportPreviewTableProps> = ({
               type="button"
               onClick={() => setFilter(tab)}
               style={{
-                background: filter === tab ? '#2563eb' : '#1e293b',
-                color: filter === tab ? '#ffffff' : '#94a3b8',
-                border: 'none',
+                background: filter === tab ? '#2563eb' : '#f1f5f9',
+                color: filter === tab ? '#ffffff' : '#475569',
+                border: filter === tab ? '1px solid #2563eb' : '1px solid #e2e8f0',
                 borderRadius: '6px',
-                padding: '4px 10px',
+                padding: '5px 12px',
                 fontSize: '0.74rem',
                 fontWeight: 600,
                 cursor: 'pointer',
+                transition: 'all 0.15s ease',
               }}
             >
               {tab === 'ALL' ? `All (${rows.length})` : tab === 'VALID' ? `Valid (${rows.filter((r) => r.status === 'VALID').length})` : `Issues (${rows.filter((r) => r.status !== 'VALID').length})`}
@@ -48,28 +49,29 @@ export const ImportPreviewTable: React.FC<ImportPreviewTableProps> = ({
           ))}
         </div>
 
-        <div style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
-          Showing {displayedRows.length} of {filteredRows.length} rows
+        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+          Showing <strong>{displayedRows.length}</strong> of {filteredRows.length} rows
         </div>
       </div>
 
       <div
         style={{
-          border: '1px solid var(--border-subtle, #243656)',
+          border: '1px solid #e2e8f0',
           borderRadius: '10px',
           overflow: 'auto',
-          maxHeight: '320px',
-          background: '#0b1320',
+          maxHeight: '340px',
+          background: '#ffffff',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
         }}
       >
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
           <thead>
-            <tr style={{ background: '#111c2e', borderBottom: '1px solid #243656', position: 'sticky', top: 0, zIndex: 2 }}>
-              <th style={{ padding: '8px 10px', textAlign: 'center', width: '50px', color: '#94a3b8' }}>#</th>
-              <th style={{ padding: '8px 10px', textAlign: 'left', width: '90px', color: '#94a3b8' }}>Status</th>
+            <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', position: 'sticky', top: 0, zIndex: 2 }}>
+              <th style={{ padding: '9px 10px', textAlign: 'center', width: '50px', color: '#64748b', fontWeight: 600 }}>#</th>
+              <th style={{ padding: '9px 10px', textAlign: 'left', width: '90px', color: '#64748b', fontWeight: 600 }}>Status</th>
               {fields.map((f) => (
-                <th key={f.key} style={{ padding: '8px 12px', textAlign: 'left', color: '#f8fafc', whiteSpace: 'nowrap' }}>
-                  {f.label} {f.required && <span style={{ color: '#ef4444' }}>*</span>}
+                <th key={f.key} style={{ padding: '9px 12px', textAlign: 'left', color: '#0f172a', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  {f.label} {f.required && <span style={{ color: '#dc2626' }}>*</span>}
                 </th>
               ))}
             </tr>
@@ -77,7 +79,7 @@ export const ImportPreviewTable: React.FC<ImportPreviewTableProps> = ({
           <tbody>
             {displayedRows.length === 0 ? (
               <tr>
-                <td colSpan={fields.length + 2} style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+                <td colSpan={fields.length + 2} style={{ textAlign: 'center', padding: '28px', color: '#64748b' }}>
                   No rows matching the current filter.
                 </td>
               </tr>
@@ -88,8 +90,8 @@ export const ImportPreviewTable: React.FC<ImportPreviewTableProps> = ({
                   <tr
                     key={row.rowIndex}
                     style={{
-                      borderBottom: '1px solid #1e293b',
-                      background: isInvalid ? 'rgba(239, 68, 68, 0.04)' : 'transparent',
+                      borderBottom: '1px solid #f1f5f9',
+                      background: isInvalid ? '#fff5f5' : '#ffffff',
                     }}
                   >
                     <td style={{ padding: '8px 10px', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>
@@ -102,9 +104,9 @@ export const ImportPreviewTable: React.FC<ImportPreviewTableProps> = ({
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
-                            background: 'rgba(34, 197, 94, 0.15)',
-                            color: '#4ade80',
-                            padding: '2px 6px',
+                            background: '#dcfce7',
+                            color: '#16a34a',
+                            padding: '2px 7px',
                             borderRadius: '4px',
                             fontSize: '0.7rem',
                             fontWeight: 700,
@@ -118,9 +120,9 @@ export const ImportPreviewTable: React.FC<ImportPreviewTableProps> = ({
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
-                            background: 'rgba(245, 158, 11, 0.15)',
-                            color: '#fbbf24',
-                            padding: '2px 6px',
+                            background: '#fef3c7',
+                            color: '#d97706',
+                            padding: '2px 7px',
                             borderRadius: '4px',
                             fontSize: '0.7rem',
                             fontWeight: 700,
@@ -134,9 +136,9 @@ export const ImportPreviewTable: React.FC<ImportPreviewTableProps> = ({
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: '4px',
-                            background: 'rgba(239, 68, 68, 0.15)',
-                            color: '#f87171',
-                            padding: '2px 6px',
+                            background: '#fee2e2',
+                            color: '#dc2626',
+                            padding: '2px 7px',
                             borderRadius: '4px',
                             fontSize: '0.7rem',
                             fontWeight: 700,
@@ -157,12 +159,12 @@ export const ImportPreviewTable: React.FC<ImportPreviewTableProps> = ({
                           key={f.key}
                           style={{
                             padding: '8px 12px',
-                            color: hasError ? '#f87171' : str ? '#e2e8f0' : '#64748b',
-                            background: hasError ? 'rgba(239, 68, 68, 0.1)' : 'transparent',
+                            color: hasError ? '#dc2626' : str ? '#0f172a' : '#94a3b8',
+                            background: hasError ? '#fef2f2' : 'transparent',
                             whiteSpace: 'nowrap',
                           }}
                         >
-                          {str || <span style={{ fontStyle: 'italic', color: '#475569' }}>empty</span>}
+                          {str || <span style={{ fontStyle: 'italic', color: '#94a3b8' }}>empty</span>}
                         </td>
                       );
                     })}

@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useRef } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalDialogProps {
@@ -217,55 +217,121 @@ export function SegmentedTickBar({
   );
 }
 
+interface FeaturedPropertyPhotoProps {
+  imageUrl?: string;
+  altText?: string;
+  propertyName?: string;
+  isRepresentative?: boolean;
+}
+
 /**
- * Clean architectural illustration for the Featured Property / Unit card
+ * High-quality architectural photograph for the Featured Property / Unit card
+ * Supports responsive image formats (WebP, JPG), skeleton loading shimmer,
+ * accessible alt text, and graceful SVG fallback.
  */
-export function FeaturedPropertyIllustration() {
+export function FeaturedPropertyIllustration({
+  imageUrl = '/featured_nairobi_apartment.webp',
+  altText = 'Contemporary residential apartment building in Nairobi, Kenya featuring modern balconies and tropical landscaping',
+  propertyName,
+  isRepresentative = true,
+}: FeaturedPropertyPhotoProps = {}) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
   return (
-    <div className="featured-stage" aria-hidden="true">
-      <svg
-        viewBox="0 0 320 135"
-        width="100%"
-        height="125"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* Soft ground shadow */}
-        <ellipse cx="160" cy="122" rx="126" ry="8" fill="#CBD5E1" fillOpacity="0.55" />
-        {/* Left Wing */}
-        <rect x="44" y="38" width="68" height="82" rx="6" fill="#E2E8F0" stroke="#94A3B8" strokeWidth="1.5" />
-        {/* Center Main Luxury Tower */}
-        <rect x="104" y="16" width="112" height="104" rx="8" fill="#FFFFFF" stroke="#475569" strokeWidth="2" />
-        {/* Right Wing */}
-        <rect x="208" y="44" width="68" height="76" rx="6" fill="#F1F5F9" stroke="#94A3B8" strokeWidth="1.5" />
-        {/* Roofline Accent */}
-        <rect x="98" y="12" width="124" height="7" rx="3.5" fill="#1E293B" />
-        {/* Panoramic Glass Balconies on Center Tower */}
-        {[28, 50, 72].map((y) => (
-          <g key={y}>
-            <rect x="116" y={y} width="38" height="14" rx="3" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="1.2" />
-            <rect x="164" y={y} width="38" height="14" rx="3" fill="#DBEAFE" stroke="#3B82F6" strokeWidth="1.2" />
-            <line x1="114" y1={y + 14} x2="204" y2={y + 14} stroke="#64748B" strokeWidth="1.5" />
-          </g>
-        ))}
-        {/* Left & Right Wing Windows */}
-        {[50, 70, 90].map((y) => (
-          <g key={`w-${y}`}>
-            <rect x="56" y={y} width="16" height="11" rx="2" fill="#F8FAFC" stroke="#64748B" strokeWidth="1.2" />
-            <rect x="78" y={y} width="16" height="11" rx="2" fill="#F8FAFC" stroke="#64748B" strokeWidth="1.2" />
-            <rect x="224" y={y + 4} width="16" height="10" rx="2" fill="#FFFFFF" stroke="#64748B" strokeWidth="1.2" />
-            <rect x="246" y={y + 4} width="16" height="10" rx="2" fill="#FFFFFF" stroke="#64748B" strokeWidth="1.2" />
-          </g>
-        ))}
-        {/* Grand Entrance Canopy */}
-        <rect x="136" y="96" width="48" height="24" rx="4" fill="#1E293B" />
-        <rect x="146" y="101" width="28" height="19" rx="2" fill="#38BDF8" fillOpacity="0.35" />
-        {/* Palm / Landscaping Accents */}
-        <circle cx="38" cy="106" r="10" fill="#10B981" fillOpacity="0.25" />
-        <circle cx="38" cy="106" r="5" fill="#059669" />
-        <circle cx="282" cy="108" r="9" fill="#10B981" fillOpacity="0.25" />
-        <circle cx="282" cy="108" r="4.5" fill="#059669" />
-      </svg>
+    <div
+      className="featured-stage"
+      style={{
+        position: 'relative',
+        width: '100%',
+        minHeight: '150px',
+        maxHeight: '210px',
+        aspectRatio: '16 / 9',
+        borderRadius: '14px',
+        overflow: 'hidden',
+        background: '#f1f5f9',
+        border: '1px solid #e2e8f0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBlock: '6px 10px',
+      }}
+    >
+      {/* Loading Shimmer Skeleton */}
+      {!imageLoaded && !hasError && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 1.6s infinite',
+          }}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* High-quality architectural photo with WebP/JPG fallback */}
+      {!hasError ? (
+        <picture style={{ width: '100%', height: '100%' }}>
+          <source srcSet="/featured_nairobi_apartment.webp" type="image/webp" />
+          <img
+            src={imageUrl || '/featured_nairobi_apartment.jpg'}
+            alt={altText}
+            loading="lazy"
+            decoding="async"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => {
+              setHasError(true);
+              setImageLoaded(true);
+            }}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center 40%',
+              display: 'block',
+              transition: 'opacity 0.3s ease-in-out',
+              opacity: imageLoaded ? 1 : 0,
+            }}
+          />
+        </picture>
+      ) : (
+        /* Graceful SVG fallback in case image fails to load */
+        <svg
+          viewBox="0 0 320 135"
+          width="100%"
+          height="125"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <ellipse cx="160" cy="122" rx="126" ry="8" fill="#CBD5E1" fillOpacity="0.55" />
+          <rect x="104" y="16" width="112" height="104" rx="8" fill="#FFFFFF" stroke="#475569" strokeWidth="2" />
+          <rect x="98" y="12" width="124" height="7" rx="3.5" fill="#1E293B" />
+        </svg>
+      )}
+
+      {/* Representative portfolio label badge */}
+      {isRepresentative && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '8px',
+            right: '8px',
+            background: 'rgba(15, 23, 42, 0.72)',
+            backdropFilter: 'blur(6px)',
+            color: '#ffffff',
+            fontSize: '0.68rem',
+            fontWeight: 600,
+            padding: '3px 8px',
+            borderRadius: '6px',
+            letterSpacing: '0.02em',
+            pointerEvents: 'none',
+          }}
+        >
+          Illustrative Portfolio Model
+        </div>
+      )}
     </div>
   );
 }

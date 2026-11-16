@@ -116,6 +116,8 @@ import {
   MODULE_TEMPLATES,
   exportRowsToCsv,
 } from './lib/importEngine';
+import { FullPageAssistant } from './components/FullPageAssistant';
+import { FinancialOperationsWorkspace } from './components/FinancialOperationsWorkspace';
 
 export type NavSection =
   | 'dashboard'
@@ -2165,7 +2167,7 @@ export function App() {
 
                   <div>
                     <div style={{ fontSize: '1.02rem', fontWeight: 700, lineHeight: 1.25 }}>
-                      {featuredProperty?.name || (orgProperties.length > 0 ? orgProperties[0].name : 'No Properties Registered')}
+                      {featuredProperty ? featuredProperty.name : 'No Properties Registered'}
                     </div>
                     <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBlockStart: '2px' }}>
                       {featuredProperty
@@ -2174,24 +2176,27 @@ export function App() {
                     </div>
                   </div>
 
-                  <FeaturedPropertyIllustration />
+                  <FeaturedPropertyIllustration
+                    isRepresentative={!featuredProperty}
+                    propertyName={featuredProperty?.name}
+                  />
 
                   <div className="spec-pills-row">
-                    <span className="spec-pill">
+                    <span className="spec-pill" title={featuredProperty ? 'Bedrooms' : 'Illustrative specification'}>
                       <BedDouble size={13} color="#4b5563" aria-hidden="true" />
-                      <span>2–3 Beds</span>
+                      <span>{featuredProperty ? '2–3 Beds' : 'e.g. 2–3 Beds'}</span>
                     </span>
-                    <span className="spec-pill">
+                    <span className="spec-pill" title={featuredProperty ? 'Power Backup' : 'Illustrative specification'}>
                       <Zap size={13} color="#4b5563" aria-hidden="true" />
-                      <span>Backup Gen</span>
+                      <span>{featuredProperty ? 'Backup Gen' : 'e.g. Backup Gen'}</span>
                     </span>
-                    <span className="spec-pill">
+                    <span className="spec-pill" title={featuredProperty ? 'Water Source' : 'Illustrative specification'}>
                       <Droplets size={13} color="#4b5563" aria-hidden="true" />
-                      <span>Borehole</span>
+                      <span>{featuredProperty ? 'Borehole' : 'e.g. Borehole'}</span>
                     </span>
-                    <span className="spec-pill">
+                    <span className="spec-pill" title={featuredProperty ? 'Security' : 'Illustrative specification'}>
                       <ShieldCheck size={13} color="#4b5563" aria-hidden="true" />
-                      <span>24/7 CCTV</span>
+                      <span>{featuredProperty ? '24/7 CCTV' : 'e.g. 24/7 CCTV'}</span>
                     </span>
                   </div>
 
@@ -2728,97 +2733,78 @@ export function App() {
               PAGE 5: PAYMENTS & M-PESA DARAJA RECONCILIATION
              ================================================================= */}
           {activeNav === 'payments' && (
-            <div className="stack-column">
-              <section className="surface-card">
-                <div className="card-header">
-                  <div className="card-title-group">
-                    <CreditCard size={17} color="#4b5563" aria-hidden="true" />
-                    <h2>M-Pesa Daraja Payments & FIFO Allocations</h2>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                    <button
-                      type="button"
-                      className="btn-outline"
-                      onClick={() => setIsInvoiceModalOpen(true)}
-                      title="Generate recurring monthly invoice"
-                    >
-                      Generate Invoice
-                    </button>
-                    <ModuleActionToolbar
-                      moduleKey="payments"
-                      addNewLabel="Record Payment"
-                      onAddNew={() => setIsMpesaModalOpen(true)}
-                      onOpenImport={setImportWizardModule}
-                      onOpenBulkGrid={setBulkGridModule}
-                      onOpenScanner={setScannerModule}
-                      scannerLabel="Scan Receipt / QR"
-                      onExportCsv={handleExportModuleCsv}
-                      onOpenHistory={() => setIsImportHistoryOpen(true)}
-                    />
-                  </div>
-                </div>
-
-                <ResponsiveTable
-                  caption="Verified M-Pesa payments and invoice allocations"
-                  headers={['Receipt #', 'M-Pesa Code', 'Payer MSISDN', 'Amount', 'Allocated Invoices', 'Status']}
-                >
-                  {orgPayments.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
-                        No payment transactions recorded yet. Payments processed via M-Pesa or bank transfer will appear here.
-                      </td>
-                    </tr>
-                  ) : (
-                    orgPayments.map((p) => (
-                      <tr key={p.id}>
-                        <td className="cell-code">{p.receipt_number}</td>
-                        <td className="cell-mono" style={{ fontWeight: 700 }}>
-                          {p.mpesa_receipt_number}
-                        </td>
-                        <td className="cell-mono">{p.payer_phone}</td>
-                        <td className="cell-currency">{formatKes(p.amount_kes)}</td>
-                        <td>
-                          <div className="meter-stack">
-                            {p.allocations.map((a) => (
-                              <span key={a.invoice_id} className="meter-chip">
-                                {a.invoice_number}: {formatKes(a.allocated_amount_kes)} (Bal: {formatKes(a.remaining_invoice_balance_kes)})
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="cell-nowrap">
-                          <StatusBadge status="Confirmed" tone="success" />
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </ResponsiveTable>
-              </section>
-
-              <section className="surface-card">
-                <div className="card-header">
-                  <div className="card-title-group">
-                    <Wallet size={17} color="#4b5563" aria-hidden="true" />
-                    <h2>Daraja Gateway Status</h2>
-                  </div>
-                  <StatusBadge status="Circuit Closed" tone="success" />
-                </div>
-                <div className="secondary-cards-grid">
-                  <div className="stat-kv-row">
-                    <span>Paybill Shortcode</span>
-                    <span className="stat-kv-val">{currentOrg.mpesa_paybill_shortcode}</span>
-                  </div>
-                  <div className="stat-kv-row">
-                    <span>Allocation Strategy</span>
-                    <span className="stat-kv-val">FIFO Oldest First</span>
-                  </div>
-                  <div className="stat-kv-row">
-                    <span>Webhook Verification</span>
-                    <span className="stat-kv-val">HMAC-SHA256</span>
-                  </div>
-                </div>
-              </section>
-            </div>
+            <FinancialOperationsWorkspace
+              currentOrg={currentOrg}
+              userRole={currentUserRole}
+              properties={orgProperties}
+              tenants={orgTenants}
+              leases={orgLeases}
+              invoices={orgInvoices}
+              payments={orgPayments}
+              deposits={orgDeposits}
+              journals={orgJournals}
+              onInitiatePayment={async (cmd) => {
+                const res = await apiClient.initiateMpesaPayment(cmd);
+                loadWorkspaceSnapshot();
+                return res;
+              }}
+              onAllocatePayment={async (paymentId, allocations) => {
+                setState((prev) => {
+                  let totalAllocated = 0;
+                  const nextInvoices = prev.invoices.map((inv) => {
+                    const match = allocations.find((a) => a.invoice_id === inv.id);
+                    if (match) {
+                      const newPaid = Math.min(inv.total_amount_kes, inv.amount_paid_kes + match.amount_kes);
+                      const newBal = Math.max(0, inv.total_amount_kes - newPaid);
+                      totalAllocated += match.amount_kes;
+                      return {
+                        ...inv,
+                        amount_paid_kes: newPaid,
+                        balance_kes: newBal,
+                        status: newBal === 0 ? 'PAID' : 'PARTIALLY_PAID',
+                      };
+                    }
+                    return inv;
+                  });
+                  const nextPayments = prev.payments.map((p) => {
+                    if (p.id === paymentId) {
+                      const newAlloc = p.allocated_amount_kes + totalAllocated;
+                      const newUnalloc = Math.max(0, p.amount_kes - newAlloc);
+                      return {
+                        ...p,
+                        allocated_amount_kes: newAlloc,
+                        unallocated_amount_kes: newUnalloc,
+                      };
+                    }
+                    return p;
+                  });
+                  const nextState = { ...prev, invoices: nextInvoices, payments: nextPayments };
+                  apiClient.saveWorkspaceSnapshot(nextState).catch(console.error);
+                  return nextState;
+                });
+              }}
+              onRefundDeposit={async (leaseId, amount, reason) => {
+                setState((prev) => {
+                  const nextDeposits = prev.deposits.map((d) => {
+                    if (d.lease_id === leaseId) {
+                      const newRefunded = d.refunded_amount_kes + amount;
+                      const newLiability = Math.max(0, d.current_liability_balance_kes - amount);
+                      return {
+                        ...d,
+                        refunded_amount_kes: newRefunded,
+                        current_liability_balance_kes: newLiability,
+                        status: newLiability === 0 ? 'REFUNDED' : 'PARTIALLY_DEDUCTED',
+                      };
+                    }
+                    return d;
+                  });
+                  const nextState = { ...prev, deposits: nextDeposits };
+                  apiClient.saveWorkspaceSnapshot(nextState).catch(console.error);
+                  return nextState;
+                });
+              }}
+              onRefresh={loadWorkspaceSnapshot}
+            />
           )}
 
           {/* =================================================================
@@ -3435,790 +3421,35 @@ export function App() {
           )}
 
           {/* =================================================================
-              PAGE 9: GROUNDED AI AGENT ASSISTANT & OCR DOCUMENT INTELLIGENCE
+              PAGE 7: FULL-PAGE AI ASSISTANT INTELLIGENCE WORKSPACE
              ================================================================= */}
           {activeNav === 'assistant' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* AI Intelligence Workbench Header */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  background: '#ffffff',
-                  padding: '10px 16px',
-                  borderRadius: '14px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Bot size={18} color="#2563eb" />
-                  <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0f172a' }}>
-                    AI Intelligence Workbench
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '0.72rem',
-                      background: '#eff6ff',
-                      color: '#1d4ed8',
-                      padding: '2px 10px',
-                      borderRadius: '9999px',
-                      fontWeight: 600,
-                    }}
-                  >
-                    Scoped to {currentOrg.name}
-                  </span>
-                </div>
-              </div>
-
-              {/* =============================================================
-                 FRONTIER ARENA UI
-                 ============================================================= */}
-              <div className="frontier-ambient-backdrop">
-                  <div className="frontier-card-canvas">
-                    {/* Collapsible Left Sub-Sidebar */}
-                    <aside className={`frontier-sidebar ${isFrontierSidebarCollapsed ? 'collapsed' : ''}`}>
-                      <div>
-                        {/* Header */}
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            marginBottom: '16px',
-                            padding: '0 4px',
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <Command size={18} color="#111827" />
-                            <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#111827' }}>Arena</span>
-                            <ChevronDown size={14} color="#6b7280" />
-                          </div>
-                          <button
-                            type="button"
-                            title="Close sidebar"
-                            onClick={() => setIsFrontierSidebarCollapsed(true)}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              cursor: 'pointer',
-                              color: '#6b7280',
-                              padding: '2px',
-                            }}
-                          >
-                            <PanelLeftClose size={16} />
-                          </button>
-                        </div>
-
-                        {/* Sub-Navigation Buttons */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newId = `conv-${Date.now()}`;
-                              setState((prev) => ({
-                                ...prev,
-                                assistantConversations: [
-                                  {
-                                    id: newId,
-                                    organization_id: currentOrg.id,
-                                    title: 'New Conversation',
-                                    updated_at: new Date().toISOString(),
-                                    messages: [],
-                                  },
-                                  ...prev.assistantConversations,
-                                ],
-                              }));
-                              announce('Started fresh Frontier conversation');
-                            }}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              background: '#ffffff',
-                              border: '1px solid #e5e7eb',
-                              borderRadius: '10px',
-                              padding: '8px 12px',
-                              fontSize: '0.82rem',
-                              fontWeight: 600,
-                              color: '#111827',
-                              cursor: 'pointer',
-                              boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-                            }}
-                          >
-                            <PenSquare size={14} color="#4b5563" />
-                            <span>+ New Chat</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => setActiveNav('analytics')}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              background: 'transparent',
-                              border: 'none',
-                              borderRadius: '8px',
-                              padding: '8px 12px',
-                              fontSize: '0.8rem',
-                              color: '#4b5563',
-                              cursor: 'pointer',
-                              textAlign: 'left',
-                            }}
-                          >
-                            <Trophy size={14} color="#6b7280" />
-                            <span>Leaderboard</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const el = document.querySelector<HTMLTextAreaElement>('.frontier-prompt-textarea');
-                              el?.focus();
-                            }}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              background: 'transparent',
-                              border: 'none',
-                              borderRadius: '8px',
-                              padding: '8px 12px',
-                              fontSize: '0.8rem',
-                              color: '#4b5563',
-                              cursor: 'pointer',
-                              textAlign: 'left',
-                            }}
-                          >
-                            <Search size={14} color="#6b7280" />
-                            <span>Search</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Bottom User Profile */}
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '10px',
-                          paddingTop: '12px',
-                          borderTop: '1px solid #f3f4f6',
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
-                            background: '#ea580c',
-                            color: '#ffffff',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontWeight: 700,
-                            fontSize: '0.78rem',
-                            flexShrink: 0,
-                          }}
-                        >
-                          {(currentUserSession?.fullName || 'U').charAt(0)}
-                        </div>
-                        <div style={{ minWidth: 0, flex: 1 }}>
-                          <div
-                            style={{
-                              fontSize: '0.78rem',
-                              fontWeight: 700,
-                              color: '#111827',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }}
-                          >
-                            {currentUserSession?.fullName || 'Property Manager'}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: '0.68rem',
-                              color: '#9ca3af',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }}
-                          >
-                            {currentUserSession?.email || ''}
-                          </div>
-                        </div>
-                      </div>
-                    </aside>
-
-                    {/* Collapsed sidebar toggle button */}
-                    {isFrontierSidebarCollapsed && (
-                      <button
-                        type="button"
-                        title="Open sidebar"
-                        onClick={() => setIsFrontierSidebarCollapsed(false)}
-                        style={{
-                          position: 'absolute',
-                          top: '14px',
-                          left: '14px',
-                          background: '#ffffff',
-                          border: '1px solid #e5e7eb',
-                          borderRadius: '8px',
-                          width: '32px',
-                          height: '32px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          zIndex: 20,
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-                        }}
-                      >
-                        <PanelLeftOpen size={16} color="#4b5563" />
-                      </button>
-                    )}
-
-                    {/* Main Arena Area */}
-                    <main className="frontier-main-area">
-                      {/* Top Bar */}
-                      <div className="frontier-top-bar">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '0.84rem', fontWeight: 600, color: '#111827' }}>
-                            Portfolio Mode (Groq OSS 120B)
-                          </span>
-                          <ChevronDown size={14} color="#6b7280" />
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          {/* Dismissible Announcement Pill */}
-                          {!hideFrontierAnnouncement && (
-                            <div
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                background: '#f9fafb',
-                                border: '1px solid #e5e7eb',
-                                borderRadius: '9999px',
-                                padding: '4px 10px',
-                                fontSize: '0.74rem',
-                                color: '#4b5563',
-                              }}
-                            >
-                              <span>Follow us for the latest in AI news and advancements</span>
-                              <button
-                                type="button"
-                                onClick={() => setHideFrontierAnnouncement(true)}
-                                style={{
-                                  background: 'transparent',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  color: '#9ca3af',
-                                  padding: 0,
-                                }}
-                              >
-                                <X size={12} />
-                              </button>
-                            </div>
-                          )}
-
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              fontSize: '0.76rem',
-                              color: '#6b7280',
-                              fontWeight: 600,
-                            }}
-                          >
-                            <Lock size={12} color="#10b981" />
-                            <span>Private</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Central Canvas */}
-                      <div
-                        style={{
-                          flex: 1,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: (activeConversation?.messages ?? []).length === 0 ? 'center' : 'space-between',
-                          padding: '28px 32px 20px',
-                          overflowY: 'auto',
-                          position: 'relative',
-                        }}
-                      >
-                        {(activeConversation?.messages ?? []).length === 0 ? (
-                          /* HERO STATE: "Experience the frontier" */
-                          <div
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              width: '100%',
-                              margin: 'auto 0',
-                            }}
-                          >
-                            <h1
-                              style={{
-                                textAlign: 'center',
-                                fontSize: '2.5rem',
-                                fontWeight: 500,
-                                color: '#111827',
-                                margin: '0 0 28px 0',
-                                letterSpacing: '-0.02em',
-                              }}
-                            >
-                              Experience the{' '}
-                              <span
-                                style={{
-                                  fontFamily: "Georgia, Garamond, 'Playfair Display', serif",
-                                  fontStyle: 'italic',
-                                  fontWeight: 400,
-                                }}
-                              >
-                                frontier
-                              </span>
-                            </h1>
-
-                            {/* Floating Prompt Box */}
-                            <div className="frontier-prompt-box">
-                              <textarea
-                                className="frontier-prompt-textarea"
-                                placeholder="Ask anything..."
-                                rows={2}
-                                value={assistantPromptInput}
-                                onChange={(e) => setAssistantPromptInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    handleAssistantSend();
-                                  }
-                                }}
-                              />
-
-                              {/* Attached file preview chip */}
-                              {assistantAttachedFile && (
-                                <div
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    background: '#f1f5f9',
-                                    border: '1px solid #cbd5e1',
-                                    borderRadius: '6px',
-                                    padding: '3px 8px',
-                                    fontSize: '0.74rem',
-                                    color: '#0f172a',
-                                    width: 'fit-content',
-                                  }}
-                                >
-                                  <FileText size={12} color="#2563eb" />
-                                  <span>{assistantAttachedFile.name}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => setAssistantAttachedFile(null)}
-                                    style={{
-                                      background: 'transparent',
-                                      border: 'none',
-                                      cursor: 'pointer',
-                                      padding: 0,
-                                    }}
-                                  >
-                                    <X size={12} />
-                                  </button>
-                                </div>
-                              )}
-
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                  paddingTop: '4px',
-                                }}
-                              >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <button
-                                    type="button"
-                                    title="Attach document or photo"
-                                    onClick={() => assistantFileInputRef.current?.click()}
-                                    style={{
-                                      background: 'transparent',
-                                      border: 'none',
-                                      cursor: 'pointer',
-                                      color: '#6b7280',
-                                      padding: '4px',
-                                    }}
-                                  >
-                                    <Paperclip size={16} />
-                                  </button>
-                                  <span
-                                    style={{
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      gap: '4px',
-                                      background: '#f3f4f6',
-                                      borderRadius: '9999px',
-                                      padding: '3px 8px',
-                                      fontSize: '0.72rem',
-                                      color: '#4b5563',
-                                      fontWeight: 600,
-                                    }}
-                                  >
-                                    <Sliders size={11} />
-                                    <span>App like</span>
-                                  </span>
-                                  <button
-                                    type="button"
-                                    title="More options"
-                                    onClick={() => setActiveNav('settings')}
-                                    style={{
-                                      background: 'transparent',
-                                      border: 'none',
-                                      cursor: 'pointer',
-                                      color: '#9ca3af',
-                                      padding: '4px',
-                                    }}
-                                  >
-                                    <MoreHorizontal size={15} />
-                                  </button>
-                                </div>
-
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <button
-                                    type="button"
-                                    title="Attach image"
-                                    onClick={() => assistantFileInputRef.current?.click()}
-                                    style={{
-                                      background: 'transparent',
-                                      border: 'none',
-                                      cursor: 'pointer',
-                                      color: '#6b7280',
-                                      padding: '4px',
-                                    }}
-                                  >
-                                    <ImageIcon size={16} />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleAssistantSend()}
-                                    style={{
-                                      width: '32px',
-                                      height: '32px',
-                                      borderRadius: '50%',
-                                      background: '#0f172a',
-                                      color: '#ffffff',
-                                      border: 'none',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      cursor: 'pointer',
-                                    }}
-                                  >
-                                    <ArrowUp size={15} />
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* 2x3 Grid of 6 Prompt Cards */}
-                            <div className="frontier-cards-grid">
-                              {[
-                                {
-                                  title: 'Create a lease agreement',
-                                  desc: 'Create a sleek, modern tenancy contract',
-                                  icon: <FileText size={16} color="#2563eb" />,
-                                  prompt:
-                                    'Create a new residential lease agreement for Unit A-101 at KES 35,000 per month',
-                                },
-                                {
-                                  title: 'Build a dashboard',
-                                  desc: 'Turn rent data into interactive charts',
-                                  icon: <BarChart3 size={16} color="#059669" />,
-                                  prompt:
-                                    'Build arrears and collection performance report for November',
-                                },
-                                {
-                                  title: 'Log maintenance ticket',
-                                  desc: 'Dispatch vetted Kenyan service technician',
-                                  icon: <Wrench size={16} color="#d97706" />,
-                                  prompt: 'Log urgent plumbing maintenance request for Unit B-204',
-                                },
-                                {
-                                  title: 'Design to Code (OCR)',
-                                  desc: 'Upload deed or ID and have AI parse fields',
-                                  icon: <Scan size={16} color="#7c3aed" />,
-                                  prompt:
-                                    'Show OCR document verification status and pending extractions',
-                                },
-                                {
-                                  title: 'Vacant units inventory',
-                                  desc: 'Check current occupancy and readiness',
-                                  icon: <Home size={16} color="#db2777" />,
-                                  prompt:
-                                    'Which units are currently vacant and available for immediate leasing?',
-                                },
-                                {
-                                  title: 'Launch M-Pesa reminders',
-                                  desc: 'Trigger automated STK payment requests',
-                                  icon: <CircleDollarSign size={16} color="#16a34a" />,
-                                  prompt:
-                                    'Send automated M-Pesa Daraja payment reminders for all overdue accounts',
-                                },
-                              ].map((card, i) => (
-                                <div
-                                  key={i}
-                                  className="frontier-card-item"
-                                  onClick={() => handleAssistantSend(card.prompt)}
-                                >
-                                  <div style={{ marginTop: '2px' }}>{card.icon}</div>
-                                  <div>
-                                    <div
-                                      style={{
-                                        fontSize: '0.84rem',
-                                        fontWeight: 600,
-                                        color: '#111827',
-                                      }}
-                                    >
-                                      {card.title}
-                                    </div>
-                                    <div
-                                      style={{
-                                        fontSize: '0.74rem',
-                                        color: '#6b7280',
-                                        marginTop: '2px',
-                                      }}
-                                    >
-                                      {card.desc}
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-
-                            {/* Floating Bottom-Right Video Card */}
-                            {!hideFrontierVideo && (
-                              <div className="frontier-video-card">
-                                <div style={{ height: '90px', position: 'relative', overflow: 'hidden' }}>
-                                  <img
-                                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80"
-                                    alt="Video thumbnail"
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                  />
-                                </div>
-                                <div style={{ padding: '10px 12px' }}>
-                                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#111827' }}>
-                                    Join us on YouTube
-                                  </div>
-                                  <div
-                                    style={{
-                                      fontSize: '0.68rem',
-                                      color: '#6b7280',
-                                      margin: '3px 0 8px',
-                                      lineHeight: 1.35,
-                                    }}
-                                  >
-                                    Product walkthroughs, model analysis, and researcher insights from the frontier.
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => window.open('https://youtube.com', '_blank')}
-                                    style={{
-                                      width: '100%',
-                                      height: '26px',
-                                      background: '#0f172a',
-                                      color: '#ffffff',
-                                      border: 'none',
-                                      borderRadius: '6px',
-                                      fontSize: '0.72rem',
-                                      fontWeight: 600,
-                                      cursor: 'pointer',
-                                      marginBottom: '4px',
-                                    }}
-                                  >
-                                    Watch Now
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setHideFrontierVideo(true)}
-                                    style={{
-                                      width: '100%',
-                                      height: '22px',
-                                      background: 'transparent',
-                                      color: '#6b7280',
-                                      border: 'none',
-                                      fontSize: '0.68rem',
-                                      cursor: 'pointer',
-                                    }}
-                                  >
-                                    Hide This
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          /* CONVERSATION STREAM VIEW IN FRONTIER CARD */
-                          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                            <div
-                              style={{
-                                flex: 1,
-                                overflowY: 'auto',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '14px',
-                                marginBottom: '16px',
-                                paddingRight: '8px',
-                              }}
-                            >
-                              {(activeConversation?.messages ?? []).map((msg) => (
-                                <article
-                                  key={msg.id}
-                                  style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '6px',
-                                    alignSelf: msg.role === 'USER' ? 'flex-end' : 'stretch',
-                                    maxWidth: msg.role === 'USER' ? '82%' : '100%',
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '8px',
-                                      justifyContent: msg.role === 'USER' ? 'flex-end' : 'flex-start',
-                                      fontSize: '0.74rem',
-                                      color: '#64748b',
-                                    }}
-                                  >
-                                    <strong style={{ color: msg.role === 'USER' ? '#0f172a' : '#2563eb' }}>
-                                      {msg.role === 'USER' ? 'Property Admin' : 'Guri24 RMS AI'}
-                                    </strong>
-                                  </div>
-
-                                  {msg.role === 'USER' ? (
-                                    <div
-                                      style={{
-                                        padding: '11px 16px',
-                                        borderRadius: '16px',
-                                        background: '#0f172a',
-                                        color: '#ffffff',
-                                        fontSize: '0.88rem',
-                                        lineHeight: 1.55,
-                                        boxShadow: '0 2px 5px rgba(0, 0, 0, 0.12)',
-                                      }}
-                                    >
-                                      {msg.content}
-                                    </div>
-                                  ) : (
-                                    <div
-                                      style={{
-                                        padding: '16px 20px',
-                                        borderRadius: '16px',
-                                        background: '#ffffff',
-                                        border: '1px solid #e2e8f0',
-                                        color: '#0f172a',
-                                        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
-                                      }}
-                                    >
-                                      <StructuredAssistantResponse
-                                        content={msg.content}
-                                        blockedReason={msg.blocked_reason}
-                                      />
-                                      {msg.citations.length > 0 && (
-                                        <div
-                                          style={{
-                                            display: 'flex',
-                                            flexWrap: 'wrap',
-                                            gap: '6px',
-                                            marginTop: '10px',
-                                          }}
-                                        >
-                                          {msg.citations.map((cit, idx) => (
-                                            <span
-                                              key={idx}
-                                              style={{
-                                                background: '#eff6ff',
-                                                border: '1px solid #bfdbfe',
-                                                color: '#1d4ed8',
-                                                padding: '2px 8px',
-                                                borderRadius: '6px',
-                                                fontSize: '0.72rem',
-                                                fontWeight: 600,
-                                              }}
-                                            >
-                                              [{cit.record_type}] {cit.reference_code}: {cit.summary}
-                                            </span>
-                                          ))}
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                </article>
-                              ))}
-                            </div>
-
-                            {/* Sticky Bottom Prompt Box */}
-                            <div className="frontier-prompt-box" style={{ margin: 0, maxWidth: '100%' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <input
-                                  type="text"
-                                  placeholder="Ask anything..."
-                                  value={assistantPromptInput}
-                                  onChange={(e) => setAssistantPromptInput(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.preventDefault();
-                                      handleAssistantSend();
-                                    }
-                                  }}
-                                  style={{ flex: 1, border: 'none', outline: 'none', fontSize: '0.88rem' }}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => assistantFileInputRef.current?.click()}
-                                  style={{
-                                    background: 'transparent',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    color: '#6b7280',
-                                  }}
-                                >
-                                  <Paperclip size={16} />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleAssistantSend()}
-                                  style={{
-                                    width: '30px',
-                                    height: '30px',
-                                    borderRadius: '50%',
-                                    background: '#0f172a',
-                                    color: '#ffffff',
-                                    border: 'none',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                  }}
-                                >
-                                  <ArrowUp size={14} />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </main>
-                  </div>
-                </div>
-            </div>
+            <FullPageAssistant
+              currentOrg={currentOrg}
+              userRole={currentUserRole}
+              properties={orgProperties}
+              tenants={orgTenants}
+              invoices={orgInvoices}
+              payments={orgPayments}
+              deposits={orgDeposits}
+              conversations={orgConversations}
+              confirmations={orgConfirmations}
+              onUpdateConversations={(conversations) => {
+                setState((prev) => {
+                  const nextState = { ...prev, assistantConversations: conversations };
+                  apiClient.saveWorkspaceSnapshot(nextState).catch(console.error);
+                  return nextState;
+                });
+              }}
+              onUpdateConfirmations={(confirmations) => {
+                setState((prev) => {
+                  const nextState = { ...prev, assistantConfirmations: confirmations };
+                  apiClient.saveWorkspaceSnapshot(nextState).catch(console.error);
+                  return nextState;
+                });
+              }}
+              onNavigateTab={(tab) => setActiveNav(tab as any)}
+            />
           )}
 
           {/* =================================================================

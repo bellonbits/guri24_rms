@@ -112,7 +112,6 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
     setErrorMessage(null);
 
     try {
-      // Map rows using established column mapping
       const mappedRows = parsedRows.map((r) => {
         const item: Record<string, any> = {};
         template.fields.forEach((f) => {
@@ -147,46 +146,65 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
         position: 'fixed',
         inset: 0,
         zIndex: 1000,
-        background: 'rgba(0, 0, 0, 0.75)',
+        background: 'rgba(15, 23, 42, 0.65)',
+        backdropFilter: 'blur(4px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         padding: '16px',
       }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="import-wizard-title"
     >
       <div
         style={{
           width: '100%',
-          maxWidth: '860px',
+          maxWidth: '880px',
           maxHeight: '90vh',
-          background: '#0b1320',
-          border: '1px solid #243656',
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
           borderRadius: '16px',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
+          boxShadow: '0 20px 45px -10px rgba(15, 23, 42, 0.25), 0 10px 20px -5px rgba(15, 23, 42, 0.1)',
           overflow: 'hidden',
+          color: '#0F172A',
         }}
       >
         {/* Header */}
         <div
           style={{
-            padding: '16px 20px',
-            background: '#111c2e',
-            borderBottom: '1px solid #243656',
+            padding: '18px 24px',
+            background: '#F8FAFC',
+            borderBottom: '1px solid #E2E8F0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <FileSpreadsheet size={20} color="#38bdf8" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '10px',
+                background: '#EFF6FF',
+                border: '1px solid #DBEAFE',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#2563EB',
+              }}
+            >
+              <FileSpreadsheet size={20} />
+            </div>
             <div>
-              <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#f8fafc' }}>
+              <h2 id="import-wizard-title" style={{ margin: 0, fontSize: '1.08rem', fontWeight: 700, color: '#0F172A' }}>
                 Bulk Import Wizard — {template.title}
               </h2>
-              <div style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
-                Step-by-step import with column mapping, deep validation, and conflict controls.
+              <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '2px' }}>
+                Step-by-step verified data acquisition with column mapping, deep schema validation &amp; conflict resolution.
               </div>
             </div>
           </div>
@@ -195,108 +213,163 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
             type="button"
             onClick={onClose}
             style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#94a3b8',
+              background: '#F1F5F9',
+              border: '1px solid #E2E8F0',
+              borderRadius: '8px',
+              color: '#64748B',
               cursor: 'pointer',
-              padding: '4px',
+              padding: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background 0.15s ease',
             }}
+            aria-label="Close bulk import wizard"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        {/* Step Indicator */}
+        {/* 4-Step Progress Navigation */}
         <div
           style={{
             display: 'flex',
-            borderBottom: '1px solid #1e293b',
-            background: '#0b1320',
-            fontSize: '0.76rem',
+            borderBottom: '1px solid #E2E8F0',
+            background: '#FFFFFF',
+            fontSize: '0.78rem',
             fontWeight: 600,
           }}
         >
           {[
-            { id: 'UPLOAD', label: '1. Upload File' },
-            { id: 'MAP', label: '2. Column Mapping' },
-            { id: 'PREVIEW', label: '3. Preview & Validate' },
-            { id: 'RESULTS', label: '4. Results' },
-          ].map((s, idx) => (
-            <div
-              key={s.id}
-              style={{
-                flex: 1,
-                padding: '10px 12px',
-                textAlign: 'center',
-                color: currentStep === s.id ? '#38bdf8' : idx < ['UPLOAD', 'MAP', 'PREVIEW', 'RESULTS'].indexOf(currentStep) ? '#4ade80' : '#64748b',
-                borderBottom: currentStep === s.id ? '2px solid #38bdf8' : 'none',
-                background: currentStep === s.id ? 'rgba(56, 189, 248, 0.05)' : 'transparent',
-              }}
-            >
-              {s.label}
-            </div>
-          ))}
+            { id: 'UPLOAD', label: '1. Upload File', num: 1 },
+            { id: 'MAP', label: '2. Column Mapping', num: 2 },
+            { id: 'PREVIEW', label: '3. Preview & Validate', num: 3 },
+            { id: 'RESULTS', label: '4. Import Results', num: 4 },
+          ].map((s, idx) => {
+            const stepOrder = ['UPLOAD', 'MAP', 'PREVIEW', 'RESULTS'];
+            const activeIdx = stepOrder.indexOf(currentStep);
+            const isCompleted = idx < activeIdx;
+            const isCurrent = currentStep === s.id;
+
+            return (
+              <div
+                key={s.id}
+                style={{
+                  flex: 1,
+                  padding: '12px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  color: isCurrent ? '#2563EB' : isCompleted ? '#16A34A' : '#64748B',
+                  borderBottom: isCurrent ? '2px solid #2563EB' : '2px solid transparent',
+                  background: isCurrent ? '#EFF6FF' : '#FFFFFF',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span
+                  style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    background: isCurrent ? '#2563EB' : isCompleted ? '#DCFCE7' : '#F1F5F9',
+                    color: isCurrent ? '#FFFFFF' : isCompleted ? '#16A34A' : '#64748B',
+                  }}
+                >
+                  {isCompleted ? <CheckCircle2 size={13} /> : s.num}
+                </span>
+                <span>{s.label}</span>
+              </div>
+            );
+          })}
         </div>
 
         {/* Body Content */}
-        <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
+        <div style={{ padding: '22px 24px', overflowY: 'auto', flex: 1, background: '#F8FAFC' }}>
           {errorMessage && (
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '10px 14px',
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid #ef4444',
-                color: '#f87171',
-                borderRadius: '8px',
-                fontSize: '0.82rem',
+                gap: '10px',
+                padding: '12px 16px',
+                background: '#FEF2F2',
+                border: '1px solid #FECACA',
+                color: '#DC2626',
+                borderRadius: '10px',
+                fontSize: '0.84rem',
                 marginBottom: '16px',
               }}
             >
-              <AlertCircle size={16} />
+              <AlertCircle size={18} style={{ flexShrink: 0 }} />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {/* STEP 1: UPLOAD */}
           {currentStep === 'UPLOAD' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              {/* Template Download Area */}
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '14px 18px',
-                  background: '#111c2e',
-                  border: '1px solid #243656',
-                  borderRadius: '10px',
+                  padding: '16px 20px',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '12px',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#f8fafc' }}>
-                    Need the formatted template?
+                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0F172A' }}>
+                    Need the formatted module template?
                   </div>
-                  <div style={{ fontSize: '0.76rem', color: '#94a3b8' }}>
-                    Download the official CSV template with pre-filled headers and sample Kenyan data.
+                  <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '2px' }}>
+                    Download the pre-formatted CSV template with authoritative headers, field constraints &amp; sample Kenyan records.
                   </div>
                 </div>
 
                 <button
                   type="button"
-                  className="btn-outline"
                   onClick={handleDownloadTemplate}
-                  style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  style={{
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    padding: '8px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    background: '#EFF6FF',
+                    border: '1px solid #BFDBFE',
+                    color: '#2563EB',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                  }}
                 >
-                  <Download size={14} />
-                  <span>Download CSV Template</span>
+                  <Download size={15} />
+                  <span>Download Template</span>
                 </button>
               </div>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.82rem', fontWeight: 600, color: '#f8fafc' }}>
-                  Select File to Import
+              {/* Upload Dropzone */}
+              <div
+                style={{
+                  background: '#FFFFFF',
+                  padding: '18px 20px',
+                  borderRadius: '12px',
+                  border: '1px solid #E2E8F0',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+                }}
+              >
+                <label style={{ display: 'block', marginBottom: '10px', fontSize: '0.84rem', fontWeight: 700, color: '#0F172A' }}>
+                  Select CSV or Excel (.xlsx) File to Import
                 </label>
                 <FileUpload
                   onFileSelect={handleFileSelect}
@@ -314,19 +387,21 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
           {/* STEP 2: MAP */}
           {currentStep === 'MAP' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <ColumnMapper
-                sourceHeaders={sourceHeaders}
-                fieldDefinitions={template.fields}
-                mapping={columnMapping}
-                onMappingChange={setColumnMapping}
-                sampleRow={parsedRows[0]}
-              />
+              <div style={{ background: '#FFFFFF', padding: '16px 20px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                <ColumnMapper
+                  sourceHeaders={sourceHeaders}
+                  fieldDefinitions={template.fields}
+                  mapping={columnMapping}
+                  onMappingChange={setColumnMapping}
+                  sampleRow={parsedRows[0]}
+                />
+              </div>
             </div>
           )}
 
-          {/* STEP 3: PREVIEW */}
+          {/* STEP 3: PREVIEW & VALIDATE */}
           {currentStep === 'PREVIEW' && validation && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <ValidationSummary summary={validation} />
 
               <div
@@ -334,18 +409,18 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '10px 14px',
-                  background: '#111c2e',
-                  border: '1px solid #243656',
-                  borderRadius: '8px',
-                  fontSize: '0.8rem',
+                  padding: '14px 18px',
+                  background: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '10px',
+                  fontSize: '0.82rem',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Settings2 size={16} color="#38bdf8" />
-                  <span style={{ fontWeight: 600, color: '#f8fafc' }}>Conflict Resolution Strategy:</span>
+                  <Settings2 size={16} color="#2563EB" />
+                  <span style={{ fontWeight: 700, color: '#0F172A' }}>Conflict Resolution Strategy:</span>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ display: 'flex', gap: '16px' }}>
                   {(
                     [
                       { id: 'SKIP_DUPLICATES', label: 'Skip Duplicates' },
@@ -353,7 +428,7 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
                       { id: 'ABORT_ON_ERROR', label: 'Abort on Any Error' },
                     ] as const
                   ).map((opt) => (
-                    <label key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: '#cbd5e1' }}>
+                    <label key={opt.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', color: '#0F172A', fontWeight: 500 }}>
                       <input
                         type="radio"
                         name="conflict_strategy"
@@ -367,9 +442,11 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
                 </div>
               </div>
 
-              <RowErrorViewer errors={validation.errors} />
+              {validation.errors.length > 0 && <RowErrorViewer errors={validation.errors} />}
 
-              <ImportPreviewTable fields={template.fields} rows={validation.previewRows} />
+              <div style={{ background: '#FFFFFF', padding: '16px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                <ImportPreviewTable fields={template.fields} rows={validation.previewRows} />
+              </div>
             </div>
           )}
 
@@ -381,32 +458,36 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '32px 16px',
+                padding: '36px 20px',
                 textAlign: 'center',
-                gap: '14px',
+                gap: '16px',
+                background: '#FFFFFF',
+                borderRadius: '12px',
+                border: '1px solid #E2E8F0',
               }}
             >
               <div
                 style={{
-                  width: '56px',
-                  height: '56px',
+                  width: '60px',
+                  height: '60px',
                   borderRadius: '50%',
-                  background: 'rgba(34, 197, 94, 0.15)',
+                  background: '#DCFCE7',
+                  border: '1px solid #BBF7D0',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#4ade80',
+                  color: '#16A34A',
                 }}
               >
-                <CheckCircle2 size={32} />
+                <CheckCircle2 size={34} />
               </div>
 
               <div>
-                <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#f8fafc' }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#0F172A' }}>
                   Import Completed Successfully!
                 </h3>
-                <p style={{ margin: '6px 0 0 0', fontSize: '0.84rem', color: '#94a3b8' }}>
-                  Processed <strong>{commitResult.total_rows}</strong> row(s) into the {template.title} registry.
+                <p style={{ margin: '6px 0 0 0', fontSize: '0.86rem', color: '#64748B' }}>
+                  Processed <strong>{commitResult.total_rows}</strong> row(s) into the {template.title} database records.
                 </p>
               </div>
 
@@ -414,27 +495,27 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '1fr 1fr 1fr',
-                  gap: '12px',
+                  gap: '14px',
                   width: '100%',
-                  maxWidth: '480px',
+                  maxWidth: '520px',
                   marginBlock: '8px',
                 }}
               >
-                <div style={{ background: '#111c2e', padding: '12px', borderRadius: '8px', border: '1px solid #243656' }}>
-                  <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>INSERTED</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#4ade80' }}>
+                <div style={{ background: '#F8FAFC', padding: '14px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ fontSize: '0.74rem', fontWeight: 600, color: '#64748B' }}>INSERTED</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#16A34A', marginTop: '2px' }}>
                     {commitResult.inserted_count}
                   </div>
                 </div>
-                <div style={{ background: '#111c2e', padding: '12px', borderRadius: '8px', border: '1px solid #243656' }}>
-                  <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>UPDATED</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#38bdf8' }}>
+                <div style={{ background: '#F8FAFC', padding: '14px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ fontSize: '0.74rem', fontWeight: 600, color: '#64748B' }}>UPDATED</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#2563EB', marginTop: '2px' }}>
                     {commitResult.updated_count}
                   </div>
                 </div>
-                <div style={{ background: '#111c2e', padding: '12px', borderRadius: '8px', border: '1px solid #243656' }}>
-                  <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>SKIPPED / FAILED</div>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 700, color: commitResult.failed_count > 0 ? '#f87171' : '#94a3b8' }}>
+                <div style={{ background: '#F8FAFC', padding: '14px', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ fontSize: '0.74rem', fontWeight: 600, color: '#64748B' }}>SKIPPED / FAILED</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 700, color: commitResult.failed_count > 0 ? '#DC2626' : '#64748B', marginTop: '2px' }}>
                     {commitResult.skipped_count + commitResult.failed_count}
                   </div>
                 </div>
@@ -442,9 +523,19 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
 
               <button
                 type="button"
-                className="btn-dark"
                 onClick={onClose}
-                style={{ padding: '8px 24px', minBlockSize: '38px', marginTop: '12px' }}
+                style={{
+                  padding: '10px 28px',
+                  minHeight: '42px',
+                  marginTop: '12px',
+                  background: '#0F172A',
+                  color: '#FFFFFF',
+                  fontWeight: 600,
+                  fontSize: '0.88rem',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                }}
               >
                 Close &amp; View Updated Records
               </button>
@@ -456,9 +547,9 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
         {currentStep !== 'RESULTS' && (
           <div
             style={{
-              padding: '14px 20px',
-              background: '#111c2e',
-              borderTop: '1px solid #243656',
+              padding: '16px 24px',
+              background: '#FFFFFF',
+              borderTop: '1px solid #E2E8F0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -468,9 +559,20 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
               {currentStep === 'MAP' && (
                 <button
                   type="button"
-                  className="btn-outline"
                   onClick={() => setCurrentStep('UPLOAD')}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    padding: '8px 14px',
+                    background: '#F1F5F9',
+                    border: '1px solid #E2E8F0',
+                    color: '#0F172A',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                  }}
                 >
                   <ArrowLeft size={14} /> Back
                 </button>
@@ -478,27 +580,62 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
               {currentStep === 'PREVIEW' && (
                 <button
                   type="button"
-                  className="btn-outline"
                   onClick={() => setCurrentStep('MAP')}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    padding: '8px 14px',
+                    background: '#F1F5F9',
+                    border: '1px solid #E2E8F0',
+                    color: '#0F172A',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                  }}
                 >
                   <ArrowLeft size={14} /> Back to Mapping
                 </button>
               )}
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button type="button" className="btn-outline" onClick={onClose} style={{ fontSize: '0.8rem' }}>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={onClose}
+                style={{
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  padding: '8px 16px',
+                  background: '#F1F5F9',
+                  border: '1px solid #E2E8F0',
+                  color: '#64748B',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                }}
+              >
                 Cancel
               </button>
 
               {currentStep === 'UPLOAD' && (
                 <button
                   type="button"
-                  className="btn-dark"
                   disabled={!selectedFile || parsedRows.length === 0}
                   onClick={() => setCurrentStep('MAP')}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    padding: '8px 18px',
+                    background: !selectedFile || parsedRows.length === 0 ? '#94A3B8' : '#2563EB',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: !selectedFile || parsedRows.length === 0 ? 'not-allowed' : 'pointer',
+                  }}
                 >
                   <span>Continue to Mapping</span>
                   <ArrowRight size={14} />
@@ -508,9 +645,20 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
               {currentStep === 'MAP' && (
                 <button
                   type="button"
-                  className="btn-dark"
                   onClick={handleProceedToPreview}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    padding: '8px 18px',
+                    background: '#2563EB',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                  }}
                 >
                   <span>Preview &amp; Validate</span>
                   <ArrowRight size={14} />
@@ -520,10 +668,21 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
               {currentStep === 'PREVIEW' && (
                 <button
                   type="button"
-                  className="btn-dark"
                   onClick={handleCommit}
                   disabled={isSubmitting || (conflictStrategy === 'ABORT_ON_ERROR' && (validation?.invalidRowsCount || 0) > 0)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    padding: '8px 20px',
+                    background: isSubmitting || (conflictStrategy === 'ABORT_ON_ERROR' && (validation?.invalidRowsCount || 0) > 0) ? '#94A3B8' : '#16A34A',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: isSubmitting ? 'wait' : 'pointer',
+                  }}
                 >
                   {isSubmitting ? (
                     <>
@@ -532,7 +691,7 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 size={14} />
+                      <CheckCircle2 size={15} />
                       <span>Commit {validation?.validRowsCount || 0} Records</span>
                     </>
                   )}

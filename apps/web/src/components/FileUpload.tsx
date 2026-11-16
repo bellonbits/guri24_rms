@@ -64,40 +64,51 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           onDrop={handleDrop}
           onClick={() => !disabled && inputRef.current?.click()}
           style={{
-            border: `2px dashed ${dragActive ? '#2563eb' : 'var(--border-subtle, #334155)'}`,
+            border: `2px dashed ${dragActive ? '#2563EB' : '#CBD5E1'}`,
             borderRadius: '12px',
             padding: '28px 20px',
             textAlign: 'center',
-            background: dragActive ? 'rgba(37, 99, 235, 0.08)' : 'var(--bg-subtle, #0f172a)',
+            background: dragActive ? '#EFF6FF' : '#F8FAFC',
             cursor: disabled ? 'not-allowed' : 'pointer',
             transition: 'all 0.2s ease',
           }}
         >
           <div
             style={{
-              width: '44px',
-              height: '44px',
+              width: '46px',
+              height: '46px',
               borderRadius: '50%',
-              background: '#1e293b',
+              background: '#EFF6FF',
+              border: '1px solid #DBEAFE',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 12px auto',
-              color: '#38bdf8',
+              color: '#2563EB',
             }}
           >
             <Upload size={22} />
           </div>
-          <div style={{ fontSize: '0.92rem', fontWeight: 600, color: 'var(--text-main, #f8fafc)' }}>
+          <div style={{ fontSize: '0.94rem', fontWeight: 700, color: '#0F172A' }}>
             Drag and drop your spreadsheet or document
           </div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
+          <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '4px' }}>
             Supports CSV, Excel (.xlsx, .xls), PDF scans, and image documents (up to {maxSizeMb}MB)
           </div>
           <button
             type="button"
-            className="btn-outline"
-            style={{ marginTop: '14px', fontSize: '0.78rem', padding: '6px 14px' }}
+            style={{
+              marginTop: '14px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              padding: '7px 16px',
+              background: '#FFFFFF',
+              border: '1px solid #CBD5E1',
+              borderRadius: '8px',
+              color: '#0F172A',
+              cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            }}
             disabled={disabled}
           >
             Browse Local Files
@@ -109,43 +120,44 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '12px 16px',
-            background: '#1e293b',
-            border: '1px solid #334155',
+            padding: '14px 18px',
+            background: '#F8FAFC',
+            border: '1px solid #E2E8F0',
             borderRadius: '10px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {selectedFile.name.endsWith('.csv') || selectedFile.name.endsWith('.xlsx') ? (
-              <FileSpreadsheet size={22} color="#22c55e" />
+              <FileSpreadsheet size={24} color="#16A34A" />
             ) : (
-              <FileText size={22} color="#38bdf8" />
+              <FileText size={24} color="#2563EB" />
             )}
             <div>
-              <div style={{ fontWeight: 600, fontSize: '0.86rem', color: '#f8fafc' }}>
+              <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0F172A' }}>
                 {selectedFile.name}
               </div>
-              <div style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
-                {(selectedFile.size / 1024).toFixed(1)} KB • Ready for preview & column mapping
+              <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                {(selectedFile.size / 1024).toFixed(1)} KB • Ready for preview &amp; column mapping
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '4px',
-                background: 'rgba(34, 197, 94, 0.15)',
-                color: '#4ade80',
-                padding: '3px 8px',
+                background: '#DCFCE7',
+                border: '1px solid #BBF7D0',
+                color: '#16A34A',
+                padding: '4px 10px',
                 borderRadius: '6px',
-                fontSize: '0.72rem',
+                fontSize: '0.74rem',
                 fontWeight: 600,
               }}
             >
-              <CheckCircle2 size={12} /> Loaded
+              <CheckCircle2 size={13} /> Loaded
             </span>
             {onClear && (
               <button
@@ -153,16 +165,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                 onClick={onClear}
                 title="Remove file"
                 style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#94a3b8',
+                  background: '#F1F5F9',
+                  border: '1px solid #E2E8F0',
+                  borderRadius: '6px',
+                  color: '#64748B',
                   cursor: 'pointer',
-                  padding: '4px',
+                  padding: '5px',
                   display: 'flex',
                   alignItems: 'center',
                 }}
               >
-                <X size={16} />
+                <X size={15} />
               </button>
             )}
           </div>
@@ -174,15 +187,16 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
-            color: '#f87171',
-            fontSize: '0.78rem',
-            background: 'rgba(239, 68, 68, 0.1)',
-            padding: '8px 12px',
+            gap: '8px',
+            color: '#DC2626',
+            fontSize: '0.8rem',
+            background: '#FEF2F2',
+            border: '1px solid #FECACA',
+            padding: '9px 14px',
             borderRadius: '8px',
           }}
         >
-          <AlertCircle size={14} />
+          <AlertCircle size={15} />
           <span>{error}</span>
         </div>
       )}
