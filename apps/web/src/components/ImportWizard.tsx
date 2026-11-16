@@ -190,27 +190,6 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
       setIsSubmitting(false);
     }
   };
-        return item;
-      });
-
-      const res = await apiClient.commitImport({
-        module,
-        rows: mappedRows,
-        conflict_strategy: conflictStrategy,
-        file_name: selectedFile?.name,
-      });
-
-      setCommitResult(res);
-      setCurrentStep('RESULTS');
-      if (onImportComplete) {
-        onImportComplete(res);
-      }
-    } catch (err) {
-      setErrorMessage((err as Error).message || 'Failed to commit import to backend.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div

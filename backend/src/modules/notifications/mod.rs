@@ -12,7 +12,7 @@ use crate::{
     integrations::email::{
         templates::{
             render_deposit_received_template, render_invoice_issued_template,
-            render_notification_email_template, render_otp_email_template,
+            render_notification_email_template,
             render_payment_receipt_template, render_refund_verified_template,
         },
         EmailAdapter,

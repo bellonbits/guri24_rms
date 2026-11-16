@@ -317,7 +317,7 @@ pub fn render_notification_email_template(
 
 /// Renders a verified Payment Receipt email (only after verified Daraja/bank settlement)
 pub fn render_payment_receipt_template(
-    recipient: &str,
+    _recipient: &str,
     tenant_name: &str,
     amount_kes: &str,
     receipt_number: &str,
@@ -325,9 +325,6 @@ pub fn render_payment_receipt_template(
     property_unit: &str,
     date_str: &str,
 ) -> String {
-    let clean_recipient = recipient.trim();
-    let avatar_initial = tenant_name.chars().next().unwrap_or('T').to_ascii_uppercase();
-
     format!(
         r#"<!DOCTYPE html>
 <html lang="en">
@@ -406,7 +403,7 @@ pub fn render_payment_receipt_template(
 
 /// Renders a Monthly Rent Invoice email
 pub fn render_invoice_issued_template(
-    recipient: &str,
+    _recipient: &str,
     tenant_name: &str,
     invoice_number: &str,
     billing_period: &str,
@@ -495,7 +492,7 @@ pub fn render_invoice_issued_template(
 
 /// Renders a Security Deposit Acknowledgment email (Account 2100 Liability)
 pub fn render_deposit_received_template(
-    recipient: &str,
+    _recipient: &str,
     tenant_name: &str,
     amount_kes: &str,
     lease_ref: &str,
@@ -569,7 +566,7 @@ pub fn render_deposit_received_template(
 
 /// Renders a Verified Deposit Refund email (disbursed via M-Pesa B2C or Bank)
 pub fn render_refund_verified_template(
-    recipient: &str,
+    _recipient: &str,
     tenant_name: &str,
     amount_kes: &str,
     payout_channel: &str,
