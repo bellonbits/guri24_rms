@@ -1037,7 +1037,7 @@ impl AccountingRepository for InMemoryAccountingRepository {
             id: Uuid::new_v4(),
             organization_id: ctx.organization_id,
             actor_id: Some(ctx.user_id),
-            actor_role: ctx.roles.first().cloned().unwrap_or_else(|| "ADMIN".to_string()),
+            actor_role: format!("{:?}", ctx.role),
             event_type: event_type.to_string(),
             source_entity_type: source_entity_type.to_string(),
             source_entity_id,

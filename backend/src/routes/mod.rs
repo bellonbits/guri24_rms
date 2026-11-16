@@ -1103,7 +1103,7 @@ async fn get_financial_overview_handler(
 ) -> AppResult<Json<FinancialOverviewDto>> {
     ctx.require_permission("payments.view")?;
     let properties = state.repositories.properties.list_properties(&ctx)?;
-    let units = state.repositories.units.list_units(&ctx)?;
+    let units = state.repositories.units.list_units(&ctx, None)?;
     let invoices = state.repositories.invoices.list_invoices(&ctx)?;
     let payments = state.repositories.payments.list_payments(&ctx)?;
     let expenses = state.repositories.accounting.list_expenses(&ctx)?;
@@ -1177,7 +1177,7 @@ async fn get_financial_overview_handler(
             active_invoices.iter().filter(|i| i.property_id == prop.id).copied().collect();
         let p_billed: rust_decimal::Decimal = p_invoices.iter().map(|i| i.total_amount_kes).sum();
         let p_arrears: rust_decimal::Decimal = p_invoices.iter().map(|i| i.balance_kes).sum();
-        let p_collected: rust_decimal::Decimal = p_invoices.iter().map(|i| i.paid_amount_kes).sum();
+        let p_collected: rust_decimal::Decimal = p_invoices.iter().map(|i| i.amount_paid_kes).sum();
         let p_expenses: rust_decimal::Decimal = expenses
             .iter()
             .filter(|e| e.property_id == prop.id)
@@ -1290,16 +1290,16 @@ async fn get_income_collections_handler(
         .filter(|i| i.status != crate::modules::billing::InvoiceStatus::Cancelled)
     {
         for item in &inv.items {
-            let cat_lower = item.category.to_lowercase();
+            let cat_lower = format!("{} {}", item.item_code, item.description).to_lowercase();
             if cat_lower.contains("util")
                 || cat_lower.contains("water")
                 || cat_lower.contains("electric")
             {
-                utility_revenue += item.amount_kes;
+                utility_revenue += item.line_total_kes;
             } else if cat_lower.contains("late") || cat_lower.contains("penalt") {
-                penalty_revenue += item.amount_kes;
+                penalty_revenue += item.line_total_kes;
             } else {
-                rental_revenue += item.amount_kes;
+                rental_revenue += item.line_total_kes;
             }
         }
     }
@@ -1324,17 +1324,17 @@ async fn get_income_collections_handler(
     let total_paid_sum = actual_collected + unallocated_held;
     let mpesa_payments: Vec<&crate::modules::payments::Payment> = completed_payments
         .iter()
-        .filter(|p| p.payment_method == crate::modules::payments::PaymentMethod::Mpesa)
+        .filter(|p| p.payment_method.to_uppercase().contains("MPESA"))
         .copied()
         .collect();
     let bank_payments: Vec<&crate::modules::payments::Payment> = completed_payments
         .iter()
-        .filter(|p| p.payment_method == crate::modules::payments::PaymentMethod::BankTransfer)
+        .filter(|p| p.payment_method.to_uppercase().contains("BANK"))
         .copied()
         .collect();
     let cash_payments: Vec<&crate::modules::payments::Payment> = completed_payments
         .iter()
-        .filter(|p| p.payment_method == crate::modules::payments::PaymentMethod::Cash)
+        .filter(|p| p.payment_method.to_uppercase().contains("CASH"))
         .copied()
         .collect();
 
@@ -1397,7 +1397,7 @@ async fn get_arrears_aging_handler(
     let invoices = state.repositories.invoices.list_invoices(&ctx)?;
     let tenants = state.repositories.tenants.list_tenants(&ctx)?;
     let properties = state.repositories.properties.list_properties(&ctx)?;
-    let units = state.repositories.units.list_units(&ctx)?;
+    let units = state.repositories.units.list_units(&ctx, None)?;
 
     let mut tenant_map: std::collections::HashMap<Uuid, TenantAgingRowDto> =
         std::collections::HashMap::new();
@@ -1501,7 +1501,7 @@ async fn get_property_performance_handler(
 ) -> AppResult<Json<Vec<PropertySummaryDto>>> {
     ctx.require_permission("payments.view")?;
     let properties = state.repositories.properties.list_properties(&ctx)?;
-    let units = state.repositories.units.list_units(&ctx)?;
+    let units = state.repositories.units.list_units(&ctx, None)?;
     let invoices = state.repositories.invoices.list_invoices(&ctx)?;
     let expenses = state.repositories.accounting.list_expenses(&ctx)?;
 
@@ -1531,7 +1531,7 @@ async fn get_property_performance_handler(
             .collect();
         let billed: rust_decimal::Decimal = prop_invoices.iter().map(|i| i.total_amount_kes).sum();
         let collected: rust_decimal::Decimal =
-            prop_invoices.iter().map(|i| i.paid_amount_kes).sum();
+            prop_invoices.iter().map(|i| i.amount_paid_kes).sum();
         let arrears: rust_decimal::Decimal = prop_invoices.iter().map(|i| i.balance_kes).sum();
         let prop_expenses: rust_decimal::Decimal = expenses
             .iter()
@@ -1573,7 +1573,7 @@ async fn get_tenant_analytics_handler(
     let invoices = state.repositories.invoices.list_invoices(&ctx)?;
     let payments = state.repositories.payments.list_payments(&ctx)?;
     let properties = state.repositories.properties.list_properties(&ctx)?;
-    let units = state.repositories.units.list_units(&ctx)?;
+    let units = state.repositories.units.list_units(&ctx, None)?;
 
     let total_tenants = tenants.len();
     let active_leases = leases
@@ -1606,7 +1606,7 @@ async fn get_tenant_analytics_handler(
             tenant_invoices.iter().map(|i| i.balance_kes).sum();
 
         let active_lease = leases.iter().find(|l| {
-            l.tenant_id == tenant.id
+            l.primary_tenant_id == tenant.id
                 && l.status == crate::modules::leases::LeaseStatus::Active
         });
 
@@ -1711,11 +1711,12 @@ async fn import_reconciliation_statement_handler(
     let mut ext_txs = Vec::new();
 
     for row in cmd.rows {
-        // Priority 1: Exact receipt match
+        // Priority 1: Exact receipt match or reference match
         // Priority 2: Amount match
         let is_matched = payments.iter().any(|p| {
             p.status == crate::modules::payments::PaymentStatus::Completed
-                && (p.mpesa_receipt_number.as_deref() == Some(&row.transaction_ref)
+                && (p.provider_receipt_number.as_deref() == Some(&row.transaction_ref)
+                    || p.payment_reference == row.transaction_ref
                     || p.amount_kes == row.amount_kes)
         });
 
@@ -1723,7 +1724,8 @@ async fn import_reconciliation_statement_handler(
             let matched = payments
                 .iter()
                 .find(|p| {
-                    p.mpesa_receipt_number.as_deref() == Some(&row.transaction_ref)
+                    p.provider_receipt_number.as_deref() == Some(&row.transaction_ref)
+                        || p.payment_reference == row.transaction_ref
                         || p.amount_kes == row.amount_kes
                 })
                 .map(|p| p.id);
@@ -1801,7 +1803,7 @@ async fn get_deposit_liabilities_handler(
     let deposits = state.repositories.deposits.list_deposits(&ctx)?;
     let tenants = state.repositories.tenants.list_tenants(&ctx)?;
     let properties = state.repositories.properties.list_properties(&ctx)?;
-    let units = state.repositories.units.list_units(&ctx)?;
+    let units = state.repositories.units.list_units(&ctx, None)?;
     let leases = state.repositories.leases.list_leases(&ctx)?;
 
     let mut total_held = rust_decimal::Decimal::ZERO;
@@ -1816,7 +1818,7 @@ async fn get_deposit_liabilities_handler(
 
         let lease = leases.iter().find(|l| l.id == d.lease_id);
         let tenant_name = lease
-            .and_then(|l| tenants.iter().find(|t| t.id == l.tenant_id))
+            .and_then(|l| tenants.iter().find(|t| t.id == l.primary_tenant_id))
             .map(|t| t.full_name.clone())
             .unwrap_or_else(|| "Tenant".to_string());
         let prop_name = lease
@@ -1830,15 +1832,15 @@ async fn get_deposit_liabilities_handler(
 
         items.push(DepositLiabilityItemDto {
             deposit_id: d.id,
-            tenant_id: lease.map(|l| l.tenant_id).unwrap_or_else(Uuid::nil),
+            tenant_id: lease.map(|l| l.primary_tenant_id).unwrap_or_else(Uuid::nil),
             tenant_name,
             property_name: prop_name,
             unit_number: unit_no,
-            initial_amount_kes: d.initial_deposit_kes,
+            initial_amount_kes: d.received_amount_kes,
             deductions_kes: d.deducted_amount_kes,
             refunded_kes: d.refunded_amount_kes,
             current_liability_kes: d.current_liability_balance_kes,
-            status: format!("{:?}", d.status),
+            status: d.status.clone(),
         });
     }
 
