@@ -389,6 +389,56 @@ class ApiClient {
   async getPortfolioSummary(): Promise<any> {
     return this.request('/reports/summary');
   }
+
+  // Unified Bulk Import & Data Acquisition
+  async getImportTemplate(module: string): Promise<any> {
+    return this.request(`/import/templates/${module}`);
+  }
+
+  async validateImport(cmd: {
+    module: string;
+    raw_csv?: string;
+    rows?: Record<string, any>[];
+    column_mapping?: Record<string, string>;
+  }): Promise<any> {
+    return this.request('/import/validate', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async commitImport(cmd: {
+    module: string;
+    rows: Record<string, any>[];
+    conflict_strategy?: 'SKIP_DUPLICATES' | 'UPDATE_EXISTING' | 'ABORT_ON_ERROR';
+    file_name?: string;
+  }): Promise<any> {
+    return this.request('/import/commit', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async getImportHistory(): Promise<any[]> {
+    const res = await this.request<any[]>('/import/history');
+    return Array.isArray(res) ? res : [];
+  }
+
+  async getImportJob(jobId: string): Promise<any> {
+    return this.request(`/import/jobs/${jobId}`);
+  }
+
+  async exportImportErrors(errors: any[]): Promise<string> {
+    const res = await fetch(`${this.baseUrl}/import/export-errors`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+      },
+      body: JSON.stringify({ errors }),
+    });
+    return res.text();
+  }
 }
 
 export const apiClient = new ApiClient();

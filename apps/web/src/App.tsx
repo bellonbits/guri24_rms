@@ -101,9 +101,21 @@ import {
   JournalEntry,
   MaintenanceStatus,
   OcrDocumentCategory,
+  OcrJobRecord,
   PropertyExpense,
   SystemRole,
 } from './types';
+import { ImportWizard } from './components/ImportWizard';
+import { BulkEditableGrid } from './components/BulkEditableGrid';
+import { DocumentScanner } from './components/DocumentScanner';
+import { OCRReviewForm } from './components/OCRReviewForm';
+import { VoiceInput } from './components/VoiceInput';
+import { ImportHistory } from './components/ImportHistory';
+import {
+  ImportModuleKey,
+  MODULE_TEMPLATES,
+  exportRowsToCsv,
+} from './lib/importEngine';
 
 export type NavSection =
   | 'dashboard'
@@ -308,6 +320,86 @@ function StructuredAssistantResponse({
   );
 }
 
+function ModuleActionToolbar({
+  moduleKey,
+  onAddNew,
+  addNewLabel = 'Add New',
+  onOpenImport,
+  onOpenBulkGrid,
+  onOpenScanner,
+  onExportCsv,
+  onOpenHistory,
+  scannerLabel = 'Scan / QR',
+}: {
+  moduleKey: ImportModuleKey;
+  onAddNew?: () => void;
+  addNewLabel?: string;
+  onOpenImport: (mod: ImportModuleKey) => void;
+  onOpenBulkGrid: (mod: ImportModuleKey) => void;
+  onOpenScanner?: (mod: ImportModuleKey) => void;
+  onExportCsv: (mod: ImportModuleKey) => void;
+  onOpenHistory: () => void;
+  scannerLabel?: string;
+}) {
+  return (
+    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+      {onAddNew && (
+        <button type="button" className="btn-dark" onClick={onAddNew}>
+          <Plus size={15} aria-hidden="true" />
+          <span>{addNewLabel}</span>
+        </button>
+      )}
+      <button
+        type="button"
+        className="btn-outline"
+        onClick={() => onOpenImport(moduleKey)}
+        title="Import CSV or Excel (.xlsx) file with column mapping and validation"
+      >
+        <Upload size={14} aria-hidden="true" />
+        <span>Import CSV/Excel</span>
+      </button>
+      <button
+        type="button"
+        className="btn-outline"
+        onClick={() => onOpenBulkGrid(moduleKey)}
+        title="Spreadsheet inline edit and Paste from Excel or Google Sheets"
+      >
+        <Layers size={14} aria-hidden="true" />
+        <span>Bulk Add / Paste</span>
+      </button>
+      {onOpenScanner && (
+        <button
+          type="button"
+          className="btn-outline"
+          onClick={() => onOpenScanner(moduleKey)}
+          title="Mobile camera capture and QR / document auto-detection"
+        >
+          <Scan size={14} aria-hidden="true" />
+          <span>{scannerLabel}</span>
+        </button>
+      )}
+      <button
+        type="button"
+        className="btn-outline"
+        onClick={() => onExportCsv(moduleKey)}
+        title="Export records to CSV"
+      >
+        <Download size={14} aria-hidden="true" />
+        <span>Export CSV</span>
+      </button>
+      <button
+        type="button"
+        className="btn-outline"
+        onClick={onOpenHistory}
+        title="View import history and integrity audits"
+      >
+        <Hourglass size={14} aria-hidden="true" />
+        <span>Import History</span>
+      </button>
+    </div>
+  );
+}
+
 export function App() {
   const [state, setState] = useState<RmsPlatformState>(() => createInitialRmsState());
   const [activeNav, setActiveNav] = useState<NavSection>('dashboard');
@@ -338,6 +430,13 @@ export function App() {
   const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
   const [isOcrUploadModalOpen, setIsOcrUploadModalOpen] = useState(false);
   const [isSwitcherModalOpen, setIsSwitcherModalOpen] = useState(false);
+
+  // Bulk Import, Acquisition & Data Entry Modals
+  const [importWizardModule, setImportWizardModule] = useState<ImportModuleKey | null>(null);
+  const [bulkGridModule, setBulkGridModule] = useState<ImportModuleKey | null>(null);
+  const [scannerModule, setScannerModule] = useState<ImportModuleKey | null>(null);
+  const [isImportHistoryOpen, setIsImportHistoryOpen] = useState(false);
+  const [ocrReviewModalJob, setOcrReviewModalJob] = useState<OcrJobRecord | null>(null);
 
   // OCR & Assistant UI state
   const [selectedOcrJobId, setSelectedOcrJobId] = useState<string>('');
@@ -956,6 +1055,298 @@ export function App() {
     setState(nextState);
     apiClient.saveWorkspaceSnapshot(nextState).catch(console.error);
     announce(`Maintenance ticket transitioned to ${nextStatus}`);
+  };
+
+  const handleExportModuleCsv = (moduleKey: ImportModuleKey) => {
+    const tpl = MODULE_TEMPLATES[moduleKey];
+    if (!tpl) {
+      announce(`No export template available for ${moduleKey}`);
+      return;
+    }
+    let dataRows: any[] = [];
+    if (moduleKey === 'units') dataRows = orgUnits;
+    else if (moduleKey === 'properties') dataRows = orgProperties;
+    else if (moduleKey === 'buildings') dataRows = orgBuildings;
+    else if (moduleKey === 'floors') dataRows = orgFloors;
+    else if (moduleKey === 'tenants') dataRows = orgTenants;
+    else if (moduleKey === 'leases') dataRows = orgLeases;
+    else if (moduleKey === 'invoices') dataRows = orgInvoices;
+    else if (moduleKey === 'payments') dataRows = orgPayments;
+    else if (moduleKey === 'maintenance') dataRows = orgMaintenance;
+    else if (moduleKey === 'vendors') dataRows = orgVendors;
+    else if (moduleKey === 'expenses') dataRows = orgExpenses;
+    else if (moduleKey === 'inspections') dataRows = orgInspections;
+    else if (moduleKey === 'documents') dataRows = orgDocuments;
+
+    if (dataRows.length === 0) {
+      announce(`No existing records for ${tpl.title}. Exporting sample starter template.`);
+      dataRows = tpl.sampleRows;
+    }
+
+    const csvContent = exportRowsToCsv(tpl.fields, dataRows);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `guri24_${moduleKey}_export_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    announce(`Exported ${dataRows.length} ${tpl.title} records to CSV`);
+  };
+
+  const handleBulkCommit = async (moduleKey: ImportModuleKey, rawRows: Record<string, any>[]) => {
+    if (!rawRows || rawRows.length === 0) {
+      announce('No records provided for bulk commit');
+      return;
+    }
+
+    const orgId = currentOrg.id;
+    const nowIso = new Date().toISOString();
+    const todayYmd = nowIso.slice(0, 10);
+    const timeSeq = Date.now();
+
+    let nextState = { ...state };
+
+    try {
+      if (moduleKey === 'units') {
+        const newUnits = rawRows.map((r, i) => {
+          const propId = r.property_id || orgProperties[0]?.id || `prop-${timeSeq}`;
+          const bldId = r.building_id || orgBuildings.find((b) => b.property_id === propId)?.id || orgBuildings[0]?.id || `bld-${timeSeq}`;
+          const flrId = r.floor_id || orgFloors.find((f) => f.building_id === bldId)?.id || orgFloors[0]?.id || `flr-${timeSeq}`;
+          const rent = Number(r.monthly_rent_kes) || 25000;
+          return {
+            id: `unit-${timeSeq}-${i}`,
+            organization_id: orgId,
+            property_id: propId,
+            building_id: bldId,
+            floor_id: flrId,
+            unit_number: String(r.unit_number || `U-${i + 1}`).trim(),
+            unit_type: String(r.unit_type || 'TWO_BEDROOM').toUpperCase(),
+            bedrooms: Number(r.bedrooms) || 2,
+            bathrooms: Number(r.bathrooms) || 1,
+            monthly_rent_kes: rent,
+            deposit_amount_kes: Number(r.deposit_amount_kes) || rent,
+            status: (['VACANT', 'OCCUPIED', 'RESERVED', 'UNDER_MAINTENANCE', 'UNAVAILABLE'].includes(r.status) ? r.status : 'VACANT') as any,
+            water_meter_number: String(r.water_meter_number || ''),
+            kplc_meter_number: String(r.kplc_meter_number || ''),
+          };
+        });
+        nextState = { ...nextState, units: [...nextState.units, ...newUnits] };
+      } else if (moduleKey === 'properties') {
+        const newProps = rawRows.map((r, i) => ({
+          id: `prop-${timeSeq}-${i}`,
+          organization_id: orgId,
+          code: String(r.code || `PRP-${String(orgProperties.length + i + 1).padStart(3, '0')}`).toUpperCase(),
+          name: String(r.name || `Property ${i + 1}`),
+          county: String(r.county || 'Nairobi'),
+          estate_or_area: String(r.estate_or_area || 'Kilimani'),
+          physical_address: String(r.physical_address || r.name || 'Nairobi, Kenya'),
+          lr_number: String(r.lr_number || `LR/209/${timeSeq.toString().slice(-4)}${i}`),
+          management_commission_pct: Number(r.management_commission_pct) || 10,
+          amenities: typeof r.amenities === 'string' ? r.amenities.split(',').map((s: string) => s.trim()) : ['Water', 'Security', 'Parking'],
+        }));
+        nextState = { ...nextState, properties: [...nextState.properties, ...newProps] };
+      } else if (moduleKey === 'buildings') {
+        const newBlds = rawRows.map((r, i) => ({
+          id: `bld-${timeSeq}-${i}`,
+          organization_id: orgId,
+          property_id: r.property_id || orgProperties[0]?.id || `prop-${timeSeq}`,
+          code: String(r.code || `BLD-${i + 1}`).toUpperCase(),
+          name: String(r.name || `Building ${i + 1}`),
+          total_floors: Number(r.total_floors) || 5,
+        }));
+        nextState = { ...nextState, buildings: [...nextState.buildings, ...newBlds] };
+      } else if (moduleKey === 'floors') {
+        const newFlrs = rawRows.map((r, i) => ({
+          id: `flr-${timeSeq}-${i}`,
+          organization_id: orgId,
+          property_id: r.property_id || orgProperties[0]?.id || `prop-${timeSeq}`,
+          building_id: r.building_id || orgBuildings[0]?.id || `bld-${timeSeq}`,
+          floor_number: Number(r.floor_number) || (i + 1),
+          label: String(r.label || `Floor ${r.floor_number || i + 1}`),
+        }));
+        nextState = { ...nextState, floors: [...nextState.floors, ...newFlrs] };
+      } else if (moduleKey === 'tenants') {
+        const newTenants = rawRows.map((r, i) => {
+          const natId = String(r.national_id || '12345678');
+          const maskedId = natId.length > 4 ? `****${natId.slice(-4)}` : '****5678';
+          const phone = String(r.phone || '254712345678');
+          return {
+            id: `ten-${timeSeq}-${i}`,
+            organization_id: orgId,
+            tenant_code: String(r.tenant_code || `TNT-${String(orgTenants.length + i + 1).padStart(4, '0')}`),
+            full_name: String(r.full_name || 'Tenant Name'),
+            phone,
+            email: String(r.email || `${phone.replace(/\+/g, '')}@tenant.guri24rms.co.ke`),
+            national_id_masked: maskedId,
+            emergency_contact_name: String(r.emergency_contact_name || 'Next of Kin'),
+            emergency_contact_phone: String(r.emergency_contact_phone || phone),
+            status: (['PROSPECT', 'ACTIVE', 'FORMER'].includes(r.status) ? r.status : 'ACTIVE') as any,
+          };
+        });
+        nextState = { ...nextState, tenants: [...nextState.tenants, ...newTenants] };
+      } else if (moduleKey === 'leases') {
+        const newLeases = rawRows.map((r, i) => {
+          const rent = Number(r.monthly_rent_kes) || 30000;
+          return {
+            id: `lease-${timeSeq}-${i}`,
+            organization_id: orgId,
+            property_id: r.property_id || orgProperties[0]?.id || '',
+            building_id: r.building_id || orgBuildings[0]?.id || '',
+            unit_id: r.unit_id || orgUnits[0]?.id || '',
+            primary_tenant_id: r.tenant_id || orgTenants[0]?.id || '',
+            lease_number: String(r.lease_number || `LS-${todayYmd.replace(/-/g, '')}-${i + 1}`),
+            start_date: String(r.start_date || todayYmd),
+            end_date: String(r.end_date || new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10)),
+            billing_day: Number(r.billing_day) || 5,
+            monthly_rent_kes: rent,
+            security_deposit_kes: Number(r.security_deposit_kes) || rent,
+            service_charge_kes: 0,
+            garbage_fee_kes: 0,
+            status: (['DRAFT', 'PENDING_APPROVAL', 'ACTIVE', 'EXPIRING', 'RENEWED', 'TERMINATED'].includes(r.status) ? r.status : 'ACTIVE') as any,
+            payment_account_reference: `PAY-LS-${i + 1}`,
+          };
+        });
+        nextState = { ...nextState, leases: [...nextState.leases, ...newLeases] };
+      } else if (moduleKey === 'invoices') {
+        const newInvs = rawRows.map((r, i) => {
+          const total = Number(r.total_amount_kes) || 25000;
+          return {
+            id: `inv-${timeSeq}-${i}`,
+            organization_id: orgId,
+            property_id: r.property_id || orgProperties[0]?.id || '',
+            unit_id: r.unit_id || orgUnits[0]?.id || '',
+            lease_id: r.lease_id || orgLeases[0]?.id || '',
+            tenant_id: r.tenant_id || orgTenants[0]?.id || '',
+            invoice_number: String(r.invoice_number || `INV-${todayYmd.replace(/-/g, '')}-${i + 1}`),
+            billing_period: String(r.billing_period || todayYmd.slice(0, 7)),
+            issue_date: String(r.issue_date || todayYmd),
+            due_date: String(r.due_date || new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10)),
+            rent_amount_kes: total,
+            charges_amount_kes: 0,
+            penalty_kes: 0,
+            total_amount_kes: total,
+            amount_paid_kes: 0,
+            balance_kes: total,
+            status: (['DRAFT', 'ISSUED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'CANCELLED'].includes(r.status) ? r.status : 'ISSUED') as any,
+            idempotency_key: `inv-key-${timeSeq}-${i}`,
+          };
+        });
+        nextState = { ...nextState, invoices: [...nextState.invoices, ...newInvs] };
+      } else if (moduleKey === 'payments') {
+        const newPmts = rawRows.map((r, i) => {
+          const amt = Number(r.amount_kes) || 10000;
+          const rcpt = String(r.mpesa_receipt_number || `RC${timeSeq.toString().slice(-6)}${i}`).toUpperCase();
+          return {
+            id: `pmt-${timeSeq}-${i}`,
+            organization_id: orgId,
+            tenant_id: r.tenant_id || orgTenants[0]?.id || '',
+            lease_id: r.lease_id || orgLeases[0]?.id,
+            payment_reference: `REF-${rcpt}`,
+            idempotency_key: `pmt-key-${rcpt}`,
+            checkout_request_id: `ws_CO_${timeSeq}_${i}`,
+            mpesa_receipt_number: rcpt,
+            payer_phone: String(r.payer_phone || '254712345678'),
+            amount_kes: amt,
+            allocated_amount_kes: amt,
+            unallocated_amount_kes: 0,
+            status: 'COMPLETED' as const,
+            allocations: [],
+            receipt_number: `RCT-${rcpt}`,
+            paid_at: nowIso,
+          };
+        });
+        nextState = { ...nextState, payments: [...nextState.payments, ...newPmts] };
+      } else if (moduleKey === 'maintenance') {
+        const newMnts = rawRows.map((r, i) => ({
+          id: `mnt-${timeSeq}-${i}`,
+          organization_id: orgId,
+          property_id: r.property_id || orgProperties[0]?.id || '',
+          building_id: r.building_id || orgBuildings[0]?.id || '',
+          unit_id: r.unit_id || orgUnits[0]?.id || '',
+          tenant_id: r.tenant_id || orgUnits[0]?.current_tenant_id,
+          request_number: String(r.request_number || `MNT-${String(orgMaintenance.length + i + 1).padStart(4, '0')}`),
+          category: String(r.category || 'PLUMBING').toUpperCase(),
+          priority: (['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY'].includes(r.priority) ? r.priority : 'MEDIUM') as any,
+          title: String(r.title || r.description?.slice(0, 40) || `Maintenance Issue ${i + 1}`),
+          description: String(r.description || 'Imported maintenance request'),
+          status: (['SUBMITTED', 'REVIEWED', 'APPROVED', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'VERIFIED', 'CLOSED'].includes(r.status) ? r.status : 'SUBMITTED') as any,
+          estimated_cost_kes: Number(r.estimated_cost_kes) || 5000,
+          actual_cost_kes: 0,
+          created_at: nowIso,
+        }));
+        nextState = { ...nextState, maintenance: [...nextState.maintenance, ...newMnts] };
+      } else if (moduleKey === 'vendors') {
+        const newVnds = rawRows.map((r, i) => ({
+          id: `vnd-${timeSeq}-${i}`,
+          organization_id: orgId,
+          vendor_code: String(r.vendor_code || `VND-${String(orgVendors.length + i + 1).padStart(3, '0')}`).toUpperCase(),
+          company_name: String(r.company_name || 'Vendor Enterprise'),
+          contact_person: String(r.contact_person || r.company_name || 'Contact Person'),
+          phone: String(r.phone || '254712345678'),
+          email: String(r.email || 'vendor@example.co.ke'),
+          specialty: String(r.specialty || 'General Maintenance'),
+          kra_pin: String(r.kra_pin || 'P051234567Z').toUpperCase(),
+          rating: Number(r.rating) || 4.8,
+          status: (['ACTIVE', 'ON_HOLD'].includes(r.status) ? r.status : 'ACTIVE') as any,
+        }));
+        nextState = { ...nextState, vendors: [...nextState.vendors, ...newVnds] };
+      } else if (moduleKey === 'expenses') {
+        const newExps = rawRows.map((r, i) => ({
+          id: `exp-${timeSeq}-${i}`,
+          organization_id: orgId,
+          property_id: r.property_id || orgProperties[0]?.id || '',
+          expense_number: String(r.expense_number || `EXP-${String(orgExpenses.length + i + 1).padStart(4, '0')}`).toUpperCase(),
+          category: String(r.category || 'REPAIRS').toUpperCase(),
+          vendor_name: String(r.vendor_name || 'Kenyan Contractor Ltd'),
+          description: String(r.description || 'Property operating expense'),
+          amount_kes: Number(r.amount_kes) || 12000,
+          expense_date: String(r.expense_date || todayYmd),
+          journal_entry_id: `jrn-exp-${timeSeq}-${i}`,
+        }));
+        nextState = { ...nextState, expenses: [...nextState.expenses, ...newExps] };
+      } else if (moduleKey === 'inspections') {
+        const newInsps = rawRows.map((r, i) => ({
+          id: `insp-${timeSeq}-${i}`,
+          organization_id: orgId,
+          property_id: r.property_id || orgProperties[0]?.id || '',
+          building_id: r.building_id || orgBuildings[0]?.id || '',
+          unit_id: r.unit_id || orgUnits[0]?.id || '',
+          inspection_number: String(r.inspection_number || `INSP-${String(orgInspections.length + i + 1).padStart(4, '0')}`).toUpperCase(),
+          inspection_type: (['MOVE_IN', 'MOVE_OUT', 'ROUTINE'].includes(r.inspection_type) ? r.inspection_type : 'ROUTINE') as any,
+          scheduled_at: String(r.scheduled_at || nowIso),
+          inspector_name: String(r.inspector_name || 'Inspector John'),
+          overall_condition: (['EXCELLENT', 'GOOD', 'FAIR', 'DAMAGED'].includes(r.overall_condition) ? r.overall_condition : 'GOOD') as any,
+          recommended_deposit_deduction_kes: Number(r.recommended_deposit_deduction_kes) || 0,
+          notes: String(r.notes || 'Inspection completed'),
+          status: (['SCHEDULED', 'COMPLETED', 'SIGNED_OFF'].includes(r.status) ? r.status : 'COMPLETED') as any,
+        }));
+        nextState = { ...nextState, inspections: [...nextState.inspections, ...newInsps] };
+      } else if (moduleKey === 'documents') {
+        const newDocs = rawRows.map((r, i) => ({
+          id: `doc-${timeSeq}-${i}`,
+          organization_id: orgId,
+          category: (['LEASE_AGREEMENT', 'TENANT_ID', 'RECEIPT', 'INVOICE', 'PROPERTY_DEED', 'MAINTENANCE_REPORT', 'INSPECTION_REPORT'].includes(r.category) ? r.category : 'LEASE_AGREEMENT') as any,
+          entity_label: String(r.entity_label || 'Direct Bulk Upload'),
+          file_name: String(r.file_name || `document_${i + 1}.pdf`),
+          mime_type: String(r.mime_type || 'application/pdf'),
+          file_size_kb: Number(r.file_size_kb) || 250,
+          s3_object_key: `s3://guri24-vault/uploads/${timeSeq}_${i}.pdf`,
+          created_at: nowIso,
+        }));
+        nextState = { ...nextState, documents: [...nextState.documents, ...newDocs] };
+      }
+
+      setState(nextState);
+      await apiClient.saveWorkspaceSnapshot(nextState);
+      announce(`Successfully committed ${rawRows.length} ${MODULE_TEMPLATES[moduleKey]?.title || moduleKey} record(s) to database!`);
+      setImportWizardModule(null);
+      setBulkGridModule(null);
+    } catch (err) {
+      announce(`Error saving import records: ${(err as Error).message}`);
+    }
   };
 
   const handleReverseJournal = (entry: JournalEntry) => {
@@ -1965,14 +2356,17 @@ export function App() {
                     <KeyRound size={17} color="#4b5563" aria-hidden="true" />
                     <h2>Active Residential Leases</h2>
                   </div>
-                  <button
-                    type="button"
-                    className="btn-dark"
-                    onClick={() => setIsOnboardModalOpen(true)}
-                  >
-                    <Plus size={15} aria-hidden="true" />
-                    <span>New Lease</span>
-                  </button>
+                  <ModuleActionToolbar
+                    moduleKey="leases"
+                    addNewLabel="New Lease"
+                    onAddNew={() => setIsOnboardModalOpen(true)}
+                    onOpenImport={setImportWizardModule}
+                    onOpenBulkGrid={setBulkGridModule}
+                    onOpenScanner={setScannerModule}
+                    scannerLabel="Scan Signed Lease"
+                    onExportCsv={handleExportModuleCsv}
+                    onOpenHistory={() => setIsImportHistoryOpen(true)}
+                  />
                 </div>
 
                 <ResponsiveTable
@@ -2112,14 +2506,25 @@ export function App() {
                       </button>
                     ))}
                   </div>
-                  <button
-                    type="button"
-                    className="btn-dark"
-                    onClick={() => setIsOnboardModalOpen(true)}
-                  >
-                    <Plus size={15} aria-hidden="true" />
-                    <span>Add Property / Unit</span>
-                  </button>
+                  <ModuleActionToolbar
+                    moduleKey={propertySubTab}
+                    addNewLabel={
+                      propertySubTab === 'units'
+                        ? 'Add Unit'
+                        : propertySubTab === 'properties'
+                        ? 'Register Property'
+                        : propertySubTab === 'buildings'
+                        ? 'Add Building'
+                        : 'Add Floor'
+                    }
+                    onAddNew={() => setIsOnboardModalOpen(true)}
+                    onOpenImport={setImportWizardModule}
+                    onOpenBulkGrid={setBulkGridModule}
+                    onOpenScanner={propertySubTab === 'units' ? setScannerModule : undefined}
+                    scannerLabel="Scan Meter / QR"
+                    onExportCsv={handleExportModuleCsv}
+                    onOpenHistory={() => setIsImportHistoryOpen(true)}
+                  />
                 </div>
 
                 {propertySubTab === 'units' && (
@@ -2256,14 +2661,17 @@ export function App() {
                     <h2>Registered Kenyan Tenants</h2>
                     <span className="badge-pill badge-neutral">DPA 2019 Masked ID</span>
                   </div>
-                  <button
-                    type="button"
-                    className="btn-dark"
-                    onClick={() => setIsOnboardModalOpen(true)}
-                  >
-                    <Plus size={15} aria-hidden="true" />
-                    <span>Register Tenant</span>
-                  </button>
+                  <ModuleActionToolbar
+                    moduleKey="tenants"
+                    addNewLabel="Register Tenant"
+                    onAddNew={() => setIsOnboardModalOpen(true)}
+                    onOpenImport={setImportWizardModule}
+                    onOpenBulkGrid={setBulkGridModule}
+                    onOpenScanner={setScannerModule}
+                    scannerLabel="Scan Tenant ID"
+                    onExportCsv={handleExportModuleCsv}
+                    onOpenHistory={() => setIsImportHistoryOpen(true)}
+                  />
                 </div>
 
                 <ResponsiveTable
@@ -2327,22 +2735,26 @@ export function App() {
                     <CreditCard size={17} color="#4b5563" aria-hidden="true" />
                     <h2>M-Pesa Daraja Payments & FIFO Allocations</h2>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                     <button
                       type="button"
                       className="btn-outline"
                       onClick={() => setIsInvoiceModalOpen(true)}
+                      title="Generate recurring monthly invoice"
                     >
                       Generate Invoice
                     </button>
-                    <button
-                      type="button"
-                      className="btn-dark"
-                      onClick={() => setIsMpesaModalOpen(true)}
-                    >
-                      <Plus size={15} aria-hidden="true" />
-                      <span>Record M-Pesa Payment</span>
-                    </button>
+                    <ModuleActionToolbar
+                      moduleKey="payments"
+                      addNewLabel="Record Payment"
+                      onAddNew={() => setIsMpesaModalOpen(true)}
+                      onOpenImport={setImportWizardModule}
+                      onOpenBulkGrid={setBulkGridModule}
+                      onOpenScanner={setScannerModule}
+                      scannerLabel="Scan Receipt / QR"
+                      onExportCsv={handleExportModuleCsv}
+                      onOpenHistory={() => setIsImportHistoryOpen(true)}
+                    />
                   </div>
                 </div>
 
@@ -2520,14 +2932,33 @@ export function App() {
                     </button>
                   ))}
                 </div>
-                <button
-                  type="button"
-                  className="btn-dark"
-                  onClick={() => setIsMaintenanceModalOpen(true)}
-                >
-                  <Plus size={15} aria-hidden="true" />
-                  <span>New Ticket</span>
-                </button>
+                <ModuleActionToolbar
+                  moduleKey={
+                    maintenanceSubTab === 'work_orders'
+                      ? 'maintenance'
+                      : maintenanceSubTab === 'vendors'
+                      ? 'vendors'
+                      : 'inspections'
+                  }
+                  addNewLabel={
+                    maintenanceSubTab === 'work_orders'
+                      ? 'New Ticket'
+                      : maintenanceSubTab === 'vendors'
+                      ? 'Add Vendor'
+                      : 'Schedule Inspection'
+                  }
+                  onAddNew={
+                    maintenanceSubTab === 'work_orders'
+                      ? () => setIsMaintenanceModalOpen(true)
+                      : () => setBulkGridModule(maintenanceSubTab === 'vendors' ? 'vendors' : 'inspections')
+                  }
+                  onOpenImport={setImportWizardModule}
+                  onOpenBulkGrid={setBulkGridModule}
+                  onOpenScanner={setScannerModule}
+                  scannerLabel={maintenanceSubTab === 'work_orders' ? 'Capture Photo / Tag' : 'Scan Sheet'}
+                  onExportCsv={handleExportModuleCsv}
+                  onOpenHistory={() => setIsImportHistoryOpen(true)}
+                />
               </div>
 
               {maintenanceSubTab === 'work_orders' && (
@@ -2634,6 +3065,7 @@ export function App() {
                     ))
                   )}
                 </ResponsiveTable>
+                </>
               )}
 
               {maintenanceSubTab === 'inspections' && (
@@ -3872,11 +4304,26 @@ export function App() {
                     ))
                   )}
                 </ResponsiveTable>
+                </>
               )}
 
               {analyticsSubTab === 'expenses' && (
-                <ResponsiveTable
-                  caption="Property maintenance and operating expenses"
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 16px', background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
+                    <ModuleActionToolbar
+                      moduleKey="expenses"
+                      addNewLabel="Bulk Add Expenses"
+                      onAddNew={() => setBulkGridModule('expenses')}
+                      onOpenImport={setImportWizardModule}
+                      onOpenBulkGrid={setBulkGridModule}
+                      onOpenScanner={setScannerModule}
+                      scannerLabel="Scan Voucher / Receipt"
+                      onExportCsv={handleExportModuleCsv}
+                      onOpenHistory={() => setIsImportHistoryOpen(true)}
+                    />
+                  </div>
+                  <ResponsiveTable
+                    caption="Property maintenance and operating expenses"
                   headers={['Expense #', 'Category', 'Vendor', 'Description', 'Date', 'Amount']}
                 >
                   {orgExpenses.length === 0 ? (
@@ -3901,8 +4348,22 @@ export function App() {
               )}
 
               {analyticsSubTab === 'documents' && (
-                <ResponsiveTable
-                  caption="Private S3 documents with short-lived pre-signed download URLs"
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 16px', background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
+                    <ModuleActionToolbar
+                      moduleKey="documents"
+                      addNewLabel="Upload Document"
+                      onAddNew={() => setIsOcrUploadModalOpen(true)}
+                      onOpenImport={setImportWizardModule}
+                      onOpenBulkGrid={setBulkGridModule}
+                      onOpenScanner={setScannerModule}
+                      scannerLabel="Scan Document"
+                      onExportCsv={handleExportModuleCsv}
+                      onOpenHistory={() => setIsImportHistoryOpen(true)}
+                    />
+                  </div>
+                  <ResponsiveTable
+                    caption="Private S3 documents with short-lived pre-signed download URLs"
                   headers={['Category', 'Linked Record', 'File Name', 'Size', 'Action']}
                 >
                   {orgDocuments.length === 0 ? (
@@ -4671,7 +5132,19 @@ export function App() {
               </select>
             </div>
             <div className="field-group">
-              <label htmlFor="mnt-title">Issue Title</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <label htmlFor="mnt-title" style={{ margin: 0 }}>Issue Title</label>
+                <VoiceInput
+                  buttonLabel="Voice Dictate"
+                  onTranscript={(text) =>
+                    setMaintenanceForm((prev) => ({
+                      ...prev,
+                      title: prev.title ? `${prev.title} ${text}` : text,
+                      description: prev.description ? `${prev.description} ${text}` : text,
+                    }))
+                  }
+                />
+              </div>
               <input
                 id="mnt-title"
                 type="text"
@@ -4679,6 +5152,18 @@ export function App() {
                 className="form-control"
                 value={maintenanceForm.title}
                 onChange={(e) => setMaintenanceForm({ ...maintenanceForm, title: e.target.value })}
+                placeholder="e.g. Master Bedroom Ceiling Leak"
+              />
+            </div>
+            <div className="field-group">
+              <label htmlFor="mnt-desc">Issue Description & Technical Notes</label>
+              <textarea
+                id="mnt-desc"
+                rows={3}
+                className="form-control"
+                value={maintenanceForm.description}
+                onChange={(e) => setMaintenanceForm({ ...maintenanceForm, description: e.target.value })}
+                placeholder="Detailed description of repair requirement..."
               />
             </div>
             <div className="field-group">
@@ -4858,6 +5343,100 @@ export function App() {
           </button>
         </form>
       </ModalDialog>
+
+      {/* 7. Unified Bulk Import Wizard Modal */}
+      {importWizardModule && (
+        <ImportWizard
+          module={importWizardModule}
+          onClose={() => setImportWizardModule(null)}
+          onImportComplete={async (result) => {
+            await handleBulkCommit(importWizardModule, result.rows);
+          }}
+        />
+      )}
+
+      {/* 8. Spreadsheet-Style Bulk Editable Grid Modal */}
+      {bulkGridModule && (
+        <ModalDialog
+          open={!!bulkGridModule}
+          onClose={() => setBulkGridModule(null)}
+          title={`Spreadsheet Bulk Entry & Excel Paste — ${MODULE_TEMPLATES[bulkGridModule]?.title || bulkGridModule}`}
+        >
+          <BulkEditableGrid
+            moduleTitle={MODULE_TEMPLATES[bulkGridModule]?.title || bulkGridModule}
+            fields={MODULE_TEMPLATES[bulkGridModule]?.fields || []}
+            onCommit={(rows) => handleBulkCommit(bulkGridModule, rows)}
+            onCancel={() => setBulkGridModule(null)}
+          />
+        </ModalDialog>
+      )}
+
+      {/* 9. Mobile Camera & Document Scanner Modal */}
+      {scannerModule && (
+        <ModalDialog
+          open={!!scannerModule}
+          onClose={() => setScannerModule(null)}
+          title={`Mobile Camera & Document Acquisition — ${scannerModule.toUpperCase()}`}
+        >
+          <DocumentScanner
+            targetModule={scannerModule}
+            onScanComplete={(res) => {
+              announce(`Acquired ${res.type} data (${res.fileName || 'scan'})`);
+              if (res.detectedFields && Object.keys(res.detectedFields).length > 0) {
+                handleBulkCommit(scannerModule, [res.detectedFields]);
+              }
+              setScannerModule(null);
+            }}
+          />
+        </ModalDialog>
+      )}
+
+      {/* 10. Import History & Audit Log Modal */}
+      {isImportHistoryOpen && (
+        <ModalDialog
+          open={isImportHistoryOpen}
+          onClose={() => setIsImportHistoryOpen(false)}
+          title="Import Audit History & Integrity Log"
+        >
+          <ImportHistory onClose={() => setIsImportHistoryOpen(false)} />
+        </ModalDialog>
+      )}
+
+      {/* 11. Human Verification Workbench Modal (olmOCR & Groq Review) */}
+      {ocrReviewModalJob && (
+        <ModalDialog
+          open={!!ocrReviewModalJob}
+          onClose={() => setOcrReviewModalJob(null)}
+          title="Human Verification Workbench (Safety Guard)"
+        >
+          <OCRReviewForm
+            job={ocrReviewModalJob}
+            onApprove={async (jobId, corrections, notes) => {
+              try {
+                const next = reviewOcrDocumentJob(state, jobId, 'APPROVED', notes, corrections);
+                setState(next);
+                await apiClient.saveWorkspaceSnapshot(next);
+                setOcrReviewModalJob(null);
+                announce(`Job ${jobId} verified and promoted to authoritative RMS records.`);
+              } catch (e) {
+                announce((e as Error).message);
+              }
+            }}
+            onReject={async (jobId, notes) => {
+              try {
+                const next = reviewOcrDocumentJob(state, jobId, 'REJECTED', notes, {});
+                setState(next);
+                await apiClient.saveWorkspaceSnapshot(next);
+                setOcrReviewModalJob(null);
+                announce(`Job ${jobId} rejected.`);
+              } catch (e) {
+                announce((e as Error).message);
+              }
+            }}
+            onCancel={() => setOcrReviewModalJob(null)}
+          />
+        </ModalDialog>
+      )}
     </>
   );
 }

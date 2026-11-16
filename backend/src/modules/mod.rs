@@ -4,6 +4,7 @@ pub mod auth;
 pub mod billing;
 pub mod deposits;
 pub mod documents;
+pub mod import_engine;
 pub mod leases;
 pub mod maintenance;
 pub mod notifications;

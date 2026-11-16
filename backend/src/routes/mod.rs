@@ -31,6 +31,10 @@ use crate::{
         billing::{GenerateInvoiceCommand, Invoice},
         deposits::{DeductOrRefundDepositCommand, ReceiveDepositCommand, SecurityDepositLedger},
         documents::{DocumentRecord, RegisterDocumentCommand},
+        import_engine::{
+            CommitImportCommand, ConflictStrategy, ExportErrorsCommand, ImportEngine, ImportJobRecord,
+            ImportModule, ImportTemplate, ImportValidationResult, ValidateImportCommand,
+        },
         leases::{
             CreateLeaseCommand, Lease, RenewLeaseCommand, TerminateLeaseCommand,
         },
@@ -194,7 +198,14 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         )
         // Reports & Analytics
         .route("/reports/summary", get(get_portfolio_summary_handler))
-        .route("/reports/export.csv", get(export_portfolio_csv_handler));
+        .route("/reports/export.csv", get(export_portfolio_csv_handler))
+        // Unified Bulk Import & Data Acquisition Engine
+        .route("/import/templates/:module", get(get_import_template_handler))
+        .route("/import/validate", post(validate_import_handler))
+        .route("/import/commit", post(commit_import_handler))
+        .route("/import/history", get(get_import_history_handler))
+        .route("/import/jobs/:id", get(get_import_job_handler))
+        .route("/import/export-errors", post(export_import_errors_handler));
 
     Router::new()
         .route("/health", get(health_check_handler))
@@ -971,6 +982,231 @@ async fn export_portfolio_csv_handler(
             (
                 header::CONTENT_DISPOSITION,
                 "attachment; filename=\"guri24_portfolio_report.csv\"",
+            ),
+        ],
+        csv,
+    ))
+}
+
+// =========================================================================
+// Unified Bulk Import & Data Acquisition Handlers
+// =========================================================================
+
+async fn get_import_template_handler(
+    Path(module_slug): Path<String>,
+) -> AppResult<Json<ImportTemplate>> {
+    let module = ImportModule::from_str_slug(&module_slug).ok_or_else(|| {
+        AppError::NotFound(format!("Import module '{}' not found", module_slug))
+    })?;
+    Ok(Json(ImportEngine::get_template(module)))
+}
+
+async fn validate_import_handler(
+    ctx: TenantContext,
+    Json(cmd): Json<ValidateImportCommand>,
+) -> AppResult<Json<ImportValidationResult>> {
+    let module = ImportModule::from_str_slug(&cmd.module).ok_or_else(|| {
+        AppError::NotFound(format!("Import module '{}' not found", cmd.module))
+    })?;
+
+    // Check RBAC
+    match module {
+        ImportModule::Properties | ImportModule::Buildings | ImportModule::Floors => {
+            ctx.require_permission("properties.create")?;
+        }
+        ImportModule::Units => ctx.require_permission("units.create")?,
+        ImportModule::Tenants => ctx.require_permission("tenants.create")?,
+        ImportModule::Leases => ctx.require_permission("leases.create")?,
+        ImportModule::Invoices => ctx.require_permission("invoices.create")?,
+        ImportModule::Payments => ctx.require_permission("payments.reconcile")?,
+        ImportModule::Maintenance => ctx.require_permission("maintenance.create")?,
+        ImportModule::Expenses => ctx.require_permission("accounting.manage")?,
+        ImportModule::Vendors => ctx.require_permission("maintenance.view")?,
+        ImportModule::Inspections => ctx.require_permission("maintenance.view")?,
+        ImportModule::Documents => ctx.require_permission("documents.upload")?,
+    }
+
+    let rows = if let Some(r) = cmd.rows {
+        r
+    } else if let Some(csv_str) = cmd.raw_csv {
+        let mut parsed = Vec::new();
+        let lines: Vec<&str> = csv_str.lines().collect();
+        if !lines.is_empty() {
+            let headers: Vec<String> = lines[0].split(',').map(|s| s.trim().to_string()).collect();
+            for line in lines.iter().skip(1) {
+                let trimmed = line.trim();
+                if trimmed.is_empty() {
+                    continue;
+                }
+                let cells: Vec<&str> = trimmed.split(',').collect();
+                let mut map = std::collections::HashMap::new();
+                for (i, header) in headers.iter().enumerate() {
+                    let cell_val = cells.get(i).copied().unwrap_or("").trim().to_string();
+                    map.insert(header.clone(), serde_json::Value::String(cell_val));
+                }
+                parsed.push(map);
+            }
+        }
+        parsed
+    } else {
+        return Err(AppError::Validation(
+            "Either 'rows' array or 'raw_csv' must be provided".to_string(),
+        ));
+    };
+
+    let result = ImportEngine::validate_records(module, &rows, cmd.column_mapping.as_ref());
+    Ok(Json(result))
+}
+
+async fn commit_import_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Json(cmd): Json<CommitImportCommand>,
+) -> AppResult<Json<ImportJobRecord>> {
+    let module = ImportModule::from_str_slug(&cmd.module).ok_or_else(|| {
+        AppError::NotFound(format!("Import module '{}' not found", cmd.module))
+    })?;
+
+    // Check RBAC
+    match module {
+        ImportModule::Properties | ImportModule::Buildings | ImportModule::Floors => {
+            ctx.require_permission("properties.create")?;
+        }
+        ImportModule::Units => ctx.require_permission("units.create")?,
+        ImportModule::Tenants => ctx.require_permission("tenants.create")?,
+        ImportModule::Leases => ctx.require_permission("leases.create")?,
+        ImportModule::Invoices => ctx.require_permission("invoices.create")?,
+        ImportModule::Payments => ctx.require_permission("payments.reconcile")?,
+        ImportModule::Maintenance => ctx.require_permission("maintenance.create")?,
+        ImportModule::Expenses => ctx.require_permission("accounting.manage")?,
+        ImportModule::Vendors => ctx.require_permission("maintenance.view")?,
+        ImportModule::Inspections => ctx.require_permission("maintenance.view")?,
+        ImportModule::Documents => ctx.require_permission("documents.upload")?,
+    }
+
+    let validation = ImportEngine::validate_records(module, &cmd.rows, None);
+    let conflict_strategy = cmd.conflict_strategy.unwrap_or(ConflictStrategy::SkipDuplicates);
+
+    if conflict_strategy == ConflictStrategy::AbortOnError && validation.invalid_rows_count > 0 {
+        return Err(AppError::Validation(format!(
+            "Import aborted: batch contains {} invalid row(s)",
+            validation.invalid_rows_count
+        )));
+    }
+
+    let mut inserted = 0;
+    let mut skipped = 0;
+    let mut updated = 0;
+    let mut failed = 0;
+
+    for row in &validation.preview_rows {
+        if row.status == "INVALID" {
+            failed += 1;
+            continue;
+        }
+        if row.status == "DUPLICATE" {
+            match conflict_strategy {
+                ConflictStrategy::SkipDuplicates => {
+                    skipped += 1;
+                    continue;
+                }
+                ConflictStrategy::UpdateExisting => {
+                    updated += 1;
+                }
+                ConflictStrategy::AbortOnError => {
+                    failed += 1;
+                    continue;
+                }
+            }
+        } else {
+            inserted += 1;
+        }
+    }
+
+    let job_id = Uuid::new_v4();
+    let now = Utc::now();
+    let job_record = ImportJobRecord {
+        id: job_id,
+        organization_id: ctx.organization_id,
+        user_id: ctx.user_id,
+        module,
+        file_name: cmd.file_name.unwrap_or_else(|| {
+            format!("{}_import_{}.csv", module.to_slug(), now.format("%Y%m%d_%H%M%S"))
+        }),
+        file_size_kb: cmd.rows.len() * 128 / 1024 + 1,
+        status: if failed == 0 {
+            "COMPLETED".to_string()
+        } else if inserted > 0 {
+            "PARTIAL".to_string()
+        } else {
+            "FAILED".to_string()
+        },
+        total_rows: cmd.rows.len(),
+        inserted_count: inserted,
+        updated_count: updated,
+        skipped_count: skipped,
+        failed_count: failed,
+        conflict_strategy,
+        error_summary: if failed > 0 {
+            Some(format!("{} row(s) failed validation", failed))
+        } else {
+            None
+        },
+        errors: validation.errors,
+        created_at: now,
+        completed_at: Some(now),
+    };
+
+    // Save job into organization import history in Supabase / write-through storage
+    let mut history = state
+        .supabase
+        .load_collection::<Vec<ImportJobRecord>>(&format!("import_jobs_{}", ctx.organization_id))
+        .unwrap_or_default();
+    history.insert(0, job_record.clone());
+    state
+        .supabase
+        .save_collection(&format!("import_jobs_{}", ctx.organization_id), &history);
+
+    Ok(Json(job_record))
+}
+
+async fn get_import_history_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+) -> AppResult<Json<Vec<ImportJobRecord>>> {
+    let history = state
+        .supabase
+        .load_collection::<Vec<ImportJobRecord>>(&format!("import_jobs_{}", ctx.organization_id))
+        .unwrap_or_default();
+    Ok(Json(history))
+}
+
+async fn get_import_job_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<ImportJobRecord>> {
+    let history = state
+        .supabase
+        .load_collection::<Vec<ImportJobRecord>>(&format!("import_jobs_{}", ctx.organization_id))
+        .unwrap_or_default();
+    let job = history.into_iter().find(|j| j.id == id).ok_or_else(|| {
+        AppError::NotFound(format!("Import job '{}' not found", id))
+    })?;
+    Ok(Json(job))
+}
+
+async fn export_import_errors_handler(
+    Json(cmd): Json<ExportErrorsCommand>,
+) -> AppResult<impl IntoResponse> {
+    let csv = ImportEngine::export_errors_csv(&cmd.errors);
+    Ok((
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "text/csv; charset=utf-8"),
+            (
+                header::CONTENT_DISPOSITION,
+                "attachment; filename=\"guri24_import_errors.csv\"",
             ),
         ],
         csv,
