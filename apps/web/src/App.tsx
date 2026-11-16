@@ -120,6 +120,7 @@ import {
 import { FullPageAssistant } from './components/FullPageAssistant';
 import { FinancialOperationsWorkspace } from './components/FinancialOperationsWorkspace';
 import { NotificationSettingsWorkspace } from './components/NotificationSettingsWorkspace';
+import { AnalyticsLedgerWorkspace } from './components/AnalyticsLedgerWorkspace';
 
 export type NavSection =
   | 'dashboard'
@@ -3502,206 +3503,31 @@ export function App() {
           )}
 
           {/* =================================================================
-              PAGE 8: ANALYTICS, DOUBLE-ENTRY LEDGER, EXPENSES & DOCUMENTS
+              PAGE 8: COMPREHENSIVE ANALYTICS & FINANCIAL LEDGER WORKSPACE
              ================================================================= */}
           {activeNav === 'analytics' && (
-            <section className="surface-card">
-              <div className="card-header">
-                <div className="pill-tabs" role="tablist" aria-label="Accounting and Analytics">
-                  {(['ledger', 'expenses', 'documents', 'reports'] as const).map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      role="tab"
-                      className="pill-tab"
-                      aria-selected={analyticsSubTab === tab}
-                      onClick={() => setAnalyticsSubTab(tab)}
-                    >
-                      {tab === 'ledger'
-                        ? 'Double-Entry Ledger'
-                        : tab === 'expenses'
-                        ? 'Property Expenses'
-                        : tab === 'documents'
-                        ? 'Private S3 Documents'
-                        : 'Executive KPI Summary'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {analyticsSubTab === 'ledger' && (
-                <ResponsiveTable
-                  caption="Immutable double-entry accounting journal entries"
-                  headers={['Entry #', 'Date', 'Event', 'Description & Balanced Lines', 'Debits = Credits', 'Status', 'Audit Action']}
-                >
-                  {orgJournals.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
-                        No double-entry journal records found. Financial transactions automatically post balanced journal entries here.
-                      </td>
-                    </tr>
-                  ) : (
-                    orgJournals.map((j) => (
-                      <tr key={j.id}>
-                        <td className="cell-code">{j.entry_number}</td>
-                        <td className="cell-nowrap">{j.entry_date}</td>
-                        <td className="cell-nowrap">
-                          <span className="badge-pill badge-neutral">{j.source_event_type}</span>
-                        </td>
-                        <td>
-                          <div style={{ fontWeight: 600 }}>{j.description}</div>
-                          <div className="meter-stack" style={{ marginBlockStart: '4px' }}>
-                            {j.lines.map((l, idx) => (
-                              <span key={idx} className="meter-chip">
-                                {l.account_code} {l.account_name}:{' '}
-                                {l.debit_kes > 0
-                                  ? `DR ${formatKes(l.debit_kes)}`
-                                  : `CR ${formatKes(l.credit_kes)}`}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="cell-currency">{formatKes(j.total_debit_kes)}</td>
-                        <td className="cell-nowrap">
-                          <StatusBadge
-                            status={j.status}
-                            tone={j.status === 'POSTED' ? 'success' : 'warning'}
-                          />
-                        </td>
-                        <td className="cell-nowrap">
-                          <button
-                            type="button"
-                            className="btn-outline"
-                            style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
-                            disabled={j.status === 'REVERSED'}
-                            onClick={() => handleReverseJournal(j)}
-                          >
-                            Reverse Entry
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </ResponsiveTable>
-              )}
-
-              {analyticsSubTab === 'expenses' && (
-                <>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 16px', background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
-                    <ModuleActionToolbar
-                      moduleKey="expenses"
-                      addNewLabel="Bulk Add Expenses"
-                      onAddNew={() => setBulkGridModule('expenses')}
-                      onOpenImport={setImportWizardModule}
-                      onOpenBulkGrid={setBulkGridModule}
-                      onOpenScanner={setScannerModule}
-                      scannerLabel="Scan Voucher / Receipt"
-                      onExportCsv={handleExportModuleCsv}
-                      onOpenHistory={() => setIsImportHistoryOpen(true)}
-                    />
-                  </div>
-                  <ResponsiveTable
-                    caption="Property maintenance and operating expenses"
-                  headers={['Expense #', 'Category', 'Vendor', 'Description', 'Date', 'Amount']}
-                >
-                  {orgExpenses.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
-                        No operational expenses recorded.
-                      </td>
-                    </tr>
-                  ) : (
-                    orgExpenses.map((e: PropertyExpense) => (
-                      <tr key={e.id}>
-                        <td className="cell-code">{e.expense_number}</td>
-                        <td className="cell-nowrap">{e.category}</td>
-                        <td className="cell-nowrap">{e.vendor_name}</td>
-                        <td>{e.description}</td>
-                        <td className="cell-nowrap">{e.expense_date}</td>
-                        <td className="cell-currency">{formatKes(e.amount_kes)}</td>
-                      </tr>
-                    ))
-                  )}
-                </ResponsiveTable>
-                </>
-              )}
-
-              {analyticsSubTab === 'documents' && (
-                <>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '12px 16px', background: 'var(--bg-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
-                    <ModuleActionToolbar
-                      moduleKey="documents"
-                      addNewLabel="Upload Document"
-                      onAddNew={() => setIsOcrUploadModalOpen(true)}
-                      onOpenImport={setImportWizardModule}
-                      onOpenBulkGrid={setBulkGridModule}
-                      onOpenScanner={setScannerModule}
-                      scannerLabel="Scan Document"
-                      onExportCsv={handleExportModuleCsv}
-                      onOpenHistory={() => setIsImportHistoryOpen(true)}
-                    />
-                  </div>
-                  <ResponsiveTable
-                    caption="Private S3 documents with short-lived pre-signed download URLs"
-                  headers={['Category', 'Linked Record', 'File Name', 'Size', 'Action']}
-                >
-                  {orgDocuments.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '36px 16px', color: 'var(--text-muted)' }}>
-                        No documents uploaded to private storage yet.
-                      </td>
-                    </tr>
-                  ) : (
-                    orgDocuments.map((d) => (
-                      <tr key={d.id}>
-                        <td className="cell-nowrap">
-                          <span className="badge-pill badge-blue">{d.category}</span>
-                        </td>
-                        <td className="cell-nowrap">{d.entity_label}</td>
-                        <td className="cell-mono">{d.file_name}</td>
-                        <td className="cell-nowrap">{d.file_size_kb} KB</td>
-                        <td className="cell-nowrap">
-                          <button
-                            type="button"
-                            className="btn-outline"
-                            style={{ minBlockSize: '30px', padding: '4px 10px', fontSize: '0.74rem' }}
-                            onClick={() =>
-                              announce(
-                                `Generated 300s HMAC-SHA256 Signed S3 URL for ${d.file_name}`
-                              )
-                            }
-                          >
-                            Sign 5m URL
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </ResponsiveTable>
-                </>
-              )}
-
-              {analyticsSubTab === 'reports' && (
-                <div className="stat-kv-list" style={{ maxInlineSize: '640px' }}>
-                  <div className="stat-kv-row">
-                    <span>Expected Rental Revenue (Account 4000)</span>
-                    <span className="stat-kv-val">{formatKes(kpis.billedKes)}</span>
-                  </div>
-                  <div className="stat-kv-row">
-                    <span>Actual M-Pesa Collections (Account 1010)</span>
-                    <span className="stat-kv-val">{formatKes(kpis.collectedKes)}</span>
-                  </div>
-                  <div className="stat-kv-row">
-                    <span>Outstanding Tenant Arrears (Account 1100)</span>
-                    <span className="stat-kv-val">{formatKes(kpis.arrearsKes)}</span>
-                  </div>
-                  <div className="stat-kv-row">
-                    <span>Security Deposits Held as Liability (Account 2100)</span>
-                    <span className="stat-kv-val">{formatKes(kpis.depositsLiabilityKes)}</span>
-                  </div>
-                </div>
-              )}
-            </section>
+            <AnalyticsLedgerWorkspace
+              currentOrg={{
+                id: state.currentOrganizationId || 'org-guri24-001',
+                name:
+                  state.organizations.find((o) => o.id === state.currentOrganizationId)?.name ||
+                  'Guri24 Rental Management Ltd',
+              }}
+              userRole={currentUserRole}
+              properties={state.properties}
+              tenants={state.tenants}
+              leases={state.leases}
+              units={state.units}
+              invoices={state.invoices}
+              payments={state.payments}
+              expenses={orgExpenses}
+              journals={orgJournals}
+              deposits={state.deposits}
+              maintenance={state.maintenance}
+              onRecordExpense={() => setBulkGridModule('expenses')}
+              onReverseJournal={handleReverseJournal}
+              onExportCsv={handleExportModuleCsv}
+            />
           )}
 
           {/* =================================================================

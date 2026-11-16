@@ -535,3 +535,269 @@ export interface NotificationTemplateSummary {
   is_mandatory: boolean;
   sample_subject: string;
 }
+
+// =============================================================================
+// Comprehensive Financial Intelligence, Accounting & Ledger Types
+// =============================================================================
+
+export type AccountType = 'ASSET' | 'LIABILITY' | 'EQUITY' | 'REVENUE' | 'EXPENSE';
+
+export interface Account {
+  id: string;
+  organization_id: string;
+  account_code: string;
+  name: string;
+  account_type: AccountType;
+  normal_balance: 'DEBIT' | 'CREDIT';
+}
+
+export interface TrialBalanceRow {
+  account_code: string;
+  account_name: string;
+  account_type: AccountType;
+  debit_kes: number;
+  credit_kes: number;
+  net_balance_kes: number;
+}
+
+export interface TrialBalanceReport {
+  as_of_date: string;
+  accounts: TrialBalanceRow[];
+  total_debits_kes: number;
+  total_credits_kes: number;
+  is_balanced: boolean;
+}
+
+export interface AccountLineSummary {
+  account_code: string;
+  account_name: string;
+  amount_kes: number;
+}
+
+export interface ProfitAndLossReport {
+  period_start: string;
+  period_end: string;
+  operating_revenue: AccountLineSummary[];
+  total_revenue_kes: number;
+  operating_expenses: AccountLineSummary[];
+  total_expenses_kes: number;
+  net_operating_income_kes: number;
+  net_profit_loss_kes: number;
+}
+
+export interface BalanceSheetReport {
+  as_of_date: string;
+  current_assets: AccountLineSummary[];
+  total_assets_kes: number;
+  liabilities: AccountLineSummary[];
+  total_liabilities_kes: number;
+  equity: AccountLineSummary[];
+  total_equity_kes: number;
+  total_liabilities_and_equity_kes: number;
+  is_balanced: boolean;
+}
+
+export interface CashFlowStatement {
+  period_start: string;
+  period_end: string;
+  operating_inflows_kes: number;
+  operating_outflows_kes: number;
+  net_operating_cash_kes: number;
+  financing_cash_flow_kes: number;
+  opening_cash_balance_kes: number;
+  closing_cash_balance_kes: number;
+}
+
+export interface MonthlyTrend {
+  month_label: string;
+  billed_kes: number;
+  collected_kes: number;
+  expenses_kes: number;
+  noi_kes: number;
+}
+
+export interface PropertyPerformanceSummary {
+  property_id: string;
+  property_name: string;
+  total_units: number;
+  occupied_units: number;
+  occupancy_rate_pct: number;
+  billed_kes: number;
+  collected_kes: number;
+  arrears_kes: number;
+  expenses_kes: number;
+  noi_kes: number;
+  average_rent_kes: number;
+}
+
+export interface ExecutiveFinancialOverview {
+  currency: string;
+  total_billed_kes: number;
+  total_collected_kes: number;
+  collection_rate_pct: number;
+  outstanding_arrears_kes: number;
+  operating_expenses_kes: number;
+  net_operating_income_kes: number;
+  security_deposits_liability_kes: number;
+  unallocated_receipts_kes: number;
+  total_units: number;
+  occupied_units: number;
+  occupancy_rate_pct: number;
+  monthly_trends: MonthlyTrend[];
+  property_summaries: PropertyPerformanceSummary[];
+}
+
+export interface PaymentMethodBreakdown {
+  method: string;
+  count: number;
+  total_kes: number;
+  percentage: number;
+}
+
+export interface IncomeCollectionsSummary {
+  total_invoiced_kes: number;
+  rental_revenue_kes: number;
+  utility_revenue_kes: number;
+  penalties_revenue_kes: number;
+  actual_collected_kes: number;
+  unallocated_held_kes: number;
+  collection_rate_pct: number;
+  payment_methods: PaymentMethodBreakdown[];
+}
+
+export interface TenantAgingRow {
+  tenant_id: string;
+  tenant_name: string;
+  property_name: string;
+  unit_number: string;
+  phone: string;
+  current_kes: number;
+  bucket_1_30_kes: number;
+  bucket_31_60_kes: number;
+  bucket_61_90_kes: number;
+  bucket_over_90_kes: number;
+  total_arrears_kes: number;
+  oldest_due_date?: string | null;
+}
+
+export interface ArrearsAgingReport {
+  as_of_date: string;
+  total_receivables_kes: number;
+  current_kes: number;
+  bucket_1_30_kes: number;
+  bucket_31_60_kes: number;
+  bucket_61_90_kes: number;
+  bucket_over_90_kes: number;
+  rows: TenantAgingRow[];
+}
+
+export interface DepositLiabilityItem {
+  deposit_id: string;
+  tenant_id: string;
+  tenant_name: string;
+  property_name: string;
+  unit_number: string;
+  initial_amount_kes: number;
+  deductions_kes: number;
+  refunded_kes: number;
+  current_liability_kes: number;
+  status: string;
+}
+
+export interface DepositLiabilitiesReport {
+  as_of_date: string;
+  total_deposits_held_kes: number;
+  total_refunded_kes: number;
+  total_deducted_kes: number;
+  items: DepositLiabilityItem[];
+}
+
+export interface TenantAnalyticsRow {
+  tenant_id: string;
+  tenant_name: string;
+  property_name: string;
+  unit_number: string;
+  total_billed_kes: number;
+  total_paid_kes: number;
+  balance_kes: number;
+  payment_count: number;
+  on_time_rate_pct: number;
+  avg_delay_days: number;
+}
+
+export interface TenantAnalyticsReport {
+  total_tenants: number;
+  active_leases: number;
+  overall_on_time_pct: number;
+  avg_payment_delay_days: number;
+  retention_rate_pct: number;
+  tenants: TenantAnalyticsRow[];
+}
+
+export interface MaintenanceCostAnalysis {
+  total_requests: number;
+  open_requests: number;
+  closed_requests: number;
+  total_maintenance_spent_kes: number;
+  avg_resolution_days: number;
+}
+
+export interface ReconciliationBatch {
+  id: string;
+  organization_id: string;
+  statement_source: string;
+  file_name: string;
+  total_records: number;
+  matched_records: number;
+  exception_records: number;
+  imported_at: string;
+}
+
+export interface ReconciliationExternalTx {
+  id: string;
+  batch_id: string;
+  transaction_ref: string;
+  trans_time: string;
+  amount_kes: number;
+  narrative: string;
+  sender_name?: string | null;
+  sender_phone?: string | null;
+  match_status: 'UNMATCHED' | 'MATCHED' | 'EXCEPTION';
+  matched_entity_id?: string | null;
+}
+
+export interface ReconciliationException {
+  id: string;
+  batch_id: string;
+  external_transaction_id: string;
+  exception_type: string;
+  details: string;
+  status: 'OPEN' | 'RESOLVED' | 'DISPUTED';
+}
+
+export interface FinancialReportRun {
+  id: string;
+  organization_id: string;
+  report_type: string;
+  title: string;
+  period_start: string;
+  period_end: string;
+  property_id?: string | null;
+  currency: string;
+  parameters: Record<string, any>;
+  summary_data: Record<string, any>;
+  generated_by?: string | null;
+  created_at: string;
+}
+
+export interface FinancialAuditEvent {
+  id: string;
+  organization_id: string;
+  actor_id?: string | null;
+  actor_role: string;
+  event_type: string;
+  source_entity_type: string;
+  source_entity_id: string;
+  description: string;
+  created_at: string;
+}

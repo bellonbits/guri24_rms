@@ -24,6 +24,22 @@ import type {
   IntegrationStatusItem,
   SubscriptionSummary,
   RmsPlatformState,
+  Account,
+  TrialBalanceReport,
+  ProfitAndLossReport,
+  BalanceSheetReport,
+  CashFlowStatement,
+  ExecutiveFinancialOverview,
+  IncomeCollectionsSummary,
+  ArrearsAgingReport,
+  DepositLiabilitiesReport,
+  PropertyPerformanceSummary,
+  TenantAnalyticsReport,
+  MaintenanceCostAnalysis,
+  ReconciliationBatch,
+  ReconciliationException,
+  FinancialReportRun,
+  FinancialAuditEvent,
 } from '../types';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) || '/api/v1';
@@ -474,6 +490,123 @@ class ApiClient {
   async getNotificationTemplates(): Promise<NotificationTemplateSummary[]> {
     const res = await this.request<NotificationTemplateSummary[]>('/notifications/templates');
     return Array.isArray(res) ? res : [];
+  }
+
+  // --- Analytics & Ledger Workspace Methods ---
+  async getFinancialOverview(params?: { property_id?: string; start_date?: string; end_date?: string }): Promise<ExecutiveFinancialOverview> {
+    const q = new URLSearchParams();
+    if (params?.property_id) q.set('property_id', params.property_id);
+    if (params?.start_date) q.set('start_date', params.start_date);
+    if (params?.end_date) q.set('end_date', params.end_date);
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return this.request<ExecutiveFinancialOverview>(`/analytics/overview${qs}`);
+  }
+
+  async getIncomeCollections(): Promise<IncomeCollectionsSummary> {
+    return this.request<IncomeCollectionsSummary>('/analytics/collections');
+  }
+
+  async getArrearsAging(params?: { as_of?: string }): Promise<ArrearsAgingReport> {
+    const qs = params?.as_of ? `?as_of=${params.as_of}` : '';
+    return this.request<ArrearsAgingReport>(`/analytics/arrears${qs}`);
+  }
+
+  async getPropertyPerformance(): Promise<PropertyPerformanceSummary[]> {
+    return this.request<PropertyPerformanceSummary[]>('/analytics/properties');
+  }
+
+  async getTenantAnalytics(): Promise<TenantAnalyticsReport> {
+    return this.request<TenantAnalyticsReport>('/analytics/tenants');
+  }
+
+  async getMaintenanceAnalytics(): Promise<MaintenanceCostAnalysis> {
+    return this.request<MaintenanceCostAnalysis>('/analytics/maintenance');
+  }
+
+  async getAccounts(): Promise<Account[]> {
+    return this.request<Account[]>('/ledger/accounts');
+  }
+
+  async reverseJournal(id: string, reason: string): Promise<JournalEntry> {
+    return this.request<JournalEntry>(`/ledger/journals/${id}/reverse`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async getTrialBalance(params?: { as_of?: string }): Promise<TrialBalanceReport> {
+    const qs = params?.as_of ? `?as_of=${params.as_of}` : '';
+    return this.request<TrialBalanceReport>(`/ledger/trial-balance${qs}`);
+  }
+
+  async getProfitLoss(params?: { start_date?: string; end_date?: string }): Promise<ProfitAndLossReport> {
+    const q = new URLSearchParams();
+    if (params?.start_date) q.set('start_date', params.start_date);
+    if (params?.end_date) q.set('end_date', params.end_date);
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return this.request<ProfitAndLossReport>(`/ledger/profit-loss${qs}`);
+  }
+
+  async getBalanceSheet(params?: { as_of?: string }): Promise<BalanceSheetReport> {
+    const qs = params?.as_of ? `?as_of=${params.as_of}` : '';
+    return this.request<BalanceSheetReport>(`/ledger/balance-sheet${qs}`);
+  }
+
+  async getCashFlow(params?: { start_date?: string; end_date?: string }): Promise<CashFlowStatement> {
+    const q = new URLSearchParams();
+    if (params?.start_date) q.set('start_date', params.start_date);
+    if (params?.end_date) q.set('end_date', params.end_date);
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return this.request<CashFlowStatement>(`/ledger/cash-flow${qs}`);
+  }
+
+  async getReconciliationBatches(): Promise<ReconciliationBatch[]> {
+    return this.request<ReconciliationBatch[]>('/reconciliation/batches');
+  }
+
+  async importReconciliationStatement(cmd: { source: string; file_name: string; rows: any[] }): Promise<ReconciliationBatch> {
+    return this.request<ReconciliationBatch>('/reconciliation/import', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async getReconciliationExceptions(): Promise<ReconciliationException[]> {
+    return this.request<ReconciliationException[]>('/reconciliation/exceptions');
+  }
+
+  async matchReconciliationTransaction(cmd: { statement_transaction_id: string; matched_entity_id: string }): Promise<void> {
+    return this.request<void>('/reconciliation/match', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async resolveReconciliationException(id: string, cmd: { action: string }): Promise<void> {
+    return this.request<void>(`/reconciliation/exceptions/${id}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async getDepositLiabilities(): Promise<DepositLiabilitiesReport> {
+    return this.request<DepositLiabilitiesReport>('/deposits/liabilities');
+  }
+
+  async getFinancialReportRuns(): Promise<FinancialReportRun[]> {
+    return this.request<FinancialReportRun[]>('/reports/runs');
+  }
+
+  async generateFinancialReport(cmd: { report_type: string; title: string; period_start: string; period_end: string; property_id?: string }): Promise<FinancialReportRun> {
+    return this.request<FinancialReportRun>('/reports/generate', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async getFinancialAuditEvents(params?: { limit?: number }): Promise<FinancialAuditEvent[]> {
+    const qs = params?.limit ? `?limit=${params.limit}` : '';
+    return this.request<FinancialAuditEvent[]>(`/audit/financial${qs}`);
   }
 }
 
