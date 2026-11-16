@@ -3065,7 +3065,6 @@ export function App() {
                     ))
                   )}
                 </ResponsiveTable>
-                </>
               )}
 
               {maintenanceSubTab === 'inspections' && (
@@ -4304,7 +4303,6 @@ export function App() {
                     ))
                   )}
                 </ResponsiveTable>
-                </>
               )}
 
               {analyticsSubTab === 'expenses' && (
@@ -4345,6 +4343,7 @@ export function App() {
                     ))
                   )}
                 </ResponsiveTable>
+                </>
               )}
 
               {analyticsSubTab === 'documents' && (
@@ -4399,6 +4398,7 @@ export function App() {
                     ))
                   )}
                 </ResponsiveTable>
+                </>
               )}
 
               {analyticsSubTab === 'reports' && (
