@@ -175,15 +175,6 @@ impl DomainEvent {
             Self::OverdueRentNotice { .. } => "OVERDUE_RENT_NOTICE",
         }
     }
-            Self::LeaseExpiring { .. } => "LEASE_EXPIRING",
-            Self::InvoiceGenerated { .. } => "INVOICE_GENERATED",
-            Self::PaymentReceived { .. } => "PAYMENT_RECEIVED",
-            Self::PaymentAllocated { .. } => "PAYMENT_ALLOCATED",
-            Self::PaymentFailed { .. } => "PAYMENT_FAILED",
-            Self::MaintenanceSubmitted { .. } => "MAINTENANCE_SUBMITTED",
-            Self::MaintenanceCompleted { .. } => "MAINTENANCE_COMPLETED",
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
