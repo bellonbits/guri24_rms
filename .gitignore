@@ -30,3 +30,15 @@ Thumbs.db
 coverage/
 *.log
 lcov.info
+
+# Java / Maven
+**/target/
+*.class
+*.jar
+*.war
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
