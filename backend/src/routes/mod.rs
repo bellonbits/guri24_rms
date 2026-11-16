@@ -10,6 +10,7 @@ use axum::{
 use serde::Serialize;
 use tower_http::cors::{Any, CorsLayer};
 use uuid::Uuid;
+use chrono::Utc;
 
 use crate::{
     config::IntegrationStatusItem,
@@ -1159,12 +1160,12 @@ async fn commit_import_handler(
 
     // Save job into organization import history in Supabase / write-through storage
     let mut history = state
-        .supabase
+        .supabase_pg
         .load_collection::<Vec<ImportJobRecord>>(&format!("import_jobs_{}", ctx.organization_id))
         .unwrap_or_default();
     history.insert(0, job_record.clone());
     state
-        .supabase
+        .supabase_pg
         .save_collection(&format!("import_jobs_{}", ctx.organization_id), &history);
 
     Ok(Json(job_record))
@@ -1175,7 +1176,7 @@ async fn get_import_history_handler(
     ctx: TenantContext,
 ) -> AppResult<Json<Vec<ImportJobRecord>>> {
     let history = state
-        .supabase
+        .supabase_pg
         .load_collection::<Vec<ImportJobRecord>>(&format!("import_jobs_{}", ctx.organization_id))
         .unwrap_or_default();
     Ok(Json(history))
@@ -1187,7 +1188,7 @@ async fn get_import_job_handler(
     Path(id): Path<Uuid>,
 ) -> AppResult<Json<ImportJobRecord>> {
     let history = state
-        .supabase
+        .supabase_pg
         .load_collection::<Vec<ImportJobRecord>>(&format!("import_jobs_{}", ctx.organization_id))
         .unwrap_or_default();
     let job = history.into_iter().find(|j| j.id == id).ok_or_else(|| {
