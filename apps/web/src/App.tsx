@@ -558,92 +558,84 @@ export function App() {
 
   const currentUserRole: SystemRole = state.currentRole;
 
-  // Real backend API initialization
-  useEffect(() => {
-    let mounted = true;
-    async function loadBackendData() {
-      try {
-        const [integrationsRes, snapshotRes] = await Promise.allSettled([
-          apiClient.getIntegrationsStatus(),
-          apiClient.getWorkspaceSnapshot(),
+  // Real backend API initialization & reload function
+  const loadWorkspaceSnapshot = useCallback(async () => {
+    try {
+      const [integrationsRes, snapshotRes] = await Promise.allSettled([
+        apiClient.getIntegrationsStatus(),
+        apiClient.getWorkspaceSnapshot(),
+      ]);
+
+      const liveIntegrations = integrationsRes.status === 'fulfilled' ? integrationsRes.value : [];
+      const snapshot = snapshotRes.status === 'fulfilled' ? snapshotRes.value : null;
+
+      if (snapshot && snapshot.organizations && snapshot.organizations.length > 0) {
+        const sanitized = sanitizeWorkspaceState(snapshot);
+        setState((prev) => ({
+          ...prev,
+          ...sanitized,
+          currentOrganizationId: currentUserSession?.organizationId || sanitized.currentOrganizationId || prev.currentOrganizationId,
+          integrationsStatus: liveIntegrations.length > 0 ? liveIntegrations : (sanitized.integrationsStatus || []),
+        }));
+        // Persist sanitized state to remote store to permanently purge any legacy mock records
+        apiClient.saveWorkspaceSnapshot(sanitized).catch(() => {});
+      } else {
+        // If no remote snapshot yet, fetch collections from backend REST API
+        const [propsRes, unitsRes, leasesRes, invsRes, paysRes] = await Promise.allSettled([
+          apiClient.getProperties(),
+          apiClient.getUnits(),
+          apiClient.getLeases(),
+          apiClient.getInvoices(),
+          apiClient.getPayments(),
         ]);
 
-        if (!mounted) return;
+        const liveProps = propsRes.status === 'fulfilled' ? propsRes.value : [];
+        const liveUnits = unitsRes.status === 'fulfilled' ? unitsRes.value : [];
+        const liveLeases = leasesRes.status === 'fulfilled' ? leasesRes.value : [];
+        const liveInvs = invsRes.status === 'fulfilled' ? invsRes.value : [];
+        const livePays = paysRes.status === 'fulfilled' ? paysRes.value : [];
 
-        const liveIntegrations = integrationsRes.status === 'fulfilled' ? integrationsRes.value : [];
-        const snapshot = snapshotRes.status === 'fulfilled' ? snapshotRes.value : null;
+        const activeOrgId = currentUserSession?.organizationId || defaultOrg.id;
+        const userOrg = {
+          id: activeOrgId,
+          name: currentUserSession?.organizationName || defaultOrg.name,
+          slug: (currentUserSession?.organizationName || defaultOrg.name).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          organization_type: 'PROPERTY_MANAGEMENT_COMPANY' as const,
+          kra_pin: 'P051892341K',
+          contact_email: currentUserSession?.email || defaultOrg.contact_email,
+          contact_phone: currentUserSession?.phone || defaultOrg.contact_phone,
+          county: 'Nairobi',
+          currency: 'KES' as const,
+          timezone: 'Africa/Nairobi' as const,
+          mpesa_paybill_shortcode: '174379',
+          late_fee_percentage: 5.0,
+          late_fee_grace_days: 5,
+          rent_calculation_strategy: 'FIXED_MONTHLY' as const,
+          payment_allocation_strategy: 'FIFO_OLDEST_FIRST' as const,
+        };
 
-        if (snapshot && snapshot.organizations && snapshot.organizations.length > 0) {
-          const sanitized = sanitizeWorkspaceState(snapshot);
-          setState((prev) => ({
-            ...prev,
-            ...sanitized,
-            currentOrganizationId: currentUserSession?.organizationId || sanitized.currentOrganizationId || prev.currentOrganizationId,
-            integrationsStatus: liveIntegrations.length > 0 ? liveIntegrations : (sanitized.integrationsStatus || []),
-          }));
-          // Persist sanitized state to remote store to permanently purge any legacy mock records
-          apiClient.saveWorkspaceSnapshot(sanitized).catch(() => {});
-        } else {
-          // If no remote snapshot yet, fetch collections from backend REST API
-          const [propsRes, unitsRes, leasesRes, invsRes, paysRes] = await Promise.allSettled([
-            apiClient.getProperties(),
-            apiClient.getUnits(),
-            apiClient.getLeases(),
-            apiClient.getInvoices(),
-            apiClient.getPayments(),
-          ]);
-
-          if (!mounted) return;
-
-          const liveProps = propsRes.status === 'fulfilled' ? propsRes.value : [];
-          const liveUnits = unitsRes.status === 'fulfilled' ? unitsRes.value : [];
-          const liveLeases = leasesRes.status === 'fulfilled' ? leasesRes.value : [];
-          const liveInvs = invsRes.status === 'fulfilled' ? invsRes.value : [];
-          const livePays = paysRes.status === 'fulfilled' ? paysRes.value : [];
-
-          const activeOrgId = currentUserSession?.organizationId || defaultOrg.id;
-          const userOrg = {
-            id: activeOrgId,
-            name: currentUserSession?.organizationName || defaultOrg.name,
-            slug: (currentUserSession?.organizationName || defaultOrg.name).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-            organization_type: 'PROPERTY_MANAGEMENT_COMPANY' as const,
-            kra_pin: 'P051892341K',
-            contact_email: currentUserSession?.email || defaultOrg.contact_email,
-            contact_phone: currentUserSession?.phone || defaultOrg.contact_phone,
-            county: 'Nairobi',
-            currency: 'KES' as const,
-            timezone: 'Africa/Nairobi' as const,
-            mpesa_paybill_shortcode: '174379',
-            late_fee_percentage: 5.0,
-            late_fee_grace_days: 5,
-            rent_calculation_strategy: 'FIXED_MONTHLY' as const,
-            payment_allocation_strategy: 'FIFO_OLDEST_FIRST' as const,
-          };
-
-          setState((prev) => ({
-            ...prev,
-            currentOrganizationId: activeOrgId,
-            organizations: prev.organizations.some((o) => o.id === activeOrgId)
-              ? prev.organizations
-              : [userOrg, ...(prev.organizations.length > 0 ? prev.organizations : [defaultOrg])],
-            properties: liveProps,
-            units: liveUnits,
-            leases: liveLeases,
-            invoices: liveInvs,
-            payments: livePays,
-            integrationsStatus: liveIntegrations,
-          }));
-        }
-      } catch (err) {
-        console.warn('Real backend sync check:', err);
+        setState((prev) => ({
+          ...prev,
+          currentOrganizationId: activeOrgId,
+          organizations: prev.organizations.some((o) => o.id === activeOrgId)
+            ? prev.organizations
+            : [userOrg, ...(prev.organizations.length > 0 ? prev.organizations : [defaultOrg])],
+          properties: liveProps,
+          units: liveUnits,
+          leases: liveLeases,
+          invoices: liveInvs,
+          payments: livePays,
+          integrationsStatus: liveIntegrations,
+        }));
       }
+    } catch (err) {
+      console.warn('Real backend sync check:', err);
     }
-
-    loadBackendData();
-    return () => {
-      mounted = false;
-    };
   }, [defaultOrg, currentUserSession]);
+
+  useEffect(() => {
+    loadWorkspaceSnapshot();
+  }, [loadWorkspaceSnapshot]);
 
   const orgProperties = useMemo(
     () => state.properties.filter((p) => p.organization_id === currentOrg.id),
@@ -706,7 +698,7 @@ export function App() {
     [state.ocrJobs, currentOrg.id]
   );
   const orgConversations = useMemo(
-    () => state.assistantConversations.filter((c) => c.organization_id === currentOrg.id),
+    () => state.assistantConversations.filter((c) => !c.organization_id || c.organization_id === currentOrg.id),
     [state.assistantConversations, currentOrg.id]
   );
   const orgConfirmations = useMemo(
@@ -3493,9 +3485,6 @@ export function App() {
                   apiClient.saveWorkspaceSnapshot(nextState).catch(console.error);
                   return nextState;
                 });
-              }}
-              onSendMessage={async (query, targetConvId, attachment) => {
-                await handleAssistantSend(query, attachment);
               }}
               onResolveConfirmation={handleResolveConfirmation}
               onNavigateTab={(tab) => setActiveNav(tab as any)}

@@ -426,18 +426,52 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
       onUpdateConversations(finalConversations);
     } catch {
       // Grounded intelligent fallback
+      const qLower = content.toLowerCase();
       const totalRev = invoices.reduce((s, i) => s + (Number(i.total_amount_kes) || 0), 0);
       const totalCol = payments.reduce((s, p) => s + (Number(p.allocated_amount_kes) || 0), 0);
       const totalBal = invoices.reduce((s, i) => s + (Number(i.balance_kes) || 0), 0);
-      const vacantCount = properties.length * 10 - tenants.length;
+      const vacantCount = Math.max(0, properties.length * 10 - tenants.length);
+      const totalDeposits = deposits.reduce((s, d) => s + (Number(d.current_liability_balance_kes) || 0), 0);
 
-      let answer = `### Operational Summary for ${currentOrg.name}\n`;
-      answer += `- Portfolio billed to date: KES ${totalRev.toLocaleString()}.\n`;
-      answer += `- Total M-Pesa & bank receipts allocated: KES ${totalCol.toLocaleString()}.\n`;
-      answer += `- Outstanding tenant arrears across active leases: KES ${totalBal.toLocaleString()}.\n`;
-      answer += `- Total managed properties: ${properties.length} with ${tenants.length} registered tenants and ${Math.max(0, vacantCount)} vacant units available.\n`;
-      answer += `- Account 2100 deposit liabilities: KES ${deposits.reduce((s, d) => s + (Number(d.current_liability_balance_kes) || 0), 0).toLocaleString()} held in trust.\n`;
-      answer += `All records are strictly isolated to organization ${currentOrg.id}.`;
+      let answer = '';
+      if (qLower.includes('deposit') || qLower.includes('2100') || qLower.includes('liability')) {
+        answer = `### Account 2100 — Security Deposits Liability for ${currentOrg.name}\n`;
+        answer += `- **Total Deposits Held in Trust:** KES ${totalDeposits.toLocaleString()}.\n`;
+        answer += `- **Active Deposit Records:** ${deposits.length} tenant leases.\n`;
+        answer += `- **Refund & Deductions Policy:** Managed under double-entry trust liability Account 2100, strictly segregated from operational rental revenues (Account 4000).\n`;
+      } else if (qLower.includes('arrear') || qLower.includes('debt') || qLower.includes('overdue') || qLower.includes('unpaid')) {
+        const arrearsInvs = invoices.filter((i) => Number(i.balance_kes) > 0);
+        answer = `### Outstanding Tenant Arrears for ${currentOrg.name}\n`;
+        answer += `- **Total Arrears:** KES ${totalBal.toLocaleString()}.\n`;
+        answer += `- **Overdue Invoices:** ${arrearsInvs.length} invoice(s) pending settlement.\n`;
+        if (arrearsInvs.length > 0) {
+          answer += `- **Top Overdue Records:**\n`;
+          arrearsInvs.slice(0, 3).forEach((inv) => {
+            answer += `  - Invoice **${inv.invoice_number}**: Balance KES ${Number(inv.balance_kes).toLocaleString()} (Due: ${inv.due_date})\n`;
+          });
+        }
+      } else if (qLower.includes('vacan') || qLower.includes('unit') || qLower.includes('apartment')) {
+        answer = `### Units & Occupancy Status for ${currentOrg.name}\n`;
+        answer += `- **Managed Properties:** ${properties.length} active estate(s).\n`;
+        answer += `- **Active Tenants:** ${tenants.length} tenants registered.\n`;
+        answer += `- **Vacant Units Available:** Approximately ${vacantCount} unit(s) available for lease onboarding.\n`;
+      } else if (qLower.includes('collect') || qLower.includes('payment') || qLower.includes('mpesa') || qLower.includes('daraja')) {
+        const mpesaCount = payments.filter((p) => p.payment_method?.toUpperCase().includes('MPESA')).length;
+        const unalloc = payments.reduce((s, p) => s + (Number(p.unallocated_amount_kes) || 0), 0);
+        answer = `### Collections & M-Pesa Daraja Analysis for ${currentOrg.name}\n`;
+        answer += `- **Total Billed to Date:** KES ${totalRev.toLocaleString()}.\n`;
+        answer += `- **Total Collected & Allocated:** KES ${totalCol.toLocaleString()}.\n`;
+        answer += `- **M-Pesa Daraja Transactions:** ${mpesaCount} payment(s) processed.\n`;
+        answer += `- **Unallocated Receipts:** KES ${unalloc.toLocaleString()} awaiting invoice matching.\n`;
+      } else {
+        answer = `### Operational Summary for ${currentOrg.name}\n`;
+        answer += `- Portfolio billed to date: KES ${totalRev.toLocaleString()}.\n`;
+        answer += `- Total M-Pesa & bank receipts allocated: KES ${totalCol.toLocaleString()}.\n`;
+        answer += `- Outstanding tenant arrears across active leases: KES ${totalBal.toLocaleString()}.\n`;
+        answer += `- Total managed properties: ${properties.length} with ${tenants.length} registered tenants and ${vacantCount} vacant units available.\n`;
+        answer += `- Account 2100 deposit liabilities: KES ${totalDeposits.toLocaleString()} held in trust.\n\n`;
+        answer += `*Grounded RMS Intelligence Engine ready to assist with billing, lease renewals, tenant inquiries, or Kenyan M-Pesa reconciliation.*`;
+      }
 
       const fallbackMsg: AssistantMessage = {
         id: `msg-${Date.now()}-ast`,
