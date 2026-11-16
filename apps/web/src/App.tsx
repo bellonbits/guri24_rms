@@ -1677,14 +1677,20 @@ export function App() {
       <div className="app-shell">
         {/* LEFT SIDEBAR — 1:1 with DriveLux Rentals reference */}
         <aside className="sidebar" aria-label="Sidebar">
-          <div className="brand-header">
-            <div className="brand-logo-box" aria-hidden="true">
-              <Building2 size={19} />
-            </div>
-            <div style={{ minInlineSize: 0 }}>
-              <div className="brand-title">Guri24 Rentals</div>
-              <div className="brand-subtitle">Residential Rental Management</div>
-            </div>
+          <div className="brand-header" style={{ padding: '4px 6px', display: 'flex', alignItems: 'center' }}>
+            <img
+              src="/Guri24 RMS Property Logo.png"
+              alt="Guri24 RMS Residential Rental Management"
+              style={{
+                maxHeight: '44px',
+                maxWidth: '100%',
+                objectFit: 'contain',
+                display: 'block',
+              }}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = '/guri24_logo_email.png';
+              }}
+            />
           </div>
 
           {/* Search Landmark */}
@@ -1823,6 +1829,26 @@ export function App() {
             </div>
 
             <div className="topbar-actions">
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={() => setImportWizardModule('units')}
+                title="Unified Data Entry & Bulk Import Wizard (CSV/Excel across all modules)"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Upload size={14} aria-hidden="true" />
+                <span>Bulk Import</span>
+              </button>
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={() => setBulkGridModule('units')}
+                title="Spreadsheet Bulk Entry & Paste from Excel"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Layers size={14} aria-hidden="true" />
+                <span>Excel Entry</span>
+              </button>
               <button type="button" className="btn-dark" onClick={handleExportCsv}>
                 <Download size={14} aria-hidden="true" />
                 <span>Export</span>
@@ -2827,6 +2853,15 @@ export function App() {
                     <h2>Security Deposits Held</h2>
                     <span className="badge-pill badge-blue">Account 2100 Liability</span>
                   </div>
+                  <ModuleActionToolbar
+                    moduleKey="payments"
+                    addNewLabel="Add Deposit"
+                    onAddNew={() => setIsOnboardModalOpen(true)}
+                    onOpenImport={() => setImportWizardModule('payments')}
+                    onOpenBulkGrid={() => setBulkGridModule('payments')}
+                    onExportCsv={handleExportModuleCsv}
+                    onOpenHistory={() => setIsImportHistoryOpen(true)}
+                  />
                 </div>
 
                 <ResponsiveTable
@@ -3456,6 +3491,10 @@ export function App() {
                   return nextState;
                 });
               }}
+              onSendMessage={async (query, targetConvId, attachment) => {
+                await handleAssistantSend(query, attachment);
+              }}
+              onResolveConfirmation={handleResolveConfirmation}
               onNavigateTab={(tab) => setActiveNav(tab as any)}
             />
           )}

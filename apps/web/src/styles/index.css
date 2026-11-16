@@ -1208,12 +1208,12 @@
   }
 
   .assistant-card-dark {
-    background: #0b110e;
-    color: #e2e8f0;
-    border: 1px solid #1a2921;
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
     border-radius: 20px;
     padding: 22px;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   }
 
   .assistant-header-bar {

@@ -106,20 +106,20 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px',
-        background: '#0b1320',
-        border: '1px solid #243656',
+        gap: '14px',
+        background: '#FFFFFF',
+        border: '1px solid #E2E8F0',
         borderRadius: '12px',
-        padding: '16px',
+        padding: '18px',
       }}
     >
       {/* Top Bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
         <div>
-          <div style={{ fontSize: '1rem', fontWeight: 700, color: '#f8fafc' }}>
+          <div style={{ fontSize: '1.02rem', fontWeight: 700, color: '#0F172A' }}>
             Spreadsheet Bulk Data Entry — {moduleTitle}
           </div>
-          <div style={{ fontSize: '0.76rem', color: '#94a3b8' }}>
+          <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '2px' }}>
             Type directly into cells or copy-paste (Ctrl+V / Cmd+V) multiple rows from Excel or Google Sheets.
           </div>
         </div>
@@ -129,19 +129,19 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
             type="button"
             className="btn-outline"
             onClick={handlePasteFromClipboard}
-            style={{ fontSize: '0.76rem', padding: '5px 12px' }}
+            style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '4px' }}
             title="Paste tab-separated values from Excel/Sheets"
           >
-            <Clipboard size={14} style={{ marginRight: '4px' }} />
+            <Clipboard size={14} />
             <span>Paste from Excel</span>
           </button>
           <button
             type="button"
             className="btn-outline"
             onClick={handleAddRow}
-            style={{ fontSize: '0.76rem', padding: '5px 12px' }}
+            style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '4px' }}
           >
-            <Plus size={14} style={{ marginRight: '4px' }} />
+            <Plus size={14} />
             <span>Add Row</span>
           </button>
           {selectedIndices.length > 0 && (
@@ -149,9 +149,9 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
               type="button"
               className="btn-outline"
               onClick={handleDeleteSelected}
-              style={{ fontSize: '0.76rem', padding: '5px 12px', borderColor: '#ef4444', color: '#f87171' }}
+              style={{ fontSize: '0.78rem', padding: '6px 14px', borderColor: '#ef4444', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '4px' }}
             >
-              <Trash2 size={14} style={{ marginRight: '4px' }} />
+              <Trash2 size={14} />
               <span>Delete ({selectedIndices.length})</span>
             </button>
           )}
@@ -159,10 +159,10 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
             type="button"
             className="btn-outline"
             onClick={() => exportRowsToCsv(`${moduleTitle.toLowerCase()}_grid.csv`, rows)}
-            style={{ fontSize: '0.76rem', padding: '5px 12px' }}
+            style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '4px' }}
             title="Export current grid to CSV"
           >
-            <Download size={14} style={{ marginRight: '4px' }} />
+            <Download size={14} />
             <span>Export CSV</span>
           </button>
         </div>
@@ -171,12 +171,12 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
       {pasteNotice && (
         <div
           style={{
-            background: 'rgba(56, 189, 248, 0.15)',
-            border: '1px solid #38bdf8',
-            color: '#38bdf8',
+            background: '#F0FDF4',
+            border: '1px solid #BBF7D0',
+            color: '#15803D',
             padding: '8px 12px',
             borderRadius: '6px',
-            fontSize: '0.78rem',
+            fontSize: '0.8rem',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
@@ -190,16 +190,16 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
       {/* Spreadsheet Table */}
       <div
         style={{
-          border: '1px solid #243656',
+          border: '1px solid #E2E8F0',
           borderRadius: '8px',
           overflow: 'auto',
-          maxHeight: '380px',
-          background: '#111c2e',
+          maxHeight: '400px',
+          background: '#FFFFFF',
         }}
       >
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
           <thead>
-            <tr style={{ background: '#0b1320', borderBottom: '1px solid #243656', position: 'sticky', top: 0, zIndex: 3 }}>
+            <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 3 }}>
               <th style={{ padding: '8px 6px', textAlign: 'center', width: '36px' }}>
                 <input
                   type="checkbox"
@@ -213,10 +213,10 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
                   }}
                 />
               </th>
-              <th style={{ padding: '8px 6px', textAlign: 'center', width: '36px', color: '#94a3b8' }}>#</th>
+              <th style={{ padding: '8px 6px', textAlign: 'center', width: '36px', color: '#64748B' }}>#</th>
               {fields.map((f) => (
-                <th key={f.key} style={{ padding: '8px 10px', textAlign: 'left', color: '#f8fafc', whiteSpace: 'nowrap' }}>
-                  {f.label} {f.required && <span style={{ color: '#ef4444' }}>*</span>}
+                <th key={f.key} style={{ padding: '8px 10px', textAlign: 'left', color: '#334155', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  {f.label} {f.required && <span style={{ color: '#DC2626' }}>*</span>}
                 </th>
               ))}
             </tr>
@@ -224,14 +224,13 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
           <tbody>
             {rows.map((row, rIdx) => {
               const isSelected = selectedIndices.includes(rIdx);
-              const rowMissingRequired = fields.some((f) => f.required && !row[f.key]);
 
               return (
                 <tr
                   key={rIdx}
                   style={{
-                    borderBottom: '1px solid #1e293b',
-                    background: isSelected ? 'rgba(37, 99, 235, 0.15)' : 'transparent',
+                    borderBottom: '1px solid #F1F5F9',
+                    background: isSelected ? '#EFF6FF' : '#FFFFFF',
                   }}
                 >
                   <td style={{ padding: '4px 6px', textAlign: 'center' }}>
@@ -247,13 +246,13 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
                       }}
                     />
                   </td>
-                  <td style={{ padding: '4px 6px', textAlign: 'center', color: '#64748b', fontSize: '0.74rem' }}>
+                  <td style={{ padding: '4px 6px', textAlign: 'center', color: '#64748B', fontSize: '0.74rem' }}>
                     {rIdx + 1}
                   </td>
                   {fields.map((f) => {
                     const isMissing = f.required && !row[f.key];
                     return (
-                      <td key={f.key} style={{ padding: '2px 4px' }}>
+                      <td key={f.key} style={{ padding: '3px 4px' }}>
                         {f.allowedValues ? (
                           <select
                             value={row[f.key] || ''}
@@ -261,11 +260,11 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
                             style={{
                               width: '100%',
                               padding: '5px 8px',
-                              background: isMissing ? 'rgba(239, 68, 68, 0.1)' : '#0b1320',
-                              border: `1px solid ${isMissing ? '#ef4444' : '#334155'}`,
-                              borderRadius: '4px',
-                              color: '#f8fafc',
-                              fontSize: '0.8rem',
+                              background: isMissing ? '#FEF2F2' : '#FFFFFF',
+                              border: `1px solid ${isMissing ? '#EF4444' : '#CBD5E1'}`,
+                              borderRadius: '6px',
+                              color: '#0F172A',
+                              fontSize: '0.82rem',
                             }}
                           >
                             <option value="">-- Select --</option>
@@ -284,11 +283,11 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
                             style={{
                               width: '100%',
                               padding: '5px 8px',
-                              background: isMissing ? 'rgba(239, 68, 68, 0.1)' : '#0b1320',
-                              border: `1px solid ${isMissing ? '#ef4444' : '#334155'}`,
-                              borderRadius: '4px',
-                              color: '#f8fafc',
-                              fontSize: '0.8rem',
+                              background: isMissing ? '#FEF2F2' : '#FFFFFF',
+                              border: `1px solid ${isMissing ? '#EF4444' : '#CBD5E1'}`,
+                              borderRadius: '6px',
+                              color: '#0F172A',
+                              fontSize: '0.82rem',
                             }}
                           />
                         )}
@@ -304,9 +303,9 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
 
       {/* Bottom status and commit */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', paddingTop: '6px' }}>
-        <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
-          Total Rows: <strong style={{ color: '#f8fafc' }}>{rows.length}</strong> • Ready to Save:{' '}
-          <strong style={{ color: '#4ade80' }}>{validCount}</strong>
+        <div style={{ fontSize: '0.8rem', color: '#64748B' }}>
+          Total Rows: <strong style={{ color: '#0F172A' }}>{rows.length}</strong> • Ready to Save:{' '}
+          <strong style={{ color: '#16A34A' }}>{validCount}</strong>
         </div>
 
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -315,7 +314,7 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
               type="button"
               className="btn-outline"
               onClick={onCancel}
-              style={{ fontSize: '0.8rem', padding: '6px 16px' }}
+              style={{ fontSize: '0.82rem', padding: '6px 16px' }}
             >
               Cancel
             </button>
@@ -325,7 +324,7 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
             className="btn-dark"
             onClick={handleSave}
             disabled={isCommitting}
-            style={{ fontSize: '0.8rem', padding: '6px 20px', minBlockSize: '36px' }}
+            style={{ fontSize: '0.82rem', padding: '6px 20px', minBlockSize: '36px' }}
           >
             <Save size={14} style={{ marginRight: '6px' }} />
             <span>{isCommitting ? 'Committing...' : `Commit ${rows.length} Records to RMS`}</span>

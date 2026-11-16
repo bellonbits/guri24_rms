@@ -10,12 +10,15 @@ import {
   Settings2,
   X,
   RefreshCw,
+  Clipboard,
+  Layers,
 } from 'lucide-react';
 import {
   ImportModuleKey,
   MODULE_TEMPLATES,
   generateTemplateCsv,
   parseCsv,
+  parseClipboardTsv,
   autoMapColumns,
   validateImportRows,
   ConflictStrategy,
@@ -34,15 +37,20 @@ interface ImportWizardProps {
   module: ImportModuleKey;
   onClose: () => void;
   onImportComplete?: (result: any) => void;
+  onOpenBulkGrid?: (mod: ImportModuleKey) => void;
 }
 
 export const ImportWizard: React.FC<ImportWizardProps> = ({
   module,
   onClose,
   onImportComplete,
+  onOpenBulkGrid,
 }) => {
-  const template = MODULE_TEMPLATES[module];
+  const [activeModule, setActiveModule] = useState<ImportModuleKey>(module);
+  const template = MODULE_TEMPLATES[activeModule] || MODULE_TEMPLATES['units'];
   const [currentStep, setCurrentStep] = useState<Step>('UPLOAD');
+  const [uploadMode, setUploadMode] = useState<'FILE' | 'CLIPBOARD'>('FILE');
+  const [clipboardText, setClipboardText] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [parsedRows, setParsedRows] = useState<Record<string, any>[]>([]);
   const [sourceHeaders, setSourceHeaders] = useState<string[]>([]);
@@ -53,14 +61,26 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
   const [commitResult, setCommitResult] = useState<any | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Switch active module
+  const handleModuleChange = (newMod: ImportModuleKey) => {
+    setActiveModule(newMod);
+    setErrorMessage(null);
+    if (parsedRows.length > 0) {
+      const autoMap = autoMapColumns(sourceHeaders, newMod);
+      setColumnMapping(autoMap);
+      const val = validateImportRows(newMod, parsedRows, autoMap);
+      setValidation(val);
+    }
+  };
+
   // 1. Download template
   const handleDownloadTemplate = () => {
-    const csv = generateTemplateCsv(module);
+    const csv = generateTemplateCsv(activeModule);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `template_${module}.csv`);
+    link.setAttribute('download', `template_${activeModule}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -85,11 +105,11 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
       setParsedRows(rows);
 
       // Auto map columns
-      const autoMap = autoMapColumns(headers, module);
+      const autoMap = autoMapColumns(headers, activeModule);
       setColumnMapping(autoMap);
 
       // Pre-validate
-      const val = validateImportRows(module, rows, autoMap);
+      const val = validateImportRows(activeModule, rows, autoMap);
       setValidation(val);
 
       setCurrentStep('MAP');
@@ -98,9 +118,40 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
     }
   };
 
+  // Parse clipboard pasted text
+  const handleParseClipboard = () => {
+    if (!clipboardText.trim()) {
+      setErrorMessage('Please paste rows from your Excel sheet or CSV table first.');
+      return;
+    }
+    setErrorMessage(null);
+    try {
+      let rows: Record<string, any>[] = [];
+      if (clipboardText.includes('\t')) {
+        rows = parseClipboardTsv(clipboardText);
+      } else {
+        rows = parseCsv(clipboardText);
+      }
+      if (rows.length === 0) {
+        setErrorMessage('Uploaded or pasted data contains no recognizable tabular rows.');
+        return;
+      }
+      const headers = Object.keys(rows[0]);
+      setSourceHeaders(headers);
+      setParsedRows(rows);
+      const autoMap = autoMapColumns(headers, activeModule);
+      setColumnMapping(autoMap);
+      const val = validateImportRows(activeModule, rows, autoMap);
+      setValidation(val);
+      setCurrentStep('MAP');
+    } catch (err) {
+      setErrorMessage(`Failed to parse table: ${(err as Error).message}`);
+    }
+  };
+
   // 3. Move from Mapping to Preview
   const handleProceedToPreview = () => {
-    const val = validateImportRows(module, parsedRows, columnMapping);
+    const val = validateImportRows(activeModule, parsedRows, columnMapping);
     setValidation(val);
     setCurrentStep('PREVIEW');
   };
@@ -118,6 +169,27 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
           const srcCol = columnMapping[f.key] || f.key;
           item[f.key] = r[srcCol] ?? r[f.label] ?? '';
         });
+        return item;
+      });
+
+      const res = await apiClient.commitImport({
+        module: activeModule,
+        rows: mappedRows,
+        conflict_strategy: conflictStrategy,
+        file_name: selectedFile?.name || `clipboard_${activeModule}_data.tsv`,
+      });
+
+      setCommitResult(res);
+      setCurrentStep('RESULTS');
+      if (onImportComplete) {
+        onImportComplete(res);
+      }
+    } catch (err) {
+      setErrorMessage((err as Error).message || 'Failed to commit import to backend.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
         return item;
       });
 
@@ -200,11 +272,35 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
               <FileSpreadsheet size={20} />
             </div>
             <div>
-              <h2 id="import-wizard-title" style={{ margin: 0, fontSize: '1.08rem', fontWeight: 700, color: '#0F172A' }}>
-                Bulk Import Wizard — {template.title}
-              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <h2 id="import-wizard-title" style={{ margin: 0, fontSize: '1.08rem', fontWeight: 700, color: '#0F172A' }}>
+                  Bulk Import Wizard
+                </h2>
+                <select
+                  value={activeModule}
+                  onChange={(e) => handleModuleChange(e.target.value as ImportModuleKey)}
+                  style={{
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    color: '#0F172A',
+                    background: '#FFFFFF',
+                    border: '1.5px solid #2563EB',
+                    borderRadius: '8px',
+                    padding: '3px 8px',
+                    cursor: 'pointer',
+                    outline: 'none',
+                  }}
+                  aria-label="Target RMS Module"
+                >
+                  {Object.entries(MODULE_TEMPLATES).map(([key, t]) => (
+                    <option key={key} value={key}>
+                      {t.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '2px' }}>
-                Step-by-step verified data acquisition with column mapping, deep schema validation &amp; conflict resolution.
+                Acquire data via CSV/XLSX file or Excel clipboard paste with automatic column mapping &amp; validation.
               </div>
             </div>
           </div>
@@ -358,29 +454,184 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
                 </button>
               </div>
 
-              {/* Upload Dropzone */}
-              <div
-                style={{
-                  background: '#FFFFFF',
-                  padding: '18px 20px',
-                  borderRadius: '12px',
-                  border: '1px solid #E2E8F0',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-                }}
-              >
-                <label style={{ display: 'block', marginBottom: '10px', fontSize: '0.84rem', fontWeight: 700, color: '#0F172A' }}>
-                  Select CSV or Excel (.xlsx) File to Import
-                </label>
-                <FileUpload
-                  onFileSelect={handleFileSelect}
-                  selectedFile={selectedFile}
-                  onClear={() => {
-                    setSelectedFile(null);
-                    setParsedRows([]);
-                    setValidation(null);
+              {/* Input Method Switcher Tabs */}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => setUploadMode('FILE')}
+                  style={{
+                    padding: '7px 16px',
+                    borderRadius: '8px',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: uploadMode === 'FILE' ? '#2563EB' : '#FFFFFF',
+                    color: uploadMode === 'FILE' ? '#FFFFFF' : '#475569',
+                    border: uploadMode === 'FILE' ? '1px solid #2563EB' : '1px solid #E2E8F0',
+                    transition: 'all 0.15s ease',
                   }}
-                />
+                >
+                  <Upload size={14} />
+                  <span>Upload CSV / Excel File (.xlsx)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUploadMode('CLIPBOARD')}
+                  style={{
+                    padding: '7px 16px',
+                    borderRadius: '8px',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: uploadMode === 'CLIPBOARD' ? '#2563EB' : '#FFFFFF',
+                    color: uploadMode === 'CLIPBOARD' ? '#FFFFFF' : '#475569',
+                    border: uploadMode === 'CLIPBOARD' ? '1px solid #2563EB' : '1px solid #E2E8F0',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <Clipboard size={14} />
+                  <span>Paste from Excel / Sheets</span>
+                </button>
+                {onOpenBulkGrid && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onOpenBulkGrid(activeModule);
+                    }}
+                    style={{
+                      marginLeft: 'auto',
+                      padding: '7px 14px',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: '#F1F5F9',
+                      color: '#0F172A',
+                      border: '1px solid #CBD5E1',
+                    }}
+                    title="Open spreadsheet inline grid for manual entry and Excel paste"
+                  >
+                    <Layers size={14} color="#2563EB" />
+                    <span>Open Spreadsheet Grid</span>
+                  </button>
+                )}
               </div>
+
+              {/* Upload Dropzone / Paste Area */}
+              {uploadMode === 'FILE' ? (
+                <div
+                  style={{
+                    background: '#FFFFFF',
+                    padding: '18px 20px',
+                    borderRadius: '12px',
+                    border: '1px solid #E2E8F0',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+                  }}
+                >
+                  <label style={{ display: 'block', marginBottom: '10px', fontSize: '0.84rem', fontWeight: 700, color: '#0F172A' }}>
+                    Select CSV or Excel (.xlsx) File for {template.title}
+                  </label>
+                  <FileUpload
+                    onFileSelect={handleFileSelect}
+                    selectedFile={selectedFile}
+                    onClear={() => {
+                      setSelectedFile(null);
+                      setParsedRows([]);
+                      setValidation(null);
+                    }}
+                  />
+                </div>
+              ) : (
+                <div
+                  style={{
+                    background: '#FFFFFF',
+                    padding: '18px 20px',
+                    borderRadius: '12px',
+                    border: '1px solid #E2E8F0',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                    <label style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0F172A' }}>
+                      Paste Cells from Excel or Google Sheets (Ctrl+V / Cmd+V)
+                    </label>
+                    <span style={{ fontSize: '0.74rem', color: '#64748B' }}>
+                      Auto-detects Tab-Separated (TSV) or Comma-Separated (CSV) rows
+                    </span>
+                  </div>
+                  <textarea
+                    value={clipboardText}
+                    onChange={(e) => setClipboardText(e.target.value)}
+                    placeholder={`Copy cells from Excel or Google Sheets (including headers) and paste here...\nExample:\nunit_number\trent_amount\tbedrooms\nA101\t25000\t2\nA102\t32000\t3`}
+                    rows={8}
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      fontSize: '0.82rem',
+                      fontFamily: 'monospace',
+                      color: '#0F172A',
+                      background: '#F8FAFC',
+                      border: '1.5px solid #CBD5E1',
+                      borderRadius: '8px',
+                      outline: 'none',
+                      resize: 'vertical',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setClipboardText('')}
+                      style={{
+                        padding: '6px 14px',
+                        background: '#F1F5F9',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '8px',
+                        color: '#64748B',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Clear
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleParseClipboard}
+                      style={{
+                        padding: '7px 20px',
+                        background: '#2563EB',
+                        border: 'none',
+                        borderRadius: '8px',
+                        color: '#FFFFFF',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: '0 2px 6px rgba(37, 99, 235, 0.25)',
+                      }}
+                    >
+                      <CheckCircle2 size={14} />
+                      <span>Parse Table &amp; Proceed to Mapping</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

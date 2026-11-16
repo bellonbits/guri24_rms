@@ -306,20 +306,22 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
           {authMode === 'verify_otp' ? (
             /* REAL OTP Verification View (No simulations) */
             <div>
-              <div
-                style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '10px',
-                  background: '#ffedd5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#ea580c',
-                  marginBottom: '16px',
-                }}
-              >
-                <Lock size={20} />
+              {/* Guri24 RMS Official Property Logo */}
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '18px' }}>
+                <img
+                  src="/Guri24 RMS Property Logo.png"
+                  alt="Guri24 RMS"
+                  style={{
+                    height: '42px',
+                    width: 'auto',
+                    maxWidth: '180px',
+                    objectFit: 'contain',
+                    display: 'block',
+                  }}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = '/guri24_logo_email.png';
+                  }}
+                />
               </div>
               <h1
                 style={{
@@ -544,22 +546,22 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
           ) : (
             /* Create Account / Sign In Form (Matching attached design) */
             <div>
-              {/* Orange Flash Logo */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-                <div
+              {/* Guri24 RMS Official Property Logo */}
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                <img
+                  src="/Guri24 RMS Property Logo.png"
+                  alt="Guri24 RMS"
                   style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '8px',
-                    background: '#ea580c',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#ffffff',
+                    height: '46px',
+                    width: 'auto',
+                    maxWidth: '200px',
+                    objectFit: 'contain',
+                    display: 'block',
                   }}
-                >
-                  <Zap size={20} fill="#ffffff" />
-                </div>
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = '/guri24_logo_email.png';
+                  }}
+                />
               </div>
 
               <h1
