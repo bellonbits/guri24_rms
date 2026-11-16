@@ -1,9 +1,13 @@
 # Build stage
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
+
+# Cap JVM heap to prevent OOM kill on memory-constrained hosts
+ENV MAVEN_OPTS="-Xms128m -Xmx512m -XX:+UseSerialGC -Djava.awt.headless=true"
+
 COPY pom.xml .
 COPY src ./src
-RUN mvn clean package -DskipTests -B -Dmaven.wagon.http.retryHandler.count=5
+RUN mvn clean package -DskipTests -B --no-transfer-progress -Dmaven.wagon.http.retryHandler.count=5
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine

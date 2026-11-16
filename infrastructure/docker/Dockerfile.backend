@@ -9,6 +9,9 @@ COPY src ./src
 COPY migrations ./migrations
 COPY tests ./tests
 
+# Limit concurrent rustc compile jobs to prevent OOM on memory-constrained servers
+ENV CARGO_BUILD_JOBS=2
+
 RUN cargo build --release
 
 # Stage 2: Runtime
