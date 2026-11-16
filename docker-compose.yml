@@ -90,7 +90,7 @@ services:
       INTERNAL_SERVICE_AUTH_SECRET: ${INTERNAL_SERVICE_AUTH_SECRET:-guri24_internal_mesh_secret_key_2026}
       REDIS_URL: redis://redis:6379/0
     ports:
-      - "8086:8086"
+      - "${RMS_FINANCIAL_SERVICE_PORT:-8086}:8086"
     depends_on:
       postgres:
         condition: service_healthy
@@ -112,7 +112,7 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       EMAIL_FROM: ${EMAIL_FROM:-Guri24 RMS <guri24@aqivo.shop>}
     ports:
-      - "8087:8087"
+      - "${RMS_NOTIFICATION_SERVICE_PORT:-8087}:8087"
     depends_on:
       postgres:
         condition: service_healthy
@@ -129,7 +129,7 @@ services:
       OCR_SERVICE_API_KEY: ${OCR_SERVICE_API_KEY:-ocr_service_key_dev}
       OLMOCR_MODEL: ${OCR_MODEL:-allenai/olmOCR-2-7B-1025-FP8}
     ports:
-      - "8000:8000"
+      - "${RMS_OCR_SERVICE_PORT:-8090}:8000"
 
   web:
     build:
