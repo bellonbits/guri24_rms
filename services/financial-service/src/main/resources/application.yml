@@ -1,0 +1,52 @@
+server:
+  port: 8086
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: guri24-rms-financial-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:${DATABASE_URL:jdbc:postgresql://postgres:5432/guri24_rms}}
+    username: ${POSTGRES_USER:rms_user}
+    password: ${POSTGRES_PASSWORD:rms_password_dev_only}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+
+internal:
+  auth:
+    secret: ${INTERNAL_SERVICE_AUTH_SECRET:guri24_internal_mesh_secret_key_2026}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      darajaMpesa:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 15s
+        permittedNumberOfCallsInHalfOpenState: 3

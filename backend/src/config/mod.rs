@@ -64,6 +64,9 @@ pub struct AppConfig {
     pub s3_bucket: String,
     pub s3_signing_secret: String,
     pub s3_signed_url_expiry_secs: u64,
+    pub financial_service_url: Option<String>,
+    pub notification_service_url: Option<String>,
+    pub internal_service_auth_secret: String,
 }
 
 fn non_empty_env(key: &str) -> Option<String> {
@@ -196,6 +199,10 @@ impl AppConfig {
                 .ok()
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(300),
+            financial_service_url: non_empty_env("FINANCIAL_SERVICE_URL"),
+            notification_service_url: non_empty_env("NOTIFICATION_SERVICE_URL"),
+            internal_service_auth_secret: env::var("INTERNAL_SERVICE_AUTH_SECRET")
+                .unwrap_or_else(|_| "guri24_internal_mesh_secret_key_2026".to_string()),
         }
     }
 
@@ -358,6 +365,30 @@ impl AppConfig {
                 } else {
                     Vec::new()
                 },
+            },
+            IntegrationStatusItem {
+                service: "Enterprise Financial Service".to_string(),
+                provider: "Spring Boot 3.3 (Double-Entry GL & M-Pesa Allocations)".to_string(),
+                environment: self.app_env.clone(),
+                credentials_configured: true,
+                status: if self.financial_service_url.is_some() {
+                    format!("ACTIVE ({})", self.financial_service_url.as_ref().unwrap())
+                } else {
+                    "STANDALONE_FALLBACK (Rust Core GL Active)".to_string()
+                },
+                missing_env_vars: Vec::new(),
+            },
+            IntegrationStatusItem {
+                service: "Enterprise Notification Service".to_string(),
+                provider: "Spring Boot 3.3 (Resend API & Scheduled Reminders)".to_string(),
+                environment: self.app_env.clone(),
+                credentials_configured: true,
+                status: if self.notification_service_url.is_some() {
+                    format!("ACTIVE ({})", self.notification_service_url.as_ref().unwrap())
+                } else {
+                    "STANDALONE_FALLBACK (Rust Outbox Active)".to_string()
+                },
+                missing_env_vars: Vec::new(),
             },
         ]
     }

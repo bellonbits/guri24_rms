@@ -1,0 +1,45 @@
+server:
+  port: 8087
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: guri24-rms-notification-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:${DATABASE_URL:jdbc:postgresql://postgres:5432/guri24_rms}}
+    username: ${POSTGRES_USER:rms_user}
+    password: ${POSTGRES_PASSWORD:rms_password_dev_only}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+internal:
+  auth:
+    secret: ${INTERNAL_SERVICE_AUTH_SECRET:guri24_internal_mesh_secret_key_2026}
+
+resend:
+  api-key: ${RESEND_API_KEY:}
+  from-email: ${EMAIL_FROM:Guri24 RMS <guri24@aqivo.shop>}
+  endpoint: https://api.resend.com/emails
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true

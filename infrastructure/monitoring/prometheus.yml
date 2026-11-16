@@ -3,7 +3,22 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: "guri24_rms_backend"
+  - job_name: "guri24_rms_rust_core"
     metrics_path: "/metrics"
     static_configs:
       - targets: ["backend:8085"]
+
+  - job_name: "guri24_rms_spring_financial"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["spring-financial-service:8086"]
+
+  - job_name: "guri24_rms_spring_notification"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["spring-notification-service:8087"]
+
+  - job_name: "guri24_rms_python_ocr"
+    metrics_path: "/health"
+    static_configs:
+      - targets: ["python-ocr-service:8000"]
