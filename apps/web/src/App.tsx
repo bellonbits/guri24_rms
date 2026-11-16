@@ -555,6 +555,8 @@ export function App() {
     [state.organizations, state.currentOrganizationId, defaultOrg]
   );
 
+  const currentUserRole: SystemRole = state.currentRole;
+
   // Real backend API initialization
   useEffect(() => {
     let mounted = true;
