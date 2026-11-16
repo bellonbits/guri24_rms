@@ -67,6 +67,66 @@ pub enum DomainEvent {
         unit_id: Uuid,
         actual_cost_kes: Decimal,
     },
+    PaymentRequestInitiated {
+        organization_id: Uuid,
+        payment_id: Uuid,
+        tenant_id: Uuid,
+        phone_number: String,
+        amount_kes: Decimal,
+        account_reference: String,
+    },
+    DepositReceived {
+        organization_id: Uuid,
+        deposit_id: Uuid,
+        lease_id: Uuid,
+        tenant_id: Uuid,
+        amount_kes: Decimal,
+    },
+    RefundRequested {
+        organization_id: Uuid,
+        refund_id: Uuid,
+        lease_id: Uuid,
+        tenant_id: Uuid,
+        calculated_amount_kes: Decimal,
+    },
+    RefundApproved {
+        organization_id: Uuid,
+        refund_id: Uuid,
+        approved_by: Uuid,
+        amount_kes: Decimal,
+    },
+    RefundExecutionVerified {
+        organization_id: Uuid,
+        refund_id: Uuid,
+        payout_reference: String,
+        amount_kes: Decimal,
+    },
+    ReconciliationExceptionCreated {
+        organization_id: Uuid,
+        exception_id: Uuid,
+        exception_type: String,
+        details: String,
+    },
+    ReconciliationCompleted {
+        organization_id: Uuid,
+        batch_id: Uuid,
+        matched_count: usize,
+        unmatched_count: usize,
+    },
+    RentReminder {
+        organization_id: Uuid,
+        invoice_id: Uuid,
+        tenant_id: Uuid,
+        days_until_due: i64,
+        balance_kes: Decimal,
+    },
+    OverdueRentNotice {
+        organization_id: Uuid,
+        invoice_id: Uuid,
+        tenant_id: Uuid,
+        days_overdue: i64,
+        balance_kes: Decimal,
+    },
 }
 
 impl DomainEvent {
@@ -80,7 +140,16 @@ impl DomainEvent {
             | Self::PaymentAllocated { organization_id, .. }
             | Self::PaymentFailed { organization_id, .. }
             | Self::MaintenanceSubmitted { organization_id, .. }
-            | Self::MaintenanceCompleted { organization_id, .. } => *organization_id,
+            | Self::MaintenanceCompleted { organization_id, .. }
+            | Self::PaymentRequestInitiated { organization_id, .. }
+            | Self::DepositReceived { organization_id, .. }
+            | Self::RefundRequested { organization_id, .. }
+            | Self::RefundApproved { organization_id, .. }
+            | Self::RefundExecutionVerified { organization_id, .. }
+            | Self::ReconciliationExceptionCreated { organization_id, .. }
+            | Self::ReconciliationCompleted { organization_id, .. }
+            | Self::RentReminder { organization_id, .. }
+            | Self::OverdueRentNotice { organization_id, .. } => *organization_id,
         }
     }
 
@@ -88,6 +157,24 @@ impl DomainEvent {
         match self {
             Self::TenantRegistered { .. } => "TENANT_REGISTERED",
             Self::LeaseActivated { .. } => "LEASE_ACTIVATED",
+            Self::LeaseExpiring { .. } => "LEASE_EXPIRING",
+            Self::InvoiceGenerated { .. } => "INVOICE_GENERATED",
+            Self::PaymentReceived { .. } => "PAYMENT_RECEIVED",
+            Self::PaymentAllocated { .. } => "PAYMENT_ALLOCATED",
+            Self::PaymentFailed { .. } => "PAYMENT_FAILED",
+            Self::MaintenanceSubmitted { .. } => "MAINTENANCE_SUBMITTED",
+            Self::MaintenanceCompleted { .. } => "MAINTENANCE_COMPLETED",
+            Self::PaymentRequestInitiated { .. } => "PAYMENT_REQUEST_INITIATED",
+            Self::DepositReceived { .. } => "DEPOSIT_RECEIVED",
+            Self::RefundRequested { .. } => "REFUND_REQUESTED",
+            Self::RefundApproved { .. } => "REFUND_APPROVED",
+            Self::RefundExecutionVerified { .. } => "REFUND_EXECUTION_VERIFIED",
+            Self::ReconciliationExceptionCreated { .. } => "RECONCILIATION_EXCEPTION_CREATED",
+            Self::ReconciliationCompleted { .. } => "RECONCILIATION_COMPLETED",
+            Self::RentReminder { .. } => "RENT_REMINDER",
+            Self::OverdueRentNotice { .. } => "OVERDUE_RENT_NOTICE",
+        }
+    }
             Self::LeaseExpiring { .. } => "LEASE_EXPIRING",
             Self::InvoiceGenerated { .. } => "INVOICE_GENERATED",
             Self::PaymentReceived { .. } => "PAYMENT_RECEIVED",

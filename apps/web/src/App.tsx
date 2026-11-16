@@ -33,6 +33,7 @@ import {
   Layers,
   Lock,
   LogOut,
+  Mail,
   MapPin,
   Mic,
   MoreHorizontal,
@@ -118,6 +119,7 @@ import {
 } from './lib/importEngine';
 import { FullPageAssistant } from './components/FullPageAssistant';
 import { FinancialOperationsWorkspace } from './components/FinancialOperationsWorkspace';
+import { NotificationSettingsWorkspace } from './components/NotificationSettingsWorkspace';
 
 export type NavSection =
   | 'dashboard'
@@ -130,6 +132,7 @@ export type NavSection =
   | 'ocr'
   | 'assistant'
   | 'analytics'
+  | 'notifications'
   | 'settings';
 
 const MAIN_MENU_ITEMS: {
@@ -176,6 +179,11 @@ const MAIN_MENU_ITEMS: {
     label: 'Analytics & Ledger',
     icon: <BarChart3 size={16} aria-hidden="true" />,
     hasChevron: true,
+  },
+  {
+    id: 'notifications',
+    label: 'Automated Emails',
+    icon: <Mail size={16} aria-hidden="true" />,
   },
   { id: 'settings', label: 'Settings & Portal', icon: <Settings size={16} aria-hidden="true" /> },
 ];
@@ -408,7 +416,7 @@ export function App() {
   const [propertySubTab, setPropertySubTab] = useState<'units' | 'properties' | 'buildings' | 'floors'>('units');
   const [maintenanceSubTab, setMaintenanceSubTab] = useState<'work_orders' | 'vendors' | 'inspections'>('work_orders');
   const [analyticsSubTab, setAnalyticsSubTab] = useState<'ledger' | 'expenses' | 'documents' | 'reports'>('ledger');
-  const [settingsSubTab, setSettingsSubTab] = useState<'org' | 'mpesa' | 'rbac' | 'integrations' | 'subscription' | 'portal'>('org');
+  const [settingsSubTab, setSettingsSubTab] = useState<'org' | 'mpesa' | 'notifications' | 'rbac' | 'integrations' | 'subscription' | 'portal'>('org');
 
   const [darajaForm, setDarajaForm] = useState({
     shortcode: '4098123',
@@ -3656,7 +3664,20 @@ export function App() {
           )}
 
           {/* =================================================================
-              PAGE 11: SETTINGS, RBAC, INTEGRATIONS, SUBSCRIPTION & PORTAL
+              PAGE 11: CENTRALIZED AUTOMATED EMAIL NOTIFICATION SYSTEM
+             ================================================================= */}
+          {activeNav === 'notifications' && (
+            <NotificationSettingsWorkspace
+              currentOrg={{
+                id: state.currentOrganizationId || 'org-guri24-001',
+                name: state.organizations.find((o) => o.id === state.currentOrganizationId)?.name || 'Guri24 Rental Management Ltd',
+              }}
+              userRole={currentUserRole}
+            />
+          )}
+
+          {/* =================================================================
+              PAGE 12: SETTINGS, RBAC, INTEGRATIONS, SUBSCRIPTION & PORTAL
              ================================================================= */}
           {activeNav === 'settings' && (
             <section className="surface-card">
@@ -3666,6 +3687,7 @@ export function App() {
                     [
                       'org',
                       'mpesa',
+                      'notifications',
                       'rbac',
                       'integrations',
                       'subscription',
@@ -3684,6 +3706,8 @@ export function App() {
                         ? 'Organization Settings'
                         : tab === 'mpesa'
                         ? 'Safaricom M-Pesa Daraja'
+                        : tab === 'notifications'
+                        ? 'Email Notifications'
                         : tab === 'rbac'
                         ? 'Role Permissions (9 Roles)'
                         : tab === 'integrations'
@@ -3821,6 +3845,16 @@ export function App() {
                     </div>
                   </form>
                 </div>
+              )}
+
+              {settingsSubTab === 'notifications' && (
+                <NotificationSettingsWorkspace
+                  currentOrg={{
+                    id: state.currentOrganizationId || 'org-guri24-001',
+                    name: state.organizations.find((o) => o.id === state.currentOrganizationId)?.name || 'Guri24 Rental Management Ltd',
+                  }}
+                  userRole={currentUserRole}
+                />
               )}
 
               {settingsSubTab === 'rbac' && (

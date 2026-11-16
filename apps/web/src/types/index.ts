@@ -473,3 +473,65 @@ export interface DocumentItem {
   s3_object_key: string;
   created_at: string;
 }
+
+export type DeliveryStatus =
+  | 'QUEUED'
+  | 'PROCESSING'
+  | 'SENT'
+  | 'DELIVERED'
+  | 'BOUNCED'
+  | 'COMPLAINED'
+  | 'FAILED'
+  | 'SUPPRESSED'
+  | 'CANCELLED';
+
+export interface NotificationDelivery {
+  id: string;
+  organization_id: string;
+  recipient_email: string;
+  recipient_name: string;
+  recipient_role: string;
+  template_key: string;
+  subject: string;
+  body_html: string;
+  body_text: string;
+  status: DeliveryStatus;
+  provider: string;
+  provider_message_id?: string | null;
+  error_message?: string | null;
+  retry_count: number;
+  max_retries: number;
+  idempotency_key: string;
+  related_entity_type?: string | null;
+  related_entity_id?: string | null;
+  sent_at?: string | null;
+  delivered_at?: string | null;
+  created_at: string;
+}
+
+export interface NotificationSettings {
+  id: string;
+  organization_id: string;
+  rent_reminder_days_before: number;
+  rent_due_date_reminder: boolean;
+  overdue_reminder_days: number[];
+  lease_expiry_days: number[];
+  daily_collection_summary: boolean;
+  weekly_operational_report: boolean;
+  monthly_financial_report: boolean;
+  deposit_liability_summary: boolean;
+  staff_escalation_emails: string[];
+  timezone: string;
+  email_from: string;
+  brand_logo_url?: string | null;
+  brand_primary_color: string;
+  updated_at: string;
+}
+
+export interface NotificationTemplateSummary {
+  key: string;
+  title: string;
+  category: string;
+  is_mandatory: boolean;
+  sample_subject: string;
+}

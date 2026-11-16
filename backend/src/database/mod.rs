@@ -29,6 +29,10 @@ use crate::{
         payments::{InMemoryPaymentRepository, PaymentRepository},
         properties::{InMemoryPropertyUnitStore, PropertyRepository, UnitRepository},
         tenants::{InMemoryTenantRepository, TenantRepository},
+        notifications::{
+            AutomatedEmailNotificationObserver, CentralizedNotificationService,
+            NotificationServiceTrait,
+        },
     },
 };
 
@@ -57,6 +61,7 @@ pub struct AppState {
     pub auth_service: Arc<AuthService>,
     pub otp_service: Arc<OtpService>,
     pub assistant_service: Arc<dyn AssistantServiceTrait>,
+    pub notification_service: Arc<dyn NotificationServiceTrait>,
     pub event_bus: EventBus,
     pub audit_observer: Arc<AuditLogObserver>,
     pub notification_observer: Arc<NotificationObserver>,
@@ -78,10 +83,6 @@ impl AppState {
 
         let audit_observer = Arc::new(AuditLogObserver::new());
         let notification_observer = Arc::new(NotificationObserver::new());
-        let event_bus = EventBus::new(vec![
-            audit_observer.clone(),
-            notification_observer.clone(),
-        ]);
 
         let token_service = Arc::new(TokenService::new(
             config.jwt_access_secret.clone(),
@@ -97,6 +98,16 @@ impl AppState {
         let email_adapter = NotificationProviderFactory::create_email(&config);
         let storage_adapter = StorageProviderFactory::create(&config);
         let ai_adapter = AIProviderFactory::create();
+
+        let centralized_notif = Arc::new(CentralizedNotificationService::new(email_adapter.clone()));
+        let email_notif_observer = Arc::new(AutomatedEmailNotificationObserver::new(centralized_notif.clone()));
+        let notification_service: Arc<dyn NotificationServiceTrait> = centralized_notif;
+
+        let event_bus = EventBus::new(vec![
+            audit_observer.clone(),
+            notification_observer.clone(),
+            email_notif_observer,
+        ]);
 
         let org_repo: Arc<dyn OrganizationRepository> =
             Arc::new(InMemoryOrganizationRepository::new());
@@ -163,6 +174,7 @@ impl AppState {
             auth_service,
             otp_service,
             assistant_service,
+            notification_service,
             event_bus,
             audit_observer,
             notification_observer,

@@ -42,6 +42,10 @@ use crate::{
         maintenance::{
             MaintenanceRequest, SubmitMaintenanceCommand, TransitionMaintenanceCommand,
         },
+        notifications::{
+            NotificationDelivery, NotificationSettings, NotificationTemplateSummary,
+            SendTestEmailCommand, UpdateNotificationSettingsCommand,
+        },
         ocr::{OcrJobRecord, ReviewOcrJobCommand, SubmitOcrJobCommand},
         operations::{
             CreateInspectionCommand, CreateVendorCommand, InspectionRecord, SubscriptionSummary,
@@ -206,7 +210,25 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/import/commit", post(commit_import_handler))
         .route("/import/history", get(get_import_history_handler))
         .route("/import/jobs/:id", get(get_import_job_handler))
-        .route("/import/export-errors", post(export_import_errors_handler));
+        .route("/import/export-errors", post(export_import_errors_handler))
+        // Centralized Automated Email Notifications
+        .route(
+            "/notifications/settings",
+            get(get_notification_settings_handler).patch(update_notification_settings_handler),
+        )
+        .route(
+            "/notifications/deliveries",
+            get(list_notification_deliveries_handler),
+        )
+        .route(
+            "/notifications/deliveries/:id/retry",
+            post(retry_notification_delivery_handler),
+        )
+        .route("/notifications/test", post(send_test_notification_handler))
+        .route(
+            "/notifications/templates",
+            get(list_notification_templates_handler),
+        );
 
     Router::new()
         .route("/health", get(health_check_handler))
@@ -1212,4 +1234,59 @@ async fn export_import_errors_handler(
         ],
         csv,
     ))
+}
+
+// ---------------------------------------------------------------------------
+// Centralized Automated Email Notifications
+// ---------------------------------------------------------------------------
+
+async fn get_notification_settings_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+) -> AppResult<Json<NotificationSettings>> {
+    let settings = state.notification_service.get_settings(&ctx)?;
+    Ok(Json(settings))
+}
+
+async fn update_notification_settings_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Json(cmd): Json<UpdateNotificationSettingsCommand>,
+) -> AppResult<Json<NotificationSettings>> {
+    let settings = state.notification_service.update_settings(&ctx, cmd)?;
+    Ok(Json(settings))
+}
+
+async fn list_notification_deliveries_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+) -> AppResult<Json<Vec<NotificationDelivery>>> {
+    let deliveries = state.notification_service.list_deliveries(&ctx)?;
+    Ok(Json(deliveries))
+}
+
+async fn retry_notification_delivery_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Path(id): Path<Uuid>,
+) -> AppResult<Json<NotificationDelivery>> {
+    let delivery = state.notification_service.retry_delivery(&ctx, id)?;
+    Ok(Json(delivery))
+}
+
+async fn send_test_notification_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Json(cmd): Json<SendTestEmailCommand>,
+) -> AppResult<Json<NotificationDelivery>> {
+    let delivery = state.notification_service.send_test_email(&ctx, cmd)?;
+    Ok(Json(delivery))
+}
+
+async fn list_notification_templates_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+) -> AppResult<Json<Vec<NotificationTemplateSummary>>> {
+    let templates = state.notification_service.list_templates(&ctx)?;
+    Ok(Json(templates))
 }

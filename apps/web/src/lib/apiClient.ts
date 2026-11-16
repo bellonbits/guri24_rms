@@ -429,7 +429,8 @@ class ApiClient {
   }
 
   async exportImportErrors(errors: any[]): Promise<string> {
-    const res = await fetch(`${this.baseUrl}/import/export-errors`, {
+    const url = `${API_BASE_URL.replace(/\/$/, '')}/import/export-errors`;
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -439,6 +440,92 @@ class ApiClient {
     });
     return res.text();
   }
+
+  // Centralized Automated Email Notifications
+  async getNotificationSettings(): Promise<NotificationSettings> {
+    return this.request<NotificationSettings>('/notifications/settings');
+  }
+
+  async updateNotificationSettings(cmd: Partial<NotificationSettings>): Promise<NotificationSettings> {
+    return this.request<NotificationSettings>('/notifications/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async getNotificationDeliveries(): Promise<NotificationDelivery[]> {
+    const res = await this.request<NotificationDelivery[]>('/notifications/deliveries');
+    return Array.isArray(res) ? res : [];
+  }
+
+  async retryNotificationDelivery(id: string): Promise<NotificationDelivery> {
+    return this.request<NotificationDelivery>(`/notifications/deliveries/${id}/retry`, {
+      method: 'POST',
+    });
+  }
+
+  async sendTestNotification(cmd: { recipient_email: string; template_key: string }): Promise<NotificationDelivery> {
+    return this.request<NotificationDelivery>('/notifications/test', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async getNotificationTemplates(): Promise<NotificationTemplateSummary[]> {
+    const res = await this.request<NotificationTemplateSummary[]>('/notifications/templates');
+    return Array.isArray(res) ? res : [];
+  }
+}
+
+export interface NotificationDelivery {
+  id: string;
+  organization_id: string;
+  recipient_email: string;
+  recipient_name: string;
+  recipient_role: string;
+  template_key: string;
+  subject: string;
+  body_html: string;
+  body_text: string;
+  status: 'QUEUED' | 'PROCESSING' | 'SENT' | 'DELIVERED' | 'BOUNCED' | 'COMPLAINED' | 'FAILED' | 'SUPPRESSED' | 'CANCELLED';
+  provider: string;
+  provider_message_id?: string | null;
+  error_message?: string | null;
+  retry_count: number;
+  max_retries: number;
+  idempotency_key: string;
+  related_entity_type?: string | null;
+  related_entity_id?: string | null;
+  sent_at?: string | null;
+  delivered_at?: string | null;
+  created_at: string;
+}
+
+export interface NotificationSettings {
+  id: string;
+  organization_id: string;
+  rent_reminder_days_before: number;
+  rent_due_date_reminder: boolean;
+  overdue_reminder_days: number[];
+  lease_expiry_days: number[];
+  daily_collection_summary: boolean;
+  weekly_operational_report: boolean;
+  monthly_financial_report: boolean;
+  deposit_liability_summary: boolean;
+  staff_escalation_emails: string[];
+  timezone: string;
+  email_from: string;
+  brand_logo_url?: string | null;
+  brand_primary_color: string;
+  updated_at: string;
+}
+
+export interface NotificationTemplateSummary {
+  key: string;
+  title: string;
+  category: string;
+  is_mandatory: boolean;
+  sample_subject: string;
 }
 
 export const apiClient = new ApiClient();

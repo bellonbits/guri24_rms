@@ -314,3 +314,320 @@ pub fn render_notification_email_template(
         btn_url = btn_url,
     )
 }
+
+/// Renders a verified Payment Receipt email (only after verified Daraja/bank settlement)
+pub fn render_payment_receipt_template(
+    recipient: &str,
+    tenant_name: &str,
+    amount_kes: &str,
+    receipt_number: &str,
+    mpesa_receipt: &str,
+    property_unit: &str,
+    date_str: &str,
+) -> String {
+    let clean_recipient = recipient.trim();
+    let avatar_initial = tenant_name.chars().next().unwrap_or('T').to_ascii_uppercase();
+
+    format!(
+        r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Payment Receipt — {receipt_number}</title>
+</head>
+<body style="margin: 0; padding: 24px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+    <tr>
+      <td style="padding: 18px 24px; border-bottom: 1px solid #f1f5f9;">
+        <table role="presentation" width="100%">
+          <tr>
+            <td align="left">
+              <img src="data:image/png;base64,{logo}" alt="Guri24 RMS" style="height: 32px; width: auto; max-width: 140px; display: inline-block; vertical-align: middle;" />
+              <span style="display: inline-block; margin-left: 10px; font-size: 13px; font-weight: 700; color: #16a34a; background: #dcfce7; padding: 4px 10px; border-radius: 6px;">Verified Receipt</span>
+            </td>
+            <td align="right" style="color: #94a3b8; font-size: 13px; font-weight: 600;">{date}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 28px;">
+        <h1 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 12px 0;">Official Rent Payment Receipt</h1>
+        <p style="font-size: 14px; color: #475569; margin: 0 0 20px 0;">
+          Dear <strong>{tenant_name}</strong>, your payment for <strong>{property_unit}</strong> has been successfully received and verified against Safaricom Daraja.
+        </p>
+
+        <!-- Receipt Box -->
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 20px 0;">
+          <table role="presentation" width="100%" cellpadding="4" cellspacing="0" style="font-size: 14px;">
+            <tr>
+              <td style="color: #64748b;">Receipt Number:</td>
+              <td align="right" style="font-weight: 700; color: #0f172a;">{receipt_number}</td>
+            </tr>
+            <tr>
+              <td style="color: #64748b;">M-Pesa Reference:</td>
+              <td align="right" style="font-weight: 700; color: #16a34a;">{mpesa_receipt}</td>
+            </tr>
+            <tr>
+              <td style="color: #64748b;">Amount Paid:</td>
+              <td align="right" style="font-size: 18px; font-weight: 800; color: #0f172a;">KES {amount_kes}</td>
+            </tr>
+            <tr>
+              <td style="color: #64748b;">Status:</td>
+              <td align="right" style="color: #16a34a; font-weight: 700;">CONFIRMED &amp; ALLOCATED</td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="text-align: center; margin: 24px 0 10px 0;">
+          <a href="http://143.198.30.249:5175" style="display: inline-block; background-color: #0f172a; color: #ffffff; font-size: 13px; font-weight: 600; padding: 10px 24px; border-radius: 8px; text-decoration: none;">
+            View Statement &amp; Download PDF &rarr;
+          </a>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 14px 24px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; font-size: 11px; color: #94a3b8; text-align: center;">
+        Guri24 RMS &bull; Automated Financial Ledger &bull; Nairobi, Kenya
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"#,
+        receipt_number = receipt_number,
+        logo = GURI24_LOGO_BASE64,
+        date = date_str,
+        tenant_name = tenant_name,
+        property_unit = property_unit,
+        mpesa_receipt = mpesa_receipt,
+        amount_kes = amount_kes,
+    )
+}
+
+/// Renders a Monthly Rent Invoice email
+pub fn render_invoice_issued_template(
+    recipient: &str,
+    tenant_name: &str,
+    invoice_number: &str,
+    billing_period: &str,
+    amount_kes: &str,
+    due_date: &str,
+    property_unit: &str,
+) -> String {
+    format!(
+        r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Invoice {invoice_number} Issued</title>
+</head>
+<body style="margin: 0; padding: 24px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+    <tr>
+      <td style="padding: 18px 24px; border-bottom: 1px solid #f1f5f9;">
+        <table role="presentation" width="100%">
+          <tr>
+            <td align="left">
+              <img src="data:image/png;base64,{logo}" alt="Guri24 RMS" style="height: 32px; width: auto; max-width: 140px; display: inline-block; vertical-align: middle;" />
+              <span style="display: inline-block; margin-left: 10px; font-size: 13px; font-weight: 700; color: #2563eb; background: #eff6ff; padding: 4px 10px; border-radius: 6px;">Rent Invoice</span>
+            </td>
+            <td align="right" style="color: #64748b; font-size: 13px; font-weight: 600;">Due: {due_date}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 28px;">
+        <h1 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 12px 0;">Monthly Rent Invoice &bull; {billing_period}</h1>
+        <p style="font-size: 14px; color: #475569; margin: 0 0 20px 0;">
+          Dear <strong>{tenant_name}</strong>, your monthly residential invoice for <strong>{property_unit}</strong> has been issued.
+        </p>
+
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 20px 0;">
+          <table role="presentation" width="100%" cellpadding="4" cellspacing="0" style="font-size: 14px;">
+            <tr>
+              <td style="color: #64748b;">Invoice Reference:</td>
+              <td align="right" style="font-weight: 700; color: #0f172a;">{invoice_number}</td>
+            </tr>
+            <tr>
+              <td style="color: #64748b;">Billing Cycle:</td>
+              <td align="right" style="font-weight: 600; color: #0f172a;">{billing_period}</td>
+            </tr>
+            <tr>
+              <td style="color: #64748b;">Total Amount Due:</td>
+              <td align="right" style="font-size: 18px; font-weight: 800; color: #2563eb;">KES {amount_kes}</td>
+            </tr>
+            <tr>
+              <td style="color: #64748b;">Due Date:</td>
+              <td align="right" style="color: #dc2626; font-weight: 700;">{due_date}</td>
+            </tr>
+          </table>
+        </div>
+
+        <p style="font-size: 13px; color: #64748b;">
+          Pay conveniently via M-Pesa PayBill <strong>174379</strong> with account reference <strong>{invoice_number}</strong> or use the 1-click STK push prompt in your portal.
+        </p>
+
+        <div style="text-align: center; margin: 24px 0 10px 0;">
+          <a href="http://143.198.30.249:5175" style="display: inline-block; background-color: #16a34a; color: #ffffff; font-size: 13px; font-weight: 600; padding: 10px 24px; border-radius: 8px; text-decoration: none;">
+            Pay with M-Pesa Now &rarr;
+          </a>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 14px 24px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; font-size: 11px; color: #94a3b8; text-align: center;">
+        Guri24 RMS &bull; Idempotent Billing Engine &bull; Nairobi, Kenya
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"#,
+        invoice_number = invoice_number,
+        logo = GURI24_LOGO_BASE64,
+        due_date = due_date,
+        billing_period = billing_period,
+        tenant_name = tenant_name,
+        property_unit = property_unit,
+        amount_kes = amount_kes,
+    )
+}
+
+/// Renders a Security Deposit Acknowledgment email (Account 2100 Liability)
+pub fn render_deposit_received_template(
+    recipient: &str,
+    tenant_name: &str,
+    amount_kes: &str,
+    lease_ref: &str,
+    property_unit: &str,
+) -> String {
+    format!(
+        r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Security Deposit Held — {property_unit}</title>
+</head>
+<body style="margin: 0; padding: 24px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+    <tr>
+      <td style="padding: 18px 24px; border-bottom: 1px solid #f1f5f9;">
+        <table role="presentation" width="100%">
+          <tr>
+            <td align="left">
+              <img src="data:image/png;base64,{logo}" alt="Guri24 RMS" style="height: 32px; width: auto; max-width: 140px; display: inline-block; vertical-align: middle;" />
+              <span style="display: inline-block; margin-left: 10px; font-size: 13px; font-weight: 700; color: #2563eb; background: #eff6ff; padding: 4px 10px; border-radius: 6px;">Account 2100 Liability</span>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 28px;">
+        <h1 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 12px 0;">Security Deposit Acknowledgment</h1>
+        <p style="font-size: 14px; color: #475569; margin: 0 0 20px 0;">
+          Dear <strong>{tenant_name}</strong>, we confirm receipt of your security deposit for <strong>{property_unit}</strong> under lease <strong>{lease_ref}</strong>.
+        </p>
+
+        <div style="background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 20px; margin: 20px 0;">
+          <table role="presentation" width="100%" cellpadding="4" cellspacing="0" style="font-size: 14px;">
+            <tr>
+              <td style="color: #1e40af;">Deposit Amount Held:</td>
+              <td align="right" style="font-size: 18px; font-weight: 800; color: #1e3a8a;">KES {amount_kes}</td>
+            </tr>
+            <tr>
+              <td style="color: #1e40af;">Accounting Treatment:</td>
+              <td align="right" style="font-weight: 600; color: #1e3a8a;">Tenant Liability (Account 2100)</td>
+            </tr>
+            <tr>
+              <td style="color: #1e40af;">Refund Policy:</td>
+              <td align="right" style="color: #1e3a8a;">Refundable upon exit inspection</td>
+            </tr>
+          </table>
+        </div>
+
+        <p style="font-size: 13px; color: #64748b;">
+          Under Guri24 RMS financial integrity rules, your deposit is strictly segregated as a balance sheet liability and is never treated as rental revenue.
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 14px 24px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; font-size: 11px; color: #94a3b8; text-align: center;">
+        Guri24 RMS &bull; Deposit Subledger &bull; Nairobi, Kenya
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"#,
+        logo = GURI24_LOGO_BASE64,
+        tenant_name = tenant_name,
+        property_unit = property_unit,
+        lease_ref = lease_ref,
+        amount_kes = amount_kes,
+    )
+}
+
+/// Renders a Verified Deposit Refund email (disbursed via M-Pesa B2C or Bank)
+pub fn render_refund_verified_template(
+    recipient: &str,
+    tenant_name: &str,
+    amount_kes: &str,
+    payout_channel: &str,
+    payout_ref: &str,
+    property_unit: &str,
+) -> String {
+    format!(
+        r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Security Deposit Refund Disbursed</title>
+</head>
+<body style="margin: 0; padding: 24px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+    <tr>
+      <td style="padding: 18px 24px; border-bottom: 1px solid #f1f5f9;">
+        <img src="data:image/png;base64,{logo}" alt="Guri24 RMS" style="height: 32px; width: auto; max-width: 140px; display: inline-block; vertical-align: middle;" />
+        <span style="display: inline-block; margin-left: 10px; font-size: 13px; font-weight: 700; color: #16a34a; background: #dcfce7; padding: 4px 10px; border-radius: 6px;">Refund Completed</span>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 28px;">
+        <h1 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 12px 0;">Deposit Refund Disbursed</h1>
+        <p style="font-size: 14px; color: #475569; margin: 0 0 20px 0;">
+          Dear <strong>{tenant_name}</strong>, your move-out security deposit refund for <strong>{property_unit}</strong> has been finalized and disbursed.
+        </p>
+
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 20px 0;">
+          <table role="presentation" width="100%" cellpadding="4" cellspacing="0" style="font-size: 14px;">
+            <tr>
+              <td style="color: #64748b;">Disbursed Amount:</td>
+              <td align="right" style="font-size: 18px; font-weight: 800; color: #16a34a;">KES {amount_kes}</td>
+            </tr>
+            <tr>
+              <td style="color: #64748b;">Channel:</td>
+              <td align="right" style="font-weight: 600; color: #0f172a;">{payout_channel}</td>
+            </tr>
+            <tr>
+              <td style="color: #64748b;">Transaction Reference:</td>
+              <td align="right" style="font-weight: 700; color: #0f172a;">{payout_ref}</td>
+            </tr>
+            <tr>
+              <td style="color: #64748b;">Liability Account 2100:</td>
+              <td align="right" style="color: #16a34a; font-weight: 700;">CLOSED &amp; BALANCED</td>
+            </tr>
+          </table>
+        </div>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"#,
+        logo = GURI24_LOGO_BASE64,
+        tenant_name = tenant_name,
+        property_unit = property_unit,
+        amount_kes = amount_kes,
+        payout_channel = payout_channel,
+        payout_ref = payout_ref,
+    )
+}
