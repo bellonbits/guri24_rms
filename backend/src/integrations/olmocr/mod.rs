@@ -161,18 +161,33 @@ impl AllenAiOlmOcrAdapter {
         match extracted {
             Some(val) => {
                 let mut validation_error = None;
-                if primary_key == "id_number"
-                    && val.chars().filter(|c| c.is_ascii_digit()).count() < 7
-                {
-                    validation_error = Some(
-                        "Kenyan National ID / Passport number requires at least 7 digits".to_string(),
-                    );
+                let mut conf = Decimal::new(9200, 2);
+                if primary_key == "id_number" {
+                    let digits = val.chars().filter(|c| c.is_ascii_digit()).count();
+                    if digits < 7 {
+                        validation_error = Some(
+                            "Kenyan National ID / Passport number requires at least 7 digits".to_string(),
+                        );
+                        conf = Decimal::new(6500, 2);
+                    } else {
+                        conf = Decimal::new(9800, 2);
+                    }
+                } else if primary_key == "phone" || primary_key == "phone_number" {
+                    let digits = val.chars().filter(|c| c.is_ascii_digit()).count();
+                    if digits >= 9 && digits <= 12 {
+                        conf = Decimal::new(9600, 2);
+                    } else {
+                        conf = Decimal::new(7000, 2);
+                    }
+                } else if primary_key.contains("amount") || primary_key.contains("rent") {
+                    conf = Decimal::new(9500, 2);
                 }
+
                 OcrExtractedFieldDto {
                     field_key: primary_key.to_string(),
                     field_label: label.to_string(),
                     extracted_value: val,
-                    confidence_pct: Decimal::new(9650, 2),
+                    confidence_pct: conf,
                     is_sensitive_pii,
                     validation_error,
                 }

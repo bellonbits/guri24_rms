@@ -1021,180 +1021,64 @@ export function submitOcrDocumentJob(
   const docId = `doc-ocr-${String(seq).padStart(4, '0')}`;
 
   let fields: OcrExtractedField[] = [];
-  let rawText = input.rawSampleText?.trim() || '';
+  const rawText = input.rawSampleText?.trim() || '';
 
-  if (input.documentCategory === 'TENANT_IDENTIFICATION') {
-    if (!rawText) {
-      rawText =
-        'REPUBLIC OF KENYA — NATIONAL IDENTITY CARD | Full Names: AMINA HASSAN NOOR | ID Number: 31223344 | Phone: 0700889900';
-    }
-    fields = [
-      {
-        id: `${jobId}-f1`,
-        field_name: 'full_name',
-        field_label: 'Full Name',
-        extracted_value: 'AMINA HASSAN NOOR',
-        normalized_value: 'Amina Hassan Noor',
-        confidence: 0.97,
+  if (rawText) {
+    // Parse authentic key-value pairs or lines from provided document text
+    const pairs: Array<{ key: string; label: string; val: string }> = [];
+    const tokens = rawText.split(/[\n|]/);
+    tokens.forEach((token) => {
+      const trimmed = token.trim().replace(/^[-*•]\s*/, '');
+      if (trimmed.includes(':')) {
+        const [k, v] = trimmed.split(':', 2);
+        const cleanK = k.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+        const cleanV = v.trim();
+        if (cleanK && cleanV) {
+          pairs.push({
+            key: cleanK,
+            label: k.trim(),
+            val: cleanV,
+          });
+        }
+      }
+    });
+
+    fields = pairs.map((p, idx) => {
+      let conf = 0.90;
+      const isId = p.key.includes('id') || p.key.includes('national');
+      const isPhone = p.key.includes('phone') || p.key.includes('mobile');
+      const isAmount = p.key.includes('rent') || p.key.includes('amount') || p.key.includes('deposit');
+
+      if (isId) {
+        const digits = p.val.replace(/\D/g, '');
+        conf = digits.length >= 7 ? 0.98 : 0.65;
+      } else if (isPhone) {
+        const digits = p.val.replace(/\D/g, '');
+        conf = digits.length >= 9 ? 0.96 : 0.70;
+      } else if (isAmount) {
+        conf = 0.95;
+      }
+
+      let normVal = p.val;
+      if (isId) {
+        normVal = maskNationalId(p.val);
+      } else if (isPhone) {
+        normVal = normalizeKenyanPhone(p.val) || p.val;
+      }
+
+      return {
+        id: `${jobId}-f${idx + 1}`,
+        field_name: p.key,
+        field_label: p.label,
+        extracted_value: p.val,
+        normalized_value: normVal,
+        confidence: conf,
         page_number: 1,
-        bounding_box: { page: 1, x: 0.18, y: 0.28, width: 0.48, height: 0.05 },
+        bounding_box: { page: 1, x: 0.15, y: 0.15 + idx * 0.08, width: 0.4, height: 0.04 },
         validation_errors: [],
         human_verified: false,
-      },
-      {
-        id: `${jobId}-f2`,
-        field_name: 'id_number',
-        field_label: 'Kenyan National ID (Masked)',
-        extracted_value: '31223344',
-        normalized_value: maskNationalId('31223344'),
-        confidence: 0.95,
-        page_number: 1,
-        bounding_box: { page: 1, x: 0.18, y: 0.16, width: 0.3, height: 0.05 },
-        validation_errors: [],
-        human_verified: false,
-      },
-      {
-        id: `${jobId}-f3`,
-        field_name: 'phone_number',
-        field_label: 'M-Pesa Phone Number',
-        extracted_value: '0700889900',
-        normalized_value: normalizeKenyanPhone('0700889900') || '254700889900',
-        confidence: 0.93,
-        page_number: 1,
-        bounding_box: { page: 1, x: 0.18, y: 0.42, width: 0.32, height: 0.05 },
-        validation_errors: [],
-        human_verified: false,
-      },
-    ];
-  } else if (input.documentCategory === 'LEASE_AGREEMENT') {
-    if (!rawText) {
-      rawText =
-        'RESIDENTIAL LEASE AGREEMENT — Property: Jacaranda Heights Apartments | Unit: A-201 | Tenant: Amina Hassan Noor | Monthly Rent: KES 35,000.00 | Deposit: KES 35,000.00 | Term: 2026-12-01 to 2027-11-30';
-    }
-    fields = [
-      {
-        id: `${jobId}-f1`,
-        field_name: 'tenant_name',
-        field_label: 'Tenant Name',
-        extracted_value: 'Amina Hassan Noor',
-        normalized_value: 'Amina Hassan Noor',
-        confidence: 0.96,
-        page_number: 1,
-        bounding_box: { page: 1, x: 0.14, y: 0.22, width: 0.4, height: 0.04 },
-        validation_errors: [],
-        human_verified: false,
-      },
-      {
-        id: `${jobId}-f2`,
-        field_name: 'unit_number',
-        field_label: 'Unit Number',
-        extracted_value: 'A-201',
-        normalized_value: 'A-201',
-        confidence: 0.95,
-        page_number: 1,
-        bounding_box: { page: 1, x: 0.58, y: 0.22, width: 0.16, height: 0.04 },
-        validation_errors: [],
-        human_verified: false,
-      },
-      {
-        id: `${jobId}-f3`,
-        field_name: 'monthly_rent_kes',
-        field_label: 'Monthly Rent (KES)',
-        extracted_value: 'KES 35,000.00',
-        normalized_value: '35000.00',
-        confidence: 0.94,
-        page_number: 1,
-        bounding_box: { page: 1, x: 0.14, y: 0.34, width: 0.26, height: 0.04 },
-        validation_errors: [],
-        human_verified: false,
-      },
-      {
-        id: `${jobId}-f4`,
-        field_name: 'deposit_amount_kes',
-        field_label: 'Security Deposit (KES)',
-        extracted_value: 'KES 35,000.00',
-        normalized_value: '35000.00',
-        confidence: 0.92,
-        page_number: 1,
-        bounding_box: { page: 1, x: 0.46, y: 0.34, width: 0.26, height: 0.04 },
-        validation_errors: [],
-        human_verified: false,
-      },
-    ];
-  } else if (input.documentCategory === 'RECEIPT_OR_INVOICE') {
-    if (!rawText) {
-      rawText =
-        'VENDOR TAX INVOICE — Vendor: Nairobi Rapid Plumbers Ltd | Invoice #: VINV-2026-884 | Amount: KES 4,500.00 | Date: 2026-11-08 | KRA PIN: P051662211R';
-    }
-    fields = [
-      {
-        id: `${jobId}-f1`,
-        field_name: 'vendor_name',
-        field_label: 'Vendor / Issuer Name',
-        extracted_value: 'Nairobi Rapid Plumbers Ltd',
-        normalized_value: 'Nairobi Rapid Plumbers Ltd',
-        confidence: 0.96,
-        page_number: 1,
-        bounding_box: { page: 1, x: 0.12, y: 0.15, width: 0.45, height: 0.04 },
-        validation_errors: [],
-        human_verified: false,
-      },
-      {
-        id: `${jobId}-f2`,
-        field_name: 'invoice_or_receipt_number',
-        field_label: 'Receipt / Invoice Number',
-        extracted_value: 'VINV-2026-884',
-        normalized_value: 'VINV-2026-884',
-        confidence: 0.94,
-        page_number: 1,
-        bounding_box: { page: 1, x: 0.62, y: 0.15, width: 0.24, height: 0.04 },
-        validation_errors: [],
-        human_verified: false,
-      },
-      {
-        id: `${jobId}-f3`,
-        field_name: 'total_amount_kes',
-        field_label: 'Amount (KES)',
-        extracted_value: 'KES 4,500.00',
-        normalized_value: '4500.00',
-        confidence: 0.95,
-        page_number: 1,
-        bounding_box: { page: 1, x: 0.62, y: 0.48, width: 0.24, height: 0.04 },
-        validation_errors: [],
-        human_verified: false,
-      },
-    ];
-  } else {
-    if (!rawText) {
-      rawText =
-        'REPUBLIC OF KENYA — CERTIFICATE OF LEASE / PROPERTY DEED | Parcel LR Number: LR 209/11421 | County: Nairobi | Registered Proprietor: Kilimani Crest Property Management Ltd';
-    }
-    fields = [
-      {
-        id: `${jobId}-f1`,
-        field_name: 'lr_number',
-        field_label: 'Land Reference (LR) Number',
-        extracted_value: 'LR 209/11421',
-        normalized_value: 'LR 209/11421',
-        confidence: 0.95,
-        page_number: 1,
-        bounding_box: { page: 1, x: 0.2, y: 0.25, width: 0.35, height: 0.04 },
-        validation_errors: [],
-        human_verified: false,
-      },
-      {
-        id: `${jobId}-f2`,
-        field_name: 'county',
-        field_label: 'County',
-        extracted_value: 'Nairobi',
-        normalized_value: 'Nairobi',
-        confidence: 0.98,
-        page_number: 1,
-        bounding_box: { page: 1, x: 0.2, y: 0.33, width: 0.25, height: 0.04 },
-        validation_errors: [],
-        human_verified: false,
-      },
-    ];
+      };
+    });
   }
 
   const avgConfidence =
@@ -1265,7 +1149,9 @@ export function reviewOcrDocumentJob(
   reviewInput: {
     approve: boolean;
     corrections?: Record<string, string>;
-    notes: string;
+    fieldCorrections?: Record<string, string>;
+    notes?: string;
+    reviewNotes?: string;
   }
 ): { nextState: RmsPlatformState; job: OcrJobRecord } {
   assertPermission(state.currentRole, 'ocr.review');
@@ -1275,7 +1161,7 @@ export function reviewOcrDocumentJob(
     throw new Error('OCR job not found in current organization (strict tenant isolation).');
   }
 
-  const corrections = reviewInput.corrections ?? {};
+  const corrections = reviewInput.fieldCorrections || reviewInput.corrections || {};
   const updatedFields = target.fields.map((fld) => {
     const corrected = corrections[fld.field_name]?.trim();
     const nextVal = corrected && corrected.length > 0 ? corrected : fld.normalized_value;
@@ -1290,6 +1176,9 @@ export function reviewOcrDocumentJob(
     };
   });
 
+  const rawNotes = (reviewInput.reviewNotes ?? reviewInput.notes ?? '').trim();
+  const notes = rawNotes || (reviewInput.approve ? 'Human verified and approved.' : 'Rejected during review.');
+
   const updatedJob: OcrJobRecord = {
     ...target,
     status: reviewInput.approve ? 'VERIFIED' : 'FAILED',
@@ -1300,7 +1189,7 @@ export function reviewOcrDocumentJob(
       job_id: target.id,
       reviewer_role: state.currentRole,
       decision: reviewInput.approve ? 'APPROVED' : 'REJECTED',
-      notes: reviewInput.notes.trim() || (reviewInput.approve ? 'Human verified and approved.' : 'Rejected during review.'),
+      notes,
       reviewed_at: new Date().toISOString(),
     },
   };

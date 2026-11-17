@@ -466,6 +466,23 @@ class ApiClient {
     return Array.isArray(res) ? res : res.items || [];
   }
 
+  async getOcrJob(id: string): Promise<OcrJobRecord> {
+    return this.request(`/ocr/jobs/${id}`);
+  }
+
+  async submitOcrJob(data: any): Promise<OcrJobRecord> {
+    return this.request('/ocr/jobs', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async retryOcrJob(id: string): Promise<OcrJobRecord> {
+    return this.request(`/ocr/jobs/${id}/retry`, {
+      method: 'POST',
+    });
+  }
+
   async reviewOcrJob(id: string, cmd: any): Promise<OcrJobRecord> {
     return this.request(`/ocr/jobs/${id}/review`, {
       method: 'POST',

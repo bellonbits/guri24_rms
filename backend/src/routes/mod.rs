@@ -2038,28 +2038,34 @@ async fn list_ocr_jobs_handler(
 async fn get_ocr_job_handler(
     State(state): State<Arc<AppState>>,
     ctx: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(id): Path<String>,
 ) -> AppResult<Json<OcrJobRecord>> {
-    let job = state.repositories.ocr.get_job(&ctx, id)?;
+    let job_id = Uuid::parse_str(&id)
+        .map_err(|_| AppError::NotFound(format!("OCR job '{id}' not found")))?;
+    let job = state.repositories.ocr.get_job(&ctx, job_id)?;
     Ok(Json(job))
 }
 
 async fn review_ocr_job_handler(
     State(state): State<Arc<AppState>>,
     ctx: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(id): Path<String>,
     Json(cmd): Json<ReviewOcrJobCommand>,
 ) -> AppResult<Json<OcrJobRecord>> {
-    let job = state.repositories.ocr.review_job(&ctx, id, cmd)?;
+    let job_id = Uuid::parse_str(&id)
+        .map_err(|_| AppError::NotFound(format!("OCR job '{id}' not found")))?;
+    let job = state.repositories.ocr.review_job(&ctx, job_id, cmd)?;
     Ok(Json(job))
 }
 
 async fn retry_ocr_job_handler(
     State(state): State<Arc<AppState>>,
     ctx: TenantContext,
-    Path(id): Path<Uuid>,
+    Path(id): Path<String>,
 ) -> AppResult<Json<OcrJobRecord>> {
-    let job = state.repositories.ocr.retry_job(&ctx, id)?;
+    let job_id = Uuid::parse_str(&id)
+        .map_err(|_| AppError::NotFound(format!("OCR job '{id}' not found")))?;
+    let job = state.repositories.ocr.retry_job(&ctx, job_id)?;
     Ok(Json(job))
 }
 
