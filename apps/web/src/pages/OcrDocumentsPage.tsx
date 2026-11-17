@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useRms } from '../context/RmsContext';
 import { ResponsiveTable, StatusBadge, ModalDialog } from '../components/ui/Primitives';
 import { OCRReviewForm } from '../components/OCRReviewForm';
+import { formatNairobiDate } from '../lib/formatters';
 import { OcrJobRecord, OcrJobStatus, DocumentItem } from '../types';
 
 export const OcrDocumentsPage: React.FC = () => {
