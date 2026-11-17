@@ -176,7 +176,7 @@ export const AppLayout: React.FC = () => {
         <div className="brand-header">
           <Link to="/app/dashboard" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
             <img
-              src="/Futuristic Blue-Green House Logo.png"
+              src="/Guri24 RMS Property Logo.png"
               alt="Guri24 RMS"
               style={{ maxHeight: '42px', maxWidth: '170px', objectFit: 'contain' }}
               onError={(e) => {
@@ -278,7 +278,7 @@ export const AppLayout: React.FC = () => {
 
           <Link to="/app/dashboard" className="mobile-header-brand">
             <img
-              src="/Futuristic Blue-Green House Logo.png"
+              src="/Guri24 RMS Property Logo.png"
               alt="Guri24 RMS"
               style={{ maxHeight: '34px', maxWidth: '140px', objectFit: 'contain' }}
               onError={(e) => {
@@ -414,7 +414,7 @@ export const AppLayout: React.FC = () => {
             <div className="mobile-drawer-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <img
-                  src="/Futuristic Blue-Green House Logo.png"
+                  src="/Guri24 RMS Property Logo.png"
                   alt="Guri24 RMS"
                   style={{ maxHeight: '30px', maxWidth: '120px', objectFit: 'contain' }}
                   onError={(e) => {

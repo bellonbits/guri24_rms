@@ -9,6 +9,8 @@
 
 pub const GURI24_LOGO_BASE64: &str = include_str!("guri24_logo_email.base64");
 pub const NEW_EMAIL_ILLUSTRATION_BASE64: &str = include_str!("new_email_illustration.base64");
+pub const GURI24_FAVICON_URL: &str = "https://raw.githubusercontent.com/bellonbits/guri24_rms/main/apps/web/public/favicon.png";
+pub const NEW_EMAIL_ILLUSTRATION_URL: &str = "https://raw.githubusercontent.com/bellonbits/guri24_rms/main/apps/web/public/image.png";
 
 /// Helper to render the shared mobile app card and footer
 const EMAIL_APP_CARD_AND_FOOTER_HTML: &str = r###"
@@ -124,12 +126,16 @@ pub fn render_otp_email_template(recipient: &str, code: &str) -> String {
 </head>
 <body style="margin: 0; padding: 28px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto;">
-    <!-- Circular Logo Badge -->
+    <!-- Circular Logo Badge on White Background -->
     <tr>
       <td align="center" style="padding-bottom: 18px;">
-        <div style="width: 56px; height: 56px; background-color: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-          <img src="data:image/png;base64,{logo}" alt="Guri24 RMS" style="width: 32px; height: 32px; object-fit: contain; display: block; margin: 12px auto 0 auto;" />
-        </div>
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+          <tr>
+            <td align="center" style="width: 56px; height: 56px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 50%; vertical-align: middle; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+              <img src="{logo}" alt="Guri24 RMS" width="36" height="36" style="width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto; border-radius: 50%;" />
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
 
@@ -147,7 +153,7 @@ pub fn render_otp_email_template(recipient: &str, code: &str) -> String {
     <tr>
       <td style="background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 32px 24px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
         <div style="margin-bottom: 16px;">
-          <img src="data:image/png;base64,{illustration}" alt="New Email Notification" style="width: 130px; height: 130px; max-width: 100%; object-fit: contain; display: inline-block;" />
+          <img src="{illustration}" alt="New Notification" width="160" style="width: 160px; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;" />
         </div>
 
         <p style="font-size: 14px; color: #475569; line-height: 1.55; margin: 0 0 18px 0;">
@@ -179,8 +185,8 @@ pub fn render_otp_email_template(recipient: &str, code: &str) -> String {
   </table>
 </body>
 </html>"###,
-        logo = GURI24_LOGO_BASE64,
-        illustration = NEW_EMAIL_ILLUSTRATION_BASE64,
+        logo = GURI24_FAVICON_URL,
+        illustration = NEW_EMAIL_ILLUSTRATION_URL,
         name_part = name_part,
         code = code.trim(),
         app_card_and_footer = EMAIL_APP_CARD_AND_FOOTER_HTML,
@@ -210,12 +216,16 @@ pub fn render_notification_email_template(
 </head>
 <body style="margin: 0; padding: 28px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto;">
-    <!-- Circular Logo Badge -->
+    <!-- Circular Logo Badge on White Background -->
     <tr>
       <td align="center" style="padding-bottom: 18px;">
-        <div style="width: 56px; height: 56px; background-color: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-          <img src="data:image/png;base64,{logo}" alt="Guri24 RMS" style="width: 32px; height: 32px; object-fit: contain; display: block; margin: 12px auto 0 auto;" />
-        </div>
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+          <tr>
+            <td align="center" style="width: 56px; height: 56px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 50%; vertical-align: middle; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+              <img src="{logo}" alt="Guri24 RMS" width="36" height="36" style="width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto; border-radius: 50%;" />
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
 
@@ -233,7 +243,7 @@ pub fn render_notification_email_template(
     <tr>
       <td style="background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 32px 24px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
         <div style="margin-bottom: 16px;">
-          <img src="data:image/png;base64,{illustration}" alt="New Email Notification" style="width: 130px; height: 130px; max-width: 100%; object-fit: contain; display: inline-block;" />
+          <img src="{illustration}" alt="New Notification" width="160" style="width: 160px; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;" />
         </div>
 
         <div style="font-size: 14px; color: #475569; line-height: 1.6; margin: 0 0 24px 0; text-align: left;">
@@ -259,8 +269,8 @@ pub fn render_notification_email_template(
   </table>
 </body>
 </html>"###,
-        logo = GURI24_LOGO_BASE64,
-        illustration = NEW_EMAIL_ILLUSTRATION_BASE64,
+        logo = GURI24_FAVICON_URL,
+        illustration = NEW_EMAIL_ILLUSTRATION_URL,
         name_part = name_part,
         title = title,
         body = body,
@@ -290,12 +300,16 @@ pub fn render_payment_receipt_template(
 </head>
 <body style="margin: 0; padding: 28px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto;">
-    <!-- Circular Logo Badge -->
+    <!-- Circular Logo Badge on White Background -->
     <tr>
       <td align="center" style="padding-bottom: 18px;">
-        <div style="width: 56px; height: 56px; background-color: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-          <img src="data:image/png;base64,{logo}" alt="Guri24 RMS" style="width: 32px; height: 32px; object-fit: contain; display: block; margin: 12px auto 0 auto;" />
-        </div>
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+          <tr>
+            <td align="center" style="width: 56px; height: 56px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 50%; vertical-align: middle; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+              <img src="{logo}" alt="Guri24 RMS" width="36" height="36" style="width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto; border-radius: 50%;" />
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
 
@@ -313,7 +327,7 @@ pub fn render_payment_receipt_template(
     <tr>
       <td style="background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 32px 24px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
         <div style="margin-bottom: 16px;">
-          <img src="data:image/png;base64,{illustration}" alt="New Email Notification" style="width: 130px; height: 130px; max-width: 100%; object-fit: contain; display: inline-block;" />
+          <img src="{illustration}" alt="New Notification" width="160" style="width: 160px; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;" />
         </div>
 
         <p style="font-size: 14px; color: #475569; line-height: 1.55; margin: 0 0 16px 0;">
@@ -365,8 +379,8 @@ pub fn render_payment_receipt_template(
   </table>
 </body>
 </html>"###,
-        logo = GURI24_LOGO_BASE64,
-        illustration = NEW_EMAIL_ILLUSTRATION_BASE64,
+        logo = GURI24_FAVICON_URL,
+        illustration = NEW_EMAIL_ILLUSTRATION_URL,
         tenant_name = tenant_name,
         amount_kes = amount_kes,
         receipt_number = receipt_number,
@@ -397,12 +411,16 @@ pub fn render_invoice_issued_template(
 </head>
 <body style="margin: 0; padding: 28px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto;">
-    <!-- Circular Logo Badge -->
+    <!-- Circular Logo Badge on White Background -->
     <tr>
       <td align="center" style="padding-bottom: 18px;">
-        <div style="width: 56px; height: 56px; background-color: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-          <img src="data:image/png;base64,{logo}" alt="Guri24 RMS" style="width: 32px; height: 32px; object-fit: contain; display: block; margin: 12px auto 0 auto;" />
-        </div>
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+          <tr>
+            <td align="center" style="width: 56px; height: 56px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 50%; vertical-align: middle; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+              <img src="{logo}" alt="Guri24 RMS" width="36" height="36" style="width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto; border-radius: 50%;" />
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
 
@@ -420,7 +438,7 @@ pub fn render_invoice_issued_template(
     <tr>
       <td style="background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 32px 24px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
         <div style="margin-bottom: 16px;">
-          <img src="data:image/png;base64,{illustration}" alt="New Email Notification" style="width: 130px; height: 130px; max-width: 100%; object-fit: contain; display: inline-block;" />
+          <img src="{illustration}" alt="New Notification" width="160" style="width: 160px; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;" />
         </div>
 
         <p style="font-size: 14px; color: #475569; line-height: 1.55; margin: 0 0 16px 0;">
@@ -476,8 +494,8 @@ pub fn render_invoice_issued_template(
   </table>
 </body>
 </html>"###,
-        logo = GURI24_LOGO_BASE64,
-        illustration = NEW_EMAIL_ILLUSTRATION_BASE64,
+        logo = GURI24_FAVICON_URL,
+        illustration = NEW_EMAIL_ILLUSTRATION_URL,
         tenant_name = tenant_name,
         invoice_number = invoice_number,
         billing_period = billing_period,
@@ -506,12 +524,16 @@ pub fn render_deposit_received_template(
 </head>
 <body style="margin: 0; padding: 28px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto;">
-    <!-- Circular Logo Badge -->
+    <!-- Circular Logo Badge on White Background -->
     <tr>
       <td align="center" style="padding-bottom: 18px;">
-        <div style="width: 56px; height: 56px; background-color: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-          <img src="data:image/png;base64,{logo}" alt="Guri24 RMS" style="width: 32px; height: 32px; object-fit: contain; display: block; margin: 12px auto 0 auto;" />
-        </div>
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+          <tr>
+            <td align="center" style="width: 56px; height: 56px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 50%; vertical-align: middle; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+              <img src="{logo}" alt="Guri24 RMS" width="36" height="36" style="width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto; border-radius: 50%;" />
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
 
@@ -529,7 +551,7 @@ pub fn render_deposit_received_template(
     <tr>
       <td style="background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 32px 24px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
         <div style="margin-bottom: 16px;">
-          <img src="data:image/png;base64,{illustration}" alt="New Email Notification" style="width: 130px; height: 130px; max-width: 100%; object-fit: contain; display: inline-block;" />
+          <img src="{illustration}" alt="New Notification" width="160" style="width: 160px; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;" />
         </div>
 
         <p style="font-size: 14px; color: #475569; line-height: 1.55; margin: 0 0 16px 0;">
@@ -577,8 +599,8 @@ pub fn render_deposit_received_template(
   </table>
 </body>
 </html>"###,
-        logo = GURI24_LOGO_BASE64,
-        illustration = NEW_EMAIL_ILLUSTRATION_BASE64,
+        logo = GURI24_FAVICON_URL,
+        illustration = NEW_EMAIL_ILLUSTRATION_URL,
         tenant_name = tenant_name,
         amount_kes = amount_kes,
         lease_reference = lease_reference,
@@ -606,12 +628,16 @@ pub fn render_refund_verified_template(
 </head>
 <body style="margin: 0; padding: 28px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto;">
-    <!-- Circular Logo Badge -->
+    <!-- Circular Logo Badge on White Background -->
     <tr>
       <td align="center" style="padding-bottom: 18px;">
-        <div style="width: 56px; height: 56px; background-color: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-          <img src="data:image/png;base64,{logo}" alt="Guri24 RMS" style="width: 32px; height: 32px; object-fit: contain; display: block; margin: 12px auto 0 auto;" />
-        </div>
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+          <tr>
+            <td align="center" style="width: 56px; height: 56px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 50%; vertical-align: middle; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+              <img src="{logo}" alt="Guri24 RMS" width="36" height="36" style="width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto; border-radius: 50%;" />
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
 
@@ -629,7 +655,7 @@ pub fn render_refund_verified_template(
     <tr>
       <td style="background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 32px 24px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
         <div style="margin-bottom: 16px;">
-          <img src="data:image/png;base64,{illustration}" alt="New Email Notification" style="width: 130px; height: 130px; max-width: 100%; object-fit: contain; display: inline-block;" />
+          <img src="{illustration}" alt="New Notification" width="160" style="width: 160px; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;" />
         </div>
 
         <p style="font-size: 14px; color: #475569; line-height: 1.55; margin: 0 0 16px 0;">
@@ -677,8 +703,8 @@ pub fn render_refund_verified_template(
   </table>
 </body>
 </html>"###,
-        logo = GURI24_LOGO_BASE64,
-        illustration = NEW_EMAIL_ILLUSTRATION_BASE64,
+        logo = GURI24_FAVICON_URL,
+        illustration = NEW_EMAIL_ILLUSTRATION_URL,
         tenant_name = tenant_name,
         amount_kes = amount_kes,
         property_unit = property_unit,
@@ -707,12 +733,16 @@ pub fn render_account_approved_email(
 </head>
 <body style="margin: 0; padding: 28px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto;">
-    <!-- Circular Logo Badge -->
+    <!-- Circular Logo Badge on White Background -->
     <tr>
       <td align="center" style="padding-bottom: 18px;">
-        <div style="width: 56px; height: 56px; background-color: #0284c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
-          <img src="data:image/png;base64,{logo}" alt="Guri24 RMS" style="width: 32px; height: 32px; object-fit: contain; display: block; margin: 12px auto 0 auto;" />
-        </div>
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+          <tr>
+            <td align="center" style="width: 56px; height: 56px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 50%; vertical-align: middle; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+              <img src="{logo}" alt="Guri24 RMS" width="36" height="36" style="width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto; border-radius: 50%;" />
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
 
@@ -730,7 +760,7 @@ pub fn render_account_approved_email(
     <tr>
       <td style="background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 32px 24px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
         <div style="margin-bottom: 16px;">
-          <img src="data:image/png;base64,{illustration}" alt="New Email Notification" style="width: 140px; height: 140px; max-width: 100%; object-fit: contain; display: inline-block;" />
+          <img src="{illustration}" alt="New Notification" width="160" style="width: 160px; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;" />
         </div>
 
         <p style="font-size: 14px; color: #475569; line-height: 1.55; margin: 0 0 14px 0;">
@@ -762,8 +792,8 @@ pub fn render_account_approved_email(
   </table>
 </body>
 </html>"###,
-        logo = GURI24_LOGO_BASE64,
-        illustration = NEW_EMAIL_ILLUSTRATION_BASE64,
+        logo = GURI24_FAVICON_URL,
+        illustration = NEW_EMAIL_ILLUSTRATION_URL,
         display_name = display_name,
         portal_url = clean_portal_url,
         app_card_and_footer = EMAIL_APP_CARD_AND_FOOTER_HTML,

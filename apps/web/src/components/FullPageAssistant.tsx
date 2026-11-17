@@ -401,6 +401,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
     setPromptInput('');
     setAttachedFile(null);
     setIsSending(true);
+    setActiveConvId(targetConvId);
 
     if (onSendMessage) {
       try {

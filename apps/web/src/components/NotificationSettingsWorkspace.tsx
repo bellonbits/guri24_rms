@@ -2010,17 +2010,18 @@ export const NotificationSettingsWorkspace: React.FC<NotificationSettingsWorkspa
                     width: '56px',
                     height: '56px',
                     borderRadius: '50%',
-                    background: '#0284c7',
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 4px 10px rgba(2, 132, 199, 0.25)',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
                   }}
                 >
                   <img
-                    src="/Futuristic Blue-Green House Logo.png"
+                    src="/favicon.png"
                     alt="Guri24 RMS"
-                    style={{ width: '32px', height: '32px', objectFit: 'contain' }}
+                    style={{ width: '36px', height: '36px', objectFit: 'contain', borderRadius: '50%' }}
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src = '/logo.png';
                     }}
