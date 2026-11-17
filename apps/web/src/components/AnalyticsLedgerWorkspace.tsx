@@ -91,6 +91,8 @@ interface AnalyticsLedgerWorkspaceProps {
   journals: JournalEntry[];
   deposits?: any[];
   maintenance?: any[];
+  initialTab?: AnalyticsWorkspaceTab;
+  initialStatementSubTab?: StatementSubTab;
   onRecordExpense?: () => void;
   onReverseJournal?: (journal: JournalEntry) => void;
   onExportCsv?: () => void;
@@ -109,12 +111,26 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
   journals,
   deposits = [],
   maintenance = [],
+  initialTab,
+  initialStatementSubTab,
   onRecordExpense,
   onReverseJournal,
 }) => {
   // Navigation & Sub-views
-  const [activeTab, setActiveTab] = useState<AnalyticsWorkspaceTab>('overview');
-  const [statementSubTab, setStatementSubTab] = useState<StatementSubTab>('pnl');
+  const [activeTab, setActiveTab] = useState<AnalyticsWorkspaceTab>(initialTab || 'overview');
+  const [statementSubTab, setStatementSubTab] = useState<StatementSubTab>(initialStatementSubTab || 'pnl');
+
+  React.useEffect(() => {
+    if (initialTab && initialTab !== activeTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
+  React.useEffect(() => {
+    if (initialStatementSubTab && initialStatementSubTab !== statementSubTab) {
+      setStatementSubTab(initialStatementSubTab);
+    }
+  }, [initialStatementSubTab]);
 
   // Filters
   const [periodFilter, setPeriodFilter] = useState<'month' | 'quarter' | 'year' | 'all'>('month');

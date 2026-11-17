@@ -10,8 +10,9 @@ RUN npm install --no-audit --no-fund --fetch-retries=5 --fetch-retry-mintimeout=
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve via Caddy
+# Stage 2: Serve via Caddy with SPA Fallback
 FROM caddy:2-alpine
 COPY --from=builder /app/dist /srv
+COPY Caddyfile /etc/caddy/Caddyfile
 EXPOSE 80
-CMD ["caddy", "file-server", "--root", "/srv", "--listen", ":80"]
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

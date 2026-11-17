@@ -62,6 +62,8 @@ interface FinancialOperationsWorkspaceProps {
   payments: Payment[];
   deposits: SecurityDepositLedger[];
   journals: JournalEntry[];
+  initialTab?: FinancialTab;
+  onTabChange?: (tab: FinancialTab) => void;
   onInitiatePayment?: (data: any) => Promise<any>;
   onAllocatePayment?: (paymentId: string, allocations: { invoice_id: string; amount_kes: number }[]) => Promise<any>;
   onRefundDeposit?: (leaseId: string, amount: number, reason: string) => Promise<any>;
@@ -78,12 +80,20 @@ export const FinancialOperationsWorkspace: React.FC<FinancialOperationsWorkspace
   payments,
   deposits,
   journals,
+  initialTab,
+  onTabChange,
   onInitiatePayment,
   onAllocatePayment,
   onRefundDeposit,
   onRefresh,
 }) => {
-  const [activeTab, setActiveTab] = useState<FinancialTab>('overview');
+  const [activeTab, setActiveTab] = useState<FinancialTab>(initialTab || 'overview');
+
+  React.useEffect(() => {
+    if (initialTab && initialTab !== activeTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [propertyFilter, setPropertyFilter] = useState('ALL');
@@ -364,7 +374,10 @@ export const FinancialOperationsWorkspace: React.FC<FinancialOperationsWorkspace
             <button
               key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                onTabChange?.(tab.id);
+              }}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',

@@ -2,13 +2,16 @@ import React, { useEffect, useId, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 
 interface ModalDialogProps {
-  open: boolean;
+  open?: boolean;
+  isOpen?: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  maxWidth?: string;
 }
 
-export function ModalDialog({ open, onClose, title, children }: ModalDialogProps) {
+export function ModalDialog({ open, isOpen, onClose, title, children, maxWidth }: ModalDialogProps) {
+  const isDialogActive = Boolean(open ?? isOpen);
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const titleId = useId();
 
@@ -16,12 +19,12 @@ export function ModalDialog({ open, onClose, title, children }: ModalDialogProps
     const dialog = dialogRef.current;
     if (!dialog) return;
 
-    if (open && !dialog.open) {
+    if (isDialogActive && !dialog.open) {
       dialog.showModal();
-    } else if (!open && dialog.open) {
+    } else if (!isDialogActive && dialog.open) {
       dialog.close('');
     }
-  }, [open]);
+  }, [isDialogActive]);
 
   useEffect(() => {
     const dialog = dialogRef.current;

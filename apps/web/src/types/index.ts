@@ -296,14 +296,17 @@ export interface Unit {
 export interface Tenant {
   id: string;
   organization_id: string;
-  tenant_code: string;
+  tenant_code?: string;
   full_name: string;
   phone: string;
-  email: string;
-  national_id_masked: string;
-  emergency_contact_name: string;
-  emergency_contact_phone: string;
+  email?: string;
+  id_number?: string;
+  national_id_masked?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
   status: 'PROSPECT' | 'ACTIVE' | 'FORMER';
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface TenantApplication {
@@ -321,20 +324,23 @@ export interface Lease {
   id: string;
   organization_id: string;
   property_id: string;
-  building_id: string;
+  building_id?: string;
   unit_id: string;
-  primary_tenant_id: string;
-  lease_number: string;
+  primary_tenant_id?: string;
+  tenant_id?: string;
+  lease_number?: string;
   start_date: string;
   end_date: string;
-  billing_day: number;
+  billing_day?: number;
   monthly_rent_kes: number;
   security_deposit_kes: number;
-  service_charge_kes: number;
-  garbage_fee_kes: number;
+  service_charge_kes?: number;
+  garbage_fee_kes?: number;
   status: LeaseStatus;
-  payment_account_reference: string;
+  payment_account_reference?: string;
   renewed_from_lease_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Invoice {
@@ -353,9 +359,11 @@ export interface Invoice {
   penalty_kes: number;
   total_amount_kes: number;
   amount_paid_kes: number;
+  paid_amount_kes?: number;
   balance_kes: number;
   status: InvoiceStatus;
   idempotency_key: string;
+  items?: any[];
 }
 
 export interface PaymentAllocation {
@@ -371,11 +379,16 @@ export interface Payment {
   organization_id: string;
   tenant_id: string;
   lease_id?: string;
+  invoice_id?: string;
   payment_reference: string;
+  reference?: string;
+  transaction_reference?: string;
   idempotency_key: string;
   checkout_request_id: string;
   mpesa_receipt_number?: string;
+  provider_receipt_number?: string;
   payer_phone: string;
+  payment_method?: string;
   amount_kes: number;
   allocated_amount_kes: number;
   unallocated_amount_kes: number;
@@ -383,6 +396,7 @@ export interface Payment {
   allocations: PaymentAllocation[];
   receipt_number?: string;
   paid_at?: string;
+  created_at?: string;
 }
 
 export interface SecurityDepositRecord {
@@ -393,11 +407,18 @@ export interface SecurityDepositRecord {
   unit_id: string;
   required_amount_kes: number;
   received_amount_kes: number;
+  initial_deposit_kes?: number;
   deducted_amount_kes: number;
+  total_deductions_kes?: number;
   refunded_amount_kes: number;
+  total_refunded_kes?: number;
   current_liability_balance_kes: number;
   status: 'PENDING' | 'HELD' | 'PARTIALLY_DEDUCTED' | 'REFUNDED';
+  updated_at?: string;
+  created_at?: string;
 }
+
+export type SecurityDepositLedger = SecurityDepositRecord;
 
 export interface JournalLine {
   account_code: string;
@@ -438,21 +459,23 @@ export interface PropertyExpense {
 export interface MaintenanceRequest {
   id: string;
   organization_id: string;
-  property_id: string;
-  building_id: string;
+  property_id?: string;
+  building_id?: string;
   unit_id: string;
   tenant_id?: string;
-  request_number: string;
+  request_number?: string;
+  ticket_number?: string;
   category: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'EMERGENCY';
-  title: string;
+  title?: string;
   description: string;
   status: MaintenanceStatus;
   assigned_vendor?: string;
   work_order_number?: string;
-  estimated_cost_kes: number;
-  actual_cost_kes: number;
+  estimated_cost_kes?: number;
+  actual_cost_kes?: number;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface DocumentItem {

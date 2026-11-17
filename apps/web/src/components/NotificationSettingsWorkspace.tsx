@@ -30,14 +30,24 @@ import { apiClient, NotificationDelivery, NotificationSettings, NotificationTemp
 interface NotificationSettingsWorkspaceProps {
   currentOrg: { id: string; name: string };
   userRole: string;
+  initialTab?: 'overview' | 'schedules' | 'deliveries' | 'templates';
 }
 
 export const NotificationSettingsWorkspace: React.FC<NotificationSettingsWorkspaceProps> = ({
   currentOrg,
   userRole,
+  initialTab,
 }) => {
   // Navigation Tabs
-  const [activeTab, setActiveTab] = useState<'overview' | 'schedules' | 'deliveries' | 'templates'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'schedules' | 'deliveries' | 'templates'>(
+    initialTab || 'overview'
+  );
+
+  React.useEffect(() => {
+    if (initialTab && initialTab !== activeTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   // State
   const [settings, setSettings] = useState<NotificationSettings>({
