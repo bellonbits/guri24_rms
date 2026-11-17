@@ -46,28 +46,38 @@ const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) || '/a
 
 class ApiClient {
   private token: string | null = null;
+  private refreshToken: string | null = null;
+  private isRefreshing: boolean = false;
 
   constructor() {
     if (typeof window !== 'undefined') {
       this.token = localStorage.getItem('guri24_token');
+      this.refreshToken = localStorage.getItem('guri24_refresh_token');
     }
   }
 
-  public setToken(token: string) {
+  public setToken(token: string, refreshToken?: string) {
     this.token = token;
     if (typeof window !== 'undefined') {
       localStorage.setItem('guri24_token', token);
+      if (refreshToken) {
+        this.refreshToken = refreshToken;
+        localStorage.setItem('guri24_refresh_token', refreshToken);
+      }
     }
   }
 
   public clearToken() {
     this.token = null;
+    this.refreshToken = null;
     if (typeof window !== 'undefined') {
       localStorage.removeItem('guri24_token');
+      localStorage.removeItem('guri24_refresh_token');
+      localStorage.removeItem('guri24_rms_auth_session');
     }
   }
 
-  private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  private async request<T>(path: string, options: RequestInit = {}, isRetry = false): Promise<T> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
@@ -93,6 +103,46 @@ class ApiClient {
     }
 
     if (!response.ok) {
+      // If 401 Unauthorized, attempt auto-refresh using refresh_token once
+      if (response.status === 401 && !isRetry && this.refreshToken && !this.isRefreshing && !path.includes('/auth/')) {
+        this.isRefreshing = true;
+        try {
+          const refreshUrl = `${API_BASE_URL.replace(/\/$/, '')}/auth/refresh`;
+          const refreshRes = await fetch(refreshUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh_token: this.refreshToken }),
+          });
+          if (refreshRes.ok) {
+            const authData = await refreshRes.json();
+            if (authData.access_token) {
+              this.setToken(authData.access_token, authData.refresh_token);
+              if (typeof window !== 'undefined') {
+                try {
+                  const stored = localStorage.getItem('guri24_rms_auth_session');
+                  if (stored) {
+                    const parsed = JSON.parse(stored);
+                    parsed.token = authData.access_token;
+                    localStorage.setItem('guri24_rms_auth_session', JSON.stringify(parsed));
+                  }
+                } catch {}
+              }
+              this.isRefreshing = false;
+              return this.request<T>(path, options, true);
+            }
+          }
+        } catch {
+          // Refresh failed
+        } finally {
+          this.isRefreshing = false;
+        }
+
+        this.clearToken();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('guri24_auth_expired', { detail: { path } }));
+        }
+      }
+
       let errorMessage = `API error ${response.status}: ${response.statusText}`;
       try {
         const errorJson = await response.json();

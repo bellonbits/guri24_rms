@@ -35,6 +35,7 @@ import {
   LogOut,
   Mail,
   MapPin,
+  Menu,
   Mic,
   MoreHorizontal,
   MoreVertical,
@@ -441,6 +442,7 @@ export function App() {
   const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
   const [isOcrUploadModalOpen, setIsOcrUploadModalOpen] = useState(false);
   const [isSwitcherModalOpen, setIsSwitcherModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Bulk Import, Acquisition & Data Entry Modals
   const [importWizardModule, setImportWizardModule] = useState<ImportModuleKey | null>(null);
@@ -499,12 +501,25 @@ export function App() {
     }
   });
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
+    apiClient.clearToken();
     localStorage.removeItem('guri24_rms_auth_session');
     localStorage.removeItem('guri24_token');
+    localStorage.removeItem('guri24_refresh_token');
     setCurrentUserSession(null);
     announce('Logged out of Guri24 RMS');
-  };
+  }, []);
+
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      handleLogout();
+      announce('Your session has expired. Please sign in to continue.');
+    };
+    window.addEventListener('guri24_auth_expired', handleAuthExpired);
+    return () => {
+      window.removeEventListener('guri24_auth_expired', handleAuthExpired);
+    };
+  }, [handleLogout]);
 
   const mainHeadingRef = useRef<HTMLHeadingElement | null>(null);
 
@@ -1812,6 +1827,58 @@ export function App() {
 
         {/* MAIN WORKSPACE */}
         <main className="workspace">
+          {/* Mobile Header Bar — visible only on mobile screens < 1024px */}
+          <header className="mobile-header">
+            <button
+              type="button"
+              className="mobile-header-menu-btn"
+              onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="Open Navigation Menu"
+            >
+              <Menu size={22} />
+            </button>
+
+            <div
+              className="mobile-header-brand"
+              onClick={() => setActiveNav('dashboard')}
+              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            >
+              <img
+                src="/Guri24 RMS Property Logo.png"
+                alt="Guri24 RMS"
+                style={{ maxHeight: '34px', maxWidth: '140px', objectFit: 'contain' }}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/guri24_logo_email.png';
+                }}
+              />
+            </div>
+
+            <button
+              type="button"
+              className="mobile-avatar-pill"
+              onClick={() => setIsSwitcherModalOpen(true)}
+              title="Switch Organization / Role"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '20px',
+                padding: '3px 8px 3px 3px',
+                cursor: 'pointer',
+              }}
+            >
+              <div
+                className="profile-avatar"
+                style={{ inlineSize: '28px', blockSize: '28px', fontSize: '0.72rem' }}
+              >
+                {currentOrg.name.slice(0, 2).toUpperCase()}
+              </div>
+              <ChevronDown size={13} color="var(--text-muted)" />
+            </button>
+          </header>
+
           {/* Top Page Header Bar */}
           <header className="topbar">
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
@@ -1867,6 +1934,7 @@ export function App() {
 
               {/* User Session Profile & Sign Out Button */}
               <div
+                className="topbar-user-session"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -3849,6 +3917,272 @@ export function App() {
             </section>
           )}
         </main>
+
+        {/* Mobile Navigation Slide-Over Drawer */}
+        {isMobileMenuOpen && (
+          <div
+            className="mobile-drawer-overlay"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <div
+              className="mobile-drawer-sheet"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Mobile Navigation Menu"
+            >
+              <div className="mobile-drawer-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <img
+                    src="/Guri24 RMS Property Logo.png"
+                    alt="Guri24 RMS"
+                    style={{ maxHeight: '36px', maxWidth: '140px', objectFit: 'contain' }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/guri24_logo_email.png';
+                    }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="btn-icon-only"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  aria-label="Close Navigation Menu"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Search in Drawer */}
+              <div style={{ padding: '10px 16px 6px' }}>
+                <form
+                  className="sidebar-search"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    announce(`Filtered view by "${searchQuery}"`);
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  <Search size={14} color="#8e95a2" aria-hidden="true" />
+                  <input
+                    type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search rentals, units, tenants..."
+                    aria-label="Search properties, units, or tenants"
+                  />
+                </form>
+              </div>
+
+              {/* Nav List in Drawer */}
+              <nav className="mobile-drawer-nav" aria-label="Mobile Primary">
+                <div className="menu-section-label" style={{ padding: '10px 16px 4px', fontSize: '0.7rem' }}>
+                  MAIN MENU
+                </div>
+                <ul className="nav-list" style={{ padding: '0 8px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  {MAIN_MENU_ITEMS.map((item) => {
+                    const isCurrent = activeNav === item.id;
+                    return (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          className="nav-btn"
+                          aria-current={isCurrent ? 'page' : undefined}
+                          onClick={() => {
+                            setActiveNav(item.id);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px 14px',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            background: isCurrent ? 'var(--accent-blue-soft, #eff6ff)' : 'transparent',
+                            color: isCurrent ? '#2563eb' : 'inherit',
+                          }}
+                        >
+                          <span className="nav-btn-left" style={{ gap: '12px' }}>
+                            {item.icon}
+                            <span style={{ fontSize: '0.88rem', fontWeight: isCurrent ? 700 : 500 }}>
+                              {item.label}
+                            </span>
+                          </span>
+                          <ChevronRight size={15} color={isCurrent ? '#2563eb' : '#94a3b8'} />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
+
+              {/* Quick Action Buttons in Drawer */}
+              <div
+                style={{
+                  padding: '12px 16px',
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '8px',
+                  borderTop: '1px solid var(--border-subtle)',
+                  marginTop: 'auto',
+                }}
+              >
+                <button
+                  type="button"
+                  className="btn-outline"
+                  onClick={() => {
+                    setImportWizardModule('units');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  style={{ fontSize: '0.78rem', justifyContent: 'center' }}
+                >
+                  <Upload size={14} />
+                  <span>Import CSV</span>
+                </button>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  onClick={() => {
+                    setIsMpesaModalOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  style={{ fontSize: '0.78rem', justifyContent: 'center' }}
+                >
+                  <Share2 size={14} />
+                  <span>M-Pesa STK</span>
+                </button>
+              </div>
+
+              {/* Drawer Profile Footer */}
+              <div
+                className="profile-footer"
+                style={{
+                  borderTop: '1px solid var(--border-subtle)',
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                  <div className="profile-avatar">
+                    {currentOrg.name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: '0.84rem',
+                        fontWeight: 700,
+                        color: 'var(--text-primary)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {currentUserSession.fullName}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                      {currentOrg.name}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <button
+                    type="button"
+                    className="btn-icon-only"
+                    onClick={() => {
+                      setIsSwitcherModalOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    title="Switch Org / Role"
+                  >
+                    <ChevronDown size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#ef4444',
+                      cursor: 'pointer',
+                      padding: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                    }}
+                    title="Sign Out"
+                  >
+                    <LogOut size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Bottom Navigation Bar */}
+        <nav className="mobile-bottom-nav" aria-label="Mobile Quick Navigation">
+          <button
+            type="button"
+            className={`bottom-nav-item ${activeNav === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveNav('dashboard')}
+            aria-label="Dashboard"
+          >
+            <Home size={20} />
+            <span>Home</span>
+            {activeNav === 'dashboard' && <span className="bottom-nav-indicator" />}
+          </button>
+
+          <button
+            type="button"
+            className={`bottom-nav-item ${activeNav === 'properties' ? 'active' : ''}`}
+            onClick={() => setActiveNav('properties')}
+            aria-label="Properties & Units"
+          >
+            <Building2 size={20} />
+            <span>Units</span>
+            {activeNav === 'properties' && <span className="bottom-nav-indicator" />}
+          </button>
+
+          <button
+            type="button"
+            className={`bottom-nav-item ${activeNav === 'payments' ? 'active' : ''}`}
+            onClick={() => setActiveNav('payments')}
+            aria-label="Payments & M-Pesa"
+          >
+            <CreditCard size={20} />
+            <span>Payments</span>
+            {activeNav === 'payments' && <span className="bottom-nav-indicator" />}
+          </button>
+
+          <button
+            type="button"
+            className={`bottom-nav-item ${activeNav === 'assistant' ? 'active' : ''}`}
+            onClick={() => setActiveNav('assistant')}
+            aria-label="AI Assistant"
+          >
+            <Bot size={20} />
+            <span>AI Help</span>
+            {activeNav === 'assistant' && <span className="bottom-nav-indicator" />}
+          </button>
+
+          <button
+            type="button"
+            className={`bottom-nav-item ${isMobileMenuOpen ? 'active' : ''}`}
+            onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="All Modules Menu"
+          >
+            <Menu size={20} />
+            <span>Menu</span>
+          </button>
+        </nav>
       </div>
 
       {/* =================================================================

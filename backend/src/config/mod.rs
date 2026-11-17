@@ -146,7 +146,7 @@ impl AppConfig {
             jwt_access_expiry_secs: env::var("JWT_ACCESS_EXPIRY_SECONDS")
                 .ok()
                 .and_then(|v| v.parse().ok())
-                .unwrap_or(900),
+                .unwrap_or(86_400),
             jwt_refresh_expiry_secs: env::var("JWT_REFRESH_EXPIRY_SECONDS")
                 .ok()
                 .and_then(|v| v.parse().ok())

@@ -169,7 +169,11 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
         token: res.access_token,
       };
 
+      apiClient.setToken(res.access_token, res.refresh_token);
       localStorage.setItem('guri24_token', res.access_token);
+      if (res.refresh_token) {
+        localStorage.setItem('guri24_refresh_token', res.refresh_token);
+      }
       localStorage.setItem('guri24_rms_auth_session', JSON.stringify(session));
       onSuccess(session);
     } catch (err: any) {
@@ -254,7 +258,11 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
         token: regRes.access_token,
       };
 
+      apiClient.setToken(regRes.access_token, regRes.refresh_token);
       localStorage.setItem('guri24_token', regRes.access_token);
+      if (regRes.refresh_token) {
+        localStorage.setItem('guri24_refresh_token', regRes.refresh_token);
+      }
       localStorage.setItem('guri24_rms_auth_session', JSON.stringify(session));
       onSuccess(session);
     } catch (err: any) {

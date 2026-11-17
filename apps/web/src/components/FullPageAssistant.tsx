@@ -31,6 +31,8 @@ import {
   FileCheck,
   RotateCcw,
   Zap,
+  Menu,
+  MessageSquare,
 } from 'lucide-react';
 import type {
   AssistantConversation,
@@ -218,8 +220,25 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
   } | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
-  const [showRightPanel, setShowRightPanel] = useState(true);
+  const [showRightPanel, setShowRightPanel] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : false
+  );
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 1024 : false
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (mobile) {
+        setShowRightPanel(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
@@ -579,42 +598,77 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
       {/* ------------------------------------------------------------- */}
       {/* 1. LEFT SIDEBAR: CONVERSATION HISTORY                         */}
       {/* ------------------------------------------------------------- */}
-      <aside
-        style={{
-          width: '260px',
-          background: '#ffffff',
-          borderRight: '1px solid #e2e8f0',
-          display: 'flex',
-          flexDirection: 'column',
-          flexShrink: 0,
-          zIndex: 20,
-        }}
-      >
-        {/* Sidebar Header */}
-        <div style={{ padding: '16px 14px 12px', borderBottom: '1px solid #f1f5f9' }}>
-          <button
-            type="button"
-            onClick={handleNewConversation}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              background: '#2563eb',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '10px 14px',
-              fontSize: '0.84rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              boxShadow: '0 1px 3px rgba(37, 99, 235, 0.2)',
-            }}
-          >
-            <Plus size={16} />
-            <span>New Chat</span>
-          </button>
+      {isMobile && showMobileSidebar && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.55)',
+            backdropFilter: 'blur(3px)',
+            zIndex: 998,
+          }}
+          onClick={() => setShowMobileSidebar(false)}
+        />
+      )}
+
+      {(!isMobile || showMobileSidebar) && (
+        <aside
+          style={{
+            width: isMobile ? '82%' : '260px',
+            maxWidth: isMobile ? '320px' : '260px',
+            position: isMobile ? 'fixed' : 'relative',
+            top: isMobile ? 0 : undefined,
+            bottom: isMobile ? 0 : undefined,
+            left: isMobile ? 0 : undefined,
+            background: '#ffffff',
+            borderRight: '1px solid #e2e8f0',
+            display: 'flex',
+            flexDirection: 'column',
+            flexShrink: 0,
+            zIndex: isMobile ? 999 : 20,
+            boxShadow: isMobile ? '4px 0 25px rgba(0,0,0,0.2)' : 'none',
+          }}
+        >
+          {/* Sidebar Header */}
+          <div style={{ padding: '16px 14px 12px', borderBottom: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {isMobile && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Chat History</span>
+                <button
+                  type="button"
+                  onClick={() => setShowMobileSidebar(false)}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px' }}
+                >
+                  <X size={18} color="#64748b" />
+                </button>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                handleNewConversation();
+                if (isMobile) setShowMobileSidebar(false);
+              }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                background: '#2563eb',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '10px 14px',
+                fontSize: '0.84rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 1px 3px rgba(37, 99, 235, 0.2)',
+              }}
+            >
+              <Plus size={16} />
+              <span>New Chat</span>
+            </button>
 
           {/* Search bar */}
           <div
@@ -667,6 +721,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
                   onClick={() => {
                     if (!isEditing) {
                       setActiveConvId(conv.id);
+                      if (isMobile) setShowMobileSidebar(false);
                     }
                   }}
                   style={{
@@ -847,7 +902,31 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
             background: '#ffffff',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {isMobile && (
+              <button
+                type="button"
+                onClick={() => setShowMobileSidebar(true)}
+                title="View Conversations"
+                style={{
+                  background: '#eff6ff',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '6px',
+                  padding: '5px 9px',
+                  cursor: 'pointer',
+                  color: '#1d4ed8',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                }}
+              >
+                <MessageSquare size={14} />
+                <span>Chats</span>
+              </button>
+            )}
+
             <div
               style={{
                 display: 'flex',
@@ -863,68 +942,72 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
               }}
             >
               <Bot size={15} color="#2563eb" />
-              <span>Groq Llama 3.3 70B &bull; RMS Intelligence</span>
+              <span>{isMobile ? 'Groq AI' : 'Groq Llama 3.3 70B \u2022 RMS Intelligence'}</span>
             </div>
 
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                fontSize: '0.72rem',
-                color: '#16a34a',
-                background: '#dcfce7',
-                padding: '2px 8px',
-                borderRadius: '9999px',
-                fontWeight: 600,
-              }}
-            >
+            {!isMobile && (
               <span
                 style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  background: '#16a34a',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontSize: '0.72rem',
+                  color: '#16a34a',
+                  background: '#dcfce7',
+                  padding: '2px 8px',
+                  borderRadius: '9999px',
+                  fontWeight: 600,
                 }}
-              />
-              Grounded &bull; RBAC Active
-            </span>
+              >
+                <span
+                  style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    background: '#16a34a',
+                  }}
+                />
+                Grounded &bull; RBAC Active
+              </span>
+            )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                fontSize: '0.74rem',
-                color: '#64748b',
-              }}
-            >
-              <Lock size={12} color="#16a34a" />
-              <span>Strict Org Isolation</span>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {!isMobile && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontSize: '0.74rem',
+                  color: '#64748b',
+                }}
+              >
+                <Lock size={12} color="#16a34a" />
+                <span>Strict Org Isolation</span>
+              </div>
+            )}
 
             <button
               type="button"
               onClick={() => setShowRightPanel(!showRightPanel)}
               title={showRightPanel ? 'Hide Intelligence Panel' : 'Show Intelligence Panel'}
               style={{
-                background: '#f1f5f9',
-                border: '1px solid #e2e8f0',
+                background: showRightPanel ? '#dbeafe' : '#f1f5f9',
+                border: showRightPanel ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
                 borderRadius: '6px',
                 padding: '5px 8px',
                 cursor: 'pointer',
-                color: '#475569',
+                color: showRightPanel ? '#1d4ed8' : '#475569',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
                 fontSize: '0.75rem',
-                fontWeight: 500,
+                fontWeight: 600,
               }}
             >
               {showRightPanel ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}
-              <span>{showRightPanel ? 'Hide Context' : 'Context'}</span>
+              <span>Context</span>
             </button>
           </div>
         </header>
@@ -1463,23 +1546,67 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
       {/* 3. RIGHT PANEL: CONTEXT & INTELLIGENCE                         */}
       {/* ------------------------------------------------------------- */}
       {showRightPanel && (
-        <aside
-          style={{
-            width: '280px',
-            background: '#ffffff',
-            borderLeft: '1px solid #e2e8f0',
-            display: 'flex',
-            flexDirection: 'column',
-            flexShrink: 0,
-            overflowY: 'auto',
-            padding: '16px',
-            gap: '16px',
-          }}
-        >
-          <div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px' }}>
-              Scope & Organization
-            </div>
+        <>
+          {isMobile && (
+            <div
+              onClick={() => setShowRightPanel(false)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(15, 23, 42, 0.45)',
+                backdropFilter: 'blur(3px)',
+                zIndex: 998,
+              }}
+            />
+          )}
+          <aside
+            style={{
+              width: '280px',
+              maxWidth: '85vw',
+              background: '#ffffff',
+              borderLeft: '1px solid #e2e8f0',
+              display: 'flex',
+              flexDirection: 'column',
+              flexShrink: 0,
+              overflowY: 'auto',
+              padding: '16px',
+              gap: '16px',
+              ...(isMobile
+                ? {
+                    position: 'fixed',
+                    top: 0,
+                    bottom: 0,
+                    right: 0,
+                    zIndex: 999,
+                    boxShadow: '-4px 0 25px rgba(0,0,0,0.2)',
+                  }
+                : {}),
+            }}
+          >
+            {isMobile && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingBottom: '8px',
+                  borderBottom: '1px solid #e2e8f0',
+                }}
+              >
+                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Intelligence Context</span>
+                <button
+                  type="button"
+                  onClick={() => setShowRightPanel(false)}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px' }}
+                >
+                  <X size={18} color="#64748b" />
+                </button>
+              </div>
+            )}
+            <div>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px' }}>
+                Scope & Organization
+              </div>
             <div
               style={{
                 background: '#f8fafc',
@@ -1555,6 +1682,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
             </div>
           </div>
         </aside>
+        </>
       )}
 
       {/* Delete Confirmation Modal */}

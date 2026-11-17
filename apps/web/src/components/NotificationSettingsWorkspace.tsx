@@ -54,7 +54,7 @@ export const NotificationSettingsWorkspace: React.FC<NotificationSettingsWorkspa
     staff_escalation_emails: ['admin@guri24.co.ke', 'collections@guri24.co.ke'],
     timezone: 'Africa/Nairobi',
     email_from: 'Guri24 RMS <guri24@aqivo.shop>',
-    brand_logo_url: '/apps/web/public/Guri24 RMS Property Logo.png',
+    brand_logo_url: '/Guri24 RMS Property Logo.png',
     brand_primary_color: '#0f172a',
     updated_at: new Date().toISOString(),
   });
@@ -1110,7 +1110,7 @@ export const NotificationSettingsWorkspace: React.FC<NotificationSettingsWorkspa
                     }}
                   >
                     <img
-                      src="/apps/web/public/Guri24 RMS Property Logo.png"
+                      src="/Guri24 RMS Property Logo.png"
                       alt="Guri24 RMS Logo"
                       style={{ height: '24px', width: 'auto' }}
                       onError={(e) => {
@@ -1118,7 +1118,7 @@ export const NotificationSettingsWorkspace: React.FC<NotificationSettingsWorkspa
                       }}
                     />
                     <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                      apps/web/public/Guri24 RMS Property Logo.png
+                      /Guri24 RMS Property Logo.png
                     </span>
                   </div>
                 </div>
