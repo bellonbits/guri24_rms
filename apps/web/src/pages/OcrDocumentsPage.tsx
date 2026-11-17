@@ -35,13 +35,17 @@ export const OcrDocumentsPage: React.FC = () => {
   // Active Job for Review Form
   const activeReviewJob = useMemo(() => {
     if (reviewJobId) {
-      return orgOcrJobs.find((j) => j.id === reviewJobId) || null;
+      return (
+        orgOcrJobs.find((j) => j.id === reviewJobId) ||
+        state.ocrJobs.find((j) => j.id === reviewJobId) ||
+        null
+      );
     }
     if (isReviewView) {
-      return orgOcrJobs.find((j) => j.status === 'NEEDS_REVIEW') || orgOcrJobs[0] || null;
+      return orgOcrJobs.find((j) => j.status === 'NEEDS_REVIEW') || orgOcrJobs[0] || state.ocrJobs[0] || null;
     }
     return null;
-  }, [reviewJobId, isReviewView, orgOcrJobs]);
+  }, [reviewJobId, isReviewView, orgOcrJobs, state.ocrJobs]);
 
   const handleUploadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,6 +189,19 @@ export const OcrDocumentsPage: React.FC = () => {
               }));
             }}
           />
+        </section>
+      )}
+
+      {isReviewView && !activeReviewJob && (
+        <section className="surface-card" style={{ textAlign: 'center', padding: '36px 20px' }}>
+          <AlertCircle size={32} color="#f59e0b" style={{ margin: '0 auto 12px auto' }} />
+          <h3 style={{ margin: '0 0 6px 0', fontSize: '1rem', fontWeight: 600 }}>OCR Job Not Found</h3>
+          <p style={{ margin: '0 0 16px 0', fontSize: '0.84rem', color: '#64748b' }}>
+            Job ID <code>{reviewJobId}</code> does not exist or belongs to another organization context.
+          </p>
+          <Link to="/app/ocr-documents/processing-jobs" className="btn-dark" style={{ textDecoration: 'none' }}>
+            View Processing Jobs
+          </Link>
         </section>
       )}
 
