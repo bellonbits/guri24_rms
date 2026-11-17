@@ -292,13 +292,13 @@ export const FinancialOperationsWorkspace: React.FC<FinancialOperationsWorkspace
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '24px 28px', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
+    <div className="financial-workspace-root" style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
       {/* ------------------------------------------------------------- */}
       {/* HEADER & SUB-NAVIGATION BAR                                   */}
       {/* ------------------------------------------------------------- */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', letterSpacing: '-0.02em' }}>
+          <h1 style={{ margin: 0, fontSize: '1.45rem', fontWeight: 700, color: '#0f172a', letterSpacing: '-0.02em' }}>
             Financial Operations &amp; Payment Ledger
           </h1>
           <p style={{ margin: '3px 0 0 0', fontSize: '0.84rem', color: '#64748b' }}>
@@ -306,7 +306,7 @@ export const FinancialOperationsWorkspace: React.FC<FinancialOperationsWorkspace
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={onRefresh}
@@ -322,6 +322,7 @@ export const FinancialOperationsWorkspace: React.FC<FinancialOperationsWorkspace
               fontWeight: 600,
               color: '#334155',
               cursor: 'pointer',
+              whiteSpace: 'nowrap',
             }}
           >
             <RefreshCw size={14} />
@@ -344,6 +345,7 @@ export const FinancialOperationsWorkspace: React.FC<FinancialOperationsWorkspace
               fontWeight: 600,
               cursor: 'pointer',
               boxShadow: '0 1px 3px rgba(22, 163, 74, 0.25)',
+              whiteSpace: 'nowrap',
             }}
           >
             <Smartphone size={15} />
@@ -366,6 +368,7 @@ export const FinancialOperationsWorkspace: React.FC<FinancialOperationsWorkspace
               fontWeight: 600,
               cursor: 'pointer',
               boxShadow: '0 1px 3px rgba(37, 99, 235, 0.25)',
+              whiteSpace: 'nowrap',
             }}
           >
             <RotateCcw size={15} />
@@ -376,12 +379,15 @@ export const FinancialOperationsWorkspace: React.FC<FinancialOperationsWorkspace
 
       {/* 10-Tab Navigation Bar */}
       <div
+        className="horizontal-touch-scroll"
         style={{
           display: 'flex',
           gap: '4px',
           borderBottom: '1px solid #e2e8f0',
           overflowX: 'auto',
           paddingBottom: '2px',
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
         }}
       >
         {navTabs.map((tab) => {

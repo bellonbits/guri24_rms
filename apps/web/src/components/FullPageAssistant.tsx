@@ -99,12 +99,19 @@ function StructuredAssistantMessage({
     );
   }
 
-  const cleanLine = (str: string) => str.replace(/\*\*/g, '').replace(/###\s*/g, '').trim();
+  const cleanLine = (str: string) =>
+    str
+      .replace(/\*\*/g, '')
+      .replace(/###\s*/g, '')
+      .replace(/^\*+|\*+$/g, '')
+      .replace(/^_+|_+$/g, '')
+      .trim();
+
   const kesMatches = content.match(/KES\s?[\d,]+(\.\d{2})?/gi);
   const lines = content.split('\n').map((l) => l.trim()).filter(Boolean);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.88rem', lineHeight: 1.65, color: '#0f172a' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.88rem', lineHeight: 1.6, color: '#0f172a' }}>
       {kesMatches && kesMatches.length > 0 && (
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBlockEnd: '4px' }}>
           {Array.from(new Set(kesMatches)).slice(0, 4).map((amt, i) => (
@@ -132,6 +139,31 @@ function StructuredAssistantMessage({
       )}
 
       {lines.map((line, idx) => {
+        // Detect italic disclaimers / status notices like *Grounded RMS Intelligence Engine ready to assist...*
+        const isItalicNote =
+          (line.startsWith('*') && line.endsWith('*') && !line.startsWith('**')) ||
+          (line.startsWith('_') && line.endsWith('_') && !line.startsWith('__'));
+
+        if (isItalicNote) {
+          return (
+            <div
+              key={idx}
+              style={{
+                fontStyle: 'italic',
+                color: '#64748b',
+                fontSize: '0.82rem',
+                lineHeight: 1.5,
+                padding: '4px 0',
+                borderTop: idx > 0 ? '1px solid #f1f5f9' : 'none',
+                marginTop: idx > 0 ? '4px' : '0',
+                wordBreak: 'break-word',
+              }}
+            >
+              {cleanLine(line)}
+            </div>
+          );
+        }
+
         const isBullet = line.startsWith('- ') || line.startsWith('* ') || /^\d+\.\s/.test(line);
         const isHeading = line.startsWith('###') || (line.endsWith(':') && line.length < 65);
 
@@ -140,7 +172,7 @@ function StructuredAssistantMessage({
             <div
               key={idx}
               style={{
-                fontSize: '0.94rem',
+                fontSize: '0.92rem',
                 fontWeight: 700,
                 color: '#0f172a',
                 marginBlockStart: idx > 0 ? '8px' : '0',
@@ -149,7 +181,7 @@ function StructuredAssistantMessage({
                 gap: '6px',
               }}
             >
-              <Sparkles size={14} color="#2563eb" />
+              <Sparkles size={14} color="#2563eb" style={{ flexShrink: 0 }} />
               <span>{cleanLine(line)}</span>
             </div>
           );
@@ -169,17 +201,20 @@ function StructuredAssistantMessage({
                 borderRadius: '8px',
                 padding: '8px 12px',
                 color: '#0f172a',
-                fontSize: '0.86rem',
+                fontSize: '0.85rem',
+                lineHeight: 1.45,
               }}
             >
-              <CheckCircle2 size={14} color="#16a34a" style={{ flexShrink: 0, marginTop: '3px' }} />
-              <span style={{ color: '#0f172a', fontWeight: 500 }}>{cleanLine(textOnly)}</span>
+              <CheckCircle2 size={15} color="#16a34a" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <span style={{ color: '#0f172a', fontWeight: 500, wordBreak: 'break-word', flex: 1 }}>
+                {cleanLine(textOnly)}
+              </span>
             </div>
           );
         }
 
         return (
-          <p key={idx} style={{ margin: 0, color: '#0f172a', fontSize: '0.88rem', lineHeight: 1.6 }}>
+          <p key={idx} style={{ margin: 0, color: '#0f172a', fontSize: '0.86rem', lineHeight: 1.55, wordBreak: 'break-word' }}>
             {cleanLine(line)}
           </p>
         );
@@ -604,9 +639,9 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(15, 23, 42, 0.55)',
-            backdropFilter: 'blur(3px)',
-            zIndex: 998,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 1040,
           }}
           onClick={() => setShowMobileSidebar(false)}
         />
@@ -616,19 +651,19 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
         <aside
           className={`fullpage-assistant-sidebar ${showMobileSidebar ? 'mobile-open' : ''}`}
           style={{
-            width: isMobile ? '82%' : '260px',
+            width: isMobile ? '85vw' : '260px',
             maxWidth: isMobile ? '320px' : '260px',
             position: isMobile ? 'fixed' : 'relative',
-            top: isMobile ? 0 : undefined,
-            bottom: isMobile ? 0 : undefined,
-            left: isMobile ? 0 : undefined,
+            top: 0,
+            bottom: 0,
+            left: 0,
             background: '#ffffff',
             borderRight: '1px solid #e2e8f0',
             display: 'flex',
             flexDirection: 'column',
             flexShrink: 0,
-            zIndex: isMobile ? 999 : 20,
-            boxShadow: isMobile ? '4px 0 25px rgba(0,0,0,0.2)' : 'none',
+            zIndex: isMobile ? 1050 : 20,
+            boxShadow: isMobile ? '6px 0 30px rgba(0,0,0,0.3)' : 'none',
           }}
         >
           {/* Sidebar Header */}
@@ -902,7 +937,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '0 20px',
+            padding: isMobile ? '0 10px' : '0 20px',
             background: '#ffffff',
           }}
         >
@@ -910,7 +945,10 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
             {isMobile && (
               <button
                 type="button"
-                onClick={() => setShowMobileSidebar(true)}
+                onClick={() => {
+                  setShowMobileSidebar(true);
+                  setShowRightPanel(false);
+                }}
                 title="View Conversations"
                 style={{
                   background: '#eff6ff',
@@ -994,7 +1032,14 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
 
             <button
               type="button"
-              onClick={() => setShowRightPanel(!showRightPanel)}
+              onClick={() => {
+                setShowRightPanel((prev) => {
+                  if (!prev && isMobile) {
+                    setShowMobileSidebar(false);
+                  }
+                  return !prev;
+                });
+              }}
               title={showRightPanel ? 'Hide Intelligence Panel' : 'Show Intelligence Panel'}
               style={{
                 background: showRightPanel ? '#dbeafe' : '#f1f5f9',
@@ -1022,7 +1067,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '24px 32px',
+            padding: isMobile ? '12px 10px 20px' : '24px 32px',
             display: 'flex',
             flexDirection: 'column',
           }}
@@ -1175,12 +1220,14 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
                         style={{
                           background: '#0f172a',
                           color: '#ffffff',
-                          padding: '12px 18px',
+                          padding: isMobile ? '10px 14px' : '12px 18px',
                           borderRadius: '16px',
                           borderBottomRightRadius: '4px',
                           fontSize: '0.88rem',
                           lineHeight: 1.55,
                           boxShadow: '0 2px 6px rgba(15, 23, 42, 0.15)',
+                          wordBreak: 'break-word',
+                          maxWidth: isMobile ? '92%' : '80%',
                         }}
                       >
                         {msg.attachment && (
@@ -1211,8 +1258,10 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
                           border: '1px solid #e2e8f0',
                           borderRadius: '16px',
                           borderBottomLeftRadius: '4px',
-                          padding: '18px 22px',
+                          padding: isMobile ? '12px 14px' : '18px 22px',
                           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                          maxWidth: isMobile ? '98%' : '88%',
+                          width: '100%',
                         }}
                       >
                         {/* Tool Execution Chips */}
@@ -1251,38 +1300,54 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
                         {msg.citations && msg.citations.length > 0 && (
                           <div
                             style={{
-                              marginTop: '14px',
-                              paddingTop: '12px',
+                              marginTop: '12px',
+                              paddingTop: '10px',
                               borderTop: '1px solid #f1f5f9',
                               display: 'flex',
-                              flexWrap: 'wrap',
+                              flexDirection: 'column',
                               gap: '6px',
-                              alignItems: 'center',
                             }}
                           >
-                            <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                            <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                               Persisted Sources:
                             </span>
-                            {msg.citations.map((cit, cIdx) => (
-                              <span
-                                key={cIdx}
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  background: '#eff6ff',
-                                  border: '1px solid #bfdbfe',
-                                  color: '#1d4ed8',
-                                  padding: '2px 8px',
-                                  borderRadius: '6px',
-                                  fontSize: '0.72rem',
-                                  fontWeight: 600,
-                                }}
-                              >
-                                <span style={{ color: '#2563eb', fontWeight: 700 }}>[{cit.record_type}]</span>
-                                <span>{cit.reference_code}: {cit.summary}</span>
-                              </span>
-                            ))}
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                              {msg.citations.map((cit, cIdx) => (
+                                <div
+                                  key={cIdx}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    background: '#eff6ff',
+                                    border: '1px solid #bfdbfe',
+                                    color: '#1d4ed8',
+                                    padding: '3px 8px',
+                                    borderRadius: '6px',
+                                    fontSize: '0.72rem',
+                                    maxWidth: '100%',
+                                    wordBreak: 'break-word',
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      background: '#2563eb',
+                                      color: '#ffffff',
+                                      padding: '1px 5px',
+                                      borderRadius: '4px',
+                                      fontSize: '0.62rem',
+                                      fontWeight: 700,
+                                      letterSpacing: '0.03em',
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    {cit.record_type}
+                                  </span>
+                                  <span style={{ fontWeight: 600 }}>{cit.reference_code}:</span>
+                                  <span style={{ color: '#334155' }}>{cit.summary}</span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
 
@@ -1415,7 +1480,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
         {/* ------------------------------------------------------------- */}
         <div
           style={{
-            padding: '14px 24px 18px',
+            padding: isMobile ? '10px 12px 14px' : '14px 24px 18px',
             background: '#ffffff',
             borderTop: '1px solid #e2e8f0',
           }}
@@ -1557,17 +1622,17 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
               style={{
                 position: 'fixed',
                 inset: 0,
-                background: 'rgba(15, 23, 42, 0.45)',
-                backdropFilter: 'blur(3px)',
-                zIndex: 998,
+                background: 'rgba(15, 23, 42, 0.65)',
+                backdropFilter: 'blur(4px)',
+                zIndex: 1040,
               }}
             />
           )}
           <aside
             className={`fullpage-assistant-right-panel ${showRightPanel ? 'mobile-open' : ''}`}
             style={{
-              width: '280px',
-              maxWidth: '85vw',
+              width: isMobile ? '88vw' : '280px',
+              maxWidth: isMobile ? '340px' : '280px',
               background: '#ffffff',
               borderLeft: '1px solid #e2e8f0',
               display: 'flex',
@@ -1582,10 +1647,13 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
                     top: 0,
                     bottom: 0,
                     right: 0,
-                    zIndex: 999,
-                    boxShadow: '-4px 0 25px rgba(0,0,0,0.2)',
+                    zIndex: 1050,
+                    boxShadow: '-6px 0 30px rgba(0,0,0,0.3)',
                   }
-                : {}),
+                : {
+                    position: 'relative',
+                    zIndex: 20,
+                  }),
             }}
           >
             {isMobile && (
