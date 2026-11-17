@@ -109,8 +109,26 @@ export const SettingsPortalPage: React.FC = () => {
   // Handlers for Staff Invitation
   const handleInviteStaffSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmittingStaff(true);
     setActionNotice(null);
+
+    const scopedRoles: SystemRole[] = [
+      'PROPERTY_MANAGER',
+      'MAINTENANCE_OFFICER',
+      'RECEPTIONIST',
+      'CARETAKER',
+    ];
+
+    let effectivePropertyIds = [...staffPropertyIds];
+    if (scopedRoles.includes(staffRole) && effectivePropertyIds.length === 0) {
+      if (properties.length > 0) {
+        effectivePropertyIds = properties.map((p) => p.id);
+        setStaffPropertyIds(effectivePropertyIds);
+      } else {
+        effectivePropertyIds = ['org-global-property-scope'];
+      }
+    }
+
+    setIsSubmittingStaff(true);
     try {
       // 1. API Call
       try {
@@ -119,7 +137,7 @@ export const SettingsPortalPage: React.FC = () => {
           email: staffEmail.trim(),
           phone: staffPhone.trim(),
           role: staffRole,
-          property_ids: staffPropertyIds,
+          property_ids: effectivePropertyIds,
           invitation_message: staffMessage.trim() || undefined,
           expiry_days: staffExpiryDays,
         });
@@ -129,20 +147,25 @@ export const SettingsPortalPage: React.FC = () => {
 
       // 2. Pure domain state update
       let createdToken = '';
-      setState((prev) => {
-        const res = inviteStaffDomain(prev, {
-          full_name: staffFullName.trim(),
-          email: staffEmail.trim(),
-          phone: staffPhone.trim(),
-          role: staffRole,
-          property_ids: staffPropertyIds,
-          invitation_message: staffMessage.trim() || undefined,
-          expiry_days: staffExpiryDays,
-          invited_by: currentUserSession?.userId,
+      try {
+        setState((prev) => {
+          const res = inviteStaffDomain(prev, {
+            full_name: staffFullName.trim(),
+            email: staffEmail.trim(),
+            phone: staffPhone.trim(),
+            role: staffRole,
+            property_ids: effectivePropertyIds,
+            invitation_message: staffMessage.trim() || undefined,
+            expiry_days: staffExpiryDays,
+            invited_by: currentUserSession?.userId,
+          });
+          createdToken = res.token;
+          return res.nextState;
         });
-        createdToken = res.token;
-        return res.nextState;
-      });
+      } catch (err: any) {
+        setActionNotice(`Error: ${err?.message || 'Failed to dispatch staff invitation'}`);
+        return;
+      }
 
       setIsInviteStaffModalOpen(false);
       setActionNotice(
@@ -1456,29 +1479,56 @@ export const SettingsPortalPage: React.FC = () => {
 
             {/* Property Scoping */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                Assigned Property Scopes (Defense-in-depth authorization)
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155' }}>
+                  Assigned Property Scopes (Defense-in-depth authorization)
+                </label>
+                {properties.length > 0 && (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setStaffPropertyIds(properties.map((p) => p.id))}
+                      style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '0.72rem', cursor: 'pointer', padding: 0 }}
+                    >
+                      Select All
+                    </button>
+                    <span style={{ color: '#cbd5e1' }}>|</span>
+                    <button
+                      type="button"
+                      onClick={() => setStaffPropertyIds([])}
+                      style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.72rem', cursor: 'pointer', padding: 0 }}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
+              </div>
               <div style={{ maxHeight: '120px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {properties.map((p) => {
-                  const isChecked = staffPropertyIds.includes(p.id);
-                  return (
-                    <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#1e293b', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setStaffPropertyIds([...staffPropertyIds, p.id]);
-                          } else {
-                            setStaffPropertyIds(staffPropertyIds.filter((id) => id !== p.id));
-                          }
-                        }}
-                      />
-                      <span>{p.name} ({p.county})</span>
-                    </label>
-                  );
-                })}
+                {properties.length === 0 ? (
+                  <div style={{ fontSize: '0.76rem', color: '#64748b', fontStyle: 'italic', padding: '4px' }}>
+                    No properties registered yet. Organization-wide property scope will be assigned automatically.
+                  </div>
+                ) : (
+                  properties.map((p) => {
+                    const isChecked = staffPropertyIds.includes(p.id);
+                    return (
+                      <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#1e293b', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setStaffPropertyIds([...staffPropertyIds, p.id]);
+                            } else {
+                              setStaffPropertyIds(staffPropertyIds.filter((id) => id !== p.id));
+                            }
+                          }}
+                        />
+                        <span>{p.name} ({p.county})</span>
+                      </label>
+                    );
+                  })
+                )}
               </div>
             </div>
 

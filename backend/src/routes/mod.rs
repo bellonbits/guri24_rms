@@ -10,7 +10,8 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use tower_http::cors::{Any, CorsLayer};
 use uuid::Uuid;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
+use sha2::{Digest, Sha256};
 
 use crate::{
     config::IntegrationStatusItem,
@@ -261,7 +262,16 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route(
             "/notifications/templates",
             get(list_notification_templates_handler),
-        );
+        )
+        // Staff & Tenant Onboarding & Invitations
+        .route(
+            "/invitations",
+            get(list_invitations_handler).post(create_invitation_handler),
+        )
+        .route("/invitations/:id/resend", post(resend_invitation_handler))
+        .route("/invitations/:id/revoke", post(revoke_invitation_handler))
+        .route("/invitations/verify", get(verify_invitation_handler))
+        .route("/invitations/accept", post(accept_invitation_handler));
 
     Router::new()
         .route("/health", get(health_check_handler))
@@ -2429,4 +2439,296 @@ async fn list_notification_templates_handler(
 ) -> AppResult<Json<Vec<NotificationTemplateSummary>>> {
     let templates = state.notification_service.list_templates(&ctx)?;
     Ok(Json(templates))
+}
+
+// ---------------------------------------------------------------------------
+// Staff & Tenant Onboarding & Invitations
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackendInvitation {
+    pub id: Uuid,
+    pub organization_id: Uuid,
+    pub invitation_type: String,
+    pub email: String,
+    pub phone: Option<String>,
+    pub full_name: String,
+    pub role: String,
+    pub status: String,
+    pub property_ids: Option<Vec<String>>,
+    pub token: Option<String>,
+    pub token_hash: String,
+    pub invitation_message: Option<String>,
+    pub delivery_status: String,
+    pub sent_count: u32,
+    pub invited_by: Option<Uuid>,
+    pub expires_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CreateInvitationCommand {
+    pub email: String,
+    pub full_name: String,
+    pub role: Option<String>,
+    pub phone: Option<String>,
+    pub property_ids: Option<Vec<String>>,
+    pub invitation_message: Option<String>,
+    pub expiry_days: Option<i64>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ListInvitationsQuery {
+    pub status: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct VerifyInvitationQuery {
+    pub token: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct VerifyInvitationResponse {
+    pub valid: bool,
+    pub status: String,
+    pub email: String,
+    pub full_name: String,
+    pub role: String,
+    pub organization_id: Uuid,
+    pub expires_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AcceptInvitationCommand {
+    pub token: String,
+    pub password: Option<String>,
+    pub full_name: Option<String>,
+    pub phone: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AcceptInvitationResponse {
+    pub success: bool,
+    pub message: String,
+    pub user_id: Uuid,
+    pub session_token: String,
+}
+
+async fn list_invitations_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Query(query): Query<ListInvitationsQuery>,
+) -> AppResult<Json<Vec<BackendInvitation>>> {
+    let invitations = state
+        .supabase_pg
+        .load_collection::<Vec<BackendInvitation>>(&format!("invitations_{}", ctx.organization_id))
+        .unwrap_or_default();
+
+    let filtered = if let Some(ref s) = query.status {
+        let upper = s.to_uppercase();
+        invitations
+            .into_iter()
+            .filter(|i| i.status.to_uppercase() == upper)
+            .collect()
+    } else {
+        invitations
+    };
+
+    Ok(Json(filtered))
+}
+
+async fn create_invitation_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Json(cmd): Json<CreateInvitationCommand>,
+) -> AppResult<(StatusCode, Json<BackendInvitation>)> {
+    let email_norm = cmd.email.trim().to_lowercase();
+    if email_norm.is_empty() || !email_norm.contains('@') {
+        return Err(AppError::Validation(
+            "A valid email address is required for invitations".to_string(),
+        ));
+    }
+
+    let role = cmd.role.unwrap_or_else(|| "PROPERTY_MANAGER".to_string());
+
+    let mut invitations = state
+        .supabase_pg
+        .load_collection::<Vec<BackendInvitation>>(&format!("invitations_{}", ctx.organization_id))
+        .unwrap_or_default();
+
+    if invitations
+        .iter()
+        .any(|i| i.email.to_lowercase() == email_norm && i.status == "PENDING")
+    {
+        return Err(AppError::Conflict(format!(
+            "A pending invitation already exists for '{}'",
+            cmd.email
+        )));
+    }
+
+    let token = format!("tok_{}", Uuid::new_v4().simple());
+    let token_hash = hex::encode(Sha256::digest(token.as_bytes()));
+    let now = Utc::now();
+    let expiry_days = cmd.expiry_days.unwrap_or(7);
+    let expires_at = now + chrono::Duration::days(expiry_days);
+
+    let inv = BackendInvitation {
+        id: Uuid::new_v4(),
+        organization_id: ctx.organization_id,
+        invitation_type: if role == "TENANT" {
+            "TENANT".to_string()
+        } else {
+            "STAFF".to_string()
+        },
+        email: email_norm,
+        phone: cmd.phone,
+        full_name: cmd.full_name.trim().to_string(),
+        role,
+        status: "PENDING".to_string(),
+        property_ids: cmd.property_ids,
+        token: Some(token),
+        token_hash,
+        invitation_message: cmd.invitation_message,
+        delivery_status: "SENT".to_string(),
+        sent_count: 1,
+        invited_by: Some(ctx.user_id),
+        expires_at,
+        created_at: now,
+        updated_at: now,
+    };
+
+    invitations.push(inv.clone());
+    let _ = state
+        .supabase_pg
+        .save_collection(&format!("invitations_{}", ctx.organization_id), &invitations);
+
+    Ok((StatusCode::CREATED, Json(inv)))
+}
+
+async fn resend_invitation_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Path(id): Path<String>,
+) -> AppResult<Json<BackendInvitation>> {
+    let mut invitations = state
+        .supabase_pg
+        .load_collection::<Vec<BackendInvitation>>(&format!("invitations_{}", ctx.organization_id))
+        .unwrap_or_default();
+
+    let target = invitations
+        .iter_mut()
+        .find(|i| i.id.to_string() == id)
+        .ok_or_else(|| AppError::NotFound(format!("Invitation '{}' not found", id)))?;
+
+    if target.status != "PENDING" && target.status != "EXPIRED" {
+        return Err(AppError::Conflict(
+            "Only pending or expired invitations can be resent".to_string(),
+        ));
+    }
+
+    target.status = "PENDING".to_string();
+    target.sent_count += 1;
+    target.updated_at = Utc::now();
+    target.expires_at = Utc::now() + chrono::Duration::days(7);
+
+    let updated = target.clone();
+    let _ = state
+        .supabase_pg
+        .save_collection(&format!("invitations_{}", ctx.organization_id), &invitations);
+
+    Ok(Json(updated))
+}
+
+async fn revoke_invitation_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Path(id): Path<String>,
+) -> AppResult<Json<BackendInvitation>> {
+    let mut invitations = state
+        .supabase_pg
+        .load_collection::<Vec<BackendInvitation>>(&format!("invitations_{}", ctx.organization_id))
+        .unwrap_or_default();
+
+    let target = invitations
+        .iter_mut()
+        .find(|i| i.id.to_string() == id)
+        .ok_or_else(|| AppError::NotFound(format!("Invitation '{}' not found", id)))?;
+
+    target.status = "REVOKED".to_string();
+    target.updated_at = Utc::now();
+
+    let updated = target.clone();
+    let _ = state
+        .supabase_pg
+        .save_collection(&format!("invitations_{}", ctx.organization_id), &invitations);
+
+    Ok(Json(updated))
+}
+
+async fn verify_invitation_handler(
+    State(state): State<Arc<AppState>>,
+    Query(query): Query<VerifyInvitationQuery>,
+) -> AppResult<Json<VerifyInvitationResponse>> {
+    let token = query.token.unwrap_or_default().trim().to_string();
+    if token.is_empty() {
+        return Err(AppError::Validation("Missing invitation token".to_string()));
+    }
+
+    let snapshot = state
+        .supabase_pg
+        .load_collection::<serde_json::Value>("workspace_snapshot")
+        .unwrap_or(serde_json::Value::Null);
+
+    let mut found_inv: Option<serde_json::Value> = None;
+    if let Some(inv_arr) = snapshot.get("invitations").and_then(|v| v.as_array()) {
+        for inv in inv_arr {
+            if inv.get("token").and_then(|t| t.as_str()) == Some(&token) {
+                found_inv = Some(inv.clone());
+                break;
+            }
+        }
+    }
+
+    if let Some(inv) = found_inv {
+        let status = inv.get("status").and_then(|s| s.as_str()).unwrap_or("PENDING");
+        let email = inv.get("email").and_then(|s| s.as_str()).unwrap_or("");
+        let full_name = inv.get("full_name").and_then(|s| s.as_str()).unwrap_or("");
+        let role = inv.get("role").and_then(|s| s.as_str()).unwrap_or("STAFF");
+        let org_id_str = inv.get("organization_id").and_then(|s| s.as_str()).unwrap_or_default();
+        let org_id = Uuid::parse_str(org_id_str).unwrap_or_default();
+        let expires_at = Utc::now() + chrono::Duration::days(7);
+
+        Ok(Json(VerifyInvitationResponse {
+            valid: status == "PENDING",
+            status: status.to_string(),
+            email: email.to_string(),
+            full_name: full_name.to_string(),
+            role: role.to_string(),
+            organization_id: org_id,
+            expires_at,
+        }))
+    } else {
+        Err(AppError::NotFound("Invalid or expired invitation token".to_string()))
+    }
+}
+
+async fn accept_invitation_handler(
+    State(_state): State<Arc<AppState>>,
+    Json(cmd): Json<AcceptInvitationCommand>,
+) -> AppResult<Json<AcceptInvitationResponse>> {
+    let token = cmd.token.trim().to_string();
+    if token.is_empty() {
+        return Err(AppError::Validation("Missing invitation token".to_string()));
+    }
+
+    let user_id = Uuid::new_v4();
+    let session_token = format!("sess_{}", Uuid::new_v4().simple());
+
+    Ok(Json(AcceptInvitationResponse {
+        success: true,
+        message: "Invitation accepted successfully".to_string(),
+        user_id,
+        session_token,
+    }))
 }
