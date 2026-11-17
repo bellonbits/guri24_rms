@@ -2,7 +2,6 @@ use std::{
     io::Write,
     process::{Command, Stdio},
 };
-use axum::http::StatusCode;
 use chrono::Utc;
 use hmac::{Hmac, Mac};
 use rust_decimal::Decimal;
