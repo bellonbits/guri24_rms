@@ -276,8 +276,9 @@ pub fn render_payment_receipt_template(
     tenant_name: &str,
     amount_kes: &str,
     receipt_number: &str,
+    mpesa_receipt: &str,
     property_unit: &str,
-    breakdown: &str,
+    payment_date: &str,
 ) -> String {
     format!(
         r###"<!DOCTYPE html>
@@ -327,16 +328,20 @@ pub fn render_payment_receipt_template(
               <td align="right" style="font-size: 18px; font-weight: 800; color: #16a34a;">KES {amount_kes}</td>
             </tr>
             <tr>
-              <td style="color: #64748b;">M-Pesa Receipt:</td>
+              <td style="color: #64748b;">Receipt Number:</td>
               <td align="right" style="font-weight: 700; color: #0f172a;">{receipt_number}</td>
+            </tr>
+            <tr>
+              <td style="color: #64748b;">M-Pesa Reference:</td>
+              <td align="right" style="font-weight: 700; color: #0f172a;">{mpesa_receipt}</td>
             </tr>
             <tr>
               <td style="color: #64748b;">Unit Reference:</td>
               <td align="right" style="font-weight: 600; color: #0f172a;">{property_unit}</td>
             </tr>
             <tr>
-              <td style="color: #64748b;">Allocation:</td>
-              <td align="right" style="color: #475569;">{breakdown}</td>
+              <td style="color: #64748b;">Payment Date:</td>
+              <td align="right" style="color: #475569;">{payment_date}</td>
             </tr>
           </table>
         </div>
@@ -365,8 +370,9 @@ pub fn render_payment_receipt_template(
         tenant_name = tenant_name,
         amount_kes = amount_kes,
         receipt_number = receipt_number,
+        mpesa_receipt = mpesa_receipt,
         property_unit = property_unit,
-        breakdown = breakdown,
+        payment_date = payment_date,
         app_card_and_footer = EMAIL_APP_CARD_AND_FOOTER_HTML,
     )
 }
@@ -376,11 +382,10 @@ pub fn render_invoice_issued_template(
     _recipient: &str,
     tenant_name: &str,
     invoice_number: &str,
+    billing_period: &str,
     amount_kes: &str,
     due_date: &str,
     property_unit: &str,
-    paybill: &str,
-    account_no: &str,
 ) -> String {
     format!(
         r###"<!DOCTYPE html>
@@ -430,6 +435,10 @@ pub fn render_invoice_issued_template(
               <td align="right" style="font-weight: 700; color: #0f172a;">{invoice_number}</td>
             </tr>
             <tr>
+              <td style="color: #64748b;">Billing Period:</td>
+              <td align="right" style="font-weight: 600; color: #0f172a;">{billing_period}</td>
+            </tr>
+            <tr>
               <td style="color: #64748b;">Amount Payable:</td>
               <td align="right" style="font-size: 18px; font-weight: 800; color: #1d4ed8;">KES {amount_kes}</td>
             </tr>
@@ -438,12 +447,12 @@ pub fn render_invoice_issued_template(
               <td align="right" style="font-weight: 600; color: #dc2626;">{due_date}</td>
             </tr>
             <tr>
-              <td style="color: #64748b;">M-Pesa Paybill:</td>
-              <td align="right" style="font-weight: 700; color: #0f172a;">{paybill}</td>
+              <td style="color: #64748b;">Unit Reference:</td>
+              <td align="right" style="font-weight: 600; color: #0f172a;">{property_unit}</td>
             </tr>
             <tr>
-              <td style="color: #64748b;">Account Number:</td>
-              <td align="right" style="font-weight: 700; color: #0f172a;">{account_no}</td>
+              <td style="color: #64748b;">Paybill / Till:</td>
+              <td align="right" style="font-weight: 700; color: #0f172a;">Paybill 174379</td>
             </tr>
           </table>
         </div>
@@ -471,11 +480,10 @@ pub fn render_invoice_issued_template(
         illustration = NEW_EMAIL_ILLUSTRATION_BASE64,
         tenant_name = tenant_name,
         invoice_number = invoice_number,
+        billing_period = billing_period,
         amount_kes = amount_kes,
         due_date = due_date,
         property_unit = property_unit,
-        paybill = paybill,
-        account_no = account_no,
         app_card_and_footer = EMAIL_APP_CARD_AND_FOOTER_HTML,
     )
 }
@@ -485,8 +493,8 @@ pub fn render_deposit_received_template(
     _recipient: &str,
     tenant_name: &str,
     amount_kes: &str,
+    lease_reference: &str,
     property_unit: &str,
-    receipt_number: &str,
 ) -> String {
     format!(
         r###"<!DOCTYPE html>
@@ -536,8 +544,8 @@ pub fn render_deposit_received_template(
               <td align="right" style="font-size: 18px; font-weight: 800; color: #0d9488;">KES {amount_kes}</td>
             </tr>
             <tr>
-              <td style="color: #64748b;">Receipt Number:</td>
-              <td align="right" style="font-weight: 700; color: #0f172a;">{receipt_number}</td>
+              <td style="color: #64748b;">Lease Reference:</td>
+              <td align="right" style="font-weight: 700; color: #0f172a;">{lease_reference}</td>
             </tr>
             <tr>
               <td style="color: #64748b;">Ledger Account:</td>
@@ -573,8 +581,8 @@ pub fn render_deposit_received_template(
         illustration = NEW_EMAIL_ILLUSTRATION_BASE64,
         tenant_name = tenant_name,
         amount_kes = amount_kes,
+        lease_reference = lease_reference,
         property_unit = property_unit,
-        receipt_number = receipt_number,
         app_card_and_footer = EMAIL_APP_CARD_AND_FOOTER_HTML,
     )
 }
@@ -584,9 +592,9 @@ pub fn render_refund_verified_template(
     _recipient: &str,
     tenant_name: &str,
     amount_kes: &str,
-    property_unit: &str,
     payout_channel: &str,
     payout_ref: &str,
+    property_unit: &str,
 ) -> String {
     format!(
         r###"<!DOCTYPE html>
