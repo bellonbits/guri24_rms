@@ -95,6 +95,47 @@ export const AppLayout: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [navSearchQuery, setNavSearchQuery] = useState('');
 
+  const isSuperAdmin = currentUserRole === 'SAAS_SUPER_ADMINISTRATOR';
+
+  const formatRoleLabel = (role?: string) => {
+    switch (role) {
+      case 'SAAS_SUPER_ADMINISTRATOR':
+        return 'Super Admin';
+      case 'ORGANIZATION_ADMINISTRATOR':
+        return 'Admin';
+      case 'PROPERTY_MANAGER':
+        return 'Property Manager';
+      case 'ACCOUNTANT':
+        return 'Accountant';
+      case 'RECEPTIONIST':
+        return 'Receptionist';
+      case 'MAINTENANCE_OFFICER':
+        return 'Maintenance';
+      case 'CARETAKER':
+        return 'Caretaker';
+      case 'TENANT':
+        return 'Tenant';
+      case 'VENDOR':
+        return 'Vendor';
+      case 'PROPERTY_OWNER':
+        return 'Owner';
+      default:
+        return 'Staff';
+    }
+  };
+
+  const profileDisplayName = isSuperAdmin
+    ? 'Super Admin'
+    : (currentUserSession?.fullName || currentOrg.name.replace(/\s*(Rental|Property)?\s*Management\s*(Ltd|LLC)?/gi, '').trim() || currentOrg.name);
+
+  const profileSubtitle = isSuperAdmin
+    ? (currentOrg.name.length > 18 ? 'Guri24 RMS' : currentOrg.name)
+    : formatRoleLabel(currentUserRole);
+
+  const profileAvatarInitials = isSuperAdmin
+    ? 'SA'
+    : (profileDisplayName.slice(0, 2).toUpperCase());
+
   // Determine active item based on URL
   const activeNavItem = useMemo(() => {
     return (
@@ -264,29 +305,65 @@ export const AppLayout: React.FC = () => {
           </div>
         )}
 
-        {/* Organization Switcher Card */}
-        <div className="org-switcher-card">
+        {/* Organization & Profile Switcher Card */}
+        <div
+          className="sidebar-profile-card"
+          onClick={() => setIsSwitcherModalOpen(true)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setIsSwitcherModalOpen(true);
+            }
+          }}
+          aria-label="Switch organization or profile"
+          title="Click to switch organization or role"
+        >
           <div
-            className="org-switcher-info"
-            onClick={() => setIsSwitcherModalOpen(true)}
-            role="button"
-            tabIndex={0}
-            aria-label="Switch organization"
-            title="Click to switch active portfolio organization"
+            className="profile-avatar"
+            style={{
+              inlineSize: '32px',
+              blockSize: '32px',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              background: isSuperAdmin
+                ? 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)'
+                : 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
+              boxShadow: '0 1px 3px rgba(37,99,235,0.25)',
+              flexShrink: 0,
+            }}
           >
-            <div className="profile-avatar">
-              {currentOrg.name.slice(0, 2).toUpperCase()}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="profile-name" title={currentOrg.name}>
-                {currentOrg.name}
-              </div>
-              <div className="profile-role" title={currentUserRole || 'Administrator'}>
-                {currentUserRole || 'Administrator'}
-              </div>
-            </div>
-            <ChevronDown size={14} color="var(--text-muted)" />
+            {profileAvatarInitials}
           </div>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', lineHeight: 1.25 }}>
+            <div
+              style={{
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                color: '#0f172a',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+              title={profileDisplayName}
+            >
+              {profileDisplayName}
+            </div>
+            <div
+              style={{
+                fontSize: '0.70rem',
+                color: '#64748b',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                marginTop: '1px',
+              }}
+            >
+              {profileSubtitle}
+            </div>
+          </div>
+          <ChevronDown size={14} color="#94a3b8" style={{ flexShrink: 0 }} />
         </div>
       </aside>
 
@@ -332,9 +409,31 @@ export const AppLayout: React.FC = () => {
               cursor: 'pointer',
             }}
           >
-            <div className="profile-avatar" style={{ inlineSize: '28px', blockSize: '28px', fontSize: '0.72rem' }}>
-              {currentOrg.name.slice(0, 2).toUpperCase()}
+            <div
+              className="profile-avatar"
+              style={{
+                inlineSize: '26px',
+                blockSize: '26px',
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                background: isSuperAdmin ? '#1e3a8a' : '#2563eb',
+              }}
+            >
+              {profileAvatarInitials}
             </div>
+            <span
+              style={{
+                fontSize: '0.74rem',
+                fontWeight: 600,
+                color: '#0f172a',
+                maxWidth: '90px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {profileDisplayName}
+            </span>
             <ChevronDown size={13} color="var(--text-muted)" />
           </button>
         </header>
