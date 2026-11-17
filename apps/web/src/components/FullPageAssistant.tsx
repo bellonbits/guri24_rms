@@ -876,6 +876,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
           </div>
         </div>
       </aside>
+      )}
 
       {/* ------------------------------------------------------------- */}
       {/* 2. CENTER ARENA: CONVERSATION WORKSPACE                       */}
