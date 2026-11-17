@@ -176,11 +176,11 @@ export const AppLayout: React.FC = () => {
         <div className="brand-header">
           <Link to="/app/dashboard" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
             <img
-              src="/Guri24 RMS Property Logo.png"
+              src="/Futuristic Blue-Green House Logo.png"
               alt="Guri24 RMS"
               style={{ maxHeight: '42px', maxWidth: '170px', objectFit: 'contain' }}
               onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = '/guri24_logo_email.png';
+                (e.currentTarget as HTMLImageElement).src = '/logo.png';
               }}
             />
           </Link>
@@ -235,15 +235,15 @@ export const AppLayout: React.FC = () => {
           })}
         </nav>
 
-        {/* Organization / Role Switcher Card */}
+        {/* Organization Switcher Card */}
         <div className="org-switcher-card">
           <div
             className="org-switcher-info"
             onClick={() => setIsSwitcherModalOpen(true)}
             role="button"
             tabIndex={0}
-            aria-label="Switch organization or role"
-            title="Click to switch organization or test RBAC permissions"
+            aria-label="Switch organization"
+            title="Click to switch active portfolio organization"
           >
             <div className="profile-avatar">
               {currentOrg.name.slice(0, 2).toUpperCase()}
@@ -278,11 +278,11 @@ export const AppLayout: React.FC = () => {
 
           <Link to="/app/dashboard" className="mobile-header-brand">
             <img
-              src="/Guri24 RMS Property Logo.png"
+              src="/Futuristic Blue-Green House Logo.png"
               alt="Guri24 RMS"
               style={{ maxHeight: '34px', maxWidth: '140px', objectFit: 'contain' }}
               onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = '/guri24_logo_email.png';
+                (e.currentTarget as HTMLImageElement).src = '/logo.png';
               }}
             />
           </Link>
@@ -414,11 +414,11 @@ export const AppLayout: React.FC = () => {
             <div className="mobile-drawer-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <img
-                  src="/Guri24 RMS Property Logo.png"
+                  src="/Futuristic Blue-Green House Logo.png"
                   alt="Guri24 RMS"
                   style={{ maxHeight: '30px', maxWidth: '120px', objectFit: 'contain' }}
                   onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).src = '/guri24_logo_email.png';
+                    (e.currentTarget as HTMLImageElement).src = '/logo.png';
                   }}
                 />
               </div>
@@ -607,21 +607,22 @@ export const AppLayout: React.FC = () => {
       )}
 
       {/* Organization & Role Switcher Modal */}
+      {/* Organization Switcher Modal */}
       {isSwitcherModalOpen && (
         <ModalDialog
           isOpen={isSwitcherModalOpen}
           onClose={() => setIsSwitcherModalOpen(false)}
-          title="Organization Context & RBAC Role Switcher"
-          maxWidth="580px"
+          title="Portfolio Organization Context"
+          maxWidth="540px"
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <p style={{ fontSize: '0.84rem', color: '#64748b', margin: 0 }}>
-              Test strict Kenyan multi-tenant PostgreSQL database isolation and RBAC role boundaries.
+              Select your active residential portfolio organization context. Data boundaries and RBAC permissions are authoritatively enforced server-side.
             </p>
 
             <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '6px' }}>
-                Active Organization
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '8px' }}>
+                Active Portfolio Organization
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {organizations.map((org) => {
@@ -634,7 +635,7 @@ export const AppLayout: React.FC = () => {
                         setIsSwitcherModalOpen(false);
                       }}
                       style={{
-                        padding: '10px 14px',
+                        padding: '12px 14px',
                         borderRadius: '8px',
                         border: isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0',
                         background: isSelected ? '#eff6ff' : '#ffffff',
@@ -645,9 +646,9 @@ export const AppLayout: React.FC = () => {
                       }}
                     >
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.86rem', color: '#0f172a' }}>{org.name}</div>
-                        <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                          County: {org.county} &bull; Currency: {org.currency}
+                        <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#0f172a' }}>{org.name}</div>
+                        <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px' }}>
+                          Jurisdiction: {org.county} &bull; Currency: {org.currency}
                         </div>
                       </div>
                       {isSelected && <Check size={18} color="#2563eb" />}
@@ -657,41 +658,17 @@ export const AppLayout: React.FC = () => {
               </div>
             </div>
 
-            <div>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '6px' }}>
-                Test RBAC Role
-              </label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '6px' }}>
-                {ROLES_LIST.map((role) => {
-                  const isSelected = role === currentUserRole;
-                  return (
-                    <button
-                      key={role}
-                      type="button"
-                      onClick={() => {
-                        switchRole(role);
-                        setIsSwitcherModalOpen(false);
-                      }}
-                      style={{
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        border: isSelected ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
-                        background: isSelected ? '#eff6ff' : '#ffffff',
-                        color: isSelected ? '#1d4ed8' : '#334155',
-                        fontWeight: isSelected ? 600 : 500,
-                        fontSize: '0.75rem',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {role.replace(/_/g, ' ')}
-                    </button>
-                  );
-                })}
+            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                Current Role: <strong style={{ color: '#0f172a' }}>{currentUserRole || 'Administrator'}</strong>
               </div>
+              <Link
+                to="/app/settings-portal/users"
+                onClick={() => setIsSwitcherModalOpen(false)}
+                style={{ fontSize: '0.74rem', color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}
+              >
+                Manage Team & Roles &rarr;
+              </Link>
             </div>
           </div>
         </ModalDialog>

@@ -121,12 +121,11 @@ Robin`,
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img
-            src="/Guri24 RMS Property Logo.png"
+            src="/Futuristic Blue-Green House Logo.png"
             alt="Guri24 RMS"
             style={{ height: '28px', width: 'auto', objectFit: 'contain' }}
             onError={(e) => {
-              // Fallback to text if path is different
-              (e.currentTarget as HTMLElement).style.display = 'none';
+              (e.currentTarget as HTMLImageElement).src = '/logo.png';
             }}
           />
           <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#111827' }}>{title}</span>

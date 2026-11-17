@@ -176,6 +176,8 @@ impl InMemoryOrganizationRepository {
             .unwrap_or_else(|_| "$argon2id$v=19$m=19456,t=2,p=1$placeholder$placeholder".to_string());
         let pw_hash_password123 = PasswordService::hash_password("password123")
             .unwrap_or_else(|_| pw_hash_12345678.clone());
+        let pw_hash_admin2026 = PasswordService::hash_password("AdminPassword2026!")
+            .unwrap_or_else(|_| pw_hash_12345678.clone());
 
         let user_peter = UserRecord {
             id: Uuid::parse_str("22222222-2222-2222-2222-222222222222")
@@ -199,6 +201,17 @@ impl InMemoryOrganizationRepository {
             created_at: now,
         };
 
+        let user_super_admin = UserRecord {
+            id: Uuid::parse_str("44444444-4444-4444-4444-444444444444")
+                .unwrap_or_else(|_| Uuid::new_v4()),
+            email: "admin@guri24rms.co.ke".to_string(),
+            phone: "+254700000001".to_string(),
+            full_name: "Guri24 Production Administrator".to_string(),
+            password_hash: pw_hash_admin2026,
+            is_active: true,
+            created_at: now,
+        };
+
         let membership_peter = OrganizationMembership {
             id: Uuid::new_v4(),
             organization_id: org_id,
@@ -217,16 +230,27 @@ impl InMemoryOrganizationRepository {
             joined_at: now,
         };
 
+        let membership_super_admin = OrganizationMembership {
+            id: Uuid::new_v4(),
+            organization_id: org_id,
+            user_id: user_super_admin.id,
+            role: SystemRole::SaasSuperAdministrator,
+            is_active: true,
+            joined_at: now,
+        };
+
         let mut orgs_guard = self.organizations.write().unwrap_or_else(|e| e.into_inner());
         orgs_guard.insert(org_id, default_org.clone());
 
         let mut users_guard = self.users.write().unwrap_or_else(|e| e.into_inner());
         users_guard.insert(user_peter.id, user_peter);
         users_guard.insert(user_admin.id, user_admin);
+        users_guard.insert(user_super_admin.id, user_super_admin);
 
         let mut mems_guard = self.memberships.write().unwrap_or_else(|e| e.into_inner());
         mems_guard.push(membership_peter);
         mems_guard.push(membership_admin);
+        mems_guard.push(membership_super_admin);
 
         let mut settings_guard = self.settings.write().unwrap_or_else(|e| e.into_inner());
         settings_guard.insert(org_id, OrganizationSettings::default_for(org_id));

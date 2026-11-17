@@ -11,6 +11,7 @@ use crate::{
     },
     integrations::email::{
         templates::{
+            render_account_approved_email,
             render_deposit_received_template, render_invoice_issued_template,
             render_notification_email_template,
             render_payment_receipt_template, render_refund_verified_template,
@@ -592,14 +593,23 @@ impl NotificationServiceTrait for CentralizedNotificationService {
     fn send_test_email(&self, ctx: &TenantContext, cmd: SendTestEmailCommand) -> AppResult<NotificationDelivery> {
         ctx.require_permission("notifications.manage")?;
         let now = Utc::now();
-        let subject = format!("Test Delivery: [{}] &bull; Guri24 RMS", cmd.template_key);
-        let body_html = render_notification_email_template(
-            &cmd.recipient_email,
-            "Notification Engine Verification Test",
-            "This is an automated test email validating that your configured Resend API integration and transactional outbox are operational in Africa/Nairobi.",
-            Some("Open Guri24 RMS"),
-            None,
-        );
+        let (subject, body_html) = if cmd.template_key == "ACCOUNT_APPROVED" {
+            (
+                "Your Guri24 RMS account has been approved!".to_string(),
+                render_account_approved_email(&cmd.recipient_email, "https://guri24rms.co.ke"),
+            )
+        } else {
+            (
+                format!("Test Delivery: [{}] &bull; Guri24 RMS", cmd.template_key),
+                render_notification_email_template(
+                    &cmd.recipient_email,
+                    "Notification Engine Verification Test",
+                    "This is an automated test email validating that your configured Resend API integration and transactional outbox are operational in Africa/Nairobi.",
+                    Some("Open Guri24 RMS"),
+                    None,
+                ),
+            )
+        };
 
         let mut delivery = NotificationDelivery {
             id: Uuid::new_v4(),
@@ -657,6 +667,13 @@ impl NotificationServiceTrait for CentralizedNotificationService {
                 category: "TENANT".to_string(),
                 is_mandatory: true,
                 sample_subject: "Rent Invoice INV-2026-001 — November 2026".to_string(),
+            },
+            NotificationTemplateSummary {
+                key: "ACCOUNT_APPROVED".to_string(),
+                title: "Account Approved & Welcome Notification".to_string(),
+                category: "ONBOARDING".to_string(),
+                is_mandatory: true,
+                sample_subject: "Hi Filippo, your Guri24 RMS account has been approved!".to_string(),
             },
             NotificationTemplateSummary {
                 key: "PAYMENT_REQUEST_INITIATED".to_string(),
