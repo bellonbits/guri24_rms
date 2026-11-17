@@ -9,7 +9,7 @@
 
 pub const GURI24_LOGO_BASE64: &str = include_str!("guri24_logo_email.base64");
 pub const NEW_EMAIL_ILLUSTRATION_BASE64: &str = include_str!("new_email_illustration.base64");
-pub const GURI24_FAVICON_URL: &str = "https://raw.githubusercontent.com/bellonbits/guri24_rms/main/apps/web/public/favicon.png";
+pub const GURI24_FAVICON_URL: &str = "https://raw.githubusercontent.com/bellonbits/guri24_rms/main/apps/web/public/email_fav_white.png";
 pub const NEW_EMAIL_ILLUSTRATION_URL: &str = "https://raw.githubusercontent.com/bellonbits/guri24_rms/main/apps/web/public/image.png";
 
 /// Helper to render the shared mobile app card and footer
