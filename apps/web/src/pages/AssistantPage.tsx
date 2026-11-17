@@ -13,13 +13,13 @@ export const AssistantPage: React.FC = () => {
       <FullPageAssistant
         currentOrg={currentOrg}
         userRole={currentUserRole || 'ORGANIZATION_ADMINISTRATOR'}
-        properties={state.properties}
-        tenants={state.tenants}
-        invoices={state.invoices}
-        payments={state.payments}
-        deposits={state.securityDeposits}
-        conversations={state.conversations}
-        confirmations={state.confirmations}
+        properties={state?.properties || []}
+        tenants={state?.tenants || []}
+        invoices={state?.invoices || []}
+        payments={state?.payments || []}
+        deposits={state?.deposits || state?.securityDeposits || []}
+        conversations={state?.conversations || state?.assistantConversations || []}
+        confirmations={state?.confirmations || state?.assistantConfirmations || []}
         onUpdateConversations={(convs) => {
           setState((prev) => ({ ...prev, conversations: convs }));
         }}

@@ -23,21 +23,21 @@ export const EstatesDepositsPage: React.FC = () => {
 
   const isRefundsView = location.pathname.includes('/refunds');
 
-  const orgDeposits = useMemo(
-    () => state.securityDeposits.filter((d) => d.organization_id === currentOrg.id),
-    [state.securityDeposits, currentOrg.id]
-  );
+  const orgDeposits = useMemo(() => {
+    const list = state?.securityDeposits || state?.deposits || [];
+    return list.filter((d) => d.organization_id === currentOrg.id);
+  }, [state?.securityDeposits, state?.deposits, currentOrg.id]);
   const orgTenants = useMemo(
-    () => state.tenants.filter((t) => t.organization_id === currentOrg.id),
-    [state.tenants, currentOrg.id]
+    () => (state?.tenants || []).filter((t) => t.organization_id === currentOrg.id),
+    [state?.tenants, currentOrg.id]
   );
   const orgUnits = useMemo(
-    () => state.units.filter((u) => u.organization_id === currentOrg.id),
-    [state.units, currentOrg.id]
+    () => (state?.units || []).filter((u) => u.organization_id === currentOrg.id),
+    [state?.units, currentOrg.id]
   );
   const orgLeases = useMemo(
-    () => state.leases.filter((l) => l.organization_id === currentOrg.id),
-    [state.leases, currentOrg.id]
+    () => (state?.leases || []).filter((l) => l.organization_id === currentOrg.id),
+    [state?.leases, currentOrg.id]
   );
 
   const totalDepositsHeldKes = useMemo(

@@ -31,24 +31,24 @@ export const DashboardPage: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState('Nov');
 
   const orgLeases = useMemo(
-    () => state.leases.filter((l) => l.organization_id === currentOrg.id),
-    [state.leases, currentOrg.id]
+    () => (state?.leases || []).filter((l) => l.organization_id === currentOrg.id),
+    [state?.leases, currentOrg.id]
   );
   const orgInvoices = useMemo(
-    () => state.invoices.filter((i) => i.organization_id === currentOrg.id),
-    [state.invoices, currentOrg.id]
+    () => (state?.invoices || []).filter((i) => i.organization_id === currentOrg.id),
+    [state?.invoices, currentOrg.id]
   );
   const orgTenants = useMemo(
-    () => state.tenants.filter((t) => t.organization_id === currentOrg.id),
-    [state.tenants, currentOrg.id]
+    () => (state?.tenants || []).filter((t) => t.organization_id === currentOrg.id),
+    [state?.tenants, currentOrg.id]
   );
   const orgUnits = useMemo(
-    () => state.units.filter((u) => u.organization_id === currentOrg.id),
-    [state.units, currentOrg.id]
+    () => (state?.units || []).filter((u) => u.organization_id === currentOrg.id),
+    [state?.units, currentOrg.id]
   );
   const orgProperties = useMemo(
-    () => state.properties.filter((p) => p.organization_id === currentOrg.id),
-    [state.properties, currentOrg.id]
+    () => (state?.properties || []).filter((p) => p.organization_id === currentOrg.id),
+    [state?.properties, currentOrg.id]
   );
 
   const featuredProperty = orgProperties[0];

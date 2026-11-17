@@ -195,13 +195,18 @@ export interface RmsPlatformState {
   invoices: Invoice[];
   payments: Payment[];
   deposits: SecurityDepositRecord[];
+  securityDeposits?: SecurityDepositRecord[];
   journals: JournalEntry[];
+  journalEntries?: JournalEntry[];
   expenses: PropertyExpense[];
   maintenance: MaintenanceRequest[];
+  maintenanceRequests?: MaintenanceRequest[];
   documents: DocumentItem[];
   ocrJobs: OcrJobRecord[];
   assistantConversations: AssistantConversation[];
+  conversations?: AssistantConversation[];
   assistantConfirmations: AssistantActionConfirmation[];
+  confirmations?: AssistantActionConfirmation[];
   vendors: Vendor[];
   inspections: InspectionRecord[];
   subscriptions: SubscriptionSummary[];
@@ -223,13 +228,18 @@ export function createEmptyRmsState(): RmsPlatformState {
     invoices: [],
     payments: [],
     deposits: [],
+    securityDeposits: [],
     journals: [],
+    journalEntries: [],
     expenses: [],
     maintenance: [],
+    maintenanceRequests: [],
     documents: [],
     ocrJobs: [],
     assistantConversations: [],
+    conversations: [],
     assistantConfirmations: [],
+    confirmations: [],
     vendors: [],
     inspections: [],
     subscriptions: [],
@@ -285,6 +295,27 @@ export function sanitizeWorkspaceState(raw: any): RmsPlatformState {
       );
     });
   }
+
+  // 3. Bidirectional normalization for backwards-compatible state fields
+  const depositsList = Array.isArray(clean.deposits) ? clean.deposits : Array.isArray(clean.securityDeposits) ? clean.securityDeposits : [];
+  clean.deposits = depositsList;
+  clean.securityDeposits = depositsList;
+
+  const journalsList = Array.isArray(clean.journals) ? clean.journals : Array.isArray(clean.journalEntries) ? clean.journalEntries : [];
+  clean.journals = journalsList;
+  clean.journalEntries = journalsList;
+
+  const maintenanceList = Array.isArray(clean.maintenance) ? clean.maintenance : Array.isArray(clean.maintenanceRequests) ? clean.maintenanceRequests : [];
+  clean.maintenance = maintenanceList;
+  clean.maintenanceRequests = maintenanceList;
+
+  const convList = Array.isArray(clean.assistantConversations) ? clean.assistantConversations : Array.isArray(clean.conversations) ? clean.conversations : [];
+  clean.assistantConversations = convList;
+  clean.conversations = convList;
+
+  const confList = Array.isArray(clean.assistantConfirmations) ? clean.assistantConfirmations : Array.isArray(clean.confirmations) ? clean.confirmations : [];
+  clean.assistantConfirmations = confList;
+  clean.confirmations = confList;
 
   return clean as RmsPlatformState;
 }

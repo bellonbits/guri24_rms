@@ -36,17 +36,17 @@ export const MaintenancePage: React.FC = () => {
 
   const isVendorsView = location.pathname.includes('/vendors');
 
-  const orgTickets = useMemo(
-    () => state.maintenanceRequests.filter((m) => m.organization_id === currentOrg.id),
-    [state.maintenanceRequests, currentOrg.id]
-  );
+  const orgTickets = useMemo(() => {
+    const list = state?.maintenanceRequests || state?.maintenance || [];
+    return list.filter((m) => m.organization_id === currentOrg.id);
+  }, [state?.maintenanceRequests, state?.maintenance, currentOrg.id]);
   const orgUnits = useMemo(
-    () => state.units.filter((u) => u.organization_id === currentOrg.id),
-    [state.units, currentOrg.id]
+    () => (state?.units || []).filter((u) => u.organization_id === currentOrg.id),
+    [state?.units, currentOrg.id]
   );
   const orgVendors = useMemo(
-    () => state.vendors.filter((v) => v.organization_id === currentOrg.id),
-    [state.vendors, currentOrg.id]
+    () => (state?.vendors || []).filter((v) => v.organization_id === currentOrg.id),
+    [state?.vendors, currentOrg.id]
   );
 
   const filteredTickets = useMemo(() => {

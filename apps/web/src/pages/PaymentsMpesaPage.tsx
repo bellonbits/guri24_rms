@@ -114,13 +114,13 @@ export const PaymentsMpesaPage: React.FC = () => {
       <FinancialOperationsWorkspace
         currentOrg={currentOrg}
         userRole={currentUserRole || 'PROPERTY_ADMIN'}
-        properties={state.properties}
-        tenants={state.tenants}
-        leases={state.leases}
-        invoices={state.invoices}
-        payments={state.payments}
-        deposits={state.securityDeposits}
-        journals={state.journalEntries}
+        properties={state?.properties || []}
+        tenants={state?.tenants || []}
+        leases={state?.leases || []}
+        invoices={state?.invoices || []}
+        payments={state?.payments || []}
+        deposits={state?.deposits || state?.securityDeposits || []}
+        journals={state?.journals || state?.journalEntries || []}
         initialTab={currentTab}
         onTabChange={handleTabChange}
         onInitiatePayment={async (cmd) => {

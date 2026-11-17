@@ -35,16 +35,16 @@ export const PropertiesUnitsPage: React.FC = () => {
   const isPropertiesView = location.pathname.includes('/properties') || (!isUnitsView && !isBuildingsView);
 
   const orgProperties = useMemo(
-    () => state.properties.filter((p) => p.organization_id === currentOrg.id),
-    [state.properties, currentOrg.id]
+    () => (state?.properties || []).filter((p) => p.organization_id === currentOrg.id),
+    [state?.properties, currentOrg.id]
   );
   const orgBuildings = useMemo(
-    () => state.buildings.filter((b) => b.organization_id === currentOrg.id),
-    [state.buildings, currentOrg.id]
+    () => (state?.buildings || []).filter((b) => b.organization_id === currentOrg.id),
+    [state?.buildings, currentOrg.id]
   );
   const orgUnits = useMemo(
-    () => state.units.filter((u) => u.organization_id === currentOrg.id),
-    [state.units, currentOrg.id]
+    () => (state?.units || []).filter((u) => u.organization_id === currentOrg.id),
+    [state?.units, currentOrg.id]
   );
 
   const filteredProperties = useMemo(() => {

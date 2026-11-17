@@ -30,16 +30,16 @@ export const AnalyticsLedgerPage: React.FC = () => {
       <AnalyticsLedgerWorkspace
         currentOrg={currentOrg}
         userRole={currentUserRole || 'ACCOUNTANT'}
-        properties={state.properties}
-        tenants={state.tenants}
-        leases={state.leases}
-        units={state.units}
-        invoices={state.invoices}
-        payments={state.payments}
-        expenses={state.expenses}
-        journals={state.journalEntries}
-        deposits={state.securityDeposits}
-        maintenance={state.maintenanceRequests}
+        properties={state?.properties || []}
+        tenants={state?.tenants || []}
+        leases={state?.leases || []}
+        units={state?.units || []}
+        invoices={state?.invoices || []}
+        payments={state?.payments || []}
+        expenses={state?.expenses || []}
+        journals={state?.journals || state?.journalEntries || []}
+        deposits={state?.deposits || state?.securityDeposits || []}
+        maintenance={state?.maintenance || state?.maintenanceRequests || []}
         initialTab={targetTab}
         initialStatementSubTab={statementSubTab}
         onReverseJournal={(journal) => {

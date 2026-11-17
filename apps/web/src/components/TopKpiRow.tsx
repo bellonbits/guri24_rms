@@ -9,29 +9,32 @@ export const TopKpiRow: React.FC = () => {
   const { currentOrg } = useAuth();
   const { state } = useRms();
 
-  const orgInvoices = useMemo(
-    () => state.invoices.filter((i) => i.organization_id === currentOrg.id),
-    [state.invoices, currentOrg.id]
-  );
-  const orgPayments = useMemo(
-    () => state.payments.filter((p) => p.organization_id === currentOrg.id),
-    [state.payments, currentOrg.id]
-  );
-  const orgLeases = useMemo(
-    () => state.leases.filter((l) => l.organization_id === currentOrg.id && l.status === 'ACTIVE'),
-    [state.leases, currentOrg.id]
-  );
-  const orgUnits = useMemo(
-    () => state.units.filter((u) => u.organization_id === currentOrg.id),
-    [state.units, currentOrg.id]
-  );
-  const orgMaintenance = useMemo(
-    () =>
-      state.maintenanceRequests.filter(
-        (m) => m.organization_id === currentOrg.id && m.status !== 'CLOSED' && m.status !== 'RESOLVED'
-      ),
-    [state.maintenanceRequests, currentOrg.id]
-  );
+  const orgInvoices = useMemo(() => {
+    const list = state?.invoices || [];
+    return list.filter((i) => i.organization_id === currentOrg.id);
+  }, [state?.invoices, currentOrg.id]);
+
+  const orgPayments = useMemo(() => {
+    const list = state?.payments || [];
+    return list.filter((p) => p.organization_id === currentOrg.id);
+  }, [state?.payments, currentOrg.id]);
+
+  const orgLeases = useMemo(() => {
+    const list = state?.leases || [];
+    return list.filter((l) => l.organization_id === currentOrg.id && l.status === 'ACTIVE');
+  }, [state?.leases, currentOrg.id]);
+
+  const orgUnits = useMemo(() => {
+    const list = state?.units || [];
+    return list.filter((u) => u.organization_id === currentOrg.id);
+  }, [state?.units, currentOrg.id]);
+
+  const orgMaintenance = useMemo(() => {
+    const list = state?.maintenanceRequests || state?.maintenance || [];
+    return list.filter(
+      (m) => m.organization_id === currentOrg.id && m.status !== 'CLOSED' && m.status !== 'RESOLVED'
+    );
+  }, [state?.maintenanceRequests, state?.maintenance, currentOrg.id]);
 
   const collectedKes = useMemo(
     () => orgPayments.reduce((acc, p) => acc + (Number(p.allocated_amount_kes) || 0), 0),

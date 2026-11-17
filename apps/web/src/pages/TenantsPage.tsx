@@ -25,16 +25,16 @@ export const TenantsPage: React.FC = () => {
   const isApplicationsView = location.pathname.includes('/applications');
 
   const orgTenants = useMemo(
-    () => state.tenants.filter((t) => t.organization_id === currentOrg.id),
-    [state.tenants, currentOrg.id]
+    () => (state?.tenants || []).filter((t) => t.organization_id === currentOrg.id),
+    [state?.tenants, currentOrg.id]
   );
   const orgLeases = useMemo(
-    () => state.leases.filter((l) => l.organization_id === currentOrg.id),
-    [state.leases, currentOrg.id]
+    () => (state?.leases || []).filter((l) => l.organization_id === currentOrg.id),
+    [state?.leases, currentOrg.id]
   );
   const orgUnits = useMemo(
-    () => state.units.filter((u) => u.organization_id === currentOrg.id),
-    [state.units, currentOrg.id]
+    () => (state?.units || []).filter((u) => u.organization_id === currentOrg.id),
+    [state?.units, currentOrg.id]
   );
 
   const filteredTenants = useMemo(() => {
