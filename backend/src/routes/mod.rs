@@ -733,8 +733,15 @@ async fn get_invoice_handler(
 async fn initiate_payment_handler(
     State(state): State<Arc<AppState>>,
     ctx: TenantContext,
-    Json(cmd): Json<InitiateMpesaPaymentCommand>,
+    payload: Result<Json<InitiateMpesaPaymentCommand>, axum::extract::rejection::JsonRejection>,
 ) -> AppResult<(StatusCode, Json<Payment>)> {
+    ctx.require_permission("payments.view")?;
+    let Json(cmd) = payload.map_err(|e| AppError::Structured {
+        status: StatusCode::UNPROCESSABLE_ENTITY,
+        code: "VALIDATION_ERROR".to_string(),
+        message: format!("Invalid payment initiation payload: {e}"),
+    })?;
+
     let payment = state
         .repositories
         .payments

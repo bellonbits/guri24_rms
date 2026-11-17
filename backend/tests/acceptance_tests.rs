@@ -1007,3 +1007,144 @@ fn acceptance_15_to_18_ocr_verification_and_ai_assistant_grounding_and_safety() 
     );
     assert!(matches!(vendor_chat_res, Err(AppError::Forbidden(_))));
 }
+
+#[tokio::test]
+async fn scenario_19_rbac_notification_permissions_and_tenant_isolation() {
+    let state = AppState::new(AppConfig::from_env());
+    let org_a = build_test_org_ctx(&state, "Alpha Properties", "alpha@example.com", "0711000111");
+    let org_b = build_test_org_ctx(&state, "Beta Properties", "beta@example.com", "0722000222");
+
+    // 1. OrganizationAdministrator has authoritative notification permissions
+    assert_eq!(org_a.role, SystemRole::OrganizationAdministrator);
+    assert!(org_a.require_permission("notifications.manage").is_ok());
+    assert!(org_a.require_permission("notifications.view").is_ok());
+    assert!(org_a.require_permission("notifications.settings").is_ok());
+
+    // 2. Stale permission cache fallback: even if permissions vector is empty,
+    // require_permission checks role.default_permissions()
+    let stale_admin_ctx = TenantContext {
+        user_id: org_a.user_id,
+        organization_id: org_a.organization_id,
+        role: SystemRole::OrganizationAdministrator,
+        permissions: Vec::new(), // Stale empty permissions array
+    };
+    assert!(stale_admin_ctx.require_permission("notifications.manage").is_ok());
+    assert!(stale_admin_ctx.require_permission("notifications.view").is_ok());
+    assert!(stale_admin_ctx.require_permission("notifications.settings").is_ok());
+
+    // 3. PropertyManager has notifications.view but NOT notifications.manage
+    let pm_ctx = TenantContext {
+        user_id: Uuid::new_v4(),
+        organization_id: org_a.organization_id,
+        role: SystemRole::PropertyManager,
+        permissions: SystemRole::PropertyManager
+            .default_permissions()
+            .into_iter()
+            .map(ToString::to_string)
+            .collect(),
+    };
+    assert!(pm_ctx.require_permission("notifications.view").is_ok());
+    assert!(pm_ctx.require_permission("notifications.manage").is_err());
+    assert!(pm_ctx.require_permission("notifications.settings").is_err());
+
+    // 4. Accountant has notifications.view but NOT notifications.manage
+    let acct_ctx = TenantContext {
+        user_id: Uuid::new_v4(),
+        organization_id: org_a.organization_id,
+        role: SystemRole::Accountant,
+        permissions: SystemRole::Accountant
+            .default_permissions()
+            .into_iter()
+            .map(ToString::to_string)
+            .collect(),
+    };
+    assert!(acct_ctx.require_permission("notifications.view").is_ok());
+    assert!(acct_ctx.require_permission("notifications.manage").is_err());
+    assert!(acct_ctx.require_permission("notifications.settings").is_err());
+
+    // 5. Tenant has NEITHER view NOR manage
+    let tenant_ctx = TenantContext {
+        user_id: Uuid::new_v4(),
+        organization_id: org_a.organization_id,
+        role: SystemRole::Tenant,
+        permissions: SystemRole::Tenant
+            .default_permissions()
+            .into_iter()
+            .map(ToString::to_string)
+            .collect(),
+    };
+    assert!(tenant_ctx.require_permission("notifications.view").is_err());
+    assert!(tenant_ctx.require_permission("notifications.manage").is_err());
+    assert!(tenant_ctx.require_permission("notifications.settings").is_err());
+
+    // 6. Cross-organization isolation: Org A context asserting ownership of Org B record fails
+    assert!(org_a.assert_owns_record(org_b.organization_id).is_err());
+    assert!(org_a.assert_owns_record(org_a.organization_id).is_ok());
+}
+
+#[tokio::test]
+async fn scenario_20_mpesa_stk_push_validation_and_financial_integrity() {
+    let state = AppState::new(AppConfig::from_env());
+    let org_ctx = build_test_org_ctx(&state, "Mpesa Org", "mpesa@example.com", "0711999888");
+
+    // 1. Phone number normalization
+    let phone_valid = state.mpesa_adapter.normalize_kenyan_phone("0712345678").unwrap();
+    assert_eq!(phone_valid, "254712345678");
+
+    let phone_int = state.mpesa_adapter.normalize_kenyan_phone("+254 712 345 678").unwrap();
+    assert_eq!(phone_int, "254712345678");
+
+    let phone_airtel = state.mpesa_adapter.normalize_kenyan_phone("0112345678").unwrap();
+    assert_eq!(phone_airtel, "254112345678");
+
+    let phone_err = state.mpesa_adapter.normalize_kenyan_phone("0812345678");
+    assert!(phone_err.is_err());
+    if let Err(AppError::Structured { code, .. }) = phone_err {
+        assert_eq!(code, "INVALID_PHONE_NUMBER");
+    }
+
+    // 2. Amount validation: zero or negative rejected
+    let cmd_zero_amount = InitiateMpesaPaymentCommand {
+        tenant_id: Uuid::new_v4(),
+        lease_id: None,
+        phone_number: "0712345678".to_string(),
+        amount_kes: Decimal::ZERO,
+        account_reference: "INV-001".to_string(),
+        idempotency_key: "idemp-001".to_string(),
+    };
+    let res_zero = state.repositories.payments.initiate_mpesa_payment(&org_ctx, cmd_zero_amount);
+    assert!(res_zero.is_err());
+    if let Err(AppError::Structured { code, .. }) = res_zero {
+        assert_eq!(code, "INVALID_AMOUNT");
+    }
+
+    // 3. Invoice/Account reference validation: empty rejected
+    let cmd_empty_ref = InitiateMpesaPaymentCommand {
+        tenant_id: Uuid::new_v4(),
+        lease_id: None,
+        phone_number: "0712345678".to_string(),
+        amount_kes: dec!(15000),
+        account_reference: "   ".to_string(),
+        idempotency_key: "idemp-002".to_string(),
+    };
+    let res_empty_ref = state.repositories.payments.initiate_mpesa_payment(&org_ctx, cmd_empty_ref);
+    assert!(res_empty_ref.is_err());
+    if let Err(AppError::Structured { code, .. }) = res_empty_ref {
+        assert_eq!(code, "INVALID_INVOICE");
+    }
+
+    // 4. Flexible UUID serde parsing: string IDs like "tnt-12345" parse into deterministic UUIDs
+    let json_payload = serde_json::json!({
+        "tenant_id": "tnt-1794725624550",
+        "lease_id": "lse-1794725624550",
+        "phone_number": "0712345678",
+        "amount_kes": 15000,
+        "account_reference": "RENT-A101",
+        "idempotency_key": "stk-test-999"
+    });
+    let parsed_cmd: Result<InitiateMpesaPaymentCommand, _> = serde_json::from_value(json_payload);
+    assert!(parsed_cmd.is_ok(), "Custom prefixed IDs should deserialize to deterministic UUIDs without 422 error");
+    let cmd = parsed_cmd.unwrap();
+    assert_ne!(cmd.tenant_id, Uuid::nil());
+    assert!(cmd.lease_id.is_some());
+}

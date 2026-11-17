@@ -30,6 +30,7 @@ impl TenantContext {
     pub fn require_permission(&self, permission: &str) -> AppResult<()> {
         if self.role == SystemRole::SaasSuperAdministrator
             || self.permissions.iter().any(|p| p == permission)
+            || self.role.default_permissions().contains(&permission)
         {
             Ok(())
         } else {

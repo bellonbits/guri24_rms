@@ -106,6 +106,7 @@ export const FinancialOperationsWorkspace: React.FC<FinancialOperationsWorkspace
 
   // M-Pesa STK Push Modal
   const [showStkModal, setShowStkModal] = useState(false);
+  const [selectedTenantId, setSelectedTenantId] = useState(tenants[0]?.id || '');
   const [stkPhone, setStkPhone] = useState('254712345678');
   const [stkAmount, setStkAmount] = useState('15000');
   const [stkAccountRef, setStkAccountRef] = useState('RENT-A101');
@@ -179,18 +180,33 @@ export const FinancialOperationsWorkspace: React.FC<FinancialOperationsWorkspace
   const handleStkPush = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!onInitiatePayment) return;
+
+    // Validate phone number locally first
+    const digits = stkPhone.replace(/\D/g, '');
+    if (digits.length < 9) {
+      setStkFeedback('Please enter a valid Kenyan phone number (e.g. 0712345678 or 254712345678).');
+      return;
+    }
+    if (Number(stkAmount) <= 0) {
+      setStkFeedback('Payment amount must be greater than KES 0.');
+      return;
+    }
+
     setStkLoading(true);
     setStkFeedback(null);
     try {
-      const lease = leases[0];
-      const tenant = tenants[0];
+      const selectedTenant = tenants.find((t) => t.id === selectedTenantId) || tenants[0];
+      const selectedLease = selectedTenant
+        ? leases.find((l) => l.primary_tenant_id === selectedTenant.id) || leases[0]
+        : leases[0];
+
       await onInitiatePayment({
-        tenant_id: tenant?.id || 'ten-0001',
-        lease_id: lease?.id || 'lease-0001',
-        phone_number: stkPhone,
+        tenant_id: selectedTenant?.id || 'tnt-default',
+        lease_id: selectedLease?.id || undefined,
+        phone_number: stkPhone.trim(),
         amount_kes: Number(stkAmount),
-        account_reference: stkAccountRef,
-        idempotency_key: `stk-${Date.now()}`,
+        account_reference: stkAccountRef.trim() || 'RENT-PAY',
+        idempotency_key: `stk-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       });
       setStkFeedback(`STK Push prompt sent to ${stkPhone} for KES ${Number(stkAmount).toLocaleString()}. Awaiting Safaricom confirmation callback.`);
       setTimeout(() => {
@@ -1363,13 +1379,47 @@ export const FinancialOperationsWorkspace: React.FC<FinancialOperationsWorkspace
             )}
 
             <form onSubmit={handleStkPush} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {tenants.length > 0 && (
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                    Select Tenant & Lease
+                  </label>
+                  <select
+                    value={selectedTenantId}
+                    onChange={(e) => {
+                      const tid = e.target.value;
+                      setSelectedTenantId(tid);
+                      const t = tenants.find((item) => item.id === tid);
+                      if (t) {
+                        if (t.phone) setStkPhone(t.phone);
+                        const l = leases.find((item) => item.primary_tenant_id === t.id);
+                        if (l) {
+                          setStkAccountRef(l.lease_number || `RENT-${t.tenant_code}`);
+                          setStkAmount(String(l.monthly_rent_kes));
+                        } else {
+                          setStkAccountRef(`RENT-${t.tenant_code}`);
+                        }
+                      }
+                    }}
+                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.84rem' }}
+                  >
+                    {tenants.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.full_name} ({t.tenant_code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div>
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                  Payer Mobile Number (254...)
+                  Payer Mobile Number (254... or 07...)
                 </label>
                 <input
                   type="text"
                   required
+                  placeholder="e.g. 0712345678 or 254712345678"
                   value={stkPhone}
                   onChange={(e) => setStkPhone(e.target.value)}
                   style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.84rem' }}

@@ -23,6 +23,13 @@ pub enum AppError {
     #[error("Validation error: {0}")]
     Validation(String),
 
+    #[error("{message}")]
+    Structured {
+        status: StatusCode,
+        code: String,
+        message: String,
+    },
+
     #[error("Conflict or duplicate resource: {0}")]
     Conflict(String),
 
@@ -52,6 +59,7 @@ pub struct ApiErrorResponse {
 impl AppError {
     pub fn status_code(&self) -> StatusCode {
         match self {
+            Self::Structured { status, .. } => *status,
             Self::Unauthorized(_) => StatusCode::UNAUTHORIZED,
             Self::Forbidden(_) | Self::TenantIsolationViolation(_) => StatusCode::FORBIDDEN,
             Self::NotFound(_) => StatusCode::NOT_FOUND,
@@ -64,8 +72,9 @@ impl AppError {
         }
     }
 
-    pub fn error_code(&self) -> &'static str {
+    pub fn error_code(&self) -> &str {
         match self {
+            Self::Structured { code, .. } => code.as_str(),
             Self::Unauthorized(_) => "AUTH_UNAUTHORIZED",
             Self::Forbidden(_) => "AUTH_FORBIDDEN",
             Self::TenantIsolationViolation(_) => "TENANT_ISOLATION_VIOLATION",

@@ -2,6 +2,7 @@ use std::{
     io::Write,
     process::{Command, Stdio},
 };
+use axum::http::StatusCode;
 use chrono::Utc;
 use hmac::{Hmac, Mac};
 use rust_decimal::Decimal;
@@ -122,7 +123,7 @@ impl SafaricomDarajaAdapter {
         consumer_secret: &str,
         msisdn: &str,
         request: &StkPushRequest,
-    ) -> Result<StkPushInitiationResult, String> {
+    ) -> AppResult<StkPushInitiationResult> {
         // 1. Fetch OAuth access token from Safaricom Daraja
         let oauth_url = format!("{}/oauth/v1/generate?grant_type=client_credentials", self.base_url.trim_end_matches('/'));
         let auth_header = format!("Basic {}", base64_encode(format!("{consumer_key}:{consumer_secret}").as_bytes()));
@@ -137,22 +138,38 @@ impl SafaricomDarajaAdapter {
             .arg("-H")
             .arg(format!("Authorization: {auth_header}"))
             .output()
-            .map_err(|e| format!("Daraja OAuth curl spawn error: {e}"))?;
+            .map_err(|e| AppError::Structured {
+                status: axum::http::StatusCode::BAD_GATEWAY,
+                code: "DARAJA_CONNECTION_ERROR".to_string(),
+                message: format!("Daraja OAuth curl spawn error: {e}"),
+            })?;
 
         if !oauth_out.status.success() {
             let stderr = String::from_utf8_lossy(&oauth_out.stderr);
-            return Err(format!("Daraja OAuth connection failed: {stderr}"));
+            return Err(AppError::Structured {
+                status: axum::http::StatusCode::BAD_GATEWAY,
+                code: "DARAJA_AUTHENTICATION_FAILED".to_string(),
+                message: format!("Daraja OAuth connection failed: {stderr}"),
+            });
         }
 
         let oauth_json: serde_json::Value = serde_json::from_slice(&oauth_out.stdout)
-            .map_err(|e| format!("Invalid Daraja OAuth JSON: {e}"))?;
+            .map_err(|e| AppError::Structured {
+                status: axum::http::StatusCode::BAD_GATEWAY,
+                code: "DARAJA_AUTHENTICATION_FAILED".to_string(),
+                message: format!("Invalid Daraja OAuth JSON response: {e}"),
+            })?;
 
         let access_token = oauth_json
             .get("access_token")
             .and_then(|v| v.as_str())
             .ok_or_else(|| {
-                let err_desc = oauth_json.get("errorMessage").and_then(|v| v.as_str()).unwrap_or("Unknown OAuth error");
-                format!("Failed to retrieve Daraja access token: {err_desc}")
+                let err_desc = oauth_json.get("errorMessage").and_then(|v| v.as_str()).unwrap_or("Invalid consumer credentials");
+                AppError::Structured {
+                    status: axum::http::StatusCode::BAD_GATEWAY,
+                    code: "DARAJA_AUTHENTICATION_FAILED".to_string(),
+                    message: format!("Failed to retrieve Daraja access token: {err_desc}"),
+                }
             })?;
 
         // 2. Prepare STK Push payload
@@ -195,20 +212,36 @@ impl SafaricomDarajaAdapter {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .map_err(|e| format!("Daraja STK push curl spawn error: {e}"))?;
+            .map_err(|e| AppError::Structured {
+                status: axum::http::StatusCode::BAD_GATEWAY,
+                code: "DARAJA_CONNECTION_ERROR".to_string(),
+                message: format!("Daraja STK push curl spawn error: {e}"),
+            })?;
 
         if let Some(mut stdin) = child.stdin.take() {
             let _ = stdin.write_all(body_str.as_bytes());
         }
 
-        let stk_out = child.wait_with_output().map_err(|e| format!("Daraja STK push wait error: {e}"))?;
+        let stk_out = child.wait_with_output().map_err(|e| AppError::Structured {
+            status: axum::http::StatusCode::BAD_GATEWAY,
+            code: "DARAJA_CONNECTION_ERROR".to_string(),
+            message: format!("Daraja STK push wait error: {e}"),
+        })?;
         if !stk_out.status.success() {
             let stderr = String::from_utf8_lossy(&stk_out.stderr);
-            return Err(format!("Daraja STK push request failed: {stderr}"));
+            return Err(AppError::Structured {
+                status: axum::http::StatusCode::BAD_GATEWAY,
+                code: "DARAJA_CONNECTION_ERROR".to_string(),
+                message: format!("Daraja STK push request failed: {stderr}"),
+            });
         }
 
         let res_json: serde_json::Value = serde_json::from_slice(&stk_out.stdout)
-            .map_err(|e| format!("Invalid Daraja STK push response JSON: {e}"))?;
+            .map_err(|e| AppError::Structured {
+                status: axum::http::StatusCode::BAD_GATEWAY,
+                code: "DARAJA_VALIDATION_FAILED".to_string(),
+                message: format!("Invalid Daraja STK push response JSON: {e}"),
+            })?;
 
         let response_code = res_json.get("ResponseCode").and_then(|v| v.as_str()).unwrap_or("-1").to_string();
         if response_code == "0" {
@@ -223,7 +256,11 @@ impl SafaricomDarajaAdapter {
                 .or_else(|| res_json.get("errorMessage"))
                 .and_then(|v| v.as_str())
                 .unwrap_or("Daraja STK push rejected");
-            Err(format!("Daraja STK Push Error: {desc}"))
+            Err(AppError::Structured {
+                status: axum::http::StatusCode::UNPROCESSABLE_ENTITY,
+                code: "DARAJA_VALIDATION_FAILED".to_string(),
+                message: format!("Safaricom Daraja STK Push Error: {desc}"),
+            })
         }
     }
 }
@@ -232,22 +269,30 @@ impl MpesaAdapter for SafaricomDarajaAdapter {
     /// Normalizes Kenyan phone numbers (`07XX...`, `01XX...`, `+2547XX...`, `2547XX...`) to Daraja format `254XXXXXXXXX`
     fn normalize_kenyan_phone(&self, raw_phone: &str) -> AppResult<String> {
         let digits: String = raw_phone.chars().filter(|c| c.is_ascii_digit()).collect();
-        let normalized = if digits.starts_with("07") || digits.starts_with("01") {
+        let normalized = if (digits.starts_with("07") || digits.starts_with("01")) && digits.len() == 10 {
             format!("254{}", &digits[1..])
-        } else if digits.starts_with("254") {
+        } else if digits.starts_with("254") && digits.len() == 12 {
             digits
         } else if (digits.starts_with('7') || digits.starts_with('1')) && digits.len() == 9 {
             format!("254{digits}")
         } else {
-            return Err(AppError::Validation(format!(
-                "Invalid Kenyan phone number '{raw_phone}'. Expected 07XXXXXXXX, 01XXXXXXXX, or +2547XXXXXXXX"
-            )));
+            return Err(AppError::Structured {
+                status: axum::http::StatusCode::BAD_REQUEST,
+                code: "INVALID_PHONE_NUMBER".to_string(),
+                message: format!(
+                    "Invalid Kenyan phone number '{raw_phone}'. Expected 07XXXXXXXX, 01XXXXXXXX, or +2547XXXXXXXX (12 digits)."
+                ),
+            });
         };
 
         if normalized.len() != 12 {
-            return Err(AppError::Validation(format!(
-                "Normalized Kenyan MSISDN must be 12 digits (254XXXXXXXXX), got '{normalized}'"
-            )));
+            return Err(AppError::Structured {
+                status: axum::http::StatusCode::BAD_REQUEST,
+                code: "INVALID_PHONE_NUMBER".to_string(),
+                message: format!(
+                    "Normalized Kenyan MSISDN must be 12 digits (254XXXXXXXXX), got '{normalized}'"
+                ),
+            });
         }
 
         Ok(normalized)
@@ -255,22 +300,27 @@ impl MpesaAdapter for SafaricomDarajaAdapter {
 
     fn initiate_stk_push(&self, request: &StkPushRequest) -> AppResult<StkPushInitiationResult> {
         if request.amount_kes <= Decimal::ZERO {
-            return Err(AppError::Validation(
-                "M-Pesa STK Push amount must be greater than KES 0".to_string(),
-            ));
+            return Err(AppError::Structured {
+                status: axum::http::StatusCode::BAD_REQUEST,
+                code: "INVALID_AMOUNT".to_string(),
+                message: "M-Pesa STK Push amount must be greater than KES 0".to_string(),
+            });
         }
 
         let msisdn = self.normalize_kenyan_phone(&request.phone_number)?;
 
-        self.breaker.call(|| {
-            if let (Some(ck), Some(cs)) = (&self.consumer_key, &self.consumer_secret) {
-                if !ck.is_empty() && !cs.is_empty() {
-                    return self.execute_real_daraja_stk_push(ck, cs, &msisdn, request);
-                }
-            }
+        let ck = self.consumer_key.as_deref().unwrap_or("").trim();
+        let cs = self.consumer_secret.as_deref().unwrap_or("").trim();
 
-            Err("Safaricom Daraja credentials (Consumer Key, Consumer Secret, and Passkey) must be configured in Settings & Portal to initiate live STK push".to_string())
-        })
+        if ck.is_empty() || cs.is_empty() {
+            return Err(AppError::Structured {
+                status: axum::http::StatusCode::UNPROCESSABLE_ENTITY,
+                code: "DARAJA_CONFIGURATION_MISSING".to_string(),
+                message: "Safaricom Daraja credentials (Consumer Key, Consumer Secret, and Passkey) must be configured in Settings & Portal to initiate live STK push".to_string(),
+            });
+        }
+
+        self.execute_real_daraja_stk_push(ck, cs, &msisdn, request)
     }
 
     fn verify_callback_signature(&self, payload_bytes: &[u8], signature_hex: &str) -> AppResult<()> {

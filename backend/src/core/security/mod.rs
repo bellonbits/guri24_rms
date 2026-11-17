@@ -50,6 +50,9 @@ impl SystemRole {
                 "assistant.use",
                 "reports.export",
                 "users.manage",
+                "notifications.view",
+                "notifications.manage",
+                "notifications.settings",
             ],
             Self::PropertyOwner => vec![
                 "properties.view",
@@ -64,6 +67,7 @@ impl SystemRole {
                 "ocr.review",
                 "assistant.use",
                 "reports.export",
+                "notifications.view",
             ],
             Self::PropertyManager => vec![
                 "properties.view",
@@ -84,6 +88,7 @@ impl SystemRole {
                 "ocr.review",
                 "assistant.use",
                 "reports.export",
+                "notifications.view",
             ],
             Self::Accountant => vec![
                 "properties.view",
@@ -99,6 +104,7 @@ impl SystemRole {
                 "ocr.review",
                 "assistant.use",
                 "reports.export",
+                "notifications.view",
             ],
             Self::Receptionist => vec![
                 "properties.view",

@@ -207,9 +207,48 @@ impl PaymentAllocationStrategy for FifoOldestFirstAllocationStrategy {
     }
 }
 
-#[derive(Debug, Clone, Deserialize)]
+fn deserialize_flexible_uuid<'de, D>(deserializer: D) -> Result<Uuid, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    use serde::de::Error;
+    let s = String::deserialize(deserializer)?;
+    let trimmed = s.trim();
+    if trimmed.is_empty() {
+        return Err(D::Error::custom("tenant_id cannot be empty"));
+    }
+    match Uuid::parse_str(trimmed) {
+        Ok(u) => Ok(u),
+        Err(_) => Ok(Uuid::new_v5(&Uuid::NAMESPACE_OID, trimmed.as_bytes())),
+    }
+}
+
+fn deserialize_optional_flexible_uuid<'de, D>(deserializer: D) -> Result<Option<Uuid>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let opt = Option::<String>::deserialize(deserializer)?;
+    match opt {
+        None => Ok(None),
+        Some(s) => {
+            let trimmed = s.trim();
+            if trimmed.is_empty() {
+                Ok(None)
+            } else {
+                match Uuid::parse_str(trimmed) {
+                    Ok(u) => Ok(Some(u)),
+                    Err(_) => Ok(Some(Uuid::new_v5(&Uuid::NAMESPACE_OID, trimmed.as_bytes()))),
+                }
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InitiateMpesaPaymentCommand {
+    #[serde(deserialize_with = "deserialize_flexible_uuid")]
     pub tenant_id: Uuid,
+    #[serde(default, deserialize_with = "deserialize_optional_flexible_uuid")]
     pub lease_id: Option<Uuid>,
     pub phone_number: String,
     pub amount_kes: Decimal,
@@ -271,9 +310,20 @@ impl PaymentRepository for InMemoryPaymentRepository {
         cmd: InitiateMpesaPaymentCommand,
     ) -> AppResult<Payment> {
         if cmd.amount_kes <= Decimal::ZERO {
-            return Err(AppError::Validation(
-                "Payment amount must be greater than KES 0".to_string(),
-            ));
+            return Err(AppError::Structured {
+                status: axum::http::StatusCode::BAD_REQUEST,
+                code: "INVALID_AMOUNT".to_string(),
+                message: "Payment amount must be greater than KES 0".to_string(),
+            });
+        }
+
+        let acc_ref = cmd.account_reference.trim();
+        if acc_ref.is_empty() {
+            return Err(AppError::Structured {
+                status: axum::http::StatusCode::BAD_REQUEST,
+                code: "INVALID_INVOICE".to_string(),
+                message: "Valid invoice or account reference is required to initiate M-Pesa payment".to_string(),
+            });
         }
 
         // Idempotency check by (organization_id, idempotency_key)

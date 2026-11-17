@@ -145,14 +145,25 @@ class ApiClient {
 
       let errorMessage = `API error ${response.status}: ${response.statusText}`;
       try {
-        const errorJson = await response.json();
-        if (errorJson && typeof errorJson === 'object' && 'message' in errorJson) {
-          errorMessage = String(errorJson.message);
-        } else if (errorJson && typeof errorJson === 'object' && 'error' in errorJson) {
-          errorMessage = String(errorJson.error);
+        const text = await response.text();
+        try {
+          const errorJson = JSON.parse(text);
+          if (errorJson && typeof errorJson === 'object') {
+            if (errorJson.message) {
+              errorMessage = errorJson.code
+                ? `[${errorJson.code}] ${errorJson.message}`
+                : String(errorJson.message);
+            } else if (errorJson.error) {
+              errorMessage = String(errorJson.error);
+            }
+          }
+        } catch {
+          if (text && text.trim().length > 0) {
+            errorMessage = text.trim();
+          }
         }
       } catch {
-        // Fallback to text
+        // Fallback to initial statusText
       }
       throw new Error(errorMessage);
     }

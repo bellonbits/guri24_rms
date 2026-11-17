@@ -57,6 +57,9 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'assistant.use',
     'reports.export',
     'users.manage',
+    'notifications.view',
+    'notifications.manage',
+    'notifications.settings',
   ],
   ORGANIZATION_ADMINISTRATOR: [
     'properties.view',
@@ -80,6 +83,9 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'assistant.use',
     'reports.export',
     'users.manage',
+    'notifications.view',
+    'notifications.manage',
+    'notifications.settings',
   ],
   PROPERTY_OWNER: [
     'properties.view',
@@ -93,6 +99,7 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'documents.view',
     'assistant.use',
     'reports.export',
+    'notifications.view',
   ],
   PROPERTY_MANAGER: [
     'properties.view',
@@ -113,6 +120,7 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'ocr.review',
     'assistant.use',
     'reports.export',
+    'notifications.view',
   ],
   ACCOUNTANT: [
     'properties.view',
@@ -128,6 +136,7 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'ocr.review',
     'assistant.use',
     'reports.export',
+    'notifications.view',
   ],
   RECEPTIONIST: [
     'properties.view',
