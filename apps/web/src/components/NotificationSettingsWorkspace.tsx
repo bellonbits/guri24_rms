@@ -2002,83 +2002,191 @@ export const NotificationSettingsWorkspace: React.FC<NotificationSettingsWorkspa
             </div>
 
             {/* Content Body Area */}
-            {previewTemplate.key === 'ACCOUNT_APPROVED' || previewTemplate.isAccountApprovedDesign ? (
-              <div style={{ padding: '36px 24px', background: '#f8fafc', textAlign: 'center' }}>
-                {/* Circular Brand Logo Badge */}
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '18px' }}>
-                  <div
-                    style={{
-                      width: '56px',
-                      height: '56px',
-                      borderRadius: '50%',
-                      background: '#0284c7',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 10px rgba(2, 132, 199, 0.25)',
-                    }}
-                  >
-                    <img
-                      src="/Futuristic Blue-Green House Logo.png"
-                      alt="Guri24 RMS"
-                      style={{ width: '32px', height: '32px', objectFit: 'contain' }}
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = '/logo.png';
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Headline Greeting */}
-                <h2
-                  style={{
-                    fontSize: '1.4rem',
-                    fontWeight: 400,
-                    color: '#1e293b',
-                    margin: '0 0 24px 0',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  Hi <strong style={{ fontWeight: 700 }}>{previewTemplate.recipientName.split(' ')[0]}</strong>,<br />
-                  your <strong style={{ fontWeight: 700 }}>Guri24 RMS</strong> account has been approved!
-                </h2>
-
-                {/* Card 1: Envelope illustration & CTA */}
+            <div style={{ padding: '32px 20px', background: '#f8fafc', textAlign: 'center' }}>
+              {/* Circular Brand Logo Badge */}
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
                 <div
                   style={{
-                    background: '#ffffff',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '12px',
-                    padding: '36px 28px',
-                    maxWidth: '480px',
-                    margin: '0 auto 16px auto',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '50%',
+                    background: '#0284c7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 10px rgba(2, 132, 199, 0.25)',
                   }}
                 >
-                  {/* Illustration: Laptop with NEW EMAIL! (apps/web/public/image.png) */}
-                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '18px' }}>
-                    <img
-                      src="/image.png"
-                      alt="New Email Notification"
+                  <img
+                    src="/Futuristic Blue-Green House Logo.png"
+                    alt="Guri24 RMS"
+                    style={{ width: '32px', height: '32px', objectFit: 'contain' }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/logo.png';
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Headline Greeting */}
+              <h2
+                style={{
+                  fontSize: '1.35rem',
+                  fontWeight: 400,
+                  color: '#1e293b',
+                  margin: '0 0 20px 0',
+                  lineHeight: 1.4,
+                }}
+              >
+                Hi <strong style={{ fontWeight: 700 }}>{previewTemplate.recipientName.split(' ')[0]}</strong>,<br />
+                <span style={{ fontWeight: 700 }}>{previewTemplate.subject}</span>
+              </h2>
+
+              {/* Card 1: Main Content Card featuring Laptop Illustration */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  padding: '32px 24px',
+                  maxWidth: '480px',
+                  margin: '0 auto 16px auto',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+                  textAlign: 'center',
+                }}
+              >
+                {/* Illustration: Laptop with NEW EMAIL! (apps/web/public/image.png) */}
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                  <img
+                    src="/image.png"
+                    alt="New Email Notification"
+                    style={{
+                      width: '130px',
+                      height: '130px',
+                      maxWidth: '100%',
+                      objectFit: 'contain',
+                      display: 'block',
+                    }}
+                  />
+                </div>
+
+                {/* Salutation with @mention chip */}
+                <div style={{ fontSize: '0.9rem', color: '#334155', marginBottom: '14px', textAlign: 'left' }}>
+                  Hey{' '}
+                  <span
+                    style={{
+                      background: '#ede9fe',
+                      color: '#6d28d9',
+                      padding: '2px 8px',
+                      borderRadius: '6px',
+                      fontWeight: 600,
+                      fontSize: '0.84rem',
+                    }}
+                  >
+                    @{previewTemplate.namePart}
+                  </span>
+                  ,
+                </div>
+
+                {/* Body paragraphs */}
+                <div style={{ textAlign: 'left' }}>
+                  {previewTemplate.bodyParagraphs.map((para, pIdx) => (
+                    <p
+                      key={pIdx}
                       style={{
-                        width: '140px',
-                        height: '140px',
-                        maxWidth: '100%',
-                        objectFit: 'contain',
-                        display: 'block',
+                        fontSize: '0.86rem',
+                        lineHeight: 1.6,
+                        color: '#475569',
+                        margin: '0 0 12px 0',
                       }}
-                    />
+                    >
+                      {para}
+                    </p>
+                  ))}
+                </div>
+
+                {/* Highlight Box if present */}
+                {previewTemplate.highlightBox && (
+                  <div
+                    style={{
+                      background: previewTemplate.highlightBox.bg,
+                      border: `1px solid ${previewTemplate.highlightBox.border}`,
+                      borderRadius: '10px',
+                      padding: '16px 18px',
+                      margin: '18px 0',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: '0.74rem',
+                        fontWeight: 700,
+                        color: previewTemplate.highlightBox.color,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      {previewTemplate.highlightBox.title}
+                    </div>
+                    <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
+                      {previewTemplate.highlightBox.primary}
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
+                      {previewTemplate.highlightBox.subtext}
+                    </div>
                   </div>
+                )}
 
-                  <p style={{ fontSize: '0.88rem', color: '#475569', lineHeight: 1.5, margin: '0 0 14px 0' }}>
-                    Your Guri24 RMS account has been approved and you can now log in to the Guri24 portal.
-                  </p>
+                {/* Attachments Section if present */}
+                {previewTemplate.attachments && previewTemplate.attachments.length > 0 && (
+                  <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', textAlign: 'left' }}>
+                    <div style={{ fontSize: '0.74rem', color: '#94a3b8', fontWeight: 600, marginBottom: '10px' }}>
+                      {previewTemplate.attachments.length} attachments
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {previewTemplate.attachments.map((att, aIdx) => (
+                        <div
+                          key={aIdx}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '8px',
+                            padding: '8px 12px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '6px',
+                              background: att.type === 'pdf' ? '#fef2f2' : '#eff6ff',
+                              color: att.type === 'pdf' ? '#ef4444' : '#2563eb',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                            }}
+                          >
+                            {att.type.toUpperCase()}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {att.name}
+                            </div>
+                            <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{att.size}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-                  <p style={{ fontSize: '0.82rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 22px 0' }}>
-                    You can access Guri24 RMS online or on any device by going to<br />
-                    <span style={{ color: '#0284c7', fontWeight: 600 }}>https://guri24rms.co.ke</span>
-                  </p>
-
+                {/* CTA Action Button */}
+                <div style={{ marginTop: '22px' }}>
                   <a
                     href="https://guri24rms.co.ke"
                     target="_blank"
@@ -2088,237 +2196,118 @@ export const NotificationSettingsWorkspace: React.FC<NotificationSettingsWorkspa
                       background: '#0284c7',
                       color: '#ffffff',
                       textDecoration: 'none',
-                      padding: '12px 36px',
+                      padding: '11px 32px',
                       borderRadius: '6px',
-                      fontSize: '0.9rem',
+                      fontSize: '0.88rem',
                       fontWeight: 600,
                     }}
                   >
-                    Get started
+                    {previewTemplate.key === 'ACCOUNT_APPROVED'
+                      ? 'Get started'
+                      : previewTemplate.key === 'PAYMENT_RECEIPT'
+                      ? 'View Statement in Portal'
+                      : previewTemplate.key === 'INVOICE_ISSUED'
+                      ? 'Settle via M-Pesa STK Push'
+                      : previewTemplate.key === 'DEPOSIT_RECEIVED'
+                      ? 'Download Deposit Bond'
+                      : 'Open in Guri24 RMS'}
                   </a>
                 </div>
-
-                {/* Card 2: Get the app */}
-                <div
-                  style={{
-                    background: '#ffffff',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '12px',
-                    padding: '28px 24px',
-                    maxWidth: '480px',
-                    margin: '0 auto 24px auto',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                  }}
-                >
-                  <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', margin: '0 0 8px 0' }}>
-                    Get the Guri24 RMS app!
-                  </h3>
-                  <p style={{ fontSize: '0.82rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 20px 0' }}>
-                    Get the most of Guri24 RMS by installing the mobile app.<br />
-                    You can log in by using your existing email address and password.
-                  </p>
-
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                    {/* App Store button */}
-                    <div
-                      style={{
-                        background: '#000000',
-                        color: '#ffffff',
-                        borderRadius: '8px',
-                        padding: '6px 14px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <svg width="18" height="22" viewBox="0 0 170 170" fill="#ffffff">
-                        <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.59-7.71-11.66-14.01-6.19-9.57-11.02-20.4-14.5-32.48-3.48-12.08-5.22-23.48-5.22-34.19 0-14.78 3.7-27.18 11.1-37.19 7.4-10.01 16.92-15.11 28.56-15.31 4.58 0 9.87 1.25 15.87 3.75 6 2.5 10.15 3.8 12.45 3.91 1.74 0 5.86-1.36 12.35-4.08 6.49-2.72 11.75-3.97 15.78-3.75 12.08.76 21.73 5.43 28.95 14.01-10.66 6.42-15.88 15.44-15.66 27.08.22 9.13 3.69 16.85 10.42 23.16 6.74 6.31 14.78 9.89 24.13 10.76-2.07 6.41-4.78 13.04-8.15 19.89zM119.22 31.86c0-7.39 2.61-14.35 7.83-20.87 5.22-6.52 11.63-10.54 19.24-12.07.22 1.3.33 2.61.33 3.91 0 7.39-2.72 14.46-8.16 21.2-5.44 6.74-11.85 10.54-19.24 11.41-.33-1.08-.33-2.28-.33-3.58z" />
-                      </svg>
-                      <div style={{ textAlign: 'left' }}>
-                        <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#d1d5db', lineHeight: 1 }}>Available on the</div>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff', lineHeight: 1.2 }}>App Store</div>
-                      </div>
-                    </div>
-
-                    {/* Google Play button */}
-                    <div
-                      style={{
-                        background: '#000000',
-                        color: '#ffffff',
-                        borderRadius: '8px',
-                        padding: '6px 14px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <svg width="18" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M3.6 2.3C3.2 2.7 3 3.3 3 4.1v15.8c0 .8.2 1.4.6 1.8l.1.1 9.1-9.1v-.2L3.6 2.3z" fill="#00D2FF" />
-                        <path d="M15.8 15.6l-3-3v-.2l3-3 .1.1 3.5 2c1 .6 1 1.5 0 2.1l-3.6 2z" fill="#FFCE00" />
-                        <path d="M12.8 12.5L3.6 21.7c.4.4 1.1.5 1.9 0l10.4-6.1-3.1-3.1z" fill="#00E676" />
-                        <path d="M12.8 11.5l3.1-3.1-10.4-6c-.8-.5-1.5-.3-1.9.1l9.2 9z" fill="#FF3A44" />
-                      </svg>
-                      <div style={{ textAlign: 'left' }}>
-                        <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#d1d5db', lineHeight: 1 }}>GET IT ON</div>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff', lineHeight: 1.2 }}>Google Play</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer with social icons */}
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '14px' }}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#0284c7', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px' }}>
-                    f
-                  </div>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#38bdf8', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px' }}>
-                    &#120143;
-                  </div>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#0284c7', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px' }}>
-                    in
-                  </div>
-                </div>
-
-                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0284c7', letterSpacing: '-0.02em', marginBottom: '6px' }}>
-                  guri24
-                </div>
-
-                <div style={{ fontSize: '0.72rem', color: '#94a3b8', lineHeight: 1.6, maxWidth: '380px', margin: '0 auto' }}>
-                  Copyright © 2026, Guri24 Rental Management Ltd.<br />
-                  A better company begins with a personalised property management experience.
-                </div>
               </div>
-            ) : (
-              <div style={{ padding: '28px 32px', background: '#ffffff' }}>
-                {/* Bold Title */}
-                <h2
-                  style={{
-                    fontSize: '1.4rem',
-                    fontWeight: 800,
-                    color: '#0f172a',
-                    letterSpacing: '-0.02em',
-                    margin: '0 0 18px 0',
-                  }}
-                >
-                  {previewTemplate.subject}
-                </h2>
 
-                {/* Salutation with @mention chip */}
-                <div style={{ fontSize: '0.94rem', color: '#334155', marginBottom: '16px' }}>
-                  Hey{' '}
-                  <span
-                    style={{
-                      background: '#ede9fe',
-                      color: '#6d28d9',
-                      padding: '2px 8px',
-                      borderRadius: '6px',
-                      fontWeight: 600,
-                      fontSize: '0.88rem',
-                    }}
-                  >
-                    @{previewTemplate.namePart}
-                  </span>
-                  ,
-                </div>
+              {/* Card 2: Get the App */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  padding: '24px 20px',
+                  maxWidth: '480px',
+                  margin: '0 auto 20px auto',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+                  textAlign: 'center',
+                }}
+              >
+                <h3 style={{ fontSize: '0.98rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
+                  Get the Guri24 RMS app!
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+                  Get the most of Guri24 RMS by installing the mobile app.<br />
+                  You can log in by using your existing email address and password.
+                </p>
 
-                {/* Body paragraphs */}
-                {previewTemplate.bodyParagraphs.map((para, pIdx) => (
-                  <p
-                    key={pIdx}
-                    style={{
-                      fontSize: '0.88rem',
-                      lineHeight: 1.65,
-                      color: '#475569',
-                      margin: '0 0 14px 0',
-                    }}
-                  >
-                    {para}
-                  </p>
-                ))}
-
-                {/* Highlight Box if present */}
-                {previewTemplate.highlightBox && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  {/* App Store button */}
                   <div
                     style={{
-                      background: previewTemplate.highlightBox.bg,
-                      border: `1px solid ${previewTemplate.highlightBox.border}`,
-                      borderRadius: '12px',
-                      padding: '16px 20px',
-                      margin: '20px 0',
+                      background: '#000000',
+                      color: '#ffffff',
+                      borderRadius: '8px',
+                      padding: '6px 14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
                     }}
                   >
-                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: previewTemplate.highlightBox.color, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      {previewTemplate.highlightBox.title}
-                    </div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
-                      {previewTemplate.highlightBox.primary}
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                      {previewTemplate.highlightBox.subtext}
+                    <svg width="18" height="22" viewBox="0 0 170 170" fill="#ffffff">
+                      <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.59-7.71-11.66-14.01-6.19-9.57-11.02-20.4-14.5-32.48-3.48-12.08-5.22-23.48-5.22-34.19 0-14.78 3.7-27.18 11.1-37.19 7.4-10.01 16.92-15.11 28.56-15.31 4.58 0 9.87 1.25 15.87 3.75 6 2.5 10.15 3.8 12.45 3.91 1.74 0 5.86-1.36 12.35-4.08 6.49-2.72 11.75-3.97 15.78-3.75 12.08.76 21.73 5.43 28.95 14.01-10.66 6.42-15.88 15.44-15.66 27.08.22 9.13 3.69 16.85 10.42 23.16 6.74 6.31 14.78 9.89 24.13 10.76-2.07 6.41-4.78 13.04-8.15 19.89zM119.22 31.86c0-7.39 2.61-14.35 7.83-20.87 5.22-6.52 11.63-10.54 19.24-12.07.22 1.3.33 2.61.33 3.91 0 7.39-2.72 14.46-8.16 21.2-5.44 6.74-11.85 10.54-19.24 11.41-.33-1.08-.33-2.28-.33-3.58z" />
+                    </svg>
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#d1d5db', lineHeight: 1 }}>Available on the</div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff', lineHeight: 1.2 }}>App Store</div>
                     </div>
                   </div>
-                )}
 
-                {/* Signoff */}
-                <div style={{ fontSize: '0.88rem', color: '#475569', marginTop: '20px' }}>
-                  Best regards,<br />
-                  <strong style={{ color: '#0f172a' }}>Guri24 RMS Operations Team</strong>
+                  {/* Google Play button */}
+                  <div
+                    style={{
+                      background: '#000000',
+                      color: '#ffffff',
+                      borderRadius: '8px',
+                      padding: '6px 14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <svg width="18" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M3.6 2.3C3.2 2.7 3 3.3 3 4.1v15.8c0 .8.2 1.4.6 1.8l.1.1 9.1-9.1v-.2L3.6 2.3z" fill="#00D2FF" />
+                      <path d="M15.8 15.6l-3-3v-.2l3-3 .1.1 3.5 2c1 .6 1 1.5 0 2.1l-3.6 2z" fill="#FFCE00" />
+                      <path d="M12.8 12.5L3.6 21.7c.4.4 1.1.5 1.9 0l10.4-6.1-3.1-3.1z" fill="#00E676" />
+                      <path d="M12.8 11.5l3.1-3.1-10.4-6c-.8-.5-1.5-.3-1.9.1l9.2 9z" fill="#FF3A44" />
+                    </svg>
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontSize: '8px', textTransform: 'uppercase', color: '#d1d5db', lineHeight: 1 }}>GET IT ON</div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff', lineHeight: 1.2 }}>Google Play</div>
+                    </div>
+                  </div>
                 </div>
-
-                {/* Attachments Section (matching user mockup tiles) */}
-                {previewTemplate.attachments && previewTemplate.attachments.length > 0 && (
-                  <div style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid #f1f5f9' }}>
-                    <div style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 600, marginBottom: '12px' }}>
-                      {previewTemplate.attachments.length} attachments
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                      {previewTemplate.attachments.map((att, aIdx) => (
-                        <div
-                          key={aIdx}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            background: '#ffffff',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: '10px',
-                            padding: '10px 14px',
-                            minWidth: '220px',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: '32px',
-                              height: '32px',
-                              borderRadius: '6px',
-                              background: att.type === 'pdf' ? '#fef2f2' : '#eff6ff',
-                              color: att.type === 'pdf' ? '#ef4444' : '#2563eb',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '0.7rem',
-                              fontWeight: 800,
-                            }}
-                          >
-                            {att.type.toUpperCase()}
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              {att.name}
-                            </div>
-                            <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{att.size}</div>
-                          </div>
-                          <MoreVertical size={14} color="#94a3b8" style={{ cursor: 'pointer' }} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
-            )}
+
+              {/* Footer with social icons */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '12px' }}>
+                <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: '#0284c7', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '13px' }}>
+                  f
+                </div>
+                <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: '#38bdf8', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px' }}>
+                  &#120143;
+                </div>
+                <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: '#0284c7', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '12px' }}>
+                  in
+                </div>
+              </div>
+
+              <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0284c7', letterSpacing: '-0.02em', marginBottom: '6px' }}>
+                guri24
+              </div>
+
+              <div style={{ fontSize: '0.72rem', color: '#94a3b8', lineHeight: 1.5, maxWidth: '380px', margin: '0 auto' }}>
+                Copyright © 2026, Guri24 Rental Management Ltd.<br />
+                A better company begins with a personalised property management experience.
+              </div>
+            </div>
 
             {/* Bottom Actions Footer (Matching user mockup) */}
             <div
