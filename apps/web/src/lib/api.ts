@@ -1,4 +1,4 @@
-import {
+import type {
   AssistantActionConfirmation,
   AssistantAttachment,
   AssistantCitation,
@@ -31,8 +31,13 @@ import {
   TenantApplication,
   Unit,
   Vendor,
-} from '../types';
-import { maskNationalId, normalizeKenyanPhone } from './formatters';
+  Invitation,
+  ManagedStaffMember,
+  PlatformOrganization,
+  UserPropertyAccess,
+  AccessAuditLog,
+} from '../types/index.ts';
+import { maskNationalId, normalizeKenyanPhone } from './formatters.ts';
 
 export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
   SAAS_SUPER_ADMINISTRATOR: [
@@ -60,6 +65,8 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'notifications.view',
     'notifications.manage',
     'notifications.settings',
+    'platform.admin',
+    'platform.organizations.manage',
   ],
   ORGANIZATION_ADMINISTRATOR: [
     'properties.view',
@@ -211,6 +218,11 @@ export interface RmsPlatformState {
   inspections: InspectionRecord[];
   subscriptions: SubscriptionSummary[];
   integrationsStatus: IntegrationStatusItem[];
+  invitations: Invitation[];
+  staffMembers: ManagedStaffMember[];
+  userPropertyAccess: UserPropertyAccess[];
+  accessAuditLogs: AccessAuditLog[];
+  platformOrganizations: PlatformOrganization[];
 }
 
 export function createEmptyRmsState(): RmsPlatformState {
@@ -244,11 +256,16 @@ export function createEmptyRmsState(): RmsPlatformState {
     inspections: [],
     subscriptions: [],
     integrationsStatus: [],
+    invitations: [],
+    staffMembers: [],
+    userPropertyAccess: [],
+    accessAuditLogs: [],
+    platformOrganizations: [],
   };
 }
 
 export function createInitialRmsState(): RmsPlatformState {
-  return createEmptyRmsState();
+  return sanitizeWorkspaceState(createEmptyRmsState());
 }
 
 /**
@@ -316,6 +333,165 @@ export function sanitizeWorkspaceState(raw: any): RmsPlatformState {
   const confList = Array.isArray(clean.assistantConfirmations) ? clean.assistantConfirmations : Array.isArray(clean.confirmations) ? clean.confirmations : [];
   clean.assistantConfirmations = confList;
   clean.confirmations = confList;
+
+  // 4. Onboarding, Staff Management, Scoping & Platform Administration entities
+  clean.invitations = Array.isArray(clean.invitations) ? clean.invitations : [];
+  clean.staffMembers = Array.isArray(clean.staffMembers) ? clean.staffMembers : [];
+  clean.userPropertyAccess = Array.isArray(clean.userPropertyAccess) ? clean.userPropertyAccess : [];
+  clean.accessAuditLogs = Array.isArray(clean.accessAuditLogs) ? clean.accessAuditLogs : [];
+  clean.platformOrganizations = Array.isArray(clean.platformOrganizations) ? clean.platformOrganizations : [];
+
+  // Seed baseline staff if empty for default organization
+  if (clean.staffMembers.length === 0) {
+    clean.staffMembers = [
+      {
+        id: 'usr-org-admin-001',
+        organization_id: clean.currentOrganizationId || 'org-guri24-001',
+        email: 'petergatitu61@gmail.com',
+        phone: '+254712345678',
+        full_name: 'Peter Gatitu Mwangi',
+        role: 'ORGANIZATION_ADMINISTRATOR',
+        status: 'ACTIVE',
+        assigned_property_ids: ['prop-001', 'prop-002'],
+        created_at: '2026-01-01T00:00:00Z',
+        last_login_at: '2026-11-17T08:30:00Z',
+      },
+      {
+        id: 'usr-staff-pm-001',
+        organization_id: clean.currentOrganizationId || 'org-guri24-001',
+        email: 'sarah.wanjiku@guri24.co.ke',
+        phone: '+254722112233',
+        full_name: 'Sarah Wanjiku',
+        role: 'PROPERTY_MANAGER',
+        status: 'ACTIVE',
+        assigned_property_ids: ['prop-001'],
+        created_at: '2026-02-15T09:00:00Z',
+        last_login_at: '2026-11-16T14:20:00Z',
+      },
+      {
+        id: 'usr-staff-acc-001',
+        organization_id: clean.currentOrganizationId || 'org-guri24-001',
+        email: 'david.ochieng@guri24.co.ke',
+        phone: '+254733445566',
+        full_name: 'David Ochieng',
+        role: 'ACCOUNTANT',
+        status: 'ACTIVE',
+        assigned_property_ids: ['prop-001', 'prop-002'],
+        created_at: '2026-03-01T10:00:00Z',
+        last_login_at: '2026-11-17T11:15:00Z',
+      },
+      {
+        id: 'usr-staff-mnt-001',
+        organization_id: clean.currentOrganizationId || 'org-guri24-001',
+        email: 'joseph.karanja@guri24.co.ke',
+        phone: '+254711889900',
+        full_name: 'Joseph Karanja',
+        role: 'MAINTENANCE_OFFICER',
+        status: 'ACTIVE',
+        assigned_property_ids: ['prop-001'],
+        created_at: '2026-04-10T08:00:00Z',
+        last_login_at: '2026-11-15T16:45:00Z',
+      },
+    ];
+  }
+
+  // Seed baseline invitations if empty
+  if (clean.invitations.length === 0) {
+    clean.invitations = [
+      {
+        id: 'inv-init-001',
+        organization_id: clean.currentOrganizationId || 'org-guri24-001',
+        invitation_type: 'STAFF',
+        email: 'jane.mutua@gmail.com',
+        phone: '+254799001122',
+        full_name: 'Jane Mutua',
+        role: 'RECEPTIONIST',
+        token_hash: 'hash-jane-mutua-token-2026',
+        status: 'PENDING',
+        property_ids: ['prop-001'],
+        delivery_status: 'DELIVERED',
+        sent_count: 1,
+        expires_at: new Date(Date.now() + 5 * 86400000).toISOString(),
+        created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+      },
+      {
+        id: 'inv-init-002',
+        organization_id: clean.currentOrganizationId || 'org-guri24-001',
+        invitation_type: 'STAFF',
+        email: 'brian.kiprop@gmail.com',
+        phone: '+254788334455',
+        full_name: 'Brian Kiprop',
+        role: 'CARETAKER',
+        token_hash: 'hash-brian-kiprop-token-2026',
+        status: 'PENDING',
+        property_ids: ['prop-002'],
+        delivery_status: 'DELIVERED',
+        sent_count: 1,
+        expires_at: new Date(Date.now() + 4 * 86400000).toISOString(),
+        created_at: new Date(Date.now() - 3 * 86400000).toISOString(),
+      },
+    ];
+  }
+
+  // Seed platform organizations if empty
+  if (clean.platformOrganizations.length === 0) {
+    clean.platformOrganizations = [
+      {
+        id: 'org-guri24-001',
+        name: 'Guri24 Rental Management Ltd',
+        slug: 'guri24-rental-management',
+        organization_type: 'PROPERTY_MANAGEMENT_COMPANY',
+        county: 'Nairobi',
+        contact_email: 'petergatitu61@gmail.com',
+        contact_phone: '+254712345678',
+        admin_full_name: 'Peter Gatitu Mwangi',
+        admin_email: 'petergatitu61@gmail.com',
+        status: 'ACTIVE',
+        subscription_plan: 'PROFESSIONAL',
+        properties_count: 2,
+        units_count: 8,
+        active_tenants_count: 6,
+        monthly_mrr_kes: 45000,
+        created_at: '2026-01-01T00:00:00Z',
+      },
+      {
+        id: 'org-kilimani-002',
+        name: 'Kilimani Prime Properties Ltd',
+        slug: 'kilimani-prime-properties',
+        organization_type: 'REAL_ESTATE_AGENCY',
+        county: 'Nairobi',
+        contact_email: 'info@kilimaniprime.co.ke',
+        contact_phone: '+254722556677',
+        admin_full_name: 'Grace Njeri',
+        admin_email: 'grace@kilimaniprime.co.ke',
+        status: 'ACTIVE',
+        subscription_plan: 'STARTER',
+        properties_count: 1,
+        units_count: 14,
+        active_tenants_count: 12,
+        monthly_mrr_kes: 25000,
+        created_at: '2026-03-12T00:00:00Z',
+      },
+      {
+        id: 'org-coastal-003',
+        name: 'Coastal Haven Residences',
+        slug: 'coastal-haven-residences',
+        organization_type: 'INDIVIDUAL_LANDLORD',
+        county: 'Mombasa',
+        contact_email: 'contact@coastalhaven.co.ke',
+        contact_phone: '+254733889911',
+        admin_full_name: 'Omar Said',
+        admin_email: 'omar@coastalhaven.co.ke',
+        status: 'ACTIVE',
+        subscription_plan: 'ENTERPRISE',
+        properties_count: 3,
+        units_count: 24,
+        active_tenants_count: 20,
+        monthly_mrr_kes: 65000,
+        created_at: '2026-04-05T00:00:00Z',
+      },
+    ];
+  }
 
   return clean as RmsPlatformState;
 }
@@ -1728,4 +1904,748 @@ export function resolveDependentUnitHierarchy(
     availableUnits,
   };
 }
+
+// =============================================================================
+// User Onboarding, Staff Management, Scoping & Platform Administration Domain Handlers
+// =============================================================================
+
+function generateInvitationToken(): { token: string; hash: string } {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let token = 'inv_tok_';
+  for (let i = 0; i < 32; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  let hashVal = 0;
+  for (let i = 0; i < token.length; i++) {
+    hashVal = (hashVal << 5) - hashVal + token.charCodeAt(i);
+    hashVal |= 0;
+  }
+  const hash = `sha256_${Math.abs(hashVal).toString(16)}_${Date.now().toString(16)}`;
+  return { token, hash };
+}
+
+/**
+ * Filter state by assigned property scoping for non-admin staff
+ */
+export function filterStateByStaffAccess(state: RmsPlatformState, userId: string): RmsPlatformState {
+  const staff = state.staffMembers.find((s) => s.id === userId);
+  if (!staff) return state;
+
+  // Organization Admins and Super Admins have organization-wide / platform-wide access
+  if (
+    staff.role === 'ORGANIZATION_ADMINISTRATOR' ||
+    staff.role === ('ORGANIZATION_ADMIN' as any) ||
+    staff.role === 'SAAS_SUPER_ADMINISTRATOR'
+  ) {
+    return state;
+  }
+
+  const allowedPropIds = new Set(staff.assigned_property_ids || []);
+  const scopedProps = state.properties.filter((p) => allowedPropIds.has(p.id));
+  const scopedBuildings = state.buildings.filter((b) => allowedPropIds.has(b.property_id));
+  const scopedUnits = state.units.filter((u) => allowedPropIds.has(u.property_id));
+  const scopedUnitIds = new Set(scopedUnits.map((u) => u.id));
+  const scopedLeases = state.leases.filter((l) => scopedUnitIds.has(l.unit_id));
+  const scopedTenantIds = new Set(scopedLeases.map((l) => l.tenant_id));
+  const scopedTenants = state.tenants.filter((t) => scopedTenantIds.has(t.id));
+  const scopedInvoices = state.invoices.filter((i) => allowedPropIds.has(i.property_id));
+  const scopedMaintenance = state.maintenance.filter((m) => allowedPropIds.has(m.property_id));
+
+  return {
+    ...state,
+    properties: scopedProps,
+    buildings: scopedBuildings,
+    units: scopedUnits,
+    leases: scopedLeases,
+    tenants: scopedTenants,
+    invoices: scopedInvoices,
+    maintenance: scopedMaintenance,
+  };
+}
+
+/**
+ * Invite a Staff Member with role, assigned property scopes, and validation
+ */
+export function inviteStaff(
+  state: RmsPlatformState,
+  cmd: {
+    full_name: string;
+    email: string;
+    phone: string;
+    role: SystemRole;
+    property_ids: string[];
+    additional_permissions?: string[];
+    invitation_message?: string;
+    expiry_days?: number;
+    invited_by?: string;
+  }
+): { nextState: RmsPlatformState; invitation: Invitation; token: string } {
+  const emailNorm = cmd.email.trim().toLowerCase();
+  if (!emailNorm || !emailNorm.includes('@')) {
+    throw new Error('A valid email address is required for staff invitations.');
+  }
+  if (!cmd.full_name.trim()) {
+    throw new Error('Staff member full name is required.');
+  }
+
+  // Prevent duplicate membership
+  const existingStaff = state.staffMembers.find(
+    (s) => s.email.toLowerCase() === emailNorm && s.status === 'ACTIVE'
+  );
+  if (existingStaff) {
+    throw new Error(`User with email '${cmd.email}' is already an active member of this organization.`);
+  }
+
+  // Prevent duplicate pending invitations within the organization
+  const existingPending = state.invitations.find(
+    (inv) =>
+      inv.organization_id === state.currentOrganizationId &&
+      inv.email.toLowerCase() === emailNorm &&
+      inv.status === 'PENDING'
+  );
+  if (existingPending) {
+    throw new Error(`A pending invitation already exists for '${cmd.email}'. You can resend or revoke it.`);
+  }
+
+  // Validate property scoping for property-specific roles
+  const scopedRoles: SystemRole[] = [
+    'PROPERTY_MANAGER',
+    'MAINTENANCE_OFFICER',
+    'RECEPTIONIST',
+    'CARETAKER',
+  ];
+  if (scopedRoles.includes(cmd.role) && (!cmd.property_ids || cmd.property_ids.length === 0)) {
+    throw new Error(`Role '${cmd.role}' requires at least one assigned property scope.`);
+  }
+
+  const { token, hash } = generateInvitationToken();
+  const expiryDays = cmd.expiry_days && cmd.expiry_days > 0 ? cmd.expiry_days : 7;
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + expiryDays * 86400000).toISOString();
+
+  const newInvitation: Invitation = {
+    id: `inv-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    organization_id: state.currentOrganizationId,
+    invitation_type: 'STAFF',
+    email: emailNorm,
+    phone: cmd.phone ? normalizeKenyanPhone(cmd.phone) : undefined,
+    full_name: cmd.full_name.trim(),
+    role: cmd.role,
+    token_hash: hash,
+    token: token,
+    status: 'PENDING',
+    property_ids: cmd.property_ids,
+    additional_permissions: cmd.additional_permissions || [],
+    invitation_message: cmd.invitation_message,
+    delivery_status: 'SENT',
+    sent_count: 1,
+    invited_by: cmd.invited_by || 'usr-org-admin-001',
+    expires_at: expiresAt,
+    created_at: now.toISOString(),
+    updated_at: now.toISOString(),
+  };
+
+  const auditEntry: AccessAuditLog = {
+    id: `audit-${Date.now()}`,
+    organization_id: state.currentOrganizationId,
+    actor_user_id: cmd.invited_by || 'usr-org-admin-001',
+    actor_role: state.currentRole,
+    event_type: 'STAFF_INVITED',
+    details: {
+      email: emailNorm,
+      role: cmd.role,
+      properties_count: cmd.property_ids.length,
+      expires_at: expiresAt,
+    },
+    created_at: now.toISOString(),
+  };
+
+  return {
+    nextState: {
+      ...state,
+      invitations: [newInvitation, ...state.invitations],
+      accessAuditLogs: [auditEntry, ...state.accessAuditLogs],
+    },
+    invitation: newInvitation,
+    token,
+  };
+}
+
+/**
+ * Invite Tenant to the Tenant Portal
+ */
+export function inviteTenant(
+  state: RmsPlatformState,
+  cmd: {
+    tenant_id: string;
+    email?: string;
+    phone?: string;
+    lease_id?: string;
+    property_id?: string;
+    invited_by?: string;
+  }
+): { nextState: RmsPlatformState; invitation: Invitation; token: string } {
+  const tenant = state.tenants.find((t) => t.id === cmd.tenant_id);
+  if (!tenant) {
+    throw new Error('Tenant record not found.');
+  }
+
+  const targetEmail = (cmd.email || tenant.email || '').trim().toLowerCase();
+  if (!targetEmail || !targetEmail.includes('@')) {
+    throw new Error('A valid email address is required to invite tenant to portal.');
+  }
+
+  // Prevent duplicate pending invitations
+  const existingPending = state.invitations.find(
+    (inv) =>
+      inv.organization_id === state.currentOrganizationId &&
+      inv.email.toLowerCase() === targetEmail &&
+      inv.status === 'PENDING'
+  );
+  if (existingPending) {
+    throw new Error(`A pending portal invitation already exists for '${targetEmail}'.`);
+  }
+
+  const { token, hash } = generateInvitationToken();
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 7 * 86400000).toISOString();
+
+  const newInvitation: Invitation = {
+    id: `inv-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    organization_id: state.currentOrganizationId,
+    invitation_type: 'TENANT',
+    email: targetEmail,
+    phone: cmd.phone || tenant.phone,
+    full_name: `${tenant.first_name} ${tenant.last_name}`.trim(),
+    role: 'TENANT',
+    token_hash: hash,
+    token: token,
+    status: 'PENDING',
+    tenant_id: tenant.id,
+    lease_id: cmd.lease_id,
+    property_ids: cmd.property_id ? [cmd.property_id] : [],
+    delivery_status: 'SENT',
+    sent_count: 1,
+    invited_by: cmd.invited_by || 'usr-org-admin-001',
+    expires_at: expiresAt,
+    created_at: now.toISOString(),
+    updated_at: now.toISOString(),
+  };
+
+  const auditEntry: AccessAuditLog = {
+    id: `audit-${Date.now()}`,
+    organization_id: state.currentOrganizationId,
+    actor_user_id: cmd.invited_by || 'usr-org-admin-001',
+    actor_role: state.currentRole,
+    event_type: 'TENANT_PORTAL_INVITED',
+    details: {
+      tenant_id: tenant.id,
+      email: targetEmail,
+      expires_at: expiresAt,
+    },
+    created_at: now.toISOString(),
+  };
+
+  return {
+    nextState: {
+      ...state,
+      invitations: [newInvitation, ...state.invitations],
+      accessAuditLogs: [auditEntry, ...state.accessAuditLogs],
+    },
+    invitation: newInvitation,
+    token,
+  };
+}
+
+/**
+ * Resend an invitation with extended expiration
+ */
+export function resendInvitation(
+  state: RmsPlatformState,
+  invitationId: string,
+  actorId?: string
+): { nextState: RmsPlatformState; invitation: Invitation } {
+  const target = state.invitations.find((i) => i.id === invitationId);
+  if (!target) {
+    throw new Error('Invitation record not found.');
+  }
+  if (target.status === 'ACCEPTED') {
+    throw new Error('Cannot resend an invitation that has already been accepted.');
+  }
+  if (target.status === 'REVOKED') {
+    throw new Error('Cannot resend a revoked invitation.');
+  }
+
+  const now = new Date();
+  const nextExpiry = new Date(now.getTime() + 7 * 86400000).toISOString();
+  const updated: Invitation = {
+    ...target,
+    status: 'PENDING',
+    expires_at: nextExpiry,
+    sent_count: (target.sent_count || 1) + 1,
+    delivery_status: 'SENT',
+    updated_at: now.toISOString(),
+  };
+
+  const auditEntry: AccessAuditLog = {
+    id: `audit-${Date.now()}`,
+    organization_id: state.currentOrganizationId,
+    actor_user_id: actorId || 'usr-org-admin-001',
+    actor_role: state.currentRole,
+    event_type: 'INVITATION_RESENT',
+    details: {
+      invitation_id: invitationId,
+      recipient: target.email,
+      sent_count: updated.sent_count,
+    },
+    created_at: now.toISOString(),
+  };
+
+  return {
+    nextState: {
+      ...state,
+      invitations: state.invitations.map((i) => (i.id === invitationId ? updated : i)),
+      accessAuditLogs: [auditEntry, ...state.accessAuditLogs],
+    },
+    invitation: updated,
+  };
+}
+
+/**
+ * Revoke an active or pending invitation
+ */
+export function revokeInvitation(
+  state: RmsPlatformState,
+  invitationId: string,
+  revokedBy?: string
+): { nextState: RmsPlatformState; invitation: Invitation } {
+  const target = state.invitations.find((i) => i.id === invitationId);
+  if (!target) {
+    throw new Error('Invitation record not found.');
+  }
+  if (target.status === 'ACCEPTED') {
+    throw new Error('Cannot revoke an invitation that has already been accepted.');
+  }
+
+  const now = new Date();
+  const updated: Invitation = {
+    ...target,
+    status: 'REVOKED',
+    updated_at: now.toISOString(),
+  };
+
+  const auditEntry: AccessAuditLog = {
+    id: `audit-${Date.now()}`,
+    organization_id: state.currentOrganizationId,
+    actor_user_id: revokedBy || 'usr-org-admin-001',
+    actor_role: state.currentRole,
+    event_type: 'INVITATION_REVOKED',
+    details: {
+      invitation_id: invitationId,
+      recipient: target.email,
+    },
+    created_at: now.toISOString(),
+  };
+
+  return {
+    nextState: {
+      ...state,
+      invitations: state.invitations.map((i) => (i.id === invitationId ? updated : i)),
+      accessAuditLogs: [auditEntry, ...state.accessAuditLogs],
+    },
+    invitation: updated,
+  };
+}
+
+/**
+ * Accept an invitation token (atomic consumption)
+ */
+export function acceptInvitation(
+  state: RmsPlatformState,
+  cmd: {
+    token: string;
+    password?: string;
+    full_name?: string;
+  }
+): { nextState: RmsPlatformState; invitation: Invitation; user: ManagedStaffMember } {
+  // Find matching invitation by token or token_hash or id
+  const target = state.invitations.find(
+    (inv) =>
+      inv.token === cmd.token ||
+      inv.token_hash === cmd.token ||
+      inv.id === cmd.token ||
+      cmd.token.includes(inv.id) ||
+      (inv.token_hash && inv.token_hash.includes(cmd.token))
+  );
+
+  if (!target) {
+    throw new Error('Invalid or non-existent invitation token.');
+  }
+
+  if (target.status === 'REVOKED') {
+    throw new Error('This invitation has been revoked by the organization administrator.');
+  }
+
+  if (target.status === 'ACCEPTED') {
+    throw new Error('This invitation has already been accepted.');
+  }
+
+  const now = new Date();
+  if (new Date(target.expires_at) < now) {
+    const expiredInv: Invitation = { ...target, status: 'EXPIRED', updated_at: now.toISOString() };
+    return {
+      nextState: {
+        ...state,
+        invitations: state.invitations.map((i) => (i.id === target.id ? expiredInv : i)),
+      },
+      invitation: expiredInv,
+      user: null as any,
+    };
+  }
+
+  const acceptedInv: Invitation = {
+    ...target,
+    status: 'ACCEPTED',
+    accepted_at: now.toISOString(),
+    updated_at: now.toISOString(),
+  };
+
+  const newStaffId = `usr-staff-${Date.now()}`;
+  const staffMember: ManagedStaffMember = {
+    id: newStaffId,
+    organization_id: target.organization_id,
+    email: target.email,
+    phone: target.phone || '',
+    full_name: cmd.full_name || target.full_name,
+    role: target.role as SystemRole,
+    status: 'ACTIVE',
+    assigned_property_ids: target.property_ids || [],
+    created_at: now.toISOString(),
+    last_login_at: now.toISOString(),
+  };
+
+  const newPropAccess: UserPropertyAccess[] = (target.property_ids || []).map((propId) => ({
+    id: `upa-${Date.now()}-${propId}`,
+    organization_id: target.organization_id,
+    user_id: newStaffId,
+    property_id: propId,
+    access_level: 'FULL',
+    created_at: now.toISOString(),
+  }));
+
+  const auditEntry: AccessAuditLog = {
+    id: `audit-${Date.now()}`,
+    organization_id: target.organization_id,
+    actor_user_id: newStaffId,
+    actor_role: target.role,
+    event_type: 'INVITATION_ACCEPTED',
+    details: {
+      invitation_id: target.id,
+      email: target.email,
+      role: target.role,
+    },
+    created_at: now.toISOString(),
+  };
+
+  return {
+    nextState: {
+      ...state,
+      invitations: state.invitations.map((i) => (i.id === target.id ? acceptedInv : i)),
+      staffMembers: [staffMember, ...state.staffMembers],
+      userPropertyAccess: [...state.userPropertyAccess, ...newPropAccess],
+      accessAuditLogs: [auditEntry, ...state.accessAuditLogs],
+    },
+    invitation: acceptedInv,
+    user: staffMember,
+  };
+}
+
+/**
+ * Update staff member status (ACTIVE vs SUSPENDED)
+ */
+export function updateUserStatus(
+  state: RmsPlatformState,
+  userId: string,
+  status: 'ACTIVE' | 'SUSPENDED',
+  actorId?: string
+): { nextState: RmsPlatformState; user: ManagedStaffMember } {
+  const target = state.staffMembers.find((s) => s.id === userId);
+  if (!target) {
+    throw new Error('Staff member not found.');
+  }
+
+  // Prevent suspending the primary organization administrator
+  if (target.role === 'ORGANIZATION_ADMINISTRATOR' && status === 'SUSPENDED') {
+    throw new Error('Cannot suspend the primary Organization Administrator.');
+  }
+
+  const now = new Date();
+  const updated: ManagedStaffMember = {
+    ...target,
+    status,
+  };
+
+  const auditEntry: AccessAuditLog = {
+    id: `audit-${Date.now()}`,
+    organization_id: state.currentOrganizationId,
+    actor_user_id: actorId || 'usr-org-admin-001',
+    actor_role: state.currentRole,
+    target_user_id: userId,
+    event_type: status === 'SUSPENDED' ? 'USER_SUSPENDED' : 'USER_REACTIVATED',
+    details: {
+      user_id: userId,
+      status,
+      email: target.email,
+    },
+    created_at: now.toISOString(),
+  };
+
+  return {
+    nextState: {
+      ...state,
+      staffMembers: state.staffMembers.map((s) => (s.id === userId ? updated : s)),
+      accessAuditLogs: [auditEntry, ...state.accessAuditLogs],
+    },
+    user: updated,
+  };
+}
+
+/**
+ * Update assigned property access scopes for a staff member
+ */
+export function updateUserPropertyAccess(
+  state: RmsPlatformState,
+  userId: string,
+  propertyIds: string[],
+  actorId?: string
+): { nextState: RmsPlatformState; user: ManagedStaffMember } {
+  const target = state.staffMembers.find((s) => s.id === userId);
+  if (!target) {
+    throw new Error('Staff member not found.');
+  }
+
+  const now = new Date();
+  const updatedStaff: ManagedStaffMember = {
+    ...target,
+    assigned_property_ids: propertyIds,
+  };
+
+  // Rebuild userPropertyAccess table
+  const filteredAccess = state.userPropertyAccess.filter((upa) => upa.user_id !== userId);
+  const newAccess: UserPropertyAccess[] = propertyIds.map((propId) => ({
+    id: `upa-${Date.now()}-${propId}`,
+    organization_id: state.currentOrganizationId,
+    user_id: userId,
+    property_id: propId,
+    access_level: 'FULL',
+    assigned_by: actorId || 'usr-org-admin-001',
+    created_at: now.toISOString(),
+  }));
+
+  const auditEntry: AccessAuditLog = {
+    id: `audit-${Date.now()}`,
+    organization_id: state.currentOrganizationId,
+    actor_user_id: actorId || 'usr-org-admin-001',
+    actor_role: state.currentRole,
+    target_user_id: userId,
+    event_type: 'PROPERTY_ACCESS_UPDATED',
+    details: {
+      user_id: userId,
+      properties_count: propertyIds.length,
+      property_ids: propertyIds,
+    },
+    created_at: now.toISOString(),
+  };
+
+  return {
+    nextState: {
+      ...state,
+      staffMembers: state.staffMembers.map((s) => (s.id === userId ? updatedStaff : s)),
+      userPropertyAccess: [...filteredAccess, ...newAccess],
+      accessAuditLogs: [auditEntry, ...state.accessAuditLogs],
+    },
+    user: updatedStaff,
+  };
+}
+
+/**
+ * Revoke all active sessions for a staff member
+ */
+export function revokeUserSessions(
+  state: RmsPlatformState,
+  userId: string,
+  reason?: string,
+  actorId?: string
+): { nextState: RmsPlatformState } {
+  const target = state.staffMembers.find((s) => s.id === userId);
+  if (!target) {
+    throw new Error('Staff member not found.');
+  }
+
+  const now = new Date();
+  const auditEntry: AccessAuditLog = {
+    id: `audit-${Date.now()}`,
+    organization_id: state.currentOrganizationId,
+    actor_user_id: actorId || 'usr-org-admin-001',
+    actor_role: state.currentRole,
+    target_user_id: userId,
+    event_type: 'SESSIONS_REVOKED',
+    details: {
+      user_id: userId,
+      reason: reason || 'Manual administrative revocation',
+    },
+    created_at: now.toISOString(),
+  };
+
+  return {
+    nextState: {
+      ...state,
+      accessAuditLogs: [auditEntry, ...state.accessAuditLogs],
+    },
+  };
+}
+
+/**
+ * Register a new Platform Organization (Platform Administration)
+ */
+export function registerPlatformOrganization(
+  state: RmsPlatformState,
+  cmd: {
+    name: string;
+    slug: string;
+    organization_type: string;
+    county: string;
+    contact_email: string;
+    contact_phone: string;
+    admin_full_name: string;
+    admin_email: string;
+    admin_phone: string;
+    subscription_plan: string;
+  },
+  actorId?: string
+): { nextState: RmsPlatformState; organization: PlatformOrganization; adminInvitation: Invitation } {
+  const slugNorm = cmd.slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+  if (!slugNorm) {
+    throw new Error('Organization slug is required and must be alphanumeric.');
+  }
+
+  const existingOrg = state.platformOrganizations.find(
+    (o) => o.slug === slugNorm || o.name.toLowerCase() === cmd.name.trim().toLowerCase()
+  );
+  if (existingOrg) {
+    throw new Error(`Organization with slug or name '${slugNorm}' already exists.`);
+  }
+
+  const newOrgId = `org-${Date.now()}`;
+  const now = new Date();
+
+  const newOrg: PlatformOrganization = {
+    id: newOrgId,
+    name: cmd.name.trim(),
+    slug: slugNorm,
+    organization_type: cmd.organization_type,
+    county: cmd.county,
+    contact_email: cmd.contact_email.trim(),
+    contact_phone: cmd.contact_phone.trim(),
+    admin_full_name: cmd.admin_full_name.trim(),
+    admin_email: cmd.admin_email.trim(),
+    status: 'ACTIVE',
+    subscription_plan: cmd.subscription_plan,
+    properties_count: 0,
+    units_count: 0,
+    active_tenants_count: 0,
+    monthly_mrr_kes: cmd.subscription_plan === 'ENTERPRISE' ? 65000 : cmd.subscription_plan === 'PROFESSIONAL' ? 45000 : 25000,
+    created_at: now.toISOString(),
+  };
+
+  const { hash } = generateInvitationToken();
+  const adminInvitation: Invitation = {
+    id: `inv-${Date.now()}-admin`,
+    organization_id: newOrgId,
+    invitation_type: 'ORGANIZATION_ADMIN',
+    email: cmd.admin_email.trim().toLowerCase(),
+    phone: cmd.admin_phone.trim(),
+    full_name: cmd.admin_full_name.trim(),
+    role: 'ORGANIZATION_ADMINISTRATOR',
+    token_hash: hash,
+    status: 'PENDING',
+    property_ids: [],
+    delivery_status: 'SENT',
+    sent_count: 1,
+    invited_by: actorId || 'usr-super-admin-001',
+    expires_at: new Date(now.getTime() + 14 * 86400000).toISOString(),
+    created_at: now.toISOString(),
+    updated_at: now.toISOString(),
+  };
+
+  const auditEntry: AccessAuditLog = {
+    id: `audit-${Date.now()}`,
+    organization_id: newOrgId,
+    actor_user_id: actorId || 'usr-super-admin-001',
+    actor_role: 'SAAS_SUPER_ADMINISTRATOR',
+    event_type: 'ORGANIZATION_REGISTERED',
+    details: {
+      organization_id: newOrgId,
+      name: newOrg.name,
+      admin_email: newOrg.admin_email,
+      plan: newOrg.subscription_plan,
+    },
+    created_at: now.toISOString(),
+  };
+
+  return {
+    nextState: {
+      ...state,
+      platformOrganizations: [newOrg, ...state.platformOrganizations],
+      invitations: [adminInvitation, ...state.invitations],
+      accessAuditLogs: [auditEntry, ...state.accessAuditLogs],
+    },
+    organization: newOrg,
+    adminInvitation,
+  };
+}
+
+/**
+ * Suspend or reactivate a Platform Organization
+ */
+export function updatePlatformOrganizationStatus(
+  state: RmsPlatformState,
+  orgId: string,
+  status: 'ACTIVE' | 'SUSPENDED',
+  actorId?: string
+): { nextState: RmsPlatformState } {
+  const target = state.platformOrganizations.find((o) => o.id === orgId);
+  if (!target) {
+    throw new Error('Organization not found.');
+  }
+
+  const now = new Date();
+  const updatedOrg: PlatformOrganization = {
+    ...target,
+    status,
+  };
+
+  const auditEntry: AccessAuditLog = {
+    id: `audit-${Date.now()}`,
+    organization_id: orgId,
+    actor_user_id: actorId || 'usr-super-admin-001',
+    actor_role: 'SAAS_SUPER_ADMINISTRATOR',
+    event_type: status === 'SUSPENDED' ? 'ORGANIZATION_SUSPENDED' : 'ORGANIZATION_REACTIVATED',
+    details: {
+      organization_id: orgId,
+      name: target.name,
+      status,
+    },
+    created_at: now.toISOString(),
+  };
+
+  return {
+    nextState: {
+      ...state,
+      platformOrganizations: state.platformOrganizations.map((o) => (o.id === orgId ? updatedOrg : o)),
+      accessAuditLogs: [auditEntry, ...state.accessAuditLogs],
+    },
+  };
+}
+
 

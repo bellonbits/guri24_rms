@@ -40,6 +40,10 @@ import type {
   ReconciliationException,
   FinancialReportRun,
   FinancialAuditEvent,
+  Invitation,
+  ManagedStaffMember,
+  PlatformOrganization,
+  AccessAuditLog,
 } from '../types';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) || '/api/v1';
@@ -688,6 +692,134 @@ class ApiClient {
   async getFinancialAuditEvents(params?: { limit?: number }): Promise<FinancialAuditEvent[]> {
     const qs = params?.limit ? `?limit=${params.limit}` : '';
     return this.request<FinancialAuditEvent[]>(`/audit/financial${qs}`);
+  }
+
+  // --- User Onboarding, Invitations & Staff Management ---
+  async getInvitations(status?: string): Promise<Invitation[]> {
+    const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+    return this.request<Invitation[]>(`/invitations${qs}`);
+  }
+
+  async createStaffInvitation(cmd: {
+    full_name: string;
+    email: string;
+    phone: string;
+    role: string;
+    property_ids: string[];
+    additional_permissions?: string[];
+    invitation_message?: string;
+    expiry_days?: number;
+  }): Promise<Invitation> {
+    return this.request<Invitation>('/invitations', {
+      method: 'POST',
+      body: JSON.stringify({ ...cmd, invitation_type: 'STAFF' }),
+    });
+  }
+
+  async createTenantInvitation(cmd: {
+    tenant_id: string;
+    email: string;
+    phone?: string;
+    lease_id?: string;
+    property_id?: string;
+  }): Promise<Invitation> {
+    return this.request<Invitation>('/invitations', {
+      method: 'POST',
+      body: JSON.stringify({ ...cmd, invitation_type: 'TENANT' }),
+    });
+  }
+
+  async resendInvitation(invitationId: string): Promise<Invitation> {
+    return this.request<Invitation>(`/invitations/${invitationId}/resend`, {
+      method: 'POST',
+    });
+  }
+
+  async revokeInvitation(invitationId: string): Promise<Invitation> {
+    return this.request<Invitation>(`/invitations/${invitationId}/revoke`, {
+      method: 'POST',
+    });
+  }
+
+  async verifyInvitationToken(token: string): Promise<{ valid: boolean; invitation?: Invitation; message?: string }> {
+    return this.request(`/invitations/verify?token=${encodeURIComponent(token)}`);
+  }
+
+  async acceptInvitation(cmd: {
+    token: string;
+    password?: string;
+    full_name?: string;
+  }): Promise<{ success: boolean; session?: any; message: string }> {
+    return this.request('/invitations/accept', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async getManagedStaff(): Promise<ManagedStaffMember[]> {
+    return this.request<ManagedStaffMember[]>('/users');
+  }
+
+  async updateStaffStatus(userId: string, status: 'ACTIVE' | 'SUSPENDED'): Promise<any> {
+    return this.request(`/users/${userId}/status`, {
+      method: 'POST',
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  async updateStaffPropertyAccess(userId: string, propertyIds: string[]): Promise<any> {
+    return this.request(`/users/${userId}/property-access`, {
+      method: 'POST',
+      body: JSON.stringify({ property_ids: propertyIds }),
+    });
+  }
+
+  async revokeStaffSessions(userId: string): Promise<any> {
+    return this.request(`/users/${userId}/revoke-sessions`, {
+      method: 'POST',
+    });
+  }
+
+  // --- Guri24 Platform Administration ---
+  async getPlatformOverview(): Promise<any> {
+    return this.request('/platform/overview');
+  }
+
+  async getPlatformOrganizations(): Promise<PlatformOrganization[]> {
+    return this.request<PlatformOrganization[]>('/platform/organizations');
+  }
+
+  async createPlatformOrganization(cmd: {
+    name: string;
+    slug: string;
+    organization_type: string;
+    county: string;
+    contact_email: string;
+    contact_phone: string;
+    admin_full_name: string;
+    admin_email: string;
+    admin_phone: string;
+    subscription_plan: string;
+  }): Promise<any> {
+    return this.request('/platform/organizations', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async updatePlatformOrganizationStatus(orgId: string, status: 'ACTIVE' | 'SUSPENDED'): Promise<any> {
+    return this.request(`/platform/organizations/${orgId}/status`, {
+      method: 'POST',
+      body: JSON.stringify({ status }),
+    });
+  }
+
+  async getPlatformAuditLogs(): Promise<AccessAuditLog[]> {
+    return this.request<AccessAuditLog[]>('/platform/audit-logs');
+  }
+
+  async getPlatformSystemHealth(): Promise<any> {
+    return this.request('/platform/system-health');
   }
 }
 

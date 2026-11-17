@@ -24,6 +24,7 @@ import {
   Smartphone,
   Check,
   ShieldCheck,
+  Shield,
   LogOut,
   Sparkles,
 } from 'lucide-react';
@@ -234,6 +235,34 @@ export const AppLayout: React.FC = () => {
             );
           })}
         </nav>
+
+        {/* Platform Super Administrator Portal Link */}
+        {currentUserRole === 'SAAS_SUPER_ADMINISTRATOR' && (
+          <div style={{ padding: '0 12px 10px 12px' }}>
+            <Link
+              to="/platform/dashboard"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: '#090d16',
+                color: '#38bdf8',
+                border: '1px solid #1e293b',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Shield size={14} color="#38bdf8" />
+                <span>Platform Controls</span>
+              </div>
+              <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>&rarr;</span>
+            </Link>
+          </div>
+        )}
 
         {/* Organization Switcher Card */}
         <div className="org-switcher-card">

@@ -243,6 +243,91 @@ export interface Organization {
   payment_allocation_strategy: 'FIFO_OLDEST_FIRST' | 'RENT_PRIORITY_FIRST';
 }
 
+export type InvitationType = 'ORGANIZATION_ADMIN' | 'STAFF' | 'TENANT' | 'VENDOR';
+export type InvitationStatus = 'DRAFT' | 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED' | 'FAILED';
+
+export interface Invitation {
+  id: string;
+  organization_id: string;
+  invitation_type: InvitationType;
+  email: string;
+  phone?: string;
+  full_name: string;
+  role: SystemRole;
+  token_hash?: string;
+  token?: string;
+  status: InvitationStatus;
+  property_ids: string[];
+  tenant_id?: string;
+  lease_id?: string;
+  additional_permissions?: string[];
+  invitation_message?: string;
+  delivery_status: 'QUEUED' | 'SENT' | 'DELIVERED' | 'FAILED';
+  delivery_error?: string;
+  invited_by?: string;
+  invited_by_name?: string;
+  expires_at: string;
+  accepted_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserPropertyAccess {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  property_id: string;
+  access_level: 'FULL' | 'VIEW_ONLY' | 'MAINTENANCE_ONLY';
+  assigned_by?: string;
+  created_at: string;
+}
+
+export interface AccessAuditLog {
+  id: string;
+  organization_id: string;
+  actor_user_id?: string;
+  actor_role?: string;
+  target_user_id?: string;
+  event_type: string;
+  details: Record<string, any>;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: string;
+}
+
+export interface ManagedStaffMember {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  role: SystemRole;
+  status: 'ACTIVE' | 'INVITED' | 'SUSPENDED' | 'REVOKED';
+  assigned_property_ids: string[];
+  additional_permissions?: string[];
+  last_login_at?: string;
+  joined_at: string;
+  created_at: string;
+}
+
+export interface PlatformOrganization {
+  id: string;
+  name: string;
+  slug: string;
+  organization_type: string;
+  kra_pin?: string;
+  contact_email: string;
+  contact_phone: string;
+  county: string;
+  status: 'ACTIVE' | 'SUSPENDED' | 'TRIAL' | 'CLOSED';
+  subscription_plan: string;
+  units_count: number;
+  active_users_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Property {
   id: string;
   organization_id: string;

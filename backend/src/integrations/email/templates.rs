@@ -799,3 +799,365 @@ pub fn render_account_approved_email(
         app_card_and_footer = EMAIL_APP_CARD_AND_FOOTER_HTML,
     )
 }
+
+/// Renders a modern email invitation for Organization Administrators
+pub fn render_org_admin_invitation_email(
+    _recipient_email: &str,
+    full_name: &str,
+    organization_name: &str,
+    invitation_url: &str,
+    expires_at_formatted: &str,
+) -> String {
+    format!(
+        r###"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invitation to Administrate {organization_name} — Guri24 RMS</title>
+</head>
+<body style="margin: 0; padding: 28px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto;">
+    <!-- Circular Logo Badge on White Background -->
+    <tr>
+      <td align="center" style="padding-bottom: 18px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+          <tr>
+            <td align="center" style="width: 56px; height: 56px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 50%; vertical-align: middle; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+              <img src="{logo}" alt="Guri24 RMS" width="36" height="36" style="width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto; border-radius: 50%;" />
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Headline -->
+    <tr>
+      <td align="center" style="padding-bottom: 20px;">
+        <h1 style="font-size: 22px; font-weight: 400; color: #1e293b; margin: 0; line-height: 1.35;">
+          Welcome <strong style="font-weight: 700;">{full_name}</strong>,<br>
+          you're invited to lead <strong style="font-weight: 700;">{organization_name}</strong>!
+        </h1>
+      </td>
+    </tr>
+
+    <!-- Main Card -->
+    <tr>
+      <td style="background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 32px 24px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
+        <div style="margin-bottom: 16px;">
+          <img src="{illustration}" alt="New Notification" width="160" style="width: 160px; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;" />
+        </div>
+
+        <p style="font-size: 14px; color: #475569; line-height: 1.55; margin: 0 0 16px 0;">
+          Guri24 SaaS platform administration has provisioned your organization workspace. As <strong>Organization Administrator</strong>, you can configure properties, invite staff, onboard tenants, and manage automated Kenyan M-Pesa billing.
+        </p>
+
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin: 16px 0; font-size: 12px; color: #64748b; text-align: left;">
+          <div>&bull; <strong>Role:</strong> Organization Administrator (Full Authority)</div>
+          <div style="margin-top: 4px;">&bull; <strong>Invitation Expires:</strong> {expires_at}</div>
+        </div>
+
+        <!-- Action Button -->
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 20px auto 0 auto;">
+          <tr>
+            <td align="center" style="border-radius: 6px; background-color: #0284c7;">
+              <a href="{invitation_url}" target="_blank" style="display: inline-block; padding: 12px 32px; font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 6px;">
+                Accept Invitation & Set Password
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Spacer -->
+    <tr><td height="16" style="height: 16px;"></td></tr>
+
+    {app_card_and_footer}
+  </table>
+</body>
+</html>"###,
+        logo = GURI24_FAVICON_URL,
+        illustration = NEW_EMAIL_ILLUSTRATION_URL,
+        full_name = full_name,
+        organization_name = organization_name,
+        invitation_url = invitation_url,
+        expires_at = expires_at_formatted,
+        app_card_and_footer = EMAIL_APP_CARD_AND_FOOTER_HTML,
+    )
+}
+
+/// Renders a modern email invitation for Staff Members
+pub fn render_staff_invitation_email(
+    _recipient_email: &str,
+    full_name: &str,
+    organization_name: &str,
+    role_name: &str,
+    assigned_properties_summary: &str,
+    invitation_url: &str,
+    expires_at_formatted: &str,
+    custom_message: Option<&str>,
+) -> String {
+    let custom_msg_block = if let Some(msg) = custom_message {
+        if !msg.trim().is_empty() {
+            format!(
+                r#"<div style="background-color: #f0fdf4; border-left: 3px solid #16a34a; padding: 10px 14px; text-align: left; font-size: 13px; color: #166534; margin: 14px 0; border-radius: 4px;">"{}"</div>"#,
+                msg.trim()
+            )
+        } else {
+            String::new()
+        }
+    } else {
+        String::new()
+    };
+
+    format!(
+        r###"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Invitation — {organization_name}</title>
+</head>
+<body style="margin: 0; padding: 28px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto;">
+    <!-- Circular Logo Badge on White Background -->
+    <tr>
+      <td align="center" style="padding-bottom: 18px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+          <tr>
+            <td align="center" style="width: 56px; height: 56px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 50%; vertical-align: middle; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+              <img src="{logo}" alt="Guri24 RMS" width="36" height="36" style="width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto; border-radius: 50%;" />
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Headline -->
+    <tr>
+      <td align="center" style="padding-bottom: 20px;">
+        <h1 style="font-size: 22px; font-weight: 400; color: #1e293b; margin: 0; line-height: 1.35;">
+          Hello <strong style="font-weight: 700;">{full_name}</strong>,<br>
+          you've been invited to join <strong style="font-weight: 700;">{organization_name}</strong>!
+        </h1>
+      </td>
+    </tr>
+
+    <!-- Main Card -->
+    <tr>
+      <td style="background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 32px 24px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
+        <div style="margin-bottom: 16px;">
+          <img src="{illustration}" alt="New Notification" width="160" style="width: 160px; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;" />
+        </div>
+
+        <p style="font-size: 14px; color: #475569; line-height: 1.55; margin: 0 0 14px 0;">
+          An administrator has invited you to collaborate as <strong>{role_name}</strong> on Guri24 RMS.
+        </p>
+
+        {custom_msg_block}
+
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin: 16px 0; font-size: 12px; color: #64748b; text-align: left;">
+          <div>&bull; <strong>Assigned Role:</strong> {role_name}</div>
+          <div style="margin-top: 4px;">&bull; <strong>Property Access:</strong> {properties_summary}</div>
+          <div style="margin-top: 4px;">&bull; <strong>Expires:</strong> {expires_at}</div>
+        </div>
+
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 20px auto 0 auto;">
+          <tr>
+            <td align="center" style="border-radius: 6px; background-color: #0284c7;">
+              <a href="{invitation_url}" target="_blank" style="display: inline-block; padding: 12px 32px; font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 6px;">
+                Accept Invitation & Activate Account
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Spacer -->
+    <tr><td height="16" style="height: 16px;"></td></tr>
+
+    {app_card_and_footer}
+  </table>
+</body>
+</html>"###,
+        logo = GURI24_FAVICON_URL,
+        illustration = NEW_EMAIL_ILLUSTRATION_URL,
+        full_name = full_name,
+        organization_name = organization_name,
+        role_name = role_name,
+        custom_msg_block = custom_msg_block,
+        properties_summary = assigned_properties_summary,
+        invitation_url = invitation_url,
+        expires_at = expires_at_formatted,
+        app_card_and_footer = EMAIL_APP_CARD_AND_FOOTER_HTML,
+    )
+}
+
+/// Renders a modern email invitation for Tenants to activate their Tenant Portal account
+pub fn render_tenant_portal_invitation_email(
+    _recipient_email: &str,
+    tenant_name: &str,
+    organization_name: &str,
+    property_unit: &str,
+    lease_reference: &str,
+    invitation_url: &str,
+    expires_at_formatted: &str,
+) -> String {
+    format!(
+        r###"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activate Your Tenant Portal — {property_unit}</title>
+</head>
+<body style="margin: 0; padding: 28px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto;">
+    <!-- Circular Logo Badge on White Background -->
+    <tr>
+      <td align="center" style="padding-bottom: 18px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+          <tr>
+            <td align="center" style="width: 56px; height: 56px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 50%; vertical-align: middle; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+              <img src="{logo}" alt="Guri24 RMS" width="36" height="36" style="width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto; border-radius: 50%;" />
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Headline -->
+    <tr>
+      <td align="center" style="padding-bottom: 20px;">
+        <h1 style="font-size: 22px; font-weight: 400; color: #1e293b; margin: 0; line-height: 1.35;">
+          Hi <strong style="font-weight: 700;">{tenant_name}</strong>,<br>
+          activate your <strong style="font-weight: 700;">Guri24 Tenant Portal</strong>!
+        </h1>
+      </td>
+    </tr>
+
+    <!-- Main Card -->
+    <tr>
+      <td style="background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 32px 24px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
+        <div style="margin-bottom: 16px;">
+          <img src="{illustration}" alt="New Notification" width="160" style="width: 160px; max-width: 100%; height: auto; object-fit: contain; display: block; margin: 0 auto; border-radius: 8px;" />
+        </div>
+
+        <p style="font-size: 14px; color: #475569; line-height: 1.55; margin: 0 0 16px 0;">
+          Your tenancy for <strong>{property_unit}</strong> under {organization_name} is active. With your personal tenant portal, you can view your digital lease, trigger 1-click M-Pesa STK push payments, download verified receipts, and submit maintenance tickets.
+        </p>
+
+        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px; margin: 16px 0; font-size: 12px; color: #166534; text-align: left;">
+          <div>&bull; <strong>Unit:</strong> {property_unit}</div>
+          <div style="margin-top: 4px;">&bull; <strong>Lease Reference:</strong> {lease_reference}</div>
+          <div style="margin-top: 4px;">&bull; <strong>Invitation Expires:</strong> {expires_at}</div>
+        </div>
+
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 20px auto 0 auto;">
+          <tr>
+            <td align="center" style="border-radius: 6px; background-color: #0284c7;">
+              <a href="{invitation_url}" target="_blank" style="display: inline-block; padding: 12px 32px; font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 6px;">
+                Activate Tenant Portal
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Spacer -->
+    <tr><td height="16" style="height: 16px;"></td></tr>
+
+    {app_card_and_footer}
+  </table>
+</body>
+</html>"###,
+        logo = GURI24_FAVICON_URL,
+        illustration = NEW_EMAIL_ILLUSTRATION_URL,
+        tenant_name = tenant_name,
+        organization_name = organization_name,
+        property_unit = property_unit,
+        lease_reference = lease_reference,
+        invitation_url = invitation_url,
+        expires_at = expires_at_formatted,
+        app_card_and_footer = EMAIL_APP_CARD_AND_FOOTER_HTML,
+    )
+}
+
+/// Renders an account suspension or access revocation notification
+pub fn render_account_suspension_email(
+    _recipient_email: &str,
+    full_name: &str,
+    organization_name: &str,
+    reason: &str,
+    support_email: &str,
+) -> String {
+    format!(
+        r###"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Notice: Account Access Suspended — Guri24 RMS</title>
+</head>
+<body style="margin: 0; padding: 28px 12px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 520px; margin: 0 auto;">
+    <!-- Circular Logo Badge on White Background -->
+    <tr>
+      <td align="center" style="padding-bottom: 18px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+          <tr>
+            <td align="center" style="width: 56px; height: 56px; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 50%; vertical-align: middle; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+              <img src="{logo}" alt="Guri24 RMS" width="36" height="36" style="width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto; border-radius: 50%;" />
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Headline -->
+    <tr>
+      <td align="center" style="padding-bottom: 20px;">
+        <h1 style="font-size: 22px; font-weight: 400; color: #dc2626; margin: 0; line-height: 1.35;">
+          Notice for <strong style="font-weight: 700;">{full_name}</strong>,<br>
+          your account access has been suspended.
+        </h1>
+      </td>
+    </tr>
+
+    <!-- Main Card -->
+    <tr>
+      <td style="background-color: #ffffff; border-radius: 12px; border: 1px solid #fee2e2; padding: 32px 24px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
+        <p style="font-size: 14px; color: #475569; line-height: 1.55; margin: 0 0 16px 0;">
+          Your access to the <strong>{organization_name}</strong> workspace on Guri24 RMS has been temporarily suspended by an organization administrator. Active login sessions and tokens have been revoked.
+        </p>
+
+        <div style="background-color: #fef2f2; border-left: 3px solid #dc2626; padding: 12px 16px; margin: 16px 0; text-align: left; font-size: 13px; color: #991b1b;">
+          <strong>Reason for Suspension:</strong><br>
+          {reason}
+        </div>
+
+        <p style="font-size: 12px; color: #64748b; margin: 16px 0 0 0;">
+          If you believe this is in error, please contact your organization administrator or write to <a href="mailto:{support_email}" style="color: #0284c7; text-decoration: none;">{support_email}</a>.
+        </p>
+      </td>
+    </tr>
+
+    <!-- Spacer -->
+    <tr><td height="16" style="height: 16px;"></td></tr>
+
+    {app_card_and_footer}
+  </table>
+</body>
+</html>"###,
+        logo = GURI24_FAVICON_URL,
+        full_name = full_name,
+        organization_name = organization_name,
+        reason = reason,
+        support_email = support_email,
+        app_card_and_footer = EMAIL_APP_CARD_AND_FOOTER_HTML,
+    )
+}
+

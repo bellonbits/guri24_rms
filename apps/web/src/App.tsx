@@ -20,6 +20,9 @@ import { AutomatedEmailsPage } from './pages/AutomatedEmailsPage';
 import { SettingsPortalPage } from './pages/SettingsPortalPage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { AcceptInvitationPage } from './pages/AcceptInvitationPage';
+import { PlatformLayout } from './layouts/PlatformLayout';
+import { PlatformAdminPage } from './pages/PlatformAdminPage';
 
 export type NavSection =
   | 'dashboard'
@@ -43,6 +46,10 @@ export const App: React.FC = () => {
           <Routes>
             {/* Public Authentication Route */}
             <Route path="/login" element={<LoginPage />} />
+
+            {/* Public Invitation Acceptance Route */}
+            <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
+            <Route path="/accept-invitation/:token" element={<AcceptInvitationPage />} />
 
             {/* Root Redirect to /app/dashboard */}
             <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
@@ -125,8 +132,30 @@ export const App: React.FC = () => {
               <Route path="settings-portal" element={<SettingsPortalPage />} />
               <Route path="settings-portal/organization" element={<SettingsPortalPage />} />
               <Route path="settings-portal/users" element={<SettingsPortalPage />} />
+              <Route path="settings-portal/roles-permissions" element={<SettingsPortalPage />} />
               <Route path="settings-portal/billing" element={<SettingsPortalPage />} />
               <Route path="settings-portal/integrations" element={<SettingsPortalPage />} />
+            </Route>
+
+            {/* 13. Guri24 Platform Administration (Multi-Tenant Super-Admin Shell) */}
+            <Route
+              path="/platform"
+              element={
+                <AuthGuard>
+                  <PlatformLayout />
+                </AuthGuard>
+              }
+            >
+              <Route index element={<Navigate to="/platform/dashboard" replace />} />
+              <Route path="dashboard" element={<PlatformAdminPage view="dashboard" />} />
+              <Route path="organizations" element={<PlatformAdminPage view="organizations" />} />
+              <Route path="organizations/:id" element={<PlatformAdminPage view="organizations" />} />
+              <Route path="users" element={<PlatformAdminPage view="users" />} />
+              <Route path="administrators" element={<PlatformAdminPage view="administrators" />} />
+              <Route path="subscriptions" element={<PlatformAdminPage view="subscriptions" />} />
+              <Route path="integrations" element={<PlatformAdminPage view="integrations" />} />
+              <Route path="audit-logs" element={<PlatformAdminPage view="audit-logs" />} />
+              <Route path="system-health" element={<PlatformAdminPage view="system-health" />} />
             </Route>
 
             {/* 404 Unknown Route Fallback */}
