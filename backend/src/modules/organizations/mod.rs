@@ -135,6 +135,7 @@ pub trait OrganizationRepository: Send + Sync {
         password: String,
         role: SystemRole,
     ) -> AppResult<(UserRecord, OrganizationMembership)>;
+    fn update_user_password(&self, email: &str, new_password_hash: String) -> AppResult<bool>;
 }
 
 #[derive(Default)]
@@ -147,7 +148,88 @@ pub struct InMemoryOrganizationRepository {
 
 impl InMemoryOrganizationRepository {
     pub fn new() -> Self {
-        Self::default()
+        let repo = Self::default();
+        repo.seed_default_organizations();
+        repo
+    }
+
+    fn seed_default_organizations(&self) {
+        let org_id = Uuid::parse_str("11111111-1111-1111-1111-111111111111")
+            .unwrap_or_else(|_| Uuid::new_v4());
+        let now = Utc::now();
+        let default_org = Organization {
+            id: org_id,
+            name: "Guri24 Rental Management Ltd".to_string(),
+            slug: "guri24-rental-management".to_string(),
+            organization_type: "PROPERTY_MANAGEMENT_COMPANY".to_string(),
+            kra_pin: Some("P051234567Z".to_string()),
+            contact_email: "petergatitu61@gmail.com".to_string(),
+            contact_phone: "+254712345678".to_string(),
+            county: "Nairobi".to_string(),
+            currency: "KES".to_string(),
+            timezone: "Africa/Nairobi".to_string(),
+            status: "ACTIVE".to_string(),
+            created_at: now,
+        };
+
+        let pw_hash_12345678 = PasswordService::hash_password("12345678")
+            .unwrap_or_else(|_| "$argon2id$v=19$m=19456,t=2,p=1$placeholder$placeholder".to_string());
+        let pw_hash_password123 = PasswordService::hash_password("password123")
+            .unwrap_or_else(|_| pw_hash_12345678.clone());
+
+        let user_peter = UserRecord {
+            id: Uuid::parse_str("22222222-2222-2222-2222-222222222222")
+                .unwrap_or_else(|_| Uuid::new_v4()),
+            email: "petergatitu61@gmail.com".to_string(),
+            phone: "+254712345678".to_string(),
+            full_name: "Peter Gatitu Mwangi".to_string(),
+            password_hash: pw_hash_12345678.clone(),
+            is_active: true,
+            created_at: now,
+        };
+
+        let user_admin = UserRecord {
+            id: Uuid::parse_str("33333333-3333-3333-3333-333333333333")
+                .unwrap_or_else(|_| Uuid::new_v4()),
+            email: "admin@guri24.co.ke".to_string(),
+            phone: "+254700000000".to_string(),
+            full_name: "Guri24 Administrator".to_string(),
+            password_hash: pw_hash_password123,
+            is_active: true,
+            created_at: now,
+        };
+
+        let membership_peter = OrganizationMembership {
+            id: Uuid::new_v4(),
+            organization_id: org_id,
+            user_id: user_peter.id,
+            role: SystemRole::OrganizationAdministrator,
+            is_active: true,
+            joined_at: now,
+        };
+
+        let membership_admin = OrganizationMembership {
+            id: Uuid::new_v4(),
+            organization_id: org_id,
+            user_id: user_admin.id,
+            role: SystemRole::OrganizationAdministrator,
+            is_active: true,
+            joined_at: now,
+        };
+
+        let mut orgs_guard = self.organizations.write().unwrap_or_else(|e| e.into_inner());
+        orgs_guard.insert(org_id, default_org.clone());
+
+        let mut users_guard = self.users.write().unwrap_or_else(|e| e.into_inner());
+        users_guard.insert(user_peter.id, user_peter);
+        users_guard.insert(user_admin.id, user_admin);
+
+        let mut mems_guard = self.memberships.write().unwrap_or_else(|e| e.into_inner());
+        mems_guard.push(membership_peter);
+        mems_guard.push(membership_admin);
+
+        let mut settings_guard = self.settings.write().unwrap_or_else(|e| e.into_inner());
+        settings_guard.insert(org_id, OrganizationSettings::default_for(org_id));
     }
 }
 
@@ -360,5 +442,16 @@ impl OrganizationRepository for InMemoryOrganizationRepository {
             .push(membership.clone());
 
         Ok((user, membership))
+    }
+
+    fn update_user_password(&self, email: &str, new_password_hash: String) -> AppResult<bool> {
+        let norm = email.trim().to_lowercase();
+        let mut users_guard = self.users.write().unwrap_or_else(|e| e.into_inner());
+        if let Some(user) = users_guard.values_mut().find(|u| u.email == norm) {
+            user.password_hash = new_password_hash;
+            Ok(true)
+        } else {
+            Ok(false)
+        }
     }
 }

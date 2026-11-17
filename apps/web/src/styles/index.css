@@ -150,7 +150,7 @@
     background: var(--bg-shell);
   }
 
-  @media (width < 1024px) {
+  @media (max-width: 1023px) {
     .app-shell {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -171,7 +171,7 @@
     overscroll-behavior: contain;
   }
 
-  @media (width < 1024px) {
+  @media (max-width: 1023px) {
     .sidebar {
       display: none !important;
     }
@@ -268,7 +268,7 @@
     color: var(--text-muted);
   }
 
-  @media (width < 1024px) {
+  @media (max-width: 1023px) {
     .menu-section-label {
       display: none;
     }
@@ -278,16 +278,6 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-  }
-
-  @media (width < 1024px) {
-    .nav-list {
-      flex-direction: row;
-      overflow-x: auto;
-      padding-block-end: 4px;
-      gap: 6px;
-      scrollbar-width: thin;
-    }
   }
 
   .nav-btn {
@@ -303,15 +293,6 @@
     transition: background-color 0.15s ease, color 0.15s ease;
     text-align: start;
     white-space: nowrap;
-  }
-
-  @media (width < 1024px) {
-    .nav-btn {
-      inline-size: auto;
-      padding: 7px 12px;
-      background: #ffffff;
-      border: 1px solid var(--border-subtle);
-    }
   }
 
   .nav-btn-left {
@@ -346,7 +327,7 @@
     flex-shrink: 0;
   }
 
-  @media (width < 1024px) {
+  @media (max-width: 1023px) {
     .promo-card {
       display: none;
     }
@@ -431,7 +412,7 @@
     min-inline-size: 0;
   }
 
-  @media (width < 768px) {
+  @media (max-width: 767px) {
     .workspace {
       padding: 14px 14px 28px;
       gap: 14px;
@@ -523,13 +504,13 @@
     gap: 14px;
   }
 
-  @media (width < 1260px) {
+  @media (max-width: 1259px) {
     .kpi-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
-  @media (width < 580px) {
+  @media (max-width: 579px) {
     .kpi-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
@@ -627,7 +608,7 @@
     align-items: start;
   }
 
-  @media (width < 1200px) {
+  @media (max-width: 1199px) {
     .dashboard-main-grid {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -658,7 +639,7 @@
     min-inline-size: 0;
   }
 
-  @media (width < 640px) {
+  @media (max-width: 639px) {
     .surface-card {
       padding: 14px 14px;
     }
@@ -712,7 +693,7 @@
     min-inline-size: 0;
   }
 
-  @media (width < 520px) {
+  @media (max-width: 519px) {
     .bar-columns {
       gap: 4px;
     }
@@ -1097,7 +1078,7 @@
     align-items: end;
   }
 
-  @media (width < 560px) {
+  @media (max-width: 559px) {
     .form-grid {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -1748,7 +1729,7 @@
   display: none;
 }
 
-@media (width < 1024px) {
+@media (max-width: 1023px) {
   .mobile-header {
     display: flex;
     align-items: center;
@@ -1918,5 +1899,72 @@
   }
   to {
     transform: translateX(0);
+  }
+}
+
+/* ==========================================================================
+   FULL PAGE ASSISTANT RESPONSIVE LAYOUT
+   ========================================================================== */
+.fullpage-assistant-root {
+  display: flex;
+  height: calc(100vh - 72px);
+  width: 100%;
+  background: #f8fafc;
+  overflow: hidden;
+  position: relative;
+}
+
+.fullpage-assistant-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #ffffff;
+  position: relative;
+  height: 100%;
+}
+
+@media (max-width: 1023px) {
+  .fullpage-assistant-root {
+    height: calc(100dvh - 130px) !important;
+    position: relative;
+  }
+
+  .fullpage-assistant-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 82% !important;
+    max-width: 320px !important;
+    z-index: 1001 !important;
+    background: #ffffff !important;
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  .fullpage-assistant-sidebar:not(.mobile-open) {
+    display: none !important;
+  }
+
+  .fullpage-assistant-right-panel {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    width: 85% !important;
+    max-width: 340px !important;
+    z-index: 1001 !important;
+    background: #ffffff !important;
+    box-shadow: -4px 0 25px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  .fullpage-assistant-right-panel:not(.mobile-open) {
+    display: none !important;
+  }
+
+  .fullpage-assistant-center {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 100% !important;
   }
 }

@@ -252,8 +252,13 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
 
       // If this is password reset flow, update password and redirect to sign in
       if (isPasswordResetFlow) {
-        setPassword(newPassword);
-        setSuccessNotice('Your password has been successfully reset! Please sign in with your credentials.');
+        await apiClient.resetPassword({
+          email: email.trim(),
+          otp_code: entered,
+          new_password: newPassword.trim(),
+        });
+        setPassword(newPassword.trim());
+        setSuccessNotice('Your password has been successfully reset! Please sign in with your new password.');
         setIsPasswordResetFlow(false);
         setAuthMode('signin');
         setNewPassword('');

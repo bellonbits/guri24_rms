@@ -250,6 +250,17 @@ class ApiClient {
     return res;
   }
 
+  async resetPassword(cmd: {
+    email: string;
+    otp_code: string;
+    new_password: string;
+  }): Promise<{ success: boolean; message: string }> {
+    return this.request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
   // Current Organization & Settings
   async getCurrentOrganization(): Promise<Organization> {
     return this.request('/organizations/current');

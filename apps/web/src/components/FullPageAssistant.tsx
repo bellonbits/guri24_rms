@@ -221,7 +221,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
   const [isSending, setIsSending] = useState(false);
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
   const [showRightPanel, setShowRightPanel] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth >= 1024 : false
+    typeof window !== 'undefined' ? window.innerWidth >= 1200 : false
   );
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(() =>
@@ -232,7 +232,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
     const handleResize = () => {
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
-      if (mobile) {
+      if (window.innerWidth < 1200) {
         setShowRightPanel(false);
       }
     };
@@ -578,6 +578,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
 
   return (
     <div
+      className="fullpage-assistant-root"
       style={{
         display: 'flex',
         height: 'calc(100vh - 72px)',
@@ -613,6 +614,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
 
       {(!isMobile || showMobileSidebar) && (
         <aside
+          className={`fullpage-assistant-sidebar ${showMobileSidebar ? 'mobile-open' : ''}`}
           style={{
             width: isMobile ? '82%' : '260px',
             maxWidth: isMobile ? '320px' : '260px',
@@ -882,6 +884,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
       {/* 2. CENTER ARENA: CONVERSATION WORKSPACE                       */}
       {/* ------------------------------------------------------------- */}
       <main
+        className="fullpage-assistant-center"
         style={{
           flex: 1,
           display: 'flex',
@@ -1561,6 +1564,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
             />
           )}
           <aside
+            className={`fullpage-assistant-right-panel ${showRightPanel ? 'mobile-open' : ''}`}
             style={{
               width: '280px',
               maxWidth: '85vw',

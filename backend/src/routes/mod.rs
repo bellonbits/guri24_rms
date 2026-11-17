@@ -96,6 +96,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/auth/logout", post(logout_handler))
         .route("/auth/otp/send", post(send_otp_handler))
         .route("/auth/otp/verify", post(verify_otp_handler))
+        .route("/auth/reset-password", post(reset_password_handler))
         // Provider & Integration Readiness Status
         .route("/integrations/status", get(list_integrations_status_handler))
         .route("/openapi.json", get(openapi_spec_handler))
@@ -467,6 +468,26 @@ async fn verify_otp_handler(
         verified: true,
         target,
     }))
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ResetPasswordRequest {
+    pub email: String,
+    pub otp_code: String,
+    pub new_password: String,
+}
+
+async fn reset_password_handler(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<ResetPasswordRequest>,
+) -> AppResult<Json<serde_json::Value>> {
+    let email_norm = payload.email.trim().to_lowercase();
+    state.otp_service.verify(&email_norm, &payload.otp_code)?;
+    state.auth_service.reset_password(&email_norm, &payload.new_password)?;
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": "Password reset successfully"
+    })))
 }
 
 async fn get_organization_handler(
