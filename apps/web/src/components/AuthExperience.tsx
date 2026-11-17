@@ -27,7 +27,10 @@ interface AuthExperienceProps {
 }
 
 export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperienceProps) {
-  const [authMode, setAuthMode] = useState<'signup' | 'signin' | 'verify_otp'>(initialMode);
+  const [authMode, setAuthMode] = useState<'signup' | 'signin' | 'verify_otp' | 'forgot_password'>(initialMode);
+  const [isPasswordResetFlow, setIsPasswordResetFlow] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // Form Fields
   const [email, setEmail] = useState('');
@@ -41,22 +44,22 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
   const [testimonialIdx, setTestimonialIdx] = useState(0);
   const testimonials = [
     {
-      quote: 'I was able to reduce the time taken to present high-level designs by 35% using the platform.',
-      author: 'Sara Bright',
-      role: 'Freelancer Designer',
-      tags: ['Community of designers', 'Creative resources'],
-    },
-    {
-      quote: 'Automated M-Pesa reconciliation reduced our tenant arrears by 42% in just two months.',
+      quote: 'Automated M-Pesa Daraja reconciliation reduced our tenant arrears by 42% across 120 units in Kilimani.',
       author: 'David Kariuki',
       role: 'Director, Nairobi Heights Realty',
-      tags: ['Verified Kenyan Landlords', 'Instant STK Reconciliation'],
+      tags: ['M-Pesa Daraja Settlement', 'Instant Arrears Reconciliation'],
     },
     {
-      quote: 'The olmOCR document extraction handles leases and title deeds with remarkable precision.',
+      quote: 'Guri24 RMS generates compliant KRA eTIMS invoices and auto-allocates rent via double-entry general ledger.',
+      author: 'Grace Muthoni',
+      role: 'Senior Property Accountant, Westlands',
+      tags: ['KRA eTIMS Compliance', 'Double-Entry General Ledger'],
+    },
+    {
+      quote: 'The olmOCR document extraction handles leases and title deeds with complete accuracy and zero manual data entry.',
       author: 'Wanjiku Kamau',
-      role: 'Senior Property Manager, Westlands',
-      tags: ['AI Document Intelligence', 'Zero Manual Ledger Entry'],
+      role: 'Principal Estate Manager, Upper Hill',
+      tags: ['AI Document Intelligence', 'Account 2100 Deposit Trust'],
     },
   ];
 
@@ -220,9 +223,20 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
       return;
     }
 
-    if (password.trim().length < 8) {
+    if (!isPasswordResetFlow && password.trim().length < 8) {
       setErrorMessage('Password must be at least 8 characters long. Please enter a valid password below.');
       return;
+    }
+
+    if (isPasswordResetFlow) {
+      if (newPassword.trim().length < 8) {
+        setErrorMessage('New password must be at least 8 characters long.');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setErrorMessage('Passwords do not match. Please verify.');
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -235,6 +249,19 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
         target,
         code: entered,
       });
+
+      // If this is password reset flow, update password and redirect to sign in
+      if (isPasswordResetFlow) {
+        setPassword(newPassword);
+        setSuccessNotice('Your password has been successfully reset! Please sign in with your credentials.');
+        setIsPasswordResetFlow(false);
+        setAuthMode('signin');
+        setNewPassword('');
+        setConfirmPassword('');
+        setOtpDigits(['', '', '', '', '', '']);
+        setIsLoading(false);
+        return;
+      }
 
       // 2. Real registration in database with Argon2 password hashing and JWT issuance
       const regRes = await apiClient.register({
@@ -267,6 +294,41 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
       onSuccess(session);
     } catch (err: any) {
       setErrorMessage(err?.message || 'Invalid or expired verification code.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Handle Forgot Password Request:
+   * Dispatches OTP to verified target and transitions to OTP confirmation & password reset.
+   */
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMessage(null);
+    setSuccessNotice(null);
+
+    const target = verifyChannel === 'email' ? email.trim() : phone.trim();
+    if (!target) {
+      setErrorMessage(verifyChannel === 'email' ? 'Please enter your registered email address.' : 'Please enter your registered Kenyan phone number.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      await apiClient.sendOtp({
+        target,
+        channel: verifyChannel,
+        purpose: 'PASSWORD_RESET',
+      });
+      setIsPasswordResetFlow(true);
+      setSuccessNotice(`A 6-digit security code has been sent to ${target}. Enter it below to reset your password.`);
+      setOtpDigits(['', '', '', '', '', '']);
+      setAuthMode('verify_otp');
+      setCountdown(60);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Unable to send password reset code. Please check your recipient details.');
     } finally {
       setIsLoading(false);
     }
@@ -339,7 +401,7 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                   margin: '0 0 6px 0',
                 }}
               >
-                Verify your account
+                {isPasswordResetFlow ? 'Reset your password' : 'Verify your account'}
               </h1>
               <p style={{ fontSize: '0.86rem', color: '#6b7280', margin: '0 0 24px 0', lineHeight: 1.45 }}>
                 Enter the 6-digit verification code sent to{' '}
@@ -347,7 +409,7 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                   {verifyChannel === 'email' ? email : phone}
                 </strong>{' '}
                 via{' '}
-                <span style={{ color: '#ea580c', fontWeight: 600 }}>
+                <span style={{ color: '#2563eb', fontWeight: 600 }}>
                   {verifyChannel === 'email' ? 'Resend Email' : 'OpenSMS Kenya'}
                 </span>.
               </p>
@@ -384,7 +446,7 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
               )}
 
               <form onSubmit={handleVerifyOtpSubmit}>
-                {password.trim().length < 8 && (
+                {!isPasswordResetFlow && password.trim().length < 8 && (
                   <div style={{ marginBottom: '18px', maxWidth: '320px' }}>
                     <label
                       style={{
@@ -443,7 +505,7 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                     gap: '8px',
                     width: '100%',
                     maxWidth: '320px',
-                    marginBottom: '22px',
+                    marginBottom: isPasswordResetFlow ? '16px' : '22px',
                   }}
                   onPaste={handleDigitPaste}
                 >
@@ -462,7 +524,7 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                         width: '44px',
                         height: '50px',
                         flex: '0 0 44px',
-                        border: digit ? '1.5px solid #ea580c' : '1.5px solid #e5e7eb',
+                        border: digit ? '1.5px solid #2563eb' : '1.5px solid #e5e7eb',
                         borderRadius: '10px',
                         textAlign: 'center',
                         fontSize: '1.25rem',
@@ -474,14 +536,66 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                         transition: 'border-color 0.15s ease',
                       }}
                       onFocus={(e) => {
-                        e.currentTarget.style.borderColor = '#ea580c';
+                        e.currentTarget.style.borderColor = '#2563eb';
                       }}
                       onBlur={(e) => {
-                        e.currentTarget.style.borderColor = digit ? '#ea580c' : '#e5e7eb';
+                        e.currentTarget.style.borderColor = digit ? '#2563eb' : '#e5e7eb';
                       }}
                     />
                   ))}
                 </div>
+
+                {/* Extra fields for password reset */}
+                {isPasswordResetFlow && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px', maxWidth: '340px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>
+                        New Password
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter new password (min. 8 characters)"
+                        style={{
+                          width: '100%',
+                          height: '42px',
+                          border: '1.5px solid #e5e7eb',
+                          borderRadius: '10px',
+                          padding: '0 14px',
+                          fontSize: '0.88rem',
+                          color: '#111827',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>
+                        Confirm New Password
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Re-enter new password"
+                        style={{
+                          width: '100%',
+                          height: '42px',
+                          border: '1.5px solid #e5e7eb',
+                          borderRadius: '10px',
+                          padding: '0 14px',
+                          fontSize: '0.88rem',
+                          color: '#111827',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div
                   style={{
@@ -503,7 +617,7 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                       style={{
                         background: 'transparent',
                         border: 'none',
-                        color: '#ea580c',
+                        color: '#2563eb',
                         fontWeight: 700,
                         cursor: 'pointer',
                         padding: 0,
@@ -521,20 +635,28 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                     style={{
                       flex: 1,
                       height: '44px',
-                      background: '#ea580c',
+                      background: '#2563eb',
                       color: '#ffffff',
                       border: 'none',
                       borderRadius: '10px',
                       fontSize: '0.92rem',
                       fontWeight: 600,
                       cursor: 'pointer',
+                      boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
                     }}
                   >
-                    {isLoading ? 'Verifying...' : 'Confirm code'}
+                    {isLoading
+                      ? 'Verifying...'
+                      : isPasswordResetFlow
+                      ? 'Reset Password & Sign In'
+                      : 'Confirm code'}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setAuthMode('signup')}
+                    onClick={() => {
+                      setAuthMode(isPasswordResetFlow ? 'forgot_password' : 'signup');
+                      setIsPasswordResetFlow(false);
+                    }}
                     style={{
                       height: '44px',
                       padding: '0 16px',
@@ -547,6 +669,247 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                     }}
                   >
                     Back
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : authMode === 'forgot_password' ? (
+            /* Forgot Password View */
+            <div>
+              {/* Guri24 RMS Official Property Logo */}
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+                <img
+                  src="/Guri24 RMS Property Logo.png"
+                  alt="Guri24 RMS"
+                  style={{
+                    height: '46px',
+                    width: 'auto',
+                    maxWidth: '200px',
+                    objectFit: 'contain',
+                    display: 'block',
+                  }}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = '/guri24_logo_email.png';
+                  }}
+                />
+              </div>
+
+              <h1
+                style={{
+                  fontSize: '1.75rem',
+                  fontWeight: 800,
+                  color: '#111827',
+                  margin: '0 0 6px 0',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                Reset your password
+              </h1>
+              <p
+                style={{
+                  fontSize: '0.86rem',
+                  color: '#6b7280',
+                  lineHeight: 1.45,
+                  margin: '0 0 20px 0',
+                }}
+              >
+                Enter your registered email address or Kenyan mobile number. We'll send you an authoritative 6-digit security code to reset your password.
+              </p>
+
+              {errorMessage && (
+                <div
+                  style={{
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    color: '#b91c1c',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    fontSize: '0.8rem',
+                    marginBottom: '16px',
+                  }}
+                >
+                  {errorMessage}
+                </div>
+              )}
+
+              {successNotice && (
+                <div
+                  style={{
+                    background: '#f0fdf4',
+                    border: '1px solid #bbf7d0',
+                    color: '#15803d',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    fontSize: '0.8rem',
+                    marginBottom: '16px',
+                  }}
+                >
+                  {successNotice}
+                </div>
+              )}
+
+              <form onSubmit={handleForgotPasswordSubmit}>
+                {/* Delivery channel toggle */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: '#f9fafb',
+                    border: '1px solid #f3f4f6',
+                    borderRadius: '10px',
+                    padding: '6px 12px',
+                    marginBottom: '16px',
+                  }}
+                >
+                  <span style={{ fontSize: '0.74rem', color: '#6b7280' }}>Reset Code Via:</span>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setVerifyChannel('email')}
+                      style={{
+                        border: 'none',
+                        background: verifyChannel === 'email' ? '#eff6ff' : 'transparent',
+                        color: verifyChannel === 'email' ? '#2563eb' : '#6b7280',
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Email Address
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVerifyChannel('sms')}
+                      style={{
+                        border: 'none',
+                        background: verifyChannel === 'sms' ? '#eff6ff' : 'transparent',
+                        color: verifyChannel === 'sms' ? '#2563eb' : '#6b7280',
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      SMS (+254)
+                    </button>
+                  </div>
+                </div>
+
+                {verifyChannel === 'email' ? (
+                  <div style={{ marginBottom: '18px' }}>
+                    <label
+                      htmlFor="reset-email"
+                      style={{
+                        display: 'block',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        color: '#374151',
+                        marginBottom: '6px',
+                      }}
+                    >
+                      Email Address
+                    </label>
+                    <input
+                      id="reset-email"
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@company.co.ke"
+                      style={{
+                        width: '100%',
+                        height: '42px',
+                        padding: '0 14px',
+                        fontSize: '0.88rem',
+                        color: '#111827',
+                        background: '#f8fafc',
+                        border: '1.5px solid #e2e8f0',
+                        borderRadius: '10px',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div style={{ marginBottom: '18px' }}>
+                    <label
+                      htmlFor="reset-phone"
+                      style={{
+                        display: 'block',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        color: '#374151',
+                        marginBottom: '6px',
+                      }}
+                    >
+                      Kenyan Mobile Phone
+                    </label>
+                    <input
+                      id="reset-phone"
+                      type="tel"
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+254 712 345 678"
+                      style={{
+                        width: '100%',
+                        height: '42px',
+                        padding: '0 14px',
+                        fontSize: '0.88rem',
+                        color: '#111827',
+                        background: '#f8fafc',
+                        border: '1.5px solid #e2e8f0',
+                        borderRadius: '10px',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  style={{
+                    width: '100%',
+                    height: '44px',
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontSize: '0.94rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {isLoading ? 'Sending reset code...' : 'Send Reset Code'}
+                </button>
+
+                <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.84rem', color: '#6b7280' }}>
+                  Remember your password?{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setErrorMessage(null);
+                      setSuccessNotice(null);
+                      setAuthMode('signin');
+                    }}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#2563eb',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
+                  >
+                    Sign In
                   </button>
                 </div>
               </form>
@@ -699,7 +1062,7 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                       style={{
                         width: '100%',
                         height: '42px',
-                        border: '1.5px solid #fed7aa',
+                        border: '1.5px solid #e5e7eb',
                         borderRadius: '10px',
                         padding: '0 14px',
                         fontSize: '0.88rem',
@@ -722,10 +1085,30 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                     >
                       Password
                     </label>
-                    {authMode === 'signup' && (
+                    {authMode === 'signup' ? (
                       <span style={{ fontSize: '0.72rem', color: password.length >= 8 ? '#16a34a' : '#9ca3af', fontWeight: 500 }}>
                         {password.length >= 8 ? '✓ 8+ characters' : 'min. 8 characters'}
                       </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setErrorMessage(null);
+                          setSuccessNotice(null);
+                          setAuthMode('forgot_password');
+                        }}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#2563eb',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          padding: 0,
+                        }}
+                      >
+                        Forgot password?
+                      </button>
                     )}
                   </div>
                   <div style={{ position: 'relative' }}>
@@ -788,8 +1171,8 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                         onClick={() => setVerifyChannel('email')}
                         style={{
                           border: 'none',
-                          background: verifyChannel === 'email' ? '#ffedd5' : 'transparent',
-                          color: verifyChannel === 'email' ? '#ea580c' : '#6b7280',
+                          background: verifyChannel === 'email' ? '#eff6ff' : 'transparent',
+                          color: verifyChannel === 'email' ? '#2563eb' : '#6b7280',
                           fontSize: '0.72rem',
                           fontWeight: 600,
                           padding: '3px 8px',
@@ -804,8 +1187,8 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                         onClick={() => setVerifyChannel('sms')}
                         style={{
                           border: 'none',
-                          background: verifyChannel === 'sms' ? '#ffedd5' : 'transparent',
-                          color: verifyChannel === 'sms' ? '#ea580c' : '#6b7280',
+                          background: verifyChannel === 'sms' ? '#eff6ff' : 'transparent',
+                          color: verifyChannel === 'sms' ? '#2563eb' : '#6b7280',
                           fontSize: '0.72rem',
                           fontWeight: 600,
                           padding: '3px 8px',
@@ -819,21 +1202,21 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                   </div>
                 )}
 
-                {/* Orange Primary Button */}
+                {/* Guri24 Blue Primary Button */}
                 <button
                   type="submit"
                   disabled={isLoading}
                   style={{
                     width: '100%',
                     height: '44px',
-                    background: '#ea580c',
+                    background: '#2563eb',
                     color: '#ffffff',
                     border: 'none',
                     borderRadius: '10px',
                     fontSize: '0.94rem',
                     fontWeight: 600,
                     cursor: 'pointer',
-                    boxShadow: '0 4px 14px rgba(234, 88, 12, 0.35)',
+                    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
                     transition: 'all 0.15s ease',
                   }}
                 >
@@ -947,7 +1330,7 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                         style={{
                           background: 'transparent',
                           border: 'none',
-                          color: '#ea580c',
+                          color: '#2563eb',
                           fontWeight: 700,
                           cursor: 'pointer',
                           padding: 0,
@@ -965,7 +1348,7 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                         style={{
                           background: 'transparent',
                           border: 'none',
-                          color: '#ea580c',
+                          color: '#2563eb',
                           fontWeight: 700,
                           cursor: 'pointer',
                           padding: 0,
@@ -982,14 +1365,14 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
         </div>
 
         {/* ===================================================================
-            RIGHT COLUMN: TERRACOTTA DUNE VISUAL & FROSTED GLASS TESTIMONIAL
+            RIGHT COLUMN: GURI24 RMS BRAND GRADIENT & TESTIMONIAL
            =================================================================== */}
         <div
           style={{
             borderRadius: '20px',
             position: 'relative',
             overflow: 'hidden',
-            background: 'linear-gradient(145deg, #fb923c 0%, #ea580c 40%, #9a3412 85%, #7c2d12 100%)',
+            background: 'linear-gradient(145deg, #0f172a 0%, #1e3a8a 35%, #0284c7 70%, #059669 100%)',
             padding: '24px',
             display: 'flex',
             flexDirection: 'column',
@@ -1002,14 +1385,14 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
               <span
                 key={tag}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.22)',
+                  background: 'rgba(255, 255, 255, 0.18)',
                   backdropFilter: 'blur(8px)',
                   color: '#ffffff',
                   fontSize: '0.74rem',
                   fontWeight: 600,
                   padding: '4px 12px',
                   borderRadius: '9999px',
-                  border: '1px solid rgba(255, 255, 255, 0.35)',
+                  border: '1px solid rgba(255, 255, 255, 0.28)',
                 }}
               >
                 {tag}
@@ -1017,13 +1400,13 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
             ))}
           </div>
 
-          {/* Ambient sand waves graphic element */}
+          {/* Ambient waves graphic element matching logo blue & green */}
           <div
             style={{
               position: 'absolute',
               inset: 0,
               backgroundImage:
-                'radial-gradient(ellipse at 80% 20%, rgba(254, 215, 170, 0.35) 0%, transparent 50%), radial-gradient(ellipse at 20% 80%, rgba(124, 45, 18, 0.45) 0%, transparent 60%)',
+                'radial-gradient(ellipse at 85% 15%, rgba(16, 185, 129, 0.35) 0%, transparent 55%), radial-gradient(ellipse at 15% 85%, rgba(37, 99, 235, 0.45) 0%, transparent 60%)',
               pointerEvents: 'none',
             }}
           />
@@ -1031,10 +1414,10 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
           {/* Bottom Frosted Glass Card with Quote and Pagination Buttons */}
           <div
             style={{
-              background: 'rgba(255, 255, 255, 0.2)',
+              background: 'rgba(255, 255, 255, 0.18)',
               backdropFilter: 'blur(16px)',
               WebkitBackdropFilter: 'blur(16px)',
-              border: '1px solid rgba(255, 255, 255, 0.35)',
+              border: '1px solid rgba(255, 255, 255, 0.28)',
               borderRadius: '18px',
               padding: '22px 24px',
               color: '#ffffff',
