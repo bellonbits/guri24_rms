@@ -2055,20 +2055,19 @@ export const NotificationSettingsWorkspace: React.FC<NotificationSettingsWorkspa
                     boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
                   }}
                 >
-                  {/* Envelope with checkmark vector illustration */}
+                  {/* Illustration: Laptop with NEW EMAIL! (apps/web/public/image.png) */}
                   <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '18px' }}>
-                    <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 28L14 30L12 32L10 30L12 28Z" fill="#94a3b8" />
-                      <path d="M60 22L61.5 23.5L60 25L58.5 23.5L60 22Z" fill="#94a3b8" />
-                      <circle cx="20" cy="18" r="1.5" fill="#cbd5e1" />
-                      <circle cx="56" cy="38" r="1.5" fill="#cbd5e1" />
-                      <rect x="16" y="24" width="40" height="28" rx="4" fill="#f8fafc" stroke="#64748b" strokeWidth="1.8" />
-                      <rect x="22" y="14" width="28" height="20" rx="3" fill="#dcfce7" stroke="#86efac" strokeWidth="1.5" />
-                      <path d="M31 24L34.5 27.5L41 20" stroke="#16a34a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M16 26L36 39L56 26" stroke="#64748b" strokeWidth="1.8" strokeLinejoin="round" />
-                      <path d="M16 52L29 38" stroke="#cbd5e1" strokeWidth="1.5" />
-                      <path d="M56 52L43 38" stroke="#cbd5e1" strokeWidth="1.5" />
-                    </svg>
+                    <img
+                      src="/image.png"
+                      alt="New Email Notification"
+                      style={{
+                        width: '140px',
+                        height: '140px',
+                        maxWidth: '100%',
+                        objectFit: 'contain',
+                        display: 'block',
+                      }}
+                    />
                   </div>
 
                   <p style={{ fontSize: '0.88rem', color: '#475569', lineHeight: 1.5, margin: '0 0 14px 0' }}>

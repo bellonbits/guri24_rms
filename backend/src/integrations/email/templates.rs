@@ -8,6 +8,7 @@
 //! - Bottom action bar ("Ask AI", primary action button)
 
 pub const GURI24_LOGO_BASE64: &str = include_str!("guri24_logo_email.base64");
+pub const NEW_EMAIL_ILLUSTRATION_BASE64: &str = include_str!("new_email_illustration.base64");
 
 /// Renders a responsive, modern HTML email for OTP verification
 pub fn render_otp_email_template(recipient: &str, code: &str) -> String {
@@ -674,20 +675,9 @@ pub fn render_account_approved_email(
     <!-- Card 1: Envelope Illustration, Message & CTA -->
     <tr>
       <td style="background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 36px 28px; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);">
-        <!-- Envelope with checkmark vector illustration -->
-        <div style="margin-bottom: 20px;">
-          <svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline-block;">
-            <path d="M12 28L14 30L12 32L10 30L12 28Z" fill="#94a3b8"/>
-            <path d="M60 22L61.5 23.5L60 25L58.5 23.5L60 22Z" fill="#94a3b8"/>
-            <circle cx="20" cy="18" r="1.5" fill="#cbd5e1"/>
-            <circle cx="56" cy="38" r="1.5" fill="#cbd5e1"/>
-            <rect x="16" y="24" width="40" height="28" rx="4" fill="#f8fafc" stroke="#64748b" stroke-width="1.8"/>
-            <rect x="22" y="14" width="28" height="20" rx="3" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
-            <path d="M31 24L34.5 27.5L41 20" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M16 26L36 39L56 26" stroke="#64748b" stroke-width="1.8" stroke-linejoin="round"/>
-            <path d="M16 52L29 38" stroke="#cbd5e1" stroke-width="1.5"/>
-            <path d="M56 52L43 38" stroke="#cbd5e1" stroke-width="1.5"/>
-          </svg>
+        <!-- Illustration: Laptop with NEW EMAIL! (apps/web/public/image.png) -->
+        <div style="margin-bottom: 20px; text-align: center;">
+          <img src="data:image/png;base64,{illustration}" alt="New Email Notification" style="width: 150px; height: 150px; max-width: 100%; object-fit: contain; display: inline-block;" />
         </div>
 
         <p style="font-size: 14px; color: #475569; line-height: 1.5; margin: 0 0 16px 0;">
@@ -814,6 +804,7 @@ pub fn render_account_approved_email(
 </body>
 </html>"#,
         logo = GURI24_LOGO_BASE64,
+        illustration = NEW_EMAIL_ILLUSTRATION_BASE64,
         display_name = display_name,
         portal_url = clean_portal_url,
     )
