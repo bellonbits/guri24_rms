@@ -19,6 +19,7 @@ import { AnalyticsLedgerPage } from './pages/AnalyticsLedgerPage';
 import { AutomatedEmailsPage } from './pages/AutomatedEmailsPage';
 import { SettingsPortalPage } from './pages/SettingsPortalPage';
 import { LoginPage } from './pages/LoginPage';
+import { HomePage } from './pages/HomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AcceptInvitationPage } from './pages/AcceptInvitationPage';
 import { PlatformLayout } from './layouts/PlatformLayout';
@@ -44,15 +45,16 @@ export const App: React.FC = () => {
       <AuthProvider>
         <RmsProvider>
           <Routes>
+            {/* Public Platform Homepage */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/home" element={<HomePage />} />
+
             {/* Public Authentication Route */}
             <Route path="/login" element={<LoginPage />} />
 
             {/* Public Invitation Acceptance Route */}
             <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
             <Route path="/accept-invitation/:token" element={<AcceptInvitationPage />} />
-
-            {/* Root Redirect to /app/dashboard */}
-            <Route path="/" element={<Navigate to="/app/dashboard" replace />} />
 
             {/* Authenticated Application Shell */}
             <Route
