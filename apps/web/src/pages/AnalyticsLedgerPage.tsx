@@ -11,14 +11,41 @@ export const AnalyticsLedgerPage: React.FC = () => {
 
   const { targetTab, statementSubTab } = useMemo(() => {
     const path = location.pathname.toLowerCase();
-    if (path.includes('/general-ledger')) {
+    if (path.includes('/general-ledger') || path.includes('/journals')) {
       return { targetTab: 'ledger' as AnalyticsWorkspaceTab, statementSubTab: 'pnl' as StatementSubTab };
+    }
+    if (path.includes('/accounts')) {
+      return { targetTab: 'accounts' as AnalyticsWorkspaceTab, statementSubTab: 'pnl' as StatementSubTab };
+    }
+    if (path.includes('/collections')) {
+      return { targetTab: 'collections' as AnalyticsWorkspaceTab, statementSubTab: 'pnl' as StatementSubTab };
+    }
+    if (path.includes('/receivables') || path.includes('/arrears')) {
+      return { targetTab: 'arrears' as AnalyticsWorkspaceTab, statementSubTab: 'pnl' as StatementSubTab };
+    }
+    if (path.includes('/expenses')) {
+      return { targetTab: 'expenses' as AnalyticsWorkspaceTab, statementSubTab: 'pnl' as StatementSubTab };
+    }
+    if (path.includes('/deposits')) {
+      return { targetTab: 'deposits' as AnalyticsWorkspaceTab, statementSubTab: 'pnl' as StatementSubTab };
     }
     if (path.includes('/trial-balance')) {
       return { targetTab: 'statements' as AnalyticsWorkspaceTab, statementSubTab: 'trial_balance' as StatementSubTab };
     }
-    if (path.includes('/financial-statements')) {
+    if (path.includes('/income-statement') || path.includes('/financial-statements')) {
       return { targetTab: 'statements' as AnalyticsWorkspaceTab, statementSubTab: 'pnl' as StatementSubTab };
+    }
+    if (path.includes('/balance-sheet')) {
+      return { targetTab: 'statements' as AnalyticsWorkspaceTab, statementSubTab: 'balance_sheet' as StatementSubTab };
+    }
+    if (path.includes('/cash-flow')) {
+      return { targetTab: 'statements' as AnalyticsWorkspaceTab, statementSubTab: 'cash_flow' as StatementSubTab };
+    }
+    if (path.includes('/reconciliation')) {
+      return { targetTab: 'reconciliation' as AnalyticsWorkspaceTab, statementSubTab: 'pnl' as StatementSubTab };
+    }
+    if (path.includes('/audit-trail')) {
+      return { targetTab: 'audit' as AnalyticsWorkspaceTab, statementSubTab: 'pnl' as StatementSubTab };
     }
     return { targetTab: 'overview' as AnalyticsWorkspaceTab, statementSubTab: 'pnl' as StatementSubTab };
   }, [location.pathname]);

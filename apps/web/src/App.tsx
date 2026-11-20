@@ -115,11 +115,23 @@ export const App: React.FC = () => {
               {/* 9. AI Assistant */}
               <Route path="assistant" element={<AssistantPage />} />
 
-              {/* 10. Analytics & Ledger */}
+              {/* 10. Analytics & Ledger (Complete Nested Financial Management Subpages) */}
               <Route path="analytics-ledger" element={<AnalyticsLedgerPage />} />
+              <Route path="analytics-ledger/overview" element={<AnalyticsLedgerPage />} />
+              <Route path="analytics-ledger/accounts" element={<AnalyticsLedgerPage />} />
+              <Route path="analytics-ledger/collections" element={<AnalyticsLedgerPage />} />
+              <Route path="analytics-ledger/receivables" element={<AnalyticsLedgerPage />} />
+              <Route path="analytics-ledger/arrears" element={<AnalyticsLedgerPage />} />
+              <Route path="analytics-ledger/expenses" element={<AnalyticsLedgerPage />} />
+              <Route path="analytics-ledger/deposits" element={<AnalyticsLedgerPage />} />
               <Route path="analytics-ledger/general-ledger" element={<AnalyticsLedgerPage />} />
+              <Route path="analytics-ledger/journals" element={<AnalyticsLedgerPage />} />
               <Route path="analytics-ledger/trial-balance" element={<AnalyticsLedgerPage />} />
-              <Route path="analytics-ledger/financial-statements" element={<AnalyticsLedgerPage />} />
+              <Route path="analytics-ledger/income-statement" element={<AnalyticsLedgerPage />} />
+              <Route path="analytics-ledger/balance-sheet" element={<AnalyticsLedgerPage />} />
+              <Route path="analytics-ledger/cash-flow" element={<AnalyticsLedgerPage />} />
+              <Route path="analytics-ledger/reconciliation" element={<AnalyticsLedgerPage />} />
+              <Route path="analytics-ledger/audit-trail" element={<AnalyticsLedgerPage />} />
 
               {/* 11. Automated Emails */}
               <Route path="automated-emails" element={<AutomatedEmailsPage />} />
@@ -131,6 +143,7 @@ export const App: React.FC = () => {
               {/* 12. Settings & Portal */}
               <Route path="settings-portal" element={<SettingsPortalPage />} />
               <Route path="settings-portal/organization" element={<SettingsPortalPage />} />
+              <Route path="settings-portal/finance-configuration" element={<SettingsPortalPage />} />
               <Route path="settings-portal/users" element={<SettingsPortalPage />} />
               <Route path="settings-portal/roles-permissions" element={<SettingsPortalPage />} />
               <Route path="settings-portal/billing" element={<SettingsPortalPage />} />

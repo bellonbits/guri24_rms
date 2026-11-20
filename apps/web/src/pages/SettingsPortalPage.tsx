@@ -45,6 +45,7 @@ import {
   updateUserPropertyAccess as updatePropertyAccessDomain,
   revokeUserSessions as revokeSessionsDomain,
 } from '../lib/api';
+import { FinanceConfigurationWizard } from '../components/FinanceConfigurationWizard';
 import type {
   ManagedStaffMember,
   Invitation,
@@ -58,12 +59,13 @@ export const SettingsPortalPage: React.FC = () => {
   const location = useLocation();
 
   const isOrgView = location.pathname.includes('/organization');
+  const isFinanceConfigView = location.pathname.includes('/finance-configuration');
   const isUsersView = location.pathname.includes('/users');
   const isRolesView = location.pathname.includes('/roles-permissions');
   const isBillingView = location.pathname.includes('/billing');
   const isIntegrationsView = location.pathname.includes('/integrations');
   const isGeneralView =
-    !isOrgView && !isUsersView && !isRolesView && !isBillingView && !isIntegrationsView;
+    !isOrgView && !isFinanceConfigView && !isUsersView && !isRolesView && !isBillingView && !isIntegrationsView;
 
   // Sub-tab inside Users & Access Management
   const [usersSubTab, setUsersSubTab] = useState<'STAFF' | 'TENANTS' | 'INVITATIONS' | 'AUDIT'>('STAFF');
@@ -379,6 +381,21 @@ export const SettingsPortalPage: React.FC = () => {
           }}
         >
           Organization Profile
+        </Link>
+        <Link
+          to="/app/settings-portal/finance-configuration"
+          style={{
+            padding: '6px 14px',
+            borderRadius: '6px',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            textDecoration: 'none',
+            background: isFinanceConfigView ? '#ffffff' : 'transparent',
+            color: isFinanceConfigView ? '#0f172a' : '#64748b',
+            boxShadow: isFinanceConfigView ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+          }}
+        >
+          Finance Configuration
         </Link>
         <Link
           to="/app/settings-portal/users"
@@ -1293,6 +1310,11 @@ export const SettingsPortalPage: React.FC = () => {
             )}
           </ResponsiveTable>
         </section>
+      ) : isFinanceConfigView ? (
+        /* ------------------------------------------------------------- */
+        /* 4. CLIENT FINANCE CONFIGURATION WIZARD                        */
+        /* ------------------------------------------------------------- */
+        <FinanceConfigurationWizard currentOrg={currentOrg} properties={properties} />
       ) : isOrgView ? (
         /* ------------------------------------------------------------- */
         /* 4. ORGANIZATION PROFILE VIEW                                  */

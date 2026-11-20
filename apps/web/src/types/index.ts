@@ -909,3 +909,161 @@ export interface FinancialAuditEvent {
   description: string;
   created_at: string;
 }
+
+// -----------------------------------------------------------------------------
+// Multi-Bank, Financial Channels & Organization Configuration
+// -----------------------------------------------------------------------------
+export interface OrganizationFinancialSettings {
+  id: string;
+  organization_id: string;
+  legal_name: string;
+  reporting_currency: string;
+  timezone: string;
+  fiscal_year_start: string;
+  fiscal_year_end: string;
+  accounting_basis: 'ACCRUAL' | 'CASH';
+  default_reporting_preferences: Record<string, any>;
+  is_configured: boolean;
+  configured_at?: string | null;
+}
+
+export type FinancialChannelType =
+  | 'BANK'
+  | 'MPESA_PAYBILL'
+  | 'MPESA_TILL'
+  | 'CASH'
+  | 'PETTY_CASH'
+  | 'OTHER';
+
+export type IntegrationStatus =
+  | 'NOT_CONFIGURED'
+  | 'CONFIGURED'
+  | 'OPERATIONAL'
+  | 'DEGRADED'
+  | 'UNAVAILABLE';
+
+export interface FinancialChannel {
+  id: string;
+  organization_id: string;
+  channel_type: FinancialChannelType;
+  channel_name: string;
+  identifier: string; // Shortcode, Till, Account number, or Cash Box
+  gl_account_id?: string | null;
+  gl_account_code: string;
+  is_active: boolean;
+  integration_status: IntegrationStatus;
+  config_details: Record<string, any>;
+}
+
+export type BankAccountType =
+  | 'OPERATING'
+  | 'RENT_COLLECTION'
+  | 'ESCROW_DEPOSITS'
+  | 'PETTY_CASH'
+  | 'SAVINGS';
+
+export interface BankAccount {
+  id: string;
+  organization_id: string;
+  bank_name: string; // e.g. Equity Bank, NCBA Bank, Co-operative Bank, KCB, Stanbic
+  account_name: string;
+  account_number: string;
+  account_currency: string;
+  account_type: BankAccountType;
+  branch_name?: string | null;
+  branch_code?: string | null;
+  swift_bic?: string | null;
+  gl_account_id?: string | null;
+  gl_account_code: string;
+  opening_balance_kes: number;
+  opening_balance_date?: string | null;
+  assigned_property_ids: string[];
+  reconciliation_preferences: Record<string, any>;
+  is_active: boolean;
+}
+
+export interface OpeningBalanceRecord {
+  id: string;
+  organization_id: string;
+  account_id: string;
+  account_code: string;
+  account_name: string;
+  balance_kes: number;
+  normal_balance: 'DEBIT' | 'CREDIT';
+  effective_date: string;
+  status: 'DRAFT' | 'PENDING_APPROVAL' | 'POSTED' | 'REJECTED';
+  journal_entry_id?: string | null;
+  supporting_document_url?: string | null;
+  entered_by?: string | null;
+  approved_by?: string | null;
+  approved_at?: string | null;
+}
+
+export interface PropertyAccountMapping {
+  id: string;
+  organization_id: string;
+  property_id: string;
+  default_collection_account_id?: string | null;
+  default_deposit_account_id?: string | null;
+  default_expense_account_id?: string | null;
+}
+
+export interface BankStatementImport {
+  id: string;
+  organization_id: string;
+  bank_account_id?: string | null;
+  filename: string;
+  file_format: 'CSV' | 'XLSX' | 'PDF';
+  period_start: string;
+  period_end: string;
+  total_transactions: number;
+  total_debit_amount_kes: number;
+  total_credit_amount_kes: number;
+  matched_count: number;
+  unmatched_count: number;
+  status: 'PENDING_REVIEW' | 'RECONCILED' | 'DISCREPANCIES_FLAGGED' | 'FINALIZED';
+  imported_by?: string | null;
+  created_at: string;
+}
+
+export interface BankStatementTransaction {
+  id: string;
+  organization_id: string;
+  import_id: string;
+  transaction_date: string;
+  value_date?: string | null;
+  reference: string;
+  check_number?: string | null;
+  description: string;
+  debit_kes: number;
+  credit_kes: number;
+  balance_kes?: number | null;
+  match_status:
+    | 'UNMATCHED'
+    | 'MATCHED'
+    | 'PARTIALLY_MATCHED'
+    | 'DUPLICATE'
+    | 'AMOUNT_MISMATCH'
+    | 'RESOLVED_MANUAL';
+  matched_payment_id?: string | null;
+  matched_expense_id?: string | null;
+  matched_at?: string | null;
+  matched_by?: string | null;
+}
+
+export interface ReconciliationRule {
+  id: string;
+  organization_id: string;
+  rule_name: string;
+  priority: number;
+  match_strategy:
+    | 'EXACT_REFERENCE'
+    | 'AMOUNT_DATE_WINDOW'
+    | 'TENANT_NAME_AMOUNT'
+    | 'MANUAL_ONLY';
+  date_tolerance_days: number;
+  auto_reconcile: boolean;
+  column_mapping: Record<string, string>;
+  is_active: boolean;
+}
+

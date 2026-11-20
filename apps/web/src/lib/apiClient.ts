@@ -40,6 +40,14 @@ import type {
   ReconciliationException,
   FinancialReportRun,
   FinancialAuditEvent,
+  OrganizationFinancialSettings,
+  FinancialChannel,
+  BankAccount,
+  OpeningBalanceRecord,
+  PropertyAccountMapping,
+  BankStatementImport,
+  BankStatementTransaction,
+  ReconciliationRule,
   Invitation,
   ManagedStaffMember,
   PlatformOrganization,
@@ -709,6 +717,116 @@ class ApiClient {
   async getFinancialAuditEvents(params?: { limit?: number }): Promise<FinancialAuditEvent[]> {
     const qs = params?.limit ? `?limit=${params.limit}` : '';
     return this.request<FinancialAuditEvent[]>(`/audit/financial${qs}`);
+  }
+
+  // --- Multi-Bank Accounting, Channel Configuration & Financial Settings ---
+  async getFinancialSettings(): Promise<OrganizationFinancialSettings> {
+    return this.request<OrganizationFinancialSettings>('/finance/configuration');
+  }
+
+  async updateFinancialSettings(
+    settings: Partial<OrganizationFinancialSettings>
+  ): Promise<OrganizationFinancialSettings> {
+    return this.request<OrganizationFinancialSettings>('/finance/configuration', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    });
+  }
+
+  async getFinancialChannels(): Promise<FinancialChannel[]> {
+    return this.request<FinancialChannel[]>('/finance/channels');
+  }
+
+  async saveFinancialChannel(channel: Partial<FinancialChannel>): Promise<FinancialChannel> {
+    return this.request<FinancialChannel>('/finance/channels', {
+      method: 'POST',
+      body: JSON.stringify(channel),
+    });
+  }
+
+  async getBankAccounts(): Promise<BankAccount[]> {
+    return this.request<BankAccount[]>('/finance/bank-accounts');
+  }
+
+  async createBankAccount(account: Partial<BankAccount>): Promise<BankAccount> {
+    return this.request<BankAccount>('/finance/bank-accounts', {
+      method: 'POST',
+      body: JSON.stringify(account),
+    });
+  }
+
+  async updateBankAccount(
+    id: string,
+    account: Partial<BankAccount>
+  ): Promise<BankAccount> {
+    return this.request<BankAccount>(`/finance/bank-accounts/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(account),
+    });
+  }
+
+  async deleteBankAccount(id: string): Promise<void> {
+    return this.request<void>(`/finance/bank-accounts/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getOpeningBalances(): Promise<OpeningBalanceRecord[]> {
+    return this.request<OpeningBalanceRecord[]>('/finance/opening-balances');
+  }
+
+  async saveOpeningBalances(
+    balances: Partial<OpeningBalanceRecord>[]
+  ): Promise<OpeningBalanceRecord[]> {
+    return this.request<OpeningBalanceRecord[]>('/finance/opening-balances', {
+      method: 'POST',
+      body: JSON.stringify({ balances }),
+    });
+  }
+
+  async postOpeningBalances(): Promise<{ journal_entry_id: string }> {
+    return this.request<{ journal_entry_id: string }>('/finance/opening-balances/post', {
+      method: 'POST',
+    });
+  }
+
+  async getPropertyAccountMappings(): Promise<PropertyAccountMapping[]> {
+    return this.request<PropertyAccountMapping[]>('/finance/property-mappings');
+  }
+
+  async savePropertyAccountMapping(
+    mapping: Partial<PropertyAccountMapping>
+  ): Promise<PropertyAccountMapping> {
+    return this.request<PropertyAccountMapping>('/finance/property-mappings', {
+      method: 'POST',
+      body: JSON.stringify(mapping),
+    });
+  }
+
+  async getBankStatementImports(): Promise<BankStatementImport[]> {
+    return this.request<BankStatementImport[]>('/finance/statements');
+  }
+
+  async uploadBankStatement(
+    bank_account_id: string,
+    filename: string,
+    rows: any[]
+  ): Promise<BankStatementImport> {
+    return this.request<BankStatementImport>('/finance/statements/import', {
+      method: 'POST',
+      body: JSON.stringify({ bank_account_id, filename, rows }),
+    });
+  }
+
+  async getReconciliationRules(): Promise<ReconciliationRule[]> {
+    return this.request<ReconciliationRule[]>('/finance/reconciliation-rules');
+  }
+
+  async saveReconciliationRule(rule: Partial<ReconciliationRule>): Promise<ReconciliationRule> {
+    return this.request<ReconciliationRule>('/finance/reconciliation-rules', {
+      method: 'POST',
+      body: JSON.stringify(rule),
+    });
   }
 
   // --- User Onboarding, Invitations & Staff Management ---
