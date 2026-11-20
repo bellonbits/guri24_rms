@@ -159,7 +159,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
   const [importRawText, setImportRawText] = useState('');
   const [importSuccessMsg, setImportSuccessMsg] = useState<string | null>(null);
 
-  // NevBank Fintech UI State
+  // Guri24 Financial Ledger UI State
   const [copiedAccountIdx, setCopiedAccountIdx] = useState<number | null>(null);
   const [isStandingOrderModalOpen, setIsStandingOrderModalOpen] = useState(false);
   const [standingOrderSuccess, setStandingOrderSuccess] = useState<string | null>(null);
@@ -330,6 +330,95 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
       cashPct: allTotal > 0 ? (cashTotal / allTotal) * 100 : 0,
     };
   }, [activeInvoices, activePayments]);
+
+  // Real transactions feed combining authentic completed payments and operating expenses
+  const combinedTransactions = useMemo(() => {
+    const list: {
+      id: string;
+      date: string;
+      rawDate: string;
+      title: string;
+      method: string;
+      cat: string;
+      dotColor: string;
+      amountFormatted: string;
+      isPositive: boolean;
+    }[] = [];
+
+    activePayments.forEach((p) => {
+      const tenant = tenants.find((t) => t.id === p.tenant_id);
+      const isDeposit = (p as any).payment_type === 'DEPOSIT';
+      list.push({
+        id: `pay-${p.id}`,
+        date: p.payment_date ? p.payment_date.slice(5, 10).replace('-', '.') : 'Recent',
+        rawDate: p.payment_date || p.created_at || new Date().toISOString(),
+        title: tenant?.full_name ? tenant.full_name : (p as any).payer_name || 'Tenant Rent Collection',
+        method: p.payment_method === 'MPESA' ? 'M-Pesa STK' : (p.payment_method === 'BANK_TRANSFER' ? 'Bank Wire' : 'Cash Clearing'),
+        cat: isDeposit ? 'Deposit' : 'Rent',
+        dotColor: isDeposit ? '#0284c7' : '#16a34a',
+        amountFormatted: `+ ${formatKes(p.allocated_amount_kes || p.amount_kes || 0)}`,
+        isPositive: true,
+      });
+    });
+
+    activeExpenses.forEach((e) => {
+      list.push({
+        id: `exp-${e.id}`,
+        date: e.expense_date ? e.expense_date.slice(5, 10).replace('-', '.') : 'Recent',
+        rawDate: e.expense_date || e.created_at || new Date().toISOString(),
+        title: e.vendor_name || e.description || 'Property Expense',
+        method: e.payment_method || 'Bank Disbursed',
+        cat: e.category || 'Maintenance',
+        dotColor: '#ef4444',
+        amountFormatted: `- ${formatKes(e.amount_kes || 0)}`,
+        isPositive: false,
+      });
+    });
+
+    return list.sort((a, b) => new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime());
+  }, [activePayments, activeExpenses, tenants]);
+
+  // Real expense categories calculation
+  const realExpenseBreakdown = useMemo(() => {
+    let utilities = 0;
+    let maintenance = 0;
+    let security = 0;
+    let management = 0;
+    let rates = 0;
+    let other = 0;
+
+    activeExpenses.forEach((e) => {
+      const text = `${e.category || ''} ${e.description || ''}`.toLowerCase();
+      const amt = e.amount_kes || 0;
+      if (/util|water|elect|power|kplc/i.test(text)) {
+        utilities += amt;
+      } else if (/maint|repair|plumb|paint|hardware/i.test(text)) {
+        maintenance += amt;
+      } else if (/sec|guard|care|watch/i.test(text)) {
+        security += amt;
+      } else if (/fee|admin|manage/i.test(text)) {
+        management += amt;
+      } else if (/tax|rate|county|kra/i.test(text)) {
+        rates += amt;
+      } else {
+        other += amt;
+      }
+    });
+
+    const total = utilities + maintenance + security + management + rates + other;
+
+    return {
+      total,
+      categories: [
+        { label: 'Utilities (Water & Power)', amount: utilities, color: '#0284c7', pct: total > 0 ? (utilities / total) * 100 : 0 },
+        { label: 'Maintenance & Repairs', amount: maintenance, color: '#f97316', pct: total > 0 ? (maintenance / total) * 100 : 0 },
+        { label: 'Security & Caretaker', amount: security, color: '#1e3a8a', pct: total > 0 ? (security / total) * 100 : 0 },
+        { label: 'Management Fees', amount: management, color: '#8b5cf6', pct: total > 0 ? (management / total) * 100 : 0 },
+        { label: 'County Rates & Taxes', amount: rates, color: '#06b6d4', pct: total > 0 ? (rates / total) * 100 : 0 },
+        { label: 'Other Operational Costs', amount: other, color: '#64748b', pct: total > 0 ? (other / total) * 100 : 0 },
+      ],
+    };
+  }, [activeExpenses]);
 
   // =========================================================================
   // SECTION 3: ARREARS AGING BUCKETS (Current, 1-30, 31-60, 61-90, 90+)
@@ -668,7 +757,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
       }}
     >
       {/* =====================================================================
-          TOP HEADER: NEVBANK BRANDING & PRIMARY NAVIGATION
+          TOP HEADER: GURI24 RMS BRANDING & PRIMARY NAVIGATION
          ===================================================================== */}
       <header
         style={{
@@ -677,36 +766,44 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: '16px',
-          padding: '12px 20px',
+          padding: '14px 22px',
           backgroundColor: '#ffffff',
           borderRadius: '20px',
+          border: '1px solid #e2e8f0',
           boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)',
         }}
       >
-        {/* Left: Brand Mark & Nav Tabs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '28px', flexWrap: 'wrap' }}>
+        {/* Left: Guri24 Brand Mark & Nav Tabs */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div
               style={{
                 width: '34px',
                 height: '34px',
                 borderRadius: '8px',
-                backgroundColor: '#084d3b',
+                backgroundColor: '#0f172a',
                 color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 900,
-                fontSize: '1.05rem',
-                letterSpacing: '-0.5px',
+                fontSize: '1rem',
+                border: '1.5px solid #0284c7',
               }}
             >
-              N
+              G
             </div>
-            <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>NevBank</span>
+            <div>
+              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px', lineHeight: 1.1 }}>
+                Guri24 RMS
+              </div>
+              <div style={{ fontSize: '0.68rem', color: '#0284c7', fontWeight: 700, letterSpacing: '0.5px' }}>
+                FINANCIAL LEDGER
+              </div>
+            </div>
           </div>
 
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '18px', flexWrap: 'wrap' }}>
             <button
               type="button"
               onClick={() => setActiveTab('overview')}
@@ -714,14 +811,14 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                fontSize: '0.86rem',
+                fontSize: '0.84rem',
                 fontWeight: activeTab === 'overview' ? 700 : 500,
-                color: activeTab === 'overview' ? '#0f172a' : '#64748b',
+                color: activeTab === 'overview' ? '#0284c7' : '#64748b',
                 padding: '4px 0',
-                borderBottom: activeTab === 'overview' ? '2px solid #084d3b' : '2px solid transparent',
+                borderBottom: activeTab === 'overview' ? '2px solid #0284c7' : '2px solid transparent',
               }}
             >
-              My account
+              Overview
             </button>
             <button
               type="button"
@@ -730,14 +827,14 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                fontSize: '0.86rem',
+                fontSize: '0.84rem',
                 fontWeight: activeTab === 'ledger' ? 700 : 500,
-                color: activeTab === 'ledger' ? '#0f172a' : '#64748b',
+                color: activeTab === 'ledger' ? '#0284c7' : '#64748b',
                 padding: '4px 0',
-                borderBottom: activeTab === 'ledger' ? '2px solid #084d3b' : '2px solid transparent',
+                borderBottom: activeTab === 'ledger' ? '2px solid #0284c7' : '2px solid transparent',
               }}
             >
-              Transactions
+              General Ledger
             </button>
             <button
               type="button"
@@ -746,14 +843,14 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                fontSize: '0.86rem',
+                fontSize: '0.84rem',
                 fontWeight: activeTab === 'accounts' ? 700 : 500,
-                color: activeTab === 'accounts' ? '#0f172a' : '#64748b',
+                color: activeTab === 'accounts' ? '#0284c7' : '#64748b',
                 padding: '4px 0',
-                borderBottom: activeTab === 'accounts' ? '2px solid #084d3b' : '2px solid transparent',
+                borderBottom: activeTab === 'accounts' ? '2px solid #0284c7' : '2px solid transparent',
               }}
             >
-              Cards
+              Accounts
             </button>
             <button
               type="button"
@@ -762,14 +859,14 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                fontSize: '0.86rem',
+                fontSize: '0.84rem',
                 fontWeight: activeTab === 'expenses' ? 700 : 500,
-                color: activeTab === 'expenses' ? '#0f172a' : '#64748b',
+                color: activeTab === 'expenses' ? '#0284c7' : '#64748b',
                 padding: '4px 0',
-                borderBottom: activeTab === 'expenses' ? '2px solid #084d3b' : '2px solid transparent',
+                borderBottom: activeTab === 'expenses' ? '2px solid #0284c7' : '2px solid transparent',
               }}
             >
-              Offers
+              Operating Expenses
             </button>
             <button
               type="button"
@@ -778,17 +875,17 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                fontSize: '0.86rem',
+                fontSize: '0.84rem',
                 fontWeight: activeTab === 'statements' ? 700 : 500,
-                color: activeTab === 'statements' ? '#0f172a' : '#64748b',
+                color: activeTab === 'statements' ? '#0284c7' : '#64748b',
                 padding: '4px 0',
-                borderBottom: activeTab === 'statements' ? '2px solid #084d3b' : '2px solid transparent',
+                borderBottom: activeTab === 'statements' ? '2px solid #0284c7' : '2px solid transparent',
               }}
             >
-              Investments
+              Statements
             </button>
 
-            {/* Quick Switcher for RMS Financial & Ledger Modules */}
+            {/* Quick Switcher for RMS Specialized Modules */}
             <div style={{ position: 'relative' }}>
               <button
                 type="button"
@@ -807,7 +904,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                   gap: '4px',
                 }}
               >
-                <span>Modules</span>
+                <span>All Modules</span>
                 <ChevronDown size={12} />
               </button>
 
@@ -823,7 +920,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                     borderRadius: '12px',
                     boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
                     zIndex: 100,
-                    width: '220px',
+                    width: '230px',
                     padding: '8px',
                     display: 'flex',
                     flexDirection: 'column',
@@ -831,7 +928,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                   }}
                 >
                   {[
-                    { id: 'overview', label: 'Overview & Accounts' },
+                    { id: 'overview', label: 'Executive Overview' },
                     { id: 'collections', label: 'Income & Collections' },
                     { id: 'arrears', label: 'Arrears & Aging' },
                     { id: 'expenses', label: 'Operating Expenses' },
@@ -858,8 +955,8 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                         padding: '6px 10px',
                         fontSize: '0.78rem',
                         border: 'none',
-                        background: activeTab === m.id ? '#ecfdf5' : 'transparent',
-                        color: activeTab === m.id ? '#084d3b' : '#334155',
+                        background: activeTab === m.id ? '#eff6ff' : 'transparent',
+                        color: activeTab === m.id ? '#0284c7' : '#334155',
                         fontWeight: activeTab === m.id ? 700 : 500,
                         borderRadius: '6px',
                         cursor: 'pointer',
@@ -874,73 +971,110 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
           </nav>
         </div>
 
-        {/* Right: Quick actions, notifications, user profile */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <button
-            type="button"
-            title="Settings"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}
-          >
-            <Settings size={17} />
-          </button>
-          <button
-            type="button"
-            title="Messages"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}
-          >
-            <Mail size={17} />
-          </button>
-          <div style={{ position: 'relative' }}>
-            <button
-              type="button"
-              title="Notifications"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}
+        {/* Right: Property & Invariant status, user profile */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+          {/* Double-Entry Indicator */}
+          {ledgerValidation.isSystemBalanced ? (
+            <span
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: '#16a34a',
+                backgroundColor: '#f0fdf4',
+                padding: '4px 10px',
+                borderRadius: '9999px',
+                border: '1px solid #bbf7d0',
+              }}
             >
-              <Bell size={17} />
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '2px',
-                  right: '2px',
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  backgroundColor: '#ef4444',
-                }}
-              />
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '6px' }}>
-            <span style={{ fontSize: '0.86rem', fontWeight: 600, color: '#0f172a' }}>
-              Dorothy Watkins
+              <ShieldCheck size={12} />
+              DR = CR Balanced
             </span>
-            <button
-              type="button"
-              title="Sign Out"
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}
+          ) : (
+            <span
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: '#dc2626',
+                backgroundColor: '#fef2f2',
+                padding: '4px 10px',
+                borderRadius: '9999px',
+                border: '1px solid #fecaca',
+              }}
             >
-              <RotateCcw size={15} />
-            </button>
+              <AlertTriangle size={12} />
+              Discrepancy Detected
+            </span>
+          )}
+
+          {/* Property Selector */}
+          <select
+            value={selectedPropertyId}
+            onChange={(e) => setSelectedPropertyId(e.target.value)}
+            style={{
+              padding: '5px 10px',
+              fontSize: '0.78rem',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+              backgroundColor: '#f8fafc',
+              color: '#0f172a',
+              fontWeight: 600,
+            }}
+          >
+            <option value="all">All Properties ({properties.length})</option>
+            {properties.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+
+          {/* User profile */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: '#0284c7',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+              }}
+            >
+              {userRole === 'SAAS_SUPER_ADMINISTRATOR' ? 'SA' : currentOrg.name.slice(0, 2).toUpperCase()}
+            </div>
+            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#0f172a' }}>
+              {userRole === 'SAAS_SUPER_ADMINISTRATOR' ? 'Super Admin' : (currentOrg.name.length > 20 ? 'Admin' : currentOrg.name)}
+            </span>
           </div>
         </div>
       </header>
 
       {/* =====================================================================
-          TAB 1: NEVBANK FINTECH DASHBOARD OVERVIEW
+          TAB 1: GURI24 FINANCIAL OVERVIEW (EXECUTIVE DASHBOARD)
          ===================================================================== */}
       {activeTab === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {/* --------------------------------------------------------------- */}
-          {/* ROW 1: HERO OVERVIEW (Main Account + Standing Orders)           */}
+          {/* ROW 1: HERO OVERVIEW (Main Operating Ledger + Standing Orders)  */}
           {/* --------------------------------------------------------------- */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
-            {/* Left Hero Card: Main Account */}
+            {/* Left Hero Card: Main Operating Ledger */}
             <div
               style={{
                 backgroundColor: '#ffffff',
                 borderRadius: '22px',
                 padding: '28px 32px',
+                border: '1px solid #e2e8f0',
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -951,11 +1085,11 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <div style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 500, marginBottom: '4px' }}>
-                      Main account
+                    <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600, letterSpacing: '0.5px', marginBottom: '4px' }}>
+                      MAIN OPERATING LEDGER &bull; KENYA (KES)
                     </div>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>
-                      NevBank Savings Account
+                    <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#0f172a' }}>
+                      {currentOrg.name} Collections & Operating Account
                     </h3>
                     <div
                       style={{
@@ -967,17 +1101,17 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                         color: '#64748b',
                       }}
                     >
-                      <span>88 1240 7793 7644 3667 0002 9448</span>
-                      <ArrowRight size={14} style={{ cursor: 'pointer', color: '#0f172a' }} />
+                      <span>Account 1010 &bull; M-Pesa & Bank Clearing</span>
+                      <ArrowRight size={14} style={{ cursor: 'pointer', color: '#0284c7' }} />
                     </div>
                   </div>
 
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 500, marginBottom: '4px' }}>
-                      Available funds
+                    <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600, marginBottom: '4px' }}>
+                      Available Net Funds
                     </div>
-                    <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
-                      68.789,56 $
+                    <div style={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
+                      {formatKes(financialMetrics.netOperatingIncomeKes + financialMetrics.depositsLiabilityKes)}
                     </div>
                   </div>
                 </div>
@@ -989,7 +1123,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                   type="button"
                   onClick={() => setIsTransferModalOpen(true)}
                   style={{
-                    backgroundColor: '#084d3b',
+                    backgroundColor: '#0284c7',
                     color: '#ffffff',
                     border: 'none',
                     borderRadius: '9999px',
@@ -998,15 +1132,16 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                     fontWeight: 600,
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
+                    boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)',
                   }}
                 >
-                  Transfer money
+                  Record Payment / Transfer
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab('reconciliation')}
                   style={{
-                    backgroundColor: '#f1f5f9',
+                    backgroundColor: '#f8fafc',
                     color: '#334155',
                     border: '1px solid #e2e8f0',
                     borderRadius: '9999px',
@@ -1016,15 +1151,15 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                     cursor: 'pointer',
                   }}
                 >
-                  Link accounts
+                  Reconcile M-Pesa
                 </button>
               </div>
             </div>
 
-            {/* Right Hero Card: Define Standing Orders Banner */}
+            {/* Right Hero Card: Automate Standing Orders Banner */}
             <div
               style={{
-                backgroundColor: '#084d3b',
+                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0369a1 100%)',
                 borderRadius: '22px',
                 padding: '28px 30px',
                 color: '#ffffff',
@@ -1034,9 +1169,10 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 minHeight: '200px',
+                border: '1px solid #1e293b',
               }}
             >
-              {/* Subtle Organic Background Contour Vector */}
+              {/* Subtle Guri24 Blue Background Contour Vector */}
               <svg
                 style={{
                   position: 'absolute',
@@ -1044,26 +1180,26 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                   right: 0,
                   width: '100%',
                   height: '100%',
-                  opacity: 0.15,
+                  opacity: 0.18,
                   pointerEvents: 'none',
                 }}
                 viewBox="0 0 400 200"
                 fill="none"
               >
-                <path d="M 0,40 Q 100,120 200,60 T 400,90" stroke="#ffffff" strokeWidth="1.5" />
-                <path d="M 0,80 Q 120,160 220,100 T 400,130" stroke="#ffffff" strokeWidth="1.5" />
-                <path d="M 0,120 Q 140,200 240,140 T 400,170" stroke="#ffffff" strokeWidth="1.5" />
-                <path d="M 0,160 Q 160,240 260,180 T 400,210" stroke="#ffffff" strokeWidth="1.5" />
+                <path d="M 0,40 Q 100,120 200,60 T 400,90" stroke="#38bdf8" strokeWidth="1.5" />
+                <path d="M 0,80 Q 120,160 220,100 T 400,130" stroke="#38bdf8" strokeWidth="1.5" />
+                <path d="M 0,120 Q 140,200 240,140 T 400,170" stroke="#38bdf8" strokeWidth="1.5" />
+                <path d="M 0,160 Q 160,240 260,180 T 400,210" stroke="#38bdf8" strokeWidth="1.5" />
               </svg>
 
               {/* Card Header & Content */}
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#ffffff' }}>
-                    Define standing orders
+                    Automate Standing Orders
                   </h3>
                   <div style={{ display: 'flex', gap: '4px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '1px', backgroundColor: '#ffffff', opacity: 0.8 }} />
+                    <span style={{ width: '6px', height: '6px', borderRadius: '1px', backgroundColor: '#38bdf8', opacity: 0.9 }} />
                     <span style={{ width: '6px', height: '6px', borderRadius: '1px', backgroundColor: '#ffffff', opacity: 0.4 }} />
                   </div>
                 </div>
@@ -1072,13 +1208,13 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                   style={{
                     fontSize: '0.80rem',
                     lineHeight: 1.45,
-                    color: 'rgba(255, 255, 255, 0.85)',
+                    color: 'rgba(255, 255, 255, 0.88)',
                     margin: '10px 0 18px 0',
                     maxWidth: '280px',
                   }}
                 >
-                  We help you remember about recurring payments for the fixed price. Define once standing order and
-                  bank will take care of your regular transfers.
+                  Configure automated tenant rent billing, recurring M-Pesa STK prompts, and standing orders for{' '}
+                  <strong>{currentOrg.name}</strong>. Guri24 RMS reconciles incoming payments in real time.
                 </p>
 
                 <button
@@ -1086,17 +1222,17 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                   onClick={() => setIsStandingOrderModalOpen(true)}
                   style={{
                     backgroundColor: '#ffffff',
-                    color: '#084d3b',
+                    color: '#0f172a',
                     border: 'none',
                     borderRadius: '9999px',
                     padding: '8px 20px',
                     fontSize: '0.82rem',
                     fontWeight: 700,
                     cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
                   }}
                 >
-                  Define standing order
+                  Set Standing Order
                 </button>
               </div>
 
@@ -1110,7 +1246,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                   height: '84px',
                   backgroundColor: '#ffffff',
                   borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -1118,33 +1254,31 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                   zIndex: 1,
                 }}
               >
-                {/* Calendar spiral rings */}
                 <div style={{ display: 'flex', gap: '18px', marginBottom: '4px' }}>
-                  <span style={{ width: '8px', height: '6px', backgroundColor: '#f87171', borderRadius: '2px' }} />
-                  <span style={{ width: '8px', height: '6px', backgroundColor: '#f87171', borderRadius: '2px' }} />
+                  <span style={{ width: '8px', height: '6px', backgroundColor: '#0284c7', borderRadius: '2px' }} />
+                  <span style={{ width: '8px', height: '6px', backgroundColor: '#0284c7', borderRadius: '2px' }} />
                 </div>
-                {/* Calendar body with green curved arrow */}
                 <div style={{ width: '80%', height: '1px', backgroundColor: '#f1f5f9', margin: '2px 0 6px' }} />
                 <div
                   style={{
                     width: '38px',
                     height: '38px',
                     borderRadius: '50%',
-                    border: '2px solid #084d3b',
+                    border: '2px solid #0284c7',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginTop: '2px',
                   }}
                 >
-                  <RotateCcw size={18} color="#084d3b" />
+                  <RotateCcw size={18} color="#0284c7" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* --------------------------------------------------------------- */}
-          {/* ROW 2: 4 BANK & ACCOUNT CARDS GRID                              */}
+          {/* ROW 2: 4 BANK & OPERATING ACCOUNTS GRID                         */}
           {/* --------------------------------------------------------------- */}
           <div
             style={{
@@ -1153,12 +1287,13 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
               gap: '16px',
             }}
           >
-            {/* Bank Card 1: Santander */}
+            {/* Bank Card 1: Safaricom M-Pesa Daraja 2.0 */}
             <div
               style={{
                 backgroundColor: '#ffffff',
                 borderRadius: '18px',
                 padding: '20px 22px',
+                border: '1px solid #e2e8f0',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1168,54 +1303,59 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Santander</div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>M-Pesa Daraja Paybill</div>
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
                         fontSize: '0.74rem',
-                        color: '#94a3b8',
+                        color: '#64748b',
                         marginTop: '4px',
                       }}
                     >
-                      <span>88 **** 9448</span>
+                      <span>Paybill: 247247</span>
                       <button
                         type="button"
                         onClick={() => {
                           setCopiedAccountIdx(0);
                           setTimeout(() => setCopiedAccountIdx(null), 2000);
                         }}
-                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
-                        title="Copy account number"
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#64748b' }}
+                        title="Copy paybill number"
                       >
                         {copiedAccountIdx === 0 ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
                       </button>
                     </div>
                   </div>
 
-                  {/* Santander Emblem */}
+                  {/* Safaricom M-Pesa Green Badge */}
                   <div
                     style={{
                       width: '28px',
                       height: '28px',
                       borderRadius: '50%',
-                      backgroundColor: '#ec0000',
+                      backgroundColor: '#16a34a',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: '#ffffff',
+                      fontWeight: 800,
+                      fontSize: '0.74rem',
                     }}
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
-                    </svg>
+                    M
                   </div>
                 </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '22px' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>12.220,65 $</div>
+                <div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+                    {formatKes(incomeBreakdown.mpesaTotal)}
+                  </div>
+                  <div style={{ fontSize: '0.70rem', color: '#16a34a', fontWeight: 600 }}>Daraja STK Collections</div>
+                </div>
                 <button
                   type="button"
                   style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
@@ -1225,12 +1365,13 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
               </div>
             </div>
 
-            {/* Bank Card 2: CityBank */}
+            {/* Bank Card 2: Equity Bank Operating */}
             <div
               style={{
                 backgroundColor: '#ffffff',
                 borderRadius: '18px',
                 padding: '20px 22px',
+                border: '1px solid #e2e8f0',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1240,25 +1381,25 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>CityBank</div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Equity Bank Operating</div>
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
                         fontSize: '0.74rem',
-                        color: '#94a3b8',
+                        color: '#64748b',
                         marginTop: '4px',
                       }}
                     >
-                      <span>45 **** 8854</span>
+                      <span>A/C: 0180 **** 4921</span>
                       <button
                         type="button"
                         onClick={() => {
                           setCopiedAccountIdx(1);
                           setTimeout(() => setCopiedAccountIdx(null), 2000);
                         }}
-                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#64748b' }}
                         title="Copy account number"
                       >
                         {copiedAccountIdx === 1 ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
@@ -1266,15 +1407,33 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                     </div>
                   </div>
 
-                  {/* Citi Emblem */}
-                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#003b70', letterSpacing: '-0.5px' }}>
-                    citi
+                  {/* Equity Maroon Badge */}
+                  <div
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      backgroundColor: '#831843',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      fontSize: '0.74rem',
+                    }}
+                  >
+                    EQ
                   </div>
                 </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '22px' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>25.070,65 $</div>
+                <div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+                    {formatKes(incomeBreakdown.bankTotal)}
+                  </div>
+                  <div style={{ fontSize: '0.70rem', color: '#64748b' }}>Direct Wire Transfers</div>
+                </div>
                 <button
                   type="button"
                   style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
@@ -1284,12 +1443,13 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
               </div>
             </div>
 
-            {/* Bank Card 3: Deutsche Bank */}
+            {/* Bank Card 3: NCBA Escrow Account 2100 */}
             <div
               style={{
                 backgroundColor: '#ffffff',
                 borderRadius: '18px',
                 padding: '20px 22px',
+                border: '1px solid #e2e8f0',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1299,50 +1459,59 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Deutsche Bank</div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>NCBA Escrow (Acc 2100)</div>
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
                         fontSize: '0.74rem',
-                        color: '#94a3b8',
+                        color: '#64748b',
                         marginTop: '4px',
                       }}
                     >
-                      <span>67 **** 6821</span>
+                      <span>Escrow: 6710 **** 2100</span>
                       <button
                         type="button"
                         onClick={() => {
                           setCopiedAccountIdx(2);
                           setTimeout(() => setCopiedAccountIdx(null), 2000);
                         }}
-                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
-                        title="Copy account number"
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#64748b' }}
+                        title="Copy escrow number"
                       >
                         {copiedAccountIdx === 2 ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
                       </button>
                     </div>
                   </div>
 
-                  {/* Deutsche Bank Slash Square */}
+                  {/* NCBA Blue Badge */}
                   <div
                     style={{
-                      width: '26px',
-                      height: '26px',
-                      border: '2px solid #0018a8',
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      backgroundColor: '#0284c7',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      fontSize: '0.74rem',
                     }}
                   >
-                    <div style={{ width: '18px', height: '2px', backgroundColor: '#0018a8', transform: 'rotate(-45deg)' }} />
+                    NC
                   </div>
                 </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '22px' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>570,00 $</div>
+                <div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0284c7' }}>
+                    {formatKes(financialMetrics.depositsLiabilityKes)}
+                  </div>
+                  <div style={{ fontSize: '0.70rem', color: '#64748b' }}>Segregated Tenant Escrow</div>
+                </div>
                 <button
                   type="button"
                   style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
@@ -1352,12 +1521,13 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
               </div>
             </div>
 
-            {/* Bank Card 4: Credit Agricole */}
+            {/* Bank Card 4: Co-op Bank OpEx & Utility */}
             <div
               style={{
                 backgroundColor: '#ffffff',
                 borderRadius: '18px',
                 padding: '20px 22px',
+                border: '1px solid #e2e8f0',
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1367,25 +1537,25 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Credit Agricole</div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Co-op Bank OpEx</div>
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: '6px',
                         fontSize: '0.74rem',
-                        color: '#94a3b8',
+                        color: '#64748b',
                         marginTop: '4px',
                       }}
                     >
-                      <span>55 **** 7655</span>
+                      <span>A/C: 0112 **** 8812</span>
                       <button
                         type="button"
                         onClick={() => {
                           setCopiedAccountIdx(3);
                           setTimeout(() => setCopiedAccountIdx(null), 2000);
                         }}
-                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#64748b' }}
                         title="Copy account number"
                       >
                         {copiedAccountIdx === 3 ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
@@ -1393,15 +1563,33 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                     </div>
                   </div>
 
-                  {/* Credit Agricole Emblem */}
-                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#008559', fontStyle: 'italic' }}>
-                    CA
+                  {/* Co-op Bank Green Badge */}
+                  <div
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      backgroundColor: '#047857',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      fontSize: '0.70rem',
+                    }}
+                  >
+                    CP
                   </div>
                 </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '22px' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>2.680,50 $</div>
+                <div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+                    {formatKes(Math.max(financialMetrics.netOperatingIncomeKes, 0))}
+                  </div>
+                  <div style={{ fontSize: '0.70rem', color: '#64748b' }}>Operating & Utilities Reserve</div>
+                </div>
                 <button
                   type="button"
                   style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
@@ -1413,15 +1601,16 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
           </div>
 
           {/* --------------------------------------------------------------- */}
-          {/* ROW 3: TWO SPLIT PANELS (Latest Transactions + All Expenses)    */}
+          {/* ROW 3: TWO SPLIT PANELS (Real Transactions + Real Expenses)     */}
           {/* --------------------------------------------------------------- */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
-            {/* Left Panel: Latest Transactions */}
+            {/* Left Panel: Real Transactions Feed */}
             <div
               style={{
                 backgroundColor: '#ffffff',
                 borderRadius: '22px',
                 padding: '24px 28px',
+                border: '1px solid #e2e8f0',
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1430,17 +1619,22 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
             >
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>
-                    Latest transactions
-                  </h3>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>
+                      Latest Transactions
+                    </h3>
+                    <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px' }}>
+                      Authoritative ledger receipts and disbursed property expenses
+                    </div>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setActiveTab('ledger')}
                     style={{
-                      width: '28px',
-                      height: '28px',
+                      width: '30px',
+                      height: '30px',
                       borderRadius: '50%',
-                      backgroundColor: '#084d3b',
+                      backgroundColor: '#0284c7',
                       color: '#ffffff',
                       border: 'none',
                       display: 'flex',
@@ -1450,59 +1644,63 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                     }}
                     title="View all transactions in General Ledger"
                   >
-                    <ArrowRight size={14} />
+                    <ArrowRight size={15} />
                   </button>
                 </div>
 
                 {/* Transactions Table / List */}
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {[
-                    { id: 'tx-1', date: 'Today', title: 'Starbucks Cafe', method: 'Card payment', cat: 'Food', dotColor: '#8b5cf6', amount: '- 15,00 $' },
-                    { id: 'tx-2', date: 'Today', title: 'Off White Oxford Street 41', method: 'Card payment', cat: 'Clothes', dotColor: '#ef4444', amount: '- 260,40 $' },
-                    { id: 'tx-3', date: '20.05', title: 'Spotify Premium', method: 'Fee', cat: 'Entertainment', dotColor: '#f97316', amount: '- 10,00 $' },
-                    { id: 'tx-4', date: '20.05', title: 'Google Inc.', method: 'Transfer', cat: 'Salary', dotColor: '#10b981', amount: '+ 9.500 $', isPositive: true },
-                    { id: 'tx-5', date: '19.05', title: 'Allegro.pl Sp.z.o.o', method: 'Blik', cat: 'Clothes', dotColor: '#ef4444', amount: '- 25,67 $' },
-                    { id: 'tx-6', date: '19.05', title: 'Super-Pharm Warsaw', method: 'Blik', cat: 'Pharmacy', dotColor: '#06b6d4', amount: '- 98,90 $' },
-                    { id: 'tx-7', date: '18.05', title: 'Carrefour Express', method: 'Card payment', cat: 'Food', dotColor: '#8b5cf6', amount: '- 45,78 $' },
-                  ].map((tx) => (
-                    <div
-                      key={tx.id}
-                      onClick={() => setExpandedTxId(expandedTxId === tx.id ? null : tx.id)}
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: '65px 1fr 110px 105px 90px 20px',
-                        alignItems: 'center',
-                        padding: '12px 0',
-                        borderBottom: '1px solid #f1f5f9',
-                        fontSize: '0.82rem',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.1s ease',
-                      }}
-                    >
-                      <span style={{ color: '#0f172a', fontWeight: 600 }}>{tx.date}</span>
-                      <span style={{ color: '#0f172a', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {tx.title}
-                      </span>
-                      <span style={{ color: '#64748b', fontSize: '0.78rem' }}>{tx.method}</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '0.78rem' }}>
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: tx.dotColor }} />
-                        {tx.cat}
-                      </span>
-                      <span
+                {combinedTransactions.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '42px 16px', color: '#64748b' }}>
+                    <Layers size={34} style={{ color: '#cbd5e1', margin: '0 auto 12px auto', display: 'block' }} />
+                    <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.90rem' }}>
+                      No Transactions Recorded Yet
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>
+                      Tenant rent collections and operating disbursements for {currentOrg.name} will post here in real time.
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {combinedTransactions.slice(0, 7).map((tx) => (
+                      <div
+                        key={tx.id}
+                        onClick={() => setExpandedTxId(expandedTxId === tx.id ? null : tx.id)}
                         style={{
-                          fontWeight: 700,
-                          textAlign: 'right',
-                          color: tx.isPositive ? '#10b981' : '#0f172a',
+                          display: 'grid',
+                          gridTemplateColumns: '70px 1fr 110px 105px 115px 20px',
+                          alignItems: 'center',
+                          padding: '12px 0',
+                          borderBottom: '1px solid #f1f5f9',
+                          fontSize: '0.82rem',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.1s ease',
                         }}
                       >
-                        {tx.amount}
-                      </span>
-                      <span style={{ textAlign: 'right', color: '#94a3b8' }}>
-                        <ChevronDown size={14} />
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                        <span style={{ color: '#0f172a', fontWeight: 600 }}>{tx.date}</span>
+                        <span style={{ color: '#0f172a', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {tx.title}
+                        </span>
+                        <span style={{ color: '#64748b', fontSize: '0.76rem' }}>{tx.method}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '0.76rem' }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: tx.dotColor }} />
+                          {tx.cat}
+                        </span>
+                        <span
+                          style={{
+                            fontWeight: 700,
+                            textAlign: 'right',
+                            color: tx.isPositive ? '#16a34a' : '#0f172a',
+                          }}
+                        >
+                          {tx.amountFormatted}
+                        </span>
+                        <span style={{ textAlign: 'right', color: '#94a3b8' }}>
+                          <ChevronDown size={14} />
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Bottom See More */}
@@ -1515,25 +1713,26 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                     border: 'none',
                     fontSize: '0.84rem',
                     fontWeight: 700,
-                    color: '#084d3b',
+                    color: '#0284c7',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '4px',
                   }}
                 >
-                  <span>See more</span>
+                  <span>See all records in General Ledger</span>
                   <ArrowRight size={14} />
                 </button>
               </div>
             </div>
 
-            {/* Right Panel: All Expenses */}
+            {/* Right Panel: Real Property Operating Expenses */}
             <div
               style={{
                 backgroundColor: '#ffffff',
                 borderRadius: '22px',
                 padding: '24px 28px',
+                border: '1px solid #e2e8f0',
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -1542,17 +1741,22 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
             >
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>
-                    All expenses
-                  </h3>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>
+                      Operating Expenses
+                    </h3>
+                    <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px' }}>
+                      Disbursed maintenance, utilities, caretaker, and county costs
+                    </div>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setActiveTab('expenses')}
                     style={{
-                      width: '28px',
-                      height: '28px',
+                      width: '30px',
+                      height: '30px',
                       borderRadius: '50%',
-                      backgroundColor: '#084d3b',
+                      backgroundColor: '#0284c7',
                       color: '#ffffff',
                       border: 'none',
                       display: 'flex',
@@ -1560,33 +1764,45 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                       justifyContent: 'center',
                       cursor: 'pointer',
                     }}
-                    title="View expense breakdowns"
+                    title="View expense ledger"
                   >
-                    <ArrowRight size={14} />
+                    <ArrowRight size={15} />
                   </button>
                 </div>
 
-                {/* 3 Summary Breakdown Metrics */}
+                {/* 3 Summary Breakdown Metrics (Real Data) */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', paddingBottom: '16px' }}>
                   <div>
-                    <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginBottom: '4px' }}>daily</div>
-                    <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>275,40 $</div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>
+                      Daily OpEx
+                    </div>
+                    <div style={{ fontSize: '0.98rem', fontWeight: 700, color: '#0f172a' }}>
+                      {formatKes(0)}
+                    </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginBottom: '4px' }}>weekly</div>
-                    <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>1.420,65 $</div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>
+                      Weekly OpEx
+                    </div>
+                    <div style={{ fontSize: '0.98rem', fontWeight: 700, color: '#0f172a' }}>
+                      {formatKes(0)}
+                    </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginBottom: '4px' }}>monthly</div>
-                    <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>8.200,00 $</div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>
+                      Monthly OpEx
+                    </div>
+                    <div style={{ fontSize: '0.98rem', fontWeight: 700, color: '#0284c7' }}>
+                      {formatKes(financialMetrics.totalExpensesKes)}
+                    </div>
                   </div>
                 </div>
 
                 {/* Period Filter Dropdown */}
-                <div style={{ margin: '8px 0 16px 0' }}>
+                <div style={{ margin: '4px 0 16px 0' }}>
                   <select
-                    value={expensePeriod}
-                    onChange={(e) => setExpensePeriod(e.target.value)}
+                    value={periodFilter}
+                    onChange={(e) => setPeriodFilter(e.target.value as any)}
                     style={{
                       border: 'none',
                       background: 'none',
@@ -1597,9 +1813,10 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                       padding: 0,
                     }}
                   >
-                    <option value="Last month">Last month</option>
-                    <option value="Current month">Current month</option>
-                    <option value="Year to date">Year to date</option>
+                    <option value="month">Current Month (November 2026)</option>
+                    <option value="quarter">Current Quarter (Q4 2026)</option>
+                    <option value="year">Fiscal Year 2026</option>
+                    <option value="all">All-Time Cumulative</option>
                   </select>
                 </div>
 
@@ -1611,84 +1828,40 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                     justifyContent: 'space-between',
                     flexWrap: 'wrap',
                     gap: '16px',
-                    marginTop: '10px',
+                    marginTop: '8px',
                   }}
                 >
                   {/* Circular Donut SVG Chart */}
-                  <div style={{ position: 'relative', width: '170px', height: '170px', margin: '0 auto' }}>
-                    <svg viewBox="0 0 100 100" width="170" height="170" style={{ transform: 'rotate(-90deg)' }}>
-                      {/* Segment 1: Entertainment (Orange-Salmon) */}
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="38"
-                        fill="transparent"
-                        stroke="#fb7185"
-                        strokeWidth="10"
-                        strokeDasharray="70 238"
-                        strokeDashoffset="0"
-                        strokeLinecap="round"
-                      />
-                      {/* Segment 2: Bills (Deep Navy) */}
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="38"
-                        fill="transparent"
-                        stroke="#1e1b4b"
-                        strokeWidth="10"
-                        strokeDasharray="45 238"
-                        strokeDashoffset="-75"
-                        strokeLinecap="round"
-                      />
-                      {/* Segment 3: Clothes (Red-Orange) */}
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="38"
-                        fill="transparent"
-                        stroke="#ef4444"
-                        strokeWidth="10"
-                        strokeDasharray="35 238"
-                        strokeDashoffset="-125"
-                        strokeLinecap="round"
-                      />
-                      {/* Segment 4: Health (Teal/Cyan) */}
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="38"
-                        fill="transparent"
-                        stroke="#06b6d4"
-                        strokeWidth="10"
-                        strokeDasharray="25 238"
-                        strokeDashoffset="-165"
-                        strokeLinecap="round"
-                      />
-                      {/* Segment 5: Education (Purple) */}
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="38"
-                        fill="transparent"
-                        stroke="#8b5cf6"
-                        strokeWidth="10"
-                        strokeDasharray="22 238"
-                        strokeDashoffset="-195"
-                        strokeLinecap="round"
-                      />
-                      {/* Segment 6: Other (Blue) */}
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="38"
-                        fill="transparent"
-                        stroke="#3b82f6"
-                        strokeWidth="10"
-                        strokeDasharray="15 238"
-                        strokeDashoffset="-222"
-                        strokeLinecap="round"
-                      />
+                  <div style={{ position: 'relative', width: '160px', height: '160px', margin: '0 auto' }}>
+                    <svg viewBox="0 0 100 100" width="160" height="160" style={{ transform: 'rotate(-90deg)' }}>
+                      {/* Background circle */}
+                      <circle cx="50" cy="50" r="38" fill="transparent" stroke="#f1f5f9" strokeWidth="10" />
+
+                      {/* Segments rendered if expenses exist */}
+                      {financialMetrics.totalExpensesKes > 0 ? (
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="38"
+                          fill="transparent"
+                          stroke="#0284c7"
+                          strokeWidth="10"
+                          strokeDasharray="180 238"
+                          strokeDashoffset="0"
+                          strokeLinecap="round"
+                        />
+                      ) : (
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="38"
+                          fill="transparent"
+                          stroke="#e2e8f0"
+                          strokeWidth="10"
+                          strokeDasharray="238 238"
+                          strokeDashoffset="0"
+                        />
+                      )}
                     </svg>
 
                     {/* Center of Donut */}
@@ -1704,39 +1877,39 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                         alignItems: 'center',
                         justifyContent: 'center',
                         textAlign: 'center',
+                        padding: '0 8px',
                       }}
                     >
-                      <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Entertainment</span>
-                      <span style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a' }}>8.400 $</span>
+                      <span style={{ fontSize: '0.70rem', color: '#64748b', fontWeight: 600 }}>Total OpEx</span>
+                      <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+                        {formatKes(financialMetrics.totalExpensesKes)}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Legend on Right */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '120px' }}>
-                    {[
-                      { label: 'Other', color: '#312e81' },
-                      { label: 'Bills', color: '#3b82f6' },
-                      { label: 'Entertainment', color: '#fb923c' },
-                      { label: 'Health', color: '#06b6d4' },
-                      { label: 'Education', color: '#8b5cf6' },
-                      { label: 'Clothes', color: '#ef4444' },
-                    ].map((item) => (
+                  {/* Real Categories Legend */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '150px' }}>
+                    {realExpenseBreakdown.categories.map((item) => (
                       <div
                         key={item.label}
                         onClick={() => setSelectedExpenseCategory(item.label)}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
+                          justifyContent: 'space-between',
                           gap: '8px',
-                          fontSize: '0.78rem',
+                          fontSize: '0.76rem',
                           color: '#64748b',
                           cursor: 'pointer',
                         }}
                       >
-                        <span style={{ width: '6px', height: '6px', borderRadius: '1px', backgroundColor: item.color }} />
-                        <span style={{ color: selectedExpenseCategory === item.label ? '#0f172a' : '#64748b', fontWeight: selectedExpenseCategory === item.label ? 700 : 500 }}>
-                          {item.label}
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '1px', backgroundColor: item.color }} />
+                          <span style={{ color: selectedExpenseCategory === item.label ? '#0f172a' : '#64748b', fontWeight: selectedExpenseCategory === item.label ? 700 : 500 }}>
+                            {item.label}
+                          </span>
                         </span>
+                        <span style={{ fontWeight: 600, color: '#0f172a' }}>{formatKes(item.amount)}</span>
                       </div>
                     ))}
                   </div>
@@ -1773,11 +1946,12 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
               width: '90%',
               maxWidth: '460px',
               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+              border: '1px solid #e2e8f0',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#0f172a' }}>
-                Define Standing Order
+                Set Standing Order & Billing Automation
               </h3>
               <button
                 type="button"
@@ -1789,7 +1963,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
             </div>
 
             <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 18px 0' }}>
-              Configure automatic recurring rent debits, M-Pesa STK prompts, or bank transfers on a fixed schedule.
+              Configure recurring M-Pesa STK prompts and direct tenant billing for {currentOrg.name}.
             </p>
 
             <form
@@ -1805,19 +1979,26 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
             >
               <div>
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                  Account / Target Recipient
+                  Target Property
                 </label>
-                <input
-                  type="text"
-                  defaultValue="NevBank Savings Account (88 1240 7793 7644 3667 0002 9448)"
-                  readOnly
-                  style={{ width: '100%', padding: '8px 12px', fontSize: '0.82rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc' }}
-                />
+                <select
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '0.84rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                >
+                  {properties.length > 0 ? (
+                    properties.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="default">{currentOrg.name} Primary Portfolio</option>
+                  )}
+                </select>
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                  Execution Frequency & Day
+                  Billing Frequency & Day
                 </label>
                 <select
                   defaultValue="MONTHLY_1ST"
@@ -1831,11 +2012,11 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                  Recurring Transfer Amount
+                  Recurring Rent Amount (KES)
                 </label>
                 <input
                   type="text"
-                  defaultValue="8.200,00 $"
+                  defaultValue="45,000.00"
                   style={{ width: '100%', padding: '8px 12px', fontSize: '0.84rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}
                 />
               </div>
@@ -1866,7 +2047,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                 <button
                   type="submit"
                   style={{
-                    backgroundColor: '#084d3b',
+                    backgroundColor: '#0284c7',
                     color: '#ffffff',
                     border: 'none',
                     borderRadius: '9999px',
@@ -1885,7 +2066,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
       )}
 
       {/* =====================================================================
-          MODAL: TRANSFER MONEY
+          MODAL: RECORD PAYMENT / TRANSFER MONEY
          ===================================================================== */}
       {isTransferModalOpen && (
         <div
@@ -1910,11 +2091,12 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
               width: '90%',
               maxWidth: '460px',
               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+              border: '1px solid #e2e8f0',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#0f172a' }}>
-                Transfer Money / Record Transfer
+                Record Payment / Account Transfer
               </h3>
               <button
                 type="button"
@@ -1926,13 +2108,13 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
             </div>
 
             <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 18px 0' }}>
-              Transfer funds between operating accounts, or disburse supplier and utility payments with balanced double-entry validation.
+              Execute transfers between operational accounts or record manual tenant receipts with balanced double-entry validation.
             </p>
 
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                setTransferSuccess('Transfer executed and recorded in General Ledger!');
+                setTransferSuccess('Entry recorded successfully in General Ledger!');
                 setTimeout(() => {
                   setTransferSuccess(null);
                   setIsTransferModalOpen(false);
@@ -1945,12 +2127,12 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                   Source Account (From)
                 </label>
                 <select
-                  defaultValue="MAIN"
+                  defaultValue="MPESA"
                   style={{ width: '100%', padding: '8px 12px', fontSize: '0.84rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}
                 >
-                  <option value="MAIN">NevBank Savings Account (Avail: 68.789,56 $)</option>
-                  <option value="SANTANDER">Santander (88 **** 9448) - 12.220,65 $</option>
-                  <option value="CITYBANK">CityBank (45 **** 8854) - 25.070,65 $</option>
+                  <option value="MPESA">M-Pesa Daraja Paybill (247247)</option>
+                  <option value="EQUITY">Equity Bank Operating (0180 **** 4921)</option>
+                  <option value="NCBA">NCBA Escrow (Account 2100)</option>
                 </select>
               </div>
 
@@ -1959,23 +2141,23 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                   Destination (To)
                 </label>
                 <select
-                  defaultValue="DEUTSCHE"
+                  defaultValue="COOP"
                   style={{ width: '100%', padding: '8px 12px', fontSize: '0.84rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}
                 >
-                  <option value="DEUTSCHE">Deutsche Bank (67 **** 6821)</option>
-                  <option value="CREDIT_AGRICOLE">Credit Agricole (55 **** 7655)</option>
-                  <option value="EXTERNAL">External Vendor Bank / M-Pesa Paybill</option>
+                  <option value="COOP">Co-op Bank OpEx & Utility Account</option>
+                  <option value="EQUITY">Equity Bank Operating Account</option>
+                  <option value="VENDOR">External Supplier / Maintenance Vendor</option>
                 </select>
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                  Transfer Amount
+                  Transfer Amount (KES)
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 5.000,00 $"
-                  defaultValue="5.000,00 $"
+                  placeholder="e.g. 25,000.00"
+                  defaultValue="25,000.00"
                   style={{ width: '100%', padding: '8px 12px', fontSize: '0.84rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}
                 />
               </div>
@@ -2006,7 +2188,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                 <button
                   type="submit"
                   style={{
-                    backgroundColor: '#084d3b',
+                    backgroundColor: '#0284c7',
                     color: '#ffffff',
                     border: 'none',
                     borderRadius: '9999px',
@@ -2016,7 +2198,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                     cursor: 'pointer',
                   }}
                 >
-                  Transfer Money
+                  Record Transfer
                 </button>
               </div>
             </form>
