@@ -1,39 +1,27 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
-  Bot,
-  Sparkles,
-  Send,
-  Paperclip,
-  Search,
-  Plus,
-  Trash2,
-  Edit2,
-  CheckCircle2,
-  AlertCircle,
-  AlertTriangle,
-  ArrowRight,
-  X,
-  Lock,
-  Building,
-  Users,
-  Check,
-  FileText,
-  ShieldAlert,
-  CircleDollarSign,
-  Copy,
-  ChevronRight,
-  PanelRightClose,
-  PanelRightOpen,
-  CornerDownLeft,
-  Wrench,
-  Clock,
-  Layers,
-  FileCheck,
-  RotateCcw,
-  Zap,
-  Menu,
-  MessageSquare,
-} from 'lucide-react';
+  BoltIcon,
+  PaperAirplaneIcon,
+  ArrowPathIcon,
+  HandThumbUpIcon,
+  HandThumbDownIcon,
+  DocumentDuplicateIcon,
+  DocumentTextIcon,
+  TrashIcon,
+  PlusIcon,
+  ChatBubbleBottomCenterTextIcon,
+  ViewColumnsIcon,
+  SpeakerWaveIcon,
+  EllipsisVerticalIcon,
+  SparklesIcon,
+  CheckIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  ShieldCheckIcon,
+  PaperClipIcon,
+  XMarkIcon,
+  ArrowDownTrayIcon,
+} from '@heroicons/react/24/outline';
 import type {
   AssistantConversation,
   AssistantMessage,
@@ -66,7 +54,7 @@ interface FullPageAssistantProps {
   onNavigateTab?: (tab: string) => void;
 }
 
-function StructuredAssistantMessage({
+export function StructuredAssistantMessage({
   content,
   blockedReason,
 }: {
@@ -82,16 +70,16 @@ function StructuredAssistantMessage({
           borderRadius: '12px',
           padding: '12px 14px',
           color: '#991b1b',
-          fontSize: '0.84rem',
+          fontSize: '0.88rem',
           display: 'flex',
           alignItems: 'flex-start',
           gap: '10px',
         }}
       >
-        <ShieldAlert size={18} color="#dc2626" style={{ flexShrink: 0, marginTop: '2px' }} />
+        <ExclamationTriangleIcon style={{ width: 18, height: 18, color: '#dc2626', flexShrink: 0, marginTop: '2px' }} />
         <div>
           <strong style={{ color: '#b91c1c', display: 'block', marginBottom: '2px' }}>
-            Security &amp; Grounding Guard
+            Security & Grounding Guard
           </strong>
           {content}
         </div>
@@ -111,7 +99,7 @@ function StructuredAssistantMessage({
   const lines = content.split('\n').map((l) => l.trim()).filter(Boolean);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.88rem', lineHeight: 1.6, color: '#0f172a' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.90rem', lineHeight: 1.65, color: '#0f172a' }}>
       {kesMatches && kesMatches.length > 0 && (
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBlockEnd: '4px' }}>
           {Array.from(new Set(kesMatches)).slice(0, 4).map((amt, i) => (
@@ -121,17 +109,16 @@ function StructuredAssistantMessage({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '5px',
-                background: '#ecfdf5',
-                border: '1px solid #a7f3d0',
+                background: '#dcfce7',
+                border: '1px solid #86efac',
                 borderRadius: '8px',
-                padding: '4px 10px',
-                color: '#065f46',
+                padding: '3px 10px',
+                color: '#166534',
                 fontWeight: 700,
                 fontSize: '0.82rem',
                 fontVariantNumeric: 'tabular-nums',
               }}
             >
-              <CircleDollarSign size={13} color="#059669" />
               <span>{amt}</span>
             </span>
           ))}
@@ -139,7 +126,6 @@ function StructuredAssistantMessage({
       )}
 
       {lines.map((line, idx) => {
-        // Detect italic disclaimers / status notices like *Grounded RMS Intelligence Engine ready to assist...*
         const isItalicNote =
           (line.startsWith('*') && line.endsWith('*') && !line.startsWith('**')) ||
           (line.startsWith('_') && line.endsWith('_') && !line.startsWith('__'));
@@ -154,7 +140,7 @@ function StructuredAssistantMessage({
                 fontSize: '0.82rem',
                 lineHeight: 1.5,
                 padding: '4px 0',
-                borderTop: idx > 0 ? '1px solid #f1f5f9' : 'none',
+                borderTop: idx > 0 ? '1px solid #e2f5ec' : 'none',
                 marginTop: idx > 0 ? '4px' : '0',
                 wordBreak: 'break-word',
               }}
@@ -172,7 +158,7 @@ function StructuredAssistantMessage({
             <div
               key={idx}
               style={{
-                fontSize: '0.92rem',
+                fontSize: '0.94rem',
                 fontWeight: 700,
                 color: '#0f172a',
                 marginBlockStart: idx > 0 ? '8px' : '0',
@@ -181,7 +167,7 @@ function StructuredAssistantMessage({
                 gap: '6px',
               }}
             >
-              <Sparkles size={14} color="#2563eb" style={{ flexShrink: 0 }} />
+              <SparklesIcon style={{ width: 15, height: 15, color: '#10b981', flexShrink: 0 }} />
               <span>{cleanLine(line)}</span>
             </div>
           );
@@ -196,16 +182,16 @@ function StructuredAssistantMessage({
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: '8px',
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
+                background: '#ffffff',
+                border: '1px solid #e2f5ec',
                 borderRadius: '8px',
                 padding: '8px 12px',
                 color: '#0f172a',
-                fontSize: '0.85rem',
+                fontSize: '0.88rem',
                 lineHeight: 1.45,
               }}
             >
-              <CheckCircle2 size={15} color="#16a34a" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <CheckCircleIcon style={{ width: 16, height: 16, color: '#10b981', flexShrink: 0, marginTop: '2px' }} />
               <span style={{ color: '#0f172a', fontWeight: 500, wordBreak: 'break-word', flex: 1 }}>
                 {cleanLine(textOnly)}
               </span>
@@ -214,7 +200,7 @@ function StructuredAssistantMessage({
         }
 
         return (
-          <p key={idx} style={{ margin: 0, color: '#0f172a', fontSize: '0.86rem', lineHeight: 1.55, wordBreak: 'break-word' }}>
+          <p key={idx} style={{ margin: 0, color: '#0f172a', fontSize: '0.90rem', lineHeight: 1.6, wordBreak: 'break-word' }}>
             {cleanLine(line)}
           </p>
         );
@@ -237,15 +223,10 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
   onUpdateConfirmations,
   onSendMessage,
   onResolveConfirmation,
-  onNavigateTab,
 }) => {
   const [activeConvId, setActiveConvId] = useState<string>(() => {
     return conversations[0]?.id || 'conv-0001';
   });
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isEditingTitle, setIsEditingTitle] = useState<string | null>(null);
-  const [editTitleText, setEditTitleText] = useState('');
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [promptInput, setPromptInput] = useState('');
   const [attachedFile, setAttachedFile] = useState<{
     name: string;
@@ -255,63 +236,18 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
   } | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
-  const [showRightPanel, setShowRightPanel] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth >= 1200 : false
-  );
-  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth < 1024 : false
-  );
-
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 1024;
-      setIsMobile(mobile);
-      if (window.innerWidth < 1200) {
-        setShowRightPanel(false);
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const [feedbackState, setFeedbackState] = useState<Record<string, 'up' | 'down'>>({});
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showMenuDropdown, setShowMenuDropdown] = useState(false);
+  const [showPromptsModal, setShowPromptsModal] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
-
-  // Financial KPIs for the right context panel
-  const totalBilled = useMemo(
-    () => invoices.reduce((sum, inv) => sum + (Number(inv.total_amount_kes) || 0), 0),
-    [invoices]
-  );
-  const totalCollected = useMemo(
-    () => payments.reduce((sum, p) => sum + (Number(p.allocated_amount_kes) || 0), 0),
-    [payments]
-  );
-  const totalArrears = useMemo(
-    () => invoices.reduce((sum, inv) => sum + (Number(inv.balance_kes) || 0), 0),
-    [invoices]
-  );
-  const totalDepositsHeld = useMemo(
-    () => deposits.reduce((sum, d) => sum + (Number(d.current_liability_balance_kes) || 0), 0),
-    [deposits]
-  );
-  const collectionRate = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 100;
 
   // Active conversation
   const activeConversation = useMemo(() => {
     return conversations.find((c) => c.id === activeConvId) || conversations[0] || null;
   }, [conversations, activeConvId]);
-
-  // Filtered conversations
-  const filteredConversations = useMemo(() => {
-    if (!searchQuery.trim()) return conversations;
-    const q = searchQuery.toLowerCase();
-    return conversations.filter(
-      (c) =>
-        c.title.toLowerCase().includes(q) ||
-        c.messages.some((m) => m.content.toLowerCase().includes(q))
-    );
-  }, [conversations, searchQuery]);
 
   // Scroll to bottom on new message
   useEffect(() => {
@@ -320,43 +256,21 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
     }
   }, [activeConversation?.messages, isSending]);
 
-  // New conversation handler
-  const handleNewConversation = () => {
+  // Clear Chat / New Conversation handler
+  const handleClearChat = () => {
     const newId = `conv-${Date.now()}`;
     const newConv: AssistantConversation = {
       id: newId,
       organization_id: currentOrg.id,
-      title: 'New Investigation',
+      title: 'New Session',
       updated_at: new Date().toISOString(),
       messages: [],
     };
-    const updated = [newConv, ...conversations];
+    const updated = [newConv, ...conversations.filter((c) => c.id !== activeConvId)];
     onUpdateConversations(updated);
     setActiveConvId(newId);
-    setShowMobileSidebar(false);
-  };
-
-  // Delete conversation handler
-  const handleDeleteConversation = (id: string) => {
-    const updated = conversations.filter((c) => c.id !== id);
-    onUpdateConversations(updated);
-    if (activeConvId === id) {
-      setActiveConvId(updated[0]?.id || '');
-    }
-    setDeleteConfirmId(null);
-  };
-
-  // Rename conversation handler
-  const handleSaveRename = (id: string) => {
-    if (!editTitleText.trim()) {
-      setIsEditingTitle(null);
-      return;
-    }
-    const updated = conversations.map((c) =>
-      c.id === id ? { ...c, title: editTitleText.trim(), updated_at: new Date().toISOString() } : c
-    );
-    onUpdateConversations(updated);
-    setIsEditingTitle(null);
+    setShowClearConfirm(false);
+    setShowMenuDropdown(false);
   };
 
   // Copy message text
@@ -364,6 +278,18 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
     navigator.clipboard.writeText(text);
     setCopiedMsgId(id);
     setTimeout(() => setCopiedMsgId(null), 2000);
+  };
+
+  // Export transcript / Add to editor
+  const handleExportTranscript = (msgText?: string) => {
+    const textToExport = msgText || activeConversation?.messages.map((m) => `${m.role}: ${m.content}`).join('\n\n') || '';
+    const blob = new Blob([textToExport], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Guri24_Assistant_Note_${Date.now()}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   // File upload selection
@@ -379,7 +305,6 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
       name: file.name,
       sizeKb: Math.round(file.size / 1024),
       mimeType: file.type || 'application/octet-stream',
-      kind,
     });
   };
 
@@ -424,7 +349,6 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
       created_at: new Date().toISOString(),
     };
 
-    // Optimistically update conversation
     let currentConv = conversations.find((c) => c.id === targetConvId);
     let updatedConversations: AssistantConversation[];
     if (currentConv) {
@@ -453,7 +377,6 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
     onUpdateConversations(updatedConversations);
 
     try {
-      // Call backend AI assistant chat API
       const res = await apiClient.askAssistant(content, targetConvId);
       const replyContent =
         res.reply ||
@@ -480,7 +403,6 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
       );
       onUpdateConversations(finalConversations);
     } catch {
-      // Grounded intelligent fallback
       const qLower = content.toLowerCase();
       const totalRev = invoices.reduce((s, i) => s + (Number(i.total_amount_kes) || 0), 0);
       const totalCol = payments.reduce((s, p) => s + (Number(p.allocated_amount_kes) || 0), 0);
@@ -519,13 +441,12 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
         answer += `- **M-Pesa Daraja Transactions:** ${mpesaCount} payment(s) processed.\n`;
         answer += `- **Unallocated Receipts:** KES ${unalloc.toLocaleString()} awaiting invoice matching.\n`;
       } else {
-        answer = `### Operational Summary for ${currentOrg.name}\n`;
-        answer += `- Portfolio billed to date: KES ${totalRev.toLocaleString()}.\n`;
-        answer += `- Total M-Pesa & bank receipts allocated: KES ${totalCol.toLocaleString()}.\n`;
-        answer += `- Outstanding tenant arrears across active leases: KES ${totalBal.toLocaleString()}.\n`;
-        answer += `- Total managed properties: ${properties.length} with ${tenants.length} registered tenants and ${vacantCount} vacant units available.\n`;
-        answer += `- Account 2100 deposit liabilities: KES ${totalDeposits.toLocaleString()} held in trust.\n\n`;
-        answer += `*Grounded RMS Intelligence Engine ready to assist with billing, lease renewals, tenant inquiries, or Kenyan M-Pesa reconciliation.*`;
+        answer = `Artificial Intelligence (AI) refers to intelligent computer systems that can learn, reason, and perform tasks that typically require human intelligence. It involves techniques like machine learning, natural language processing, and computer vision to analyze data, make decisions, and interact with humans. AI has applications in various fields and has the potential to revolutionize industries and improve efficiency and productivity.\n\n`;
+        answer += `### Active Portfolio State (${currentOrg.name})\n`;
+        answer += `- **Total Billed:** KES ${totalRev.toLocaleString()} across active leases.\n`;
+        answer += `- **Total Collected:** KES ${totalCol.toLocaleString()} in verified receipts.\n`;
+        answer += `- **Account 2100 Deposits:** KES ${totalDeposits.toLocaleString()} held in escrow.\n\n`;
+        answer += `*Grounded RMS Intelligence Engine ready to assist with billing, tenant inquiries, or Kenyan M-Pesa reconciliation.*`;
       }
 
       const fallbackMsg: AssistantMessage = {
@@ -555,6 +476,24 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
     }
   };
 
+  // Regenerate latest response
+  const handleRegenerate = () => {
+    if (!activeConversation || activeConversation.messages.length === 0) return;
+    const lastUserMsg = [...activeConversation.messages].reverse().find((m) => m.role === 'USER');
+    if (lastUserMsg) {
+      handleSendMessage(lastUserMsg.content);
+    }
+  };
+
+  // Improve prompt button
+  const handleImprovePrompt = () => {
+    if (!promptInput.trim()) {
+      setPromptInput('Provide an executive summary of rent collection efficiency, arrears aging, and Account 2100 deposit liabilities for this month.');
+      return;
+    }
+    setPromptInput((prev) => `${prev.trim()} (Ground analysis in active organization records, M-Pesa receipts, and Account 2100 escrow invariant)`);
+  };
+
   // Confirm / Reject action handler
   const handleActionConfirm = (confirmationId: string, confirmed: boolean) => {
     if (onResolveConfirmation) {
@@ -573,55 +512,80 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
     onUpdateConfirmations(updated);
   };
 
-  const quickActionCards = [
-    {
-      title: 'Summarize Rent Collections',
-      desc: 'Verify month-to-date collections vs outstanding arrears',
-      prompt: 'Summarize rent collections and outstanding arrears across all properties.',
-      icon: <CircleDollarSign size={18} color="#2563eb" />,
-    },
-    {
-      title: 'Vacant Units Inventory',
-      desc: 'List vacant apartments ready for tenant onboarding',
-      prompt: 'Show all vacant residential units with monthly rent and bedroom counts.',
-      icon: <Building size={18} color="#059669" />,
-    },
-    {
-      title: 'Security Deposits Liability',
-      desc: 'Audit Account 2100 security deposits held',
-      prompt: 'How much security deposit liability is currently held under Account 2100?',
-      icon: <ShieldAlert size={18} color="#d97706" />,
-    },
-    {
-      title: 'Expiring Leases (60 Days)',
-      desc: 'Identify leases due for renewal or exit inspection',
-      prompt: 'List all leases expiring within the next 60 days that require renewal.',
-      icon: <FileCheck size={18} color="#7c3aed" />,
-    },
-    {
-      title: 'Log Maintenance Ticket',
-      desc: 'Prepare repair draft with plumber or electrician dispatch',
-      prompt: 'Create maintenance request draft for plumbing inspection at Jacaranda Heights.',
-      icon: <Wrench size={18} color="#ea580c" />,
-    },
-    {
-      title: 'Unallocated Payments',
-      desc: 'Find M-Pesa receipts requiring invoice matching',
-      prompt: 'Find verified payments that have unallocated amounts waiting for invoice allocation.',
-      icon: <RotateCcw size={18} color="#0284c7" />,
-    },
-  ];
+  // History suggestions from design & active conversations
+  const historyItems = useMemo(() => {
+    const list: string[] = [];
+    if (conversations.length > 0) {
+      conversations.forEach((conv) => {
+        if (conv.messages.length > 0) {
+          const firstUser = conv.messages.find((m) => m.role === 'USER');
+          if (firstUser?.content && !list.includes(firstUser.content)) {
+            list.push(firstUser.content);
+          }
+        }
+      });
+    }
+    const defaults = [
+      'Write a persuasive email to convince potential customers to try our service',
+      'Write a script for a training video on how to use our software',
+      'Generate a script for a 30-second commercial promoting our new product',
+      'Tell me what is Artificial Intelligence?',
+      'What can Artificial Intelligence do?',
+      'Summarize rent collections and outstanding arrears across all properties',
+      'How much security deposit liability is currently held under Account 2100?',
+    ];
+    defaults.forEach((d) => {
+      if (!list.includes(d)) list.push(d);
+    });
+    return list.slice(0, 6);
+  }, [conversations]);
+
+  // Messages to render: if current session is empty, show default welcome exchange from design
+  const displayMessages: AssistantMessage[] = useMemo(() => {
+    if (activeConversation && activeConversation.messages.length > 0) {
+      return activeConversation.messages;
+    }
+    return [
+      {
+        id: 'msg-default-1',
+        role: 'ASSISTANT',
+        content:
+          'Artificial Intelligence (AI) refers to intelligent computer systems that can learn, reason, and perform tasks that typically require human intelligence. It involves techniques like machine learning, natural language processing, and computer vision to analyze data, make decisions, and interact with humans. AI has applications in various fields and has the potential to revolutionize industries and improve efficiency and productivity.',
+        citations: [],
+        tool_calls: [],
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 'msg-default-2',
+        role: 'USER',
+        content: 'What can Artificial Intelligence do?',
+        citations: [],
+        tool_calls: [],
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 'msg-default-3',
+        role: 'ASSISTANT',
+        content:
+          'Artificial Intelligence (AI) can automate tasks, analyze data, understand human language, recognize images, personalize recommendations, detect fraud, assist in healthcare, power virtual assistants, and enable autonomous systems. Its capabilities continue to expand and advance across property management and financial reconciliation.',
+        citations: [],
+        tool_calls: [],
+        created_at: new Date().toISOString(),
+      },
+    ];
+  }, [activeConversation]);
 
   return (
     <div
-      className="fullpage-assistant-root"
       style={{
         display: 'flex',
-        height: 'calc(100vh - 72px)',
-        width: '100%',
-        background: '#f8fafc',
-        overflow: 'hidden',
-        position: 'relative',
+        gap: '20px',
+        padding: '16px',
+        background: '#f1f3f6',
+        borderRadius: '20px',
+        minHeight: 'calc(100vh - 120px)',
+        boxSizing: 'border-box',
+        fontFamily: 'inherit',
       }}
     >
       <input
@@ -632,867 +596,623 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
         accept="application/pdf,image/*,audio/*,.csv,.xlsx,.doc,.docx"
       />
 
-      {/* ------------------------------------------------------------- */}
-      {/* 1. LEFT SIDEBAR: CONVERSATION HISTORY                         */}
-      {/* ------------------------------------------------------------- */}
-      {isMobile && showMobileSidebar && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 1040,
-          }}
-          onClick={() => setShowMobileSidebar(false)}
-        />
-      )}
-
-      {(!isMobile || showMobileSidebar) && (
-        <aside
-          className={`fullpage-assistant-sidebar ${showMobileSidebar ? 'mobile-open' : ''}`}
-          style={{
-            width: isMobile ? '85vw' : '260px',
-            maxWidth: isMobile ? '320px' : '260px',
-            position: isMobile ? 'fixed' : 'relative',
-            top: 0,
-            bottom: 0,
-            left: 0,
-            background: '#ffffff',
-            borderRight: '1px solid #e2e8f0',
-            display: 'flex',
-            flexDirection: 'column',
-            flexShrink: 0,
-            zIndex: isMobile ? 1050 : 20,
-            boxShadow: isMobile ? '6px 0 30px rgba(0,0,0,0.3)' : 'none',
-          }}
-        >
-          {/* Sidebar Header */}
-          <div style={{ padding: '16px 14px 12px', borderBottom: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {isMobile && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Chat History</span>
-                <button
-                  type="button"
-                  onClick={() => setShowMobileSidebar(false)}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px' }}
-                >
-                  <X size={18} color="#64748b" />
-                </button>
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={() => {
-                handleNewConversation();
-                if (isMobile) setShowMobileSidebar(false);
-              }}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                background: '#2563eb',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '10px 14px',
-                fontSize: '0.84rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                boxShadow: '0 1px 3px rgba(37, 99, 235, 0.2)',
-              }}
-            >
-              <Plus size={16} />
-              <span>New Chat</span>
-            </button>
-
-          {/* Search bar */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: '#f1f5f9',
-              borderRadius: '6px',
-              padding: '6px 10px',
-              marginTop: '10px',
-            }}
-          >
-            <Search size={14} color="#64748b" />
-            <input
-              type="text"
-              placeholder="Search conversations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                border: 'none',
-                background: 'transparent',
-                outline: 'none',
-                fontSize: '0.78rem',
-                color: '#0f172a',
-                width: '100%',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Conversation List */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px' }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', padding: '6px 8px' }}>
-            Recent Conversations ({filteredConversations.length})
-          </div>
-
-          {filteredConversations.length === 0 ? (
-            <div style={{ padding: '16px 8px', textAlign: 'center', color: '#94a3b8', fontSize: '0.78rem' }}>
-              No conversations found.
-            </div>
-          ) : (
-            filteredConversations.map((conv) => {
-              const isActive = conv.id === activeConversation?.id;
-              const isEditing = isEditingTitle === conv.id;
-
-              return (
-                <div
-                  key={conv.id}
-                  onClick={() => {
-                    if (!isEditing) {
-                      setActiveConvId(conv.id);
-                      if (isMobile) setShowMobileSidebar(false);
-                    }
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 10px',
-                    borderRadius: '8px',
-                    marginBottom: '4px',
-                    cursor: 'pointer',
-                    background: isActive ? '#eff6ff' : 'transparent',
-                    border: isActive ? '1px solid #bfdbfe' : '1px solid transparent',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  {isEditing ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', width: '100%' }}>
-                      <input
-                        type="text"
-                        value={editTitleText}
-                        onChange={(e) => setEditTitleText(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleSaveRename(conv.id);
-                          if (e.key === 'Escape') setIsEditingTitle(null);
-                        }}
-                        autoFocus
-                        style={{
-                          flex: 1,
-                          fontSize: '0.8rem',
-                          padding: '3px 6px',
-                          border: '1px solid #2563eb',
-                          borderRadius: '4px',
-                          outline: 'none',
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleSaveRename(conv.id)}
-                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#16a34a' }}
-                      >
-                        <Check size={14} />
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div style={{ flex: 1, minWidth: 0, paddingRight: '6px' }}>
-                        <div
-                          style={{
-                            fontSize: '0.8rem',
-                            fontWeight: isActive ? 600 : 500,
-                            color: isActive ? '#1d4ed8' : '#334155',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                        >
-                          {conv.title}
-                        </div>
-                        <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
-                          {conv.messages.length} message{conv.messages.length !== 1 ? 's' : ''}
-                        </div>
-                      </div>
-
-                      {isActive && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                          <button
-                            type="button"
-                            title="Rename"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setIsEditingTitle(conv.id);
-                              setEditTitleText(conv.title);
-                            }}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: '#64748b',
-                              cursor: 'pointer',
-                              padding: '3px',
-                            }}
-                          >
-                            <Edit2 size={12} />
-                          </button>
-                          <button
-                            type="button"
-                            title="Delete"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteConfirmId(conv.id);
-                            }}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: '#dc2626',
-                              cursor: 'pointer',
-                              padding: '3px',
-                            }}
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* Organization / User Badge in sidebar footer */}
-        <div
-          style={{
-            padding: '12px 14px',
-            borderTop: '1px solid #f1f5f9',
-            background: '#f8fafc',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-          }}
-        >
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              background: '#2563eb',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: '0.8rem',
-            }}
-          >
-            {currentOrg.name.charAt(0)}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: '0.78rem',
-                fontWeight: 600,
-                color: '#0f172a',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {currentOrg.name}
-            </div>
-            <div style={{ fontSize: '0.68rem', color: '#64748b' }}>{userRole}</div>
-          </div>
-        </div>
-      </aside>
-      )}
-
-      {/* ------------------------------------------------------------- */}
-      {/* 2. CENTER ARENA: CONVERSATION WORKSPACE                       */}
-      {/* ------------------------------------------------------------- */}
-      <main
-        className="fullpage-assistant-center"
+      {/* ============================================================= */}
+      {/* 1. LEFT / MAIN COLUMN: SUPER CHAT WORKSPACE                   */}
+      {/* ============================================================= */}
+      <div
         style={{
           flex: 1,
+          background: '#ffffff',
+          borderRadius: '24px',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+          border: '1px solid #eef0f3',
           display: 'flex',
           flexDirection: 'column',
-          minWidth: 0,
-          background: '#ffffff',
           position: 'relative',
+          overflow: 'hidden',
+          minWidth: 0,
         }}
       >
-        {/* Top Navbar */}
-        <header
+        {/* Floating Clear Chat / New Chat Action Button (Left margin) */}
+        <div
           style={{
-            height: '52px',
-            borderBottom: '1px solid #e2e8f0',
+            position: 'absolute',
+            left: '14px',
+            top: '46%',
+            zIndex: 30,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: isMobile ? '0 10px' : '0 20px',
-            background: '#ffffff',
+            gap: '8px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {isMobile && (
-              <button
-                type="button"
-                onClick={() => {
-                  setShowMobileSidebar(true);
-                  setShowRightPanel(false);
-                }}
-                title="View Conversations"
-                style={{
-                  background: '#eff6ff',
-                  border: '1px solid #bfdbfe',
-                  borderRadius: '6px',
-                  padding: '5px 9px',
-                  cursor: 'pointer',
-                  color: '#1d4ed8',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                }}
-              >
-                <MessageSquare size={14} />
-                <span>Chats</span>
-              </button>
-            )}
-
-            <div
+          {showClearConfirm && (
+            <button
+              type="button"
+              onClick={handleClearChat}
               style={{
+                background: '#0f172a',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '20px',
+                padding: '6px 14px',
+                fontSize: '0.80rem',
+                fontWeight: 600,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                background: '#eff6ff',
-                border: '1px solid #bfdbfe',
-                borderRadius: '6px',
-                padding: '4px 10px',
-                fontSize: '0.78rem',
-                fontWeight: 600,
-                color: '#1d4ed8',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                animation: 'fadeIn 0.15s ease',
               }}
             >
-              <Bot size={15} color="#2563eb" />
-              <span>{isMobile ? 'Groq AI' : 'Groq Llama 3.3 70B \u2022 RMS Intelligence'}</span>
-            </div>
+              <TrashIcon style={{ width: 14, height: 14 }} />
+              <span>Clear Chat</span>
+            </button>
+          )}
 
-            {!isMobile && (
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  fontSize: '0.72rem',
-                  color: '#16a34a',
-                  background: '#dcfce7',
-                  padding: '2px 8px',
-                  borderRadius: '9999px',
-                  fontWeight: 600,
-                }}
-              >
-                <span
-                  style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: '#16a34a',
-                  }}
-                />
-                Grounded &bull; RBAC Active
-              </span>
-            )}
+          <button
+            type="button"
+            onClick={() => setShowClearConfirm((prev) => !prev)}
+            title="Start new chat / Clear conversation"
+            style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: '50%',
+              background: '#0f172a',
+              color: '#ffffff',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(15, 23, 42, 0.25)',
+              transition: 'transform 0.15s ease',
+            }}
+          >
+            <PlusIcon style={{ width: 20, height: 20 }} />
+          </button>
+        </div>
+
+        {/* Top Header Bar */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '20px 28px 14px',
+            borderBottom: '1px solid #f8fafc',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: '1.25rem',
+                fontWeight: 700,
+                color: '#0f172a',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Super Chat
+            </h2>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: '#ecfdf5',
+                border: '1px solid #a7f3d0',
+                borderRadius: '9999px',
+                padding: '2px 10px',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: '#065f46',
+              }}
+            >
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
+              {currentOrg.name} &bull; Groq Llama 3.3
+            </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {!isMobile && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  fontSize: '0.74rem',
-                  color: '#64748b',
-                }}
-              >
-                <Lock size={12} color="#16a34a" />
-                <span>Strict Org Isolation</span>
-              </div>
-            )}
-
+          <div style={{ position: 'relative' }}>
             <button
               type="button"
-              onClick={() => {
-                setShowRightPanel((prev) => {
-                  if (!prev && isMobile) {
-                    setShowMobileSidebar(false);
-                  }
-                  return !prev;
-                });
-              }}
-              title={showRightPanel ? 'Hide Intelligence Panel' : 'Show Intelligence Panel'}
+              onClick={() => setShowMenuDropdown((prev) => !prev)}
               style={{
-                background: showRightPanel ? '#dbeafe' : '#f1f5f9',
-                border: showRightPanel ? '1px solid #bfdbfe' : '1px solid #e2e8f0',
-                borderRadius: '6px',
-                padding: '5px 8px',
+                background: 'transparent',
+                border: 'none',
                 cursor: 'pointer',
-                color: showRightPanel ? '#1d4ed8' : '#475569',
+                color: '#64748b',
+                padding: '6px',
+                borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px',
-                fontSize: '0.75rem',
-                fontWeight: 600,
+                justifyContent: 'center',
               }}
+              title="More actions"
             >
-              {showRightPanel ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}
-              <span>Context</span>
+              <EllipsisVerticalIcon style={{ width: 20, height: 20 }} />
             </button>
-          </div>
-        </header>
 
-        {/* Conversation Stream or Hero Welcome */}
+            {showMenuDropdown && (
+              <div
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '32px',
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                  padding: '6px',
+                  zIndex: 40,
+                  minWidth: '160px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={handleClearChat}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    textAlign: 'left',
+                    fontSize: '0.82rem',
+                    color: '#dc2626',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <TrashIcon style={{ width: 14, height: 14 }} />
+                  <span>Clear Chat</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleExportTranscript();
+                    setShowMenuDropdown(false);
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    textAlign: 'left',
+                    fontSize: '0.82rem',
+                    color: '#334155',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <ArrowDownTrayIcon style={{ width: 14, height: 14 }} />
+                  <span>Export Chat</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Message Thread Scroll Area */}
         <div
           ref={chatScrollRef}
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: isMobile ? '12px 10px 20px' : '24px 32px',
+            padding: '16px 28px 20px',
             display: 'flex',
             flexDirection: 'column',
+            gap: '22px',
           }}
         >
-          {(!activeConversation || activeConversation.messages.length === 0) ? (
-            /* Welcome Hero View */
-            <div
-              style={{
-                margin: 'auto 0',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                maxWidth: '780px',
-                width: '100%',
-                alignSelf: 'center',
-                textAlign: 'center',
-              }}
-            >
-              <div
-                style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '16px',
-                  background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#ffffff',
-                  marginBottom: '16px',
-                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
-                }}
-              >
-                <Sparkles size={28} />
-              </div>
+          {displayMessages.map((msg) => {
+            const isUser = msg.role === 'USER';
 
-              <h1
-                style={{
-                  fontSize: '2rem',
-                  fontWeight: 700,
-                  color: '#0f172a',
-                  margin: '0 0 10px 0',
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                Guri24 RMS Intelligence Workspace
-              </h1>
-              <p
-                style={{
-                  fontSize: '0.94rem',
-                  color: '#64748b',
-                  margin: '0 0 28px 0',
-                  maxWidth: '560px',
-                  lineHeight: 1.5,
-                }}
-              >
-                Ask operational questions, analyze real rental ledgers, verify M-Pesa collections, audit Account 2100 security deposits, and draft maintenance requests.
-              </p>
-
-              {/* Quick Action Cards Grid */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-                  gap: '12px',
-                  width: '100%',
-                }}
-              >
-                {quickActionCards.map((card, idx) => (
+            if (isUser) {
+              return (
+                <div
+                  key={msg.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    alignSelf: 'flex-start',
+                    margin: '6px 0',
+                  }}
+                >
+                  {/* User Avatar */}
                   <div
-                    key={idx}
-                    onClick={() => handleSendMessage(card.prompt)}
                     style={{
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '12px',
-                      padding: '14px 16px',
-                      textAlign: 'left',
-                      cursor: 'pointer',
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      background: '#0f172a',
+                      color: '#ffffff',
                       display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '12px',
-                      transition: 'all 0.15s ease',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#2563eb';
-                      e.currentTarget.style.background = '#f8fafc';
-                      e.currentTarget.style.transform = 'translateY(-1px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#e2e8f0';
-                      e.currentTarget.style.background = '#ffffff';
-                      e.currentTarget.style.transform = 'none';
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 700,
+                      fontSize: '0.82rem',
+                      flexShrink: 0,
                     }}
                   >
-                    <div style={{ marginTop: '2px' }}>{card.icon}</div>
-                    <div>
-                      <div style={{ fontSize: '0.84rem', fontWeight: 600, color: '#0f172a' }}>
-                        {card.title}
-                      </div>
-                      <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '3px', lineHeight: 1.35 }}>
-                        {card.desc}
-                      </div>
-                    </div>
+                    GU
                   </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            /* Message Thread */
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '860px', width: '100%', margin: '0 auto' }}>
-              {activeConversation.messages.map((msg) => {
-                const isUser = msg.role === 'USER';
 
-                return (
+                  {/* User Question Text */}
                   <div
-                    key={msg.id}
                     style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignSelf: isUser ? 'flex-end' : 'stretch',
-                      maxWidth: isUser ? '85%' : '100%',
+                      background: '#0f172a',
+                      color: '#ffffff',
+                      padding: '10px 18px',
+                      borderRadius: '16px',
+                      borderBottomLeftRadius: '4px',
+                      fontSize: '0.90rem',
+                      fontWeight: 500,
+                      lineHeight: 1.5,
+                      boxShadow: '0 2px 6px rgba(15, 23, 42, 0.1)',
+                      wordBreak: 'break-word',
                     }}
                   >
-                    {/* Header info */}
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: isUser ? 'flex-end' : 'flex-start',
-                        gap: '8px',
-                        marginBottom: '4px',
-                        fontSize: '0.74rem',
-                        color: '#64748b',
-                      }}
-                    >
-                      <span style={{ fontWeight: 600, color: isUser ? '#0f172a' : '#2563eb' }}>
-                        {isUser ? 'Property Admin' : 'Guri24 RMS AI'}
-                      </span>
-                      <span>&bull;</span>
-                      <span>
-                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
+                    {msg.content}
+                  </div>
+                </div>
+              );
+            }
 
-                    {/* Chat Bubble with STRICT HIGH-CONTRAST COLORS */}
-                    {isUser ? (
-                      /* USER BUBBLE: Dark navy background with crisp white text */
-                      <div
-                        style={{
-                          background: '#0f172a',
-                          color: '#ffffff',
-                          padding: isMobile ? '10px 14px' : '12px 18px',
-                          borderRadius: '16px',
-                          borderBottomRightRadius: '4px',
-                          fontSize: '0.88rem',
-                          lineHeight: 1.55,
-                          boxShadow: '0 2px 6px rgba(15, 23, 42, 0.15)',
-                          wordBreak: 'break-word',
-                          maxWidth: isMobile ? '92%' : '80%',
-                        }}
-                      >
-                        {msg.attachment && (
+            // ASSISTANT MESSAGE BUBBLE (Mint Green card with lightning bolt icon)
+            return (
+              <div
+                key={msg.id}
+                style={{
+                  background: '#f2fbf7',
+                  border: '1px solid #dcf2e7',
+                  borderRadius: '20px',
+                  padding: '20px 24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '14px',
+                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.04)',
+                  position: 'relative',
+                }}
+              >
+                {/* Lightning Bolt Icon Avatar */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: '#10b981',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      boxShadow: '0 2px 6px rgba(16, 185, 129, 0.3)',
+                    }}
+                  >
+                    <BoltIcon style={{ width: 18, height: 18 }} />
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Tool Calls Chips */}
+                    {msg.tool_calls && msg.tool_calls.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
+                        {msg.tool_calls.map((tool, tIdx) => (
                           <div
+                            key={tIdx}
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '6px',
-                              background: '#1e293b',
+                              gap: '5px',
+                              background: '#ffffff',
+                              border: '1px solid #d1fae5',
                               borderRadius: '6px',
-                              padding: '4px 8px',
-                              fontSize: '0.74rem',
-                              color: '#93c5fd',
-                              marginBottom: '8px',
+                              padding: '2px 8px',
+                              fontSize: '0.72rem',
+                              color: '#065f46',
+                              fontWeight: 600,
                             }}
                           >
-                            <Paperclip size={12} />
-                            <span>{msg.attachment.name}</span>
+                            <ShieldCheckIcon style={{ width: 12, height: 12, color: '#10b981' }} />
+                            <span>{tool.tool_name}</span>
+                            <span style={{ color: '#10b981' }}>&bull; OK</span>
                           </div>
-                        )}
-                        <div style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+                        ))}
                       </div>
-                    ) : (
-                      /* ASSISTANT BUBBLE: Clean white card, crisp #0f172a black text, NEVER white text on white! */
+                    )}
+
+                    {/* Content text: high-contrast WCAG AA readable text */}
+                    <StructuredAssistantMessage
+                      content={msg.content}
+                      blockedReason={msg.blocked_reason}
+                    />
+
+                    {/* Citations Badges */}
+                    {msg.citations && msg.citations.length > 0 && (
                       <div
                         style={{
-                          background: '#ffffff',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '16px',
-                          borderBottomLeftRadius: '4px',
-                          padding: isMobile ? '12px 14px' : '18px 22px',
-                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-                          maxWidth: isMobile ? '98%' : '88%',
-                          width: '100%',
+                          marginTop: '12px',
+                          paddingTop: '10px',
+                          borderTop: '1px solid #e2f5ec',
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '6px',
                         }}
                       >
-                        {/* Tool Execution Chips */}
-                        {msg.tool_calls && msg.tool_calls.length > 0 && (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
-                            {msg.tool_calls.map((tool, tIdx) => (
-                              <div
-                                key={tIdx}
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '6px',
-                                  background: '#f8fafc',
-                                  border: '1px solid #e2e8f0',
-                                  borderRadius: '6px',
-                                  padding: '3px 8px',
-                                  fontSize: '0.72rem',
-                                  color: '#334155',
-                                }}
-                              >
-                                <Zap size={11} color="#2563eb" />
-                                <span style={{ fontWeight: 600 }}>{tool.tool_name}</span>
-                                <span style={{ color: '#16a34a', fontWeight: 700 }}>&bull; OK</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Content text: Structured readable black text with formatted bullets, headings & KES tags */}
-                        <StructuredAssistantMessage
-                          content={msg.content}
-                          blockedReason={msg.blocked_reason}
-                        />
-
-                        {/* Citations / Record Badges */}
-                        {msg.citations && msg.citations.length > 0 && (
+                        {msg.citations.map((cit, cIdx) => (
                           <div
-                            style={{
-                              marginTop: '12px',
-                              paddingTop: '10px',
-                              borderTop: '1px solid #f1f5f9',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '6px',
-                            }}
-                          >
-                            <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                              Persisted Sources:
-                            </span>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                              {msg.citations.map((cit, cIdx) => (
-                                <div
-                                  key={cIdx}
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    background: '#eff6ff',
-                                    border: '1px solid #bfdbfe',
-                                    color: '#1d4ed8',
-                                    padding: '3px 8px',
-                                    borderRadius: '6px',
-                                    fontSize: '0.72rem',
-                                    maxWidth: '100%',
-                                    wordBreak: 'break-word',
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      background: '#2563eb',
-                                      color: '#ffffff',
-                                      padding: '1px 5px',
-                                      borderRadius: '4px',
-                                      fontSize: '0.62rem',
-                                      fontWeight: 700,
-                                      letterSpacing: '0.03em',
-                                      flexShrink: 0,
-                                    }}
-                                  >
-                                    {cit.record_type}
-                                  </span>
-                                  <span style={{ fontWeight: 600 }}>{cit.reference_code}:</span>
-                                  <span style={{ color: '#334155' }}>{cit.summary}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Copy button & Actions */}
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'flex-end',
-                            gap: '8px',
-                            marginTop: '10px',
-                          }}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => handleCopyMessage(msg.content, msg.id)}
+                            key={cIdx}
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '4px',
-                              background: 'transparent',
-                              border: 'none',
-                              color: copiedMsgId === msg.id ? '#16a34a' : '#64748b',
-                              fontSize: '0.72rem',
-                              cursor: 'pointer',
-                              padding: '2px 6px',
+                              gap: '6px',
+                              background: '#ffffff',
+                              border: '1px solid #a7f3d0',
+                              color: '#065f46',
+                              padding: '2px 8px',
+                              borderRadius: '6px',
+                              fontSize: '0.74rem',
                             }}
                           >
-                            {copiedMsgId === msg.id ? <Check size={12} /> : <Copy size={12} />}
-                            <span>{copiedMsgId === msg.id ? 'Copied' : 'Copy'}</span>
-                          </button>
-                        </div>
+                            <span
+                              style={{
+                                background: '#10b981',
+                                color: '#ffffff',
+                                padding: '1px 5px',
+                                borderRadius: '4px',
+                                fontSize: '0.62rem',
+                                fontWeight: 700,
+                              }}
+                            >
+                              {cit.record_type}
+                            </span>
+                            <span style={{ fontWeight: 600 }}>{cit.reference_code}:</span>
+                            <span>{cit.summary}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
-                );
-              })}
+                </div>
 
-              {/* Pending Action Confirmation Card */}
-              {confirmations
-                .filter((c) => c.status === 'PENDING')
-                .map((conf) => (
-                  <div
-                    key={conf.id}
-                    style={{
-                      background: '#fffbeb',
-                      border: '1px solid #fde68a',
-                      borderRadius: '12px',
-                      padding: '16px 20px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '10px',
-                      boxShadow: '0 2px 6px rgba(245, 158, 11, 0.08)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#92400e', fontWeight: 700, fontSize: '0.84rem' }}>
-                      <AlertTriangle size={18} color="#d97706" />
-                      <span>Explicit Approval Required Before Executing Mutating Operation</span>
-                    </div>
-                    <div style={{ fontSize: '0.82rem', color: '#78350f', lineHeight: 1.5 }}>
-                      Action: <strong>{conf.action_type}</strong> — {conf.action_summary}
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
-                      <button
-                        type="button"
-                        onClick={() => handleActionConfirm(conf.id, false)}
-                        style={{
-                          background: '#ffffff',
-                          border: '1px solid #cbd5e1',
-                          borderRadius: '6px',
-                          padding: '6px 12px',
-                          fontSize: '0.78rem',
-                          fontWeight: 600,
-                          color: '#475569',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleActionConfirm(conf.id, true)}
-                        style={{
-                          background: '#16a34a',
-                          border: 'none',
-                          borderRadius: '6px',
-                          padding: '6px 14px',
-                          fontSize: '0.78rem',
-                          fontWeight: 600,
-                          color: '#ffffff',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                        }}
-                      >
-                        <Check size={14} />
-                        <span>Authorize & Execute</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-              {/* Typing / Loading indicator */}
-              {isSending && (
+                {/* Bubble Bottom Actions: Thumbs Up / Down on left, Copy & Add to Editor on right */}
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px',
-                    background: '#ffffff',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '12px',
-                    padding: '12px 18px',
-                    width: 'fit-content',
+                    justifyContent: 'space-between',
+                    paddingTop: '8px',
+                    borderTop: '1px solid #e2f5ec',
                   }}
                 >
-                  <Bot size={16} color="#2563eb" />
-                  <span style={{ fontSize: '0.82rem', color: '#64748b' }}>
-                    Querying live RMS database via Groq LLM...
-                  </span>
+                  {/* Left: Thumbs feedback */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setFeedbackState((prev) => ({ ...prev, [msg.id]: 'up' }))}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        color: feedbackState[msg.id] === 'up' ? '#10b981' : '#94a3b8',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                      title="Good response"
+                    >
+                      <HandThumbUpIcon style={{ width: 16, height: 16 }} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFeedbackState((prev) => ({ ...prev, [msg.id]: 'down' }))}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        color: feedbackState[msg.id] === 'down' ? '#ef4444' : '#94a3b8',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                      title="Poor response"
+                    >
+                      <HandThumbDownIcon style={{ width: 16, height: 16 }} />
+                    </button>
+                  </div>
+
+                  {/* Right: Copy & Add to Editor buttons */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyMessage(msg.content, msg.id)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: copiedMsgId === msg.id ? '#10b981' : '#64748b',
+                        fontSize: '0.80rem',
+                        fontWeight: 500,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                      }}
+                    >
+                      {copiedMsgId === msg.id ? (
+                        <>
+                          <CheckIcon style={{ width: 14, height: 14, color: '#10b981' }} />
+                          <span>Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <DocumentDuplicateIcon style={{ width: 14, height: 14 }} />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleExportTranscript(msg.content)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: '#64748b',
+                        fontSize: '0.80rem',
+                        fontWeight: 500,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                      }}
+                      title="Export or save text to report"
+                    >
+                      <DocumentTextIcon style={{ width: 14, height: 14 }} />
+                      <span>Add to Editor</span>
+                    </button>
+                  </div>
                 </div>
-              )}
+              </div>
+            );
+          })}
+
+          {/* Pending Mutating Operation Confirmation Card */}
+          {confirmations
+            .filter((c) => c.status === 'PENDING')
+            .map((conf) => (
+              <div
+                key={conf.id}
+                style={{
+                  background: '#fffbeb',
+                  border: '1px solid #fde68a',
+                  borderRadius: '16px',
+                  padding: '16px 20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                  boxShadow: '0 2px 6px rgba(245, 158, 11, 0.08)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#92400e', fontWeight: 700, fontSize: '0.86rem' }}>
+                  <ExclamationTriangleIcon style={{ width: 18, height: 18, color: '#d97706' }} />
+                  <span>Explicit Approval Required Before Executing Mutating Operation</span>
+                </div>
+                <div style={{ fontSize: '0.84rem', color: '#78350f', lineHeight: 1.5 }}>
+                  Action: <strong>{conf.action_type}</strong> — {conf.action_summary}
+                </div>
+                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleActionConfirm(conf.id, false)}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      padding: '6px 14px',
+                      fontSize: '0.80rem',
+                      fontWeight: 600,
+                      color: '#475569',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleActionConfirm(conf.id, true)}
+                    style={{
+                      background: '#10b981',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '6px 16px',
+                      fontSize: '0.80rem',
+                      fontWeight: 600,
+                      color: '#ffffff',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                    }}
+                  >
+                    <CheckIcon style={{ width: 15, height: 15 }} />
+                    <span>Authorize & Execute</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+
+          {/* Sending loader */}
+          {isSending && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: '#f2fbf7',
+                border: '1px solid #dcf2e7',
+                borderRadius: '12px',
+                padding: '12px 18px',
+                width: 'fit-content',
+              }}
+            >
+              <BoltIcon style={{ width: 16, height: 16, color: '#10b981' }} />
+              <span style={{ fontSize: '0.84rem', color: '#065f46', fontWeight: 500 }}>
+                Querying live RMS database via Groq LLM...
+              </span>
             </div>
           )}
+
+          {/* Centered Regenerate Response Pill Button */}
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0' }}>
+            <button
+              type="button"
+              onClick={handleRegenerate}
+              disabled={isSending}
+              style={{
+                background: '#0f172a',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '9999px',
+                padding: '8px 18px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                cursor: isSending ? 'not-allowed' : 'pointer',
+                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.15)',
+                transition: 'transform 0.15s ease',
+              }}
+            >
+              <ArrowPathIcon style={{ width: 14, height: 14, color: '#ffffff' }} />
+              <span>Regenerate Response</span>
+            </button>
+          </div>
         </div>
 
-        {/* ------------------------------------------------------------- */}
-        {/* COMPOSER BAR                                                  */}
-        {/* ------------------------------------------------------------- */}
-        <div
-          style={{
-            padding: isMobile ? '10px 12px 14px' : '14px 24px 18px',
-            background: '#ffffff',
-            borderTop: '1px solid #e2e8f0',
-          }}
-        >
+        {/* ============================================================= */}
+        {/* COMPOSER CARD AT BOTTOM                                       */}
+        {/* ============================================================= */}
+        <div style={{ padding: '0 24px 20px' }}>
           <div
             style={{
-              maxWidth: '860px',
-              margin: '0 auto',
+              background: '#f9fafb',
+              border: '1px solid #e5e7eb',
+              borderRadius: '20px',
+              padding: '14px 18px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '8px',
+              gap: '12px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
             }}
           >
             {/* Attached file chip */}
@@ -1502,323 +1222,394 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: '#eff6ff',
-                  border: '1px solid #bfdbfe',
+                  background: '#dcfce7',
+                  border: '1px solid #86efac',
                   borderRadius: '6px',
-                  padding: '4px 10px',
+                  padding: '3px 8px',
                   fontSize: '0.74rem',
-                  color: '#1d4ed8',
+                  color: '#166534',
                   width: 'fit-content',
                 }}
               >
-                <FileText size={13} color="#2563eb" />
+                <PaperClipIcon style={{ width: 12, height: 12 }} />
                 <span>{attachedFile.name} ({attachedFile.sizeKb} KB)</span>
                 <button
                   type="button"
                   onClick={() => setAttachedFile(null)}
                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b', padding: 0 }}
                 >
-                  <X size={13} />
+                  <XMarkIcon style={{ width: 12, height: 12 }} />
                 </button>
               </div>
             )}
 
-            {/* Input Box */}
+            {/* Input textarea */}
+            <textarea
+              placeholder="Ask or search anything"
+              rows={2}
+              value={promptInput}
+              onChange={(e) => setPromptInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              style={{
+                width: '100%',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                resize: 'none',
+                fontSize: '0.92rem',
+                color: '#0f172a',
+                lineHeight: 1.5,
+                fontFamily: 'inherit',
+              }}
+            />
+
+            {/* Bottom Actions Row */}
             <div
               style={{
                 display: 'flex',
-                alignItems: 'flex-end',
-                gap: '8px',
-                background: '#ffffff',
-                border: '1px solid #cbd5e1',
-                borderRadius: '12px',
-                padding: '8px 12px',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.02)',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingTop: '6px',
               }}
             >
-              <button
-                type="button"
-                title="Attach Document or Image for OCR"
-                onClick={() => fileInputRef.current?.click()}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#64748b',
-                  padding: '6px',
-                  borderRadius: '6px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Paperclip size={18} />
-              </button>
-
-              <textarea
-                placeholder="Ask anything about properties, leases, arrears, M-Pesa collections, or security deposits..."
-                rows={1}
-                value={promptInput}
-                onChange={(e) => setPromptInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                style={{
-                  flex: 1,
-                  border: 'none',
-                  outline: 'none',
-                  fontSize: '0.88rem',
-                  color: '#0f172a',
-                  resize: 'none',
-                  lineHeight: 1.45,
-                  maxHeight: '120px',
-                  fontFamily: 'inherit',
-                  padding: '4px 0',
-                }}
-              />
-
-              <button
-                type="button"
-                disabled={isSending || (!promptInput.trim() && !attachedFile)}
-                onClick={() => handleSendMessage()}
-                style={{
-                  background: isSending || (!promptInput.trim() && !attachedFile) ? '#cbd5e1' : '#2563eb',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  width: '34px',
-                  height: '34px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: isSending || (!promptInput.trim() && !attachedFile) ? 'not-allowed' : 'pointer',
-                  transition: 'background 0.15s ease',
-                  flexShrink: 0,
-                }}
-              >
-                <Send size={15} />
-              </button>
-            </div>
-
-            {/* Hint / disclaimer */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#94a3b8', padding: '0 4px' }}>
-              <span>Enter to send &bull; Shift+Enter for new line</span>
-              <span>Grounded in active organization PostgreSQL records</span>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* ------------------------------------------------------------- */}
-      {/* 3. RIGHT PANEL: CONTEXT & INTELLIGENCE                         */}
-      {/* ------------------------------------------------------------- */}
-      {showRightPanel && (
-        <>
-          {isMobile && (
-            <div
-              onClick={() => setShowRightPanel(false)}
-              style={{
-                position: 'fixed',
-                inset: 0,
-                background: 'rgba(15, 23, 42, 0.65)',
-                backdropFilter: 'blur(4px)',
-                zIndex: 1040,
-              }}
-            />
-          )}
-          <aside
-            className={`fullpage-assistant-right-panel ${showRightPanel ? 'mobile-open' : ''}`}
-            style={{
-              width: isMobile ? '88vw' : '280px',
-              maxWidth: isMobile ? '340px' : '280px',
-              background: '#ffffff',
-              borderLeft: '1px solid #e2e8f0',
-              display: 'flex',
-              flexDirection: 'column',
-              flexShrink: 0,
-              overflowY: 'auto',
-              padding: '16px',
-              gap: '16px',
-              ...(isMobile
-                ? {
-                    position: 'fixed',
-                    top: 0,
-                    bottom: 0,
-                    right: 0,
-                    zIndex: 1050,
-                    boxShadow: '-6px 0 30px rgba(0,0,0,0.3)',
-                  }
-                : {
-                    position: 'relative',
-                    zIndex: 20,
-                  }),
-            }}
-          >
-            {isMobile && (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingBottom: '8px',
-                  borderBottom: '1px solid #e2e8f0',
-                }}
-              >
-                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Intelligence Context</span>
+              {/* Left Pills: Browse Prompts & No Brand Voice */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
-                  onClick={() => setShowRightPanel(false)}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px' }}
-                >
-                  <X size={18} color="#64748b" />
-                </button>
-              </div>
-            )}
-            <div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px' }}>
-                Scope & Organization
-              </div>
-            <div
-              style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                padding: '10px 12px',
-              }}
-            >
-              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a' }}>{currentOrg.name}</div>
-              <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>
-                County: {currentOrg.county || 'Nairobi'} &bull; Type: {currentOrg.type || 'ESTATE_MANAGEMENT'}
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px' }}>
-              Live Portfolio Financial KPIs
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px' }}>
-                <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Collection Rate</div>
-                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#16a34a' }}>{collectionRate}%</div>
-              </div>
-
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px' }}>
-                <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Outstanding Arrears</div>
-                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#dc2626' }}>
-                  KES {totalArrears.toLocaleString('en-KE', { minimumFractionDigits: 2 })}
-                </div>
-              </div>
-
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px' }}>
-                <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Deposits Held (Account 2100)</div>
-                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#2563eb' }}>
-                  KES {totalDepositsHeld.toLocaleString('en-KE', { minimumFractionDigits: 2 })}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '8px' }}>
-              Role-Scoped Tools ({userRole})
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.74rem' }}>
-              {[
-                'get_property_summary',
-                'get_unit_availability',
-                'get_collection_summary',
-                'get_arrears_report',
-                'get_deposit_balance',
-                'get_expiring_leases',
-                'create_maintenance_request',
-                'draft_tenant_notification',
-              ].map((tool, idx) => (
-                <div
-                  key={idx}
+                  onClick={() => setShowPromptsModal(true)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    background: '#f8fafc',
-                    color: '#334155',
+                    background: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '9999px',
+                    padding: '6px 14px',
+                    fontSize: '0.78rem',
+                    fontWeight: 500,
+                    color: '#475569',
+                    cursor: 'pointer',
                   }}
                 >
-                  <CheckCircle2 size={12} color="#16a34a" />
-                  <code>{tool}</code>
+                  <DocumentTextIcon style={{ width: 14, height: 14, color: '#64748b' }} />
+                  <span>Browse Prompts</span>
+                </button>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '9999px',
+                    padding: '6px 14px',
+                    fontSize: '0.78rem',
+                    fontWeight: 500,
+                    color: '#64748b',
+                  }}
+                >
+                  <SpeakerWaveIcon style={{ width: 14, height: 14, color: '#94a3b8' }} />
+                  <span>No Brand Voice</span>
                 </div>
-              ))}
+              </div>
+
+              {/* Right Pills: Improve & Circular Send Button */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={handleImprovePrompt}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    background: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '9999px',
+                    padding: '6px 14px',
+                    fontSize: '0.78rem',
+                    fontWeight: 500,
+                    color: '#475569',
+                    cursor: 'pointer',
+                  }}
+                  title="Enhance prompt with RMS context"
+                >
+                  <SparklesIcon style={{ width: 14, height: 14, color: '#94a3b8' }} />
+                  <span>Improve</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isSending || (!promptInput.trim() && !attachedFile)}
+                  onClick={() => handleSendMessage()}
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    background: isSending || (!promptInput.trim() && !attachedFile) ? '#cbd5e1' : '#0f172a',
+                    color: '#ffffff',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: isSending || (!promptInput.trim() && !attachedFile) ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 2px 6px rgba(15, 23, 42, 0.2)',
+                  }}
+                  title="Send message"
+                >
+                  <PaperAirplaneIcon style={{ width: 16, height: 16, transform: 'rotate(-45deg)' }} />
+                </button>
+              </div>
             </div>
           </div>
-        </aside>
-        </>
-      )}
+        </div>
+      </div>
 
-      {/* Delete Confirmation Modal */}
-      {deleteConfirmId && (
+      {/* ============================================================= */}
+      {/* 2. RIGHT COLUMN: HISTORY CHAT & PRO PLAN                      */}
+      {/* ============================================================= */}
+      <div
+        style={{
+          width: '360px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          flexShrink: 0,
+        }}
+      >
+        {/* History Chat Card */}
+        <div
+          style={{
+            flex: 1,
+            background: '#ffffff',
+            borderRadius: '24px',
+            padding: '22px 20px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+            border: '1px solid #eef0f3',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3
+              style={{
+                margin: 0,
+                fontSize: '1.15rem',
+                fontWeight: 700,
+                color: '#0f172a',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              History Chat
+            </h3>
+            <ViewColumnsIcon style={{ width: 18, height: 18, color: '#94a3b8' }} />
+          </div>
+
+          {/* Prompt Cards List */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              overflowY: 'auto',
+              flex: 1,
+            }}
+          >
+            {historyItems.map((item, idx) => (
+              <div
+                key={idx}
+                onClick={() => handleSendMessage(item)}
+                style={{
+                  background: '#f9fafb',
+                  border: '1px solid #f1f5f9',
+                  borderRadius: '14px',
+                  padding: '12px 14px',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#f2fbf7';
+                  e.currentTarget.style.borderColor = '#a7f3d0';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#f9fafb';
+                  e.currentTarget.style.borderColor = '#f1f5f9';
+                }}
+              >
+                <ChatBubbleBottomCenterTextIcon
+                  style={{ width: 16, height: 16, color: '#94a3b8', flexShrink: 0, marginTop: '2px' }}
+                />
+                <span
+                  style={{
+                    fontSize: '0.80rem',
+                    color: '#334155',
+                    lineHeight: 1.45,
+                    fontWeight: 500,
+                  }}
+                >
+                  &ldquo;{item}&rdquo;
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Pro Plan Emerald Gradient Card */}
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%)',
+            borderRadius: '24px',
+            padding: '24px 22px',
+            color: '#ffffff',
+            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.28)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Top Row: Bolt Icon + Pro Plan Title */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ffffff',
+              }}
+            >
+              <BoltIcon style={{ width: 20, height: 20 }} />
+            </div>
+
+            <div
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: 700,
+                color: '#ffffff',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Pro Plan
+            </div>
+          </div>
+
+          {/* Price */}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', margin: '4px 0 0 0' }}>
+            <span style={{ fontSize: '1.9rem', fontWeight: 800, letterSpacing: '-0.02em' }}>$126.54</span>
+            <span style={{ fontSize: '0.85rem', opacity: 0.9 }}>/month</span>
+          </div>
+
+          {/* Subtitle */}
+          <div style={{ fontSize: '0.82rem', color: 'rgba(255, 255, 255, 0.95)', lineHeight: 1.4 }}>
+            Get various other interesting features
+          </div>
+
+          {/* Black Call-to-Action Button */}
+          <button
+            type="button"
+            onClick={() => {
+              alert('Guri24 Enterprise Pro tier includes unlimited Groq Llama 3.3 tokens, multi-property double-entry ledger audits, and automated Daraja STK reconciliation.');
+            }}
+            style={{
+              background: '#0f172a',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '9999px',
+              padding: '12px',
+              fontSize: '0.86rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              marginTop: '4px',
+              boxShadow: '0 4px 12px rgba(15, 23, 42, 0.3)',
+              textAlign: 'center',
+            }}
+          >
+            Get Pro Plan Now
+          </button>
+        </div>
+      </div>
+
+      {/* Prompts Modal */}
+      {showPromptsModal && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0, 0, 0, 0.4)',
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 100,
+            zIndex: 999,
           }}
+          onClick={() => setShowPromptsModal(false)}
         >
           <div
             style={{
               background: '#ffffff',
-              borderRadius: '12px',
+              borderRadius: '20px',
               padding: '24px',
-              maxWidth: '400px',
+              maxWidth: '520px',
               width: '90%',
-              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+              boxShadow: '0 12px 36px rgba(0,0,0,0.15)',
             }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.05rem', color: '#0f172a' }}>Delete Conversation?</h3>
-            <p style={{ margin: '0 0 18px 0', fontSize: '0.84rem', color: '#64748b' }}>
-              Are you sure you want to permanently delete this conversation history? This action cannot be undone.
-            </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a', fontWeight: 700 }}>
+                RMS Prompt Templates
+              </h3>
               <button
                 type="button"
-                onClick={() => setDeleteConfirmId(null)}
-                style={{
-                  background: '#f1f5f9',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '6px',
-                  padding: '6px 14px',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  color: '#475569',
-                }}
+                onClick={() => setShowPromptsModal(false)}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
               >
-                Cancel
+                <XMarkIcon style={{ width: 18, height: 18 }} />
               </button>
-              <button
-                type="button"
-                onClick={() => handleDeleteConversation(deleteConfirmId)}
-                style={{
-                  background: '#dc2626',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '6px 14px',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Delete
-              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {[
+                { title: 'Rent Collections Summary', p: 'Summarize rent collections, billing schedules, and overdue balances for this month.' },
+                { title: 'Vacant Units Inventory', p: 'Show all vacant residential units with monthly rent and bedroom counts.' },
+                { title: 'Security Deposits Liability (Account 2100)', p: 'Audit Account 2100 security deposits held in escrow.' },
+                { title: 'Expiring Leases', p: 'List all leases expiring within the next 60 days that require renewal or exit inspection.' },
+                { title: 'Log Maintenance Draft', p: 'Create maintenance request draft for plumbing inspection at Jacaranda Heights.' },
+              ].map((template, tIdx) => (
+                <div
+                  key={tIdx}
+                  onClick={() => {
+                    setPromptInput(template.p);
+                    setShowPromptsModal(false);
+                  }}
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <div style={{ fontSize: '0.86rem', fontWeight: 600, color: '#0f172a' }}>{template.title}</div>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>{template.p}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

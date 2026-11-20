@@ -1,33 +1,31 @@
 import React, { useState, useMemo } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Home,
-  Calendar,
-  Building2,
-  Users,
-  CreditCard,
-  MapPin,
-  Wrench,
-  FileSearch,
-  Bot,
-  BarChart3,
-  Mail,
-  Settings,
-  Menu,
-  X,
-  Search,
-  ChevronRight,
-  ChevronDown,
-  Upload,
-  PenSquare,
-  Download,
-  Smartphone,
-  Check,
-  ShieldCheck,
-  Shield,
-  LogOut,
-  Sparkles,
-} from 'lucide-react';
+  HomeIcon,
+  CalendarDaysIcon,
+  BuildingOffice2Icon,
+  UserGroupIcon,
+  CreditCardIcon,
+  MapPinIcon,
+  WrenchScrewdriverIcon,
+  DocumentMagnifyingGlassIcon,
+  SparklesIcon,
+  ChartBarSquareIcon,
+  EnvelopeIcon,
+  Cog6ToothIcon,
+  Bars3Icon,
+  XMarkIcon,
+  MagnifyingGlassIcon,
+  ChevronRightIcon,
+  ChevronDownIcon,
+  ArrowUpTrayIcon,
+  PencilSquareIcon,
+  ArrowDownTrayIcon,
+  DevicePhoneMobileIcon,
+  CheckIcon,
+  ShieldCheckIcon,
+  ArrowRightOnRectangleIcon,
+} from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import { useRms } from '../context/RmsContext';
 import { SystemRole } from '../types';
@@ -46,18 +44,18 @@ export interface NavItemConfig {
 }
 
 export const APP_NAV_ITEMS: NavItemConfig[] = [
-  { to: '/app/dashboard', label: 'Dashboard', icon: <Home size={16} /> },
-  { to: '/app/leases-bookings', label: 'Leases & Bookings', icon: <Calendar size={16} /> },
-  { to: '/app/properties-units', label: 'Properties & Units', icon: <Building2 size={16} /> },
-  { to: '/app/tenants', label: 'Tenants', icon: <Users size={16} /> },
-  { to: '/app/payments-mpesa', label: 'Payments & M-Pesa', icon: <CreditCard size={16} /> },
-  { to: '/app/estates-deposits', label: 'Estates & Deposits', icon: <MapPin size={16} /> },
-  { to: '/app/maintenance', label: 'Maintenance', icon: <Wrench size={16} /> },
-  { to: '/app/ocr-documents', label: 'OCR & Documents', icon: <FileSearch size={16} /> },
-  { to: '/app/assistant', label: 'AI Assistant', icon: <Bot size={16} /> },
-  { to: '/app/analytics-ledger', label: 'Analytics & Ledger', icon: <BarChart3 size={16} /> },
-  { to: '/app/automated-emails', label: 'Automated Emails', icon: <Mail size={16} /> },
-  { to: '/app/settings-portal', label: 'Settings & Portal', icon: <Settings size={16} /> },
+  { to: '/app/dashboard', label: 'Dashboard', icon: <HomeIcon style={{ width: 16, height: 16 }} /> },
+  { to: '/app/leases-bookings', label: 'Leases & Bookings', icon: <CalendarDaysIcon style={{ width: 16, height: 16 }} /> },
+  { to: '/app/properties-units', label: 'Properties & Units', icon: <BuildingOffice2Icon style={{ width: 16, height: 16 }} /> },
+  { to: '/app/tenants', label: 'Tenants', icon: <UserGroupIcon style={{ width: 16, height: 16 }} /> },
+  { to: '/app/payments-mpesa', label: 'Payments & M-Pesa', icon: <CreditCardIcon style={{ width: 16, height: 16 }} /> },
+  { to: '/app/estates-deposits', label: 'Estates & Deposits', icon: <MapPinIcon style={{ width: 16, height: 16 }} /> },
+  { to: '/app/maintenance', label: 'Maintenance', icon: <WrenchScrewdriverIcon style={{ width: 16, height: 16 }} /> },
+  { to: '/app/ocr-documents', label: 'OCR & Documents', icon: <DocumentMagnifyingGlassIcon style={{ width: 16, height: 16 }} /> },
+  { to: '/app/assistant', label: 'AI Assistant', icon: <SparklesIcon style={{ width: 16, height: 16 }} /> },
+  { to: '/app/analytics-ledger', label: 'Analytics & Ledger', icon: <ChartBarSquareIcon style={{ width: 16, height: 16 }} /> },
+  { to: '/app/automated-emails', label: 'Automated Emails', icon: <EnvelopeIcon style={{ width: 16, height: 16 }} /> },
+  { to: '/app/settings-portal', label: 'Settings & Portal', icon: <Cog6ToothIcon style={{ width: 16, height: 16 }} /> },
 ];
 
 const ROLES_LIST: SystemRole[] = [
@@ -205,7 +203,7 @@ export const AppLayout: React.FC = () => {
             animation: 'fadeIn 0.2s ease',
           }}
         >
-          <Sparkles size={16} color="#38bdf8" />
+          <SparklesIcon style={{ width: 16, height: 16, color: '#38bdf8' }} />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -230,7 +228,7 @@ export const AppLayout: React.FC = () => {
 
         {/* Sidebar Search Bar */}
         <div className="sidebar-search">
-          <Search size={14} className="sidebar-search-icon" aria-hidden="true" />
+          <MagnifyingGlassIcon style={{ width: 14, height: 14 }} className="sidebar-search-icon" aria-hidden="true" />
           <input
             type="text"
             placeholder="Search modules..."
@@ -297,7 +295,7 @@ export const AppLayout: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Shield size={14} color="#38bdf8" />
+                <ShieldCheckIcon style={{ width: 14, height: 14, color: '#38bdf8' }} />
                 <span>Platform Controls</span>
               </div>
               <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>&rarr;</span>
@@ -363,7 +361,7 @@ export const AppLayout: React.FC = () => {
               {profileSubtitle}
             </div>
           </div>
-          <ChevronDown size={14} color="#94a3b8" style={{ flexShrink: 0 }} />
+          <ChevronDownIcon style={{ width: 14, height: 14, color: '#94a3b8', flexShrink: 0 }} />
         </div>
       </aside>
 
@@ -379,7 +377,7 @@ export const AppLayout: React.FC = () => {
             onClick={() => setIsMobileMenuOpen(true)}
             aria-label="Open Navigation Menu"
           >
-            <Menu size={22} />
+            <Bars3Icon style={{ width: 22, height: 22 }} />
           </button>
 
           <Link to="/app/dashboard" className="mobile-header-brand">
@@ -434,7 +432,7 @@ export const AppLayout: React.FC = () => {
             >
               {profileDisplayName}
             </span>
-            <ChevronDown size={13} color="var(--text-muted)" />
+            <ChevronDownIcon style={{ width: 13, height: 13, color: 'var(--text-muted)' }} />
           </button>
         </header>
 
@@ -445,7 +443,7 @@ export const AppLayout: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#64748b' }}>
               {breadcrumbs.map((crumb, idx) => (
                 <React.Fragment key={crumb.to}>
-                  {idx > 0 && <ChevronRight size={12} color="#94a3b8" />}
+                  {idx > 0 && <ChevronRightIcon style={{ width: 12, height: 12, color: '#94a3b8' }} />}
                   {idx === breadcrumbs.length - 1 ? (
                     <span style={{ fontWeight: 600, color: '#0f172a' }}>{crumb.label}</span>
                   ) : (
@@ -475,7 +473,7 @@ export const AppLayout: React.FC = () => {
               onClick={() => setImportWizardModule('units')}
               title="Bulk Import Wizard (CSV/Excel across all modules)"
             >
-              <Upload size={14} />
+              <ArrowUpTrayIcon style={{ width: 14, height: 14 }} />
               <span>Bulk Import</span>
             </button>
             <button
@@ -484,7 +482,7 @@ export const AppLayout: React.FC = () => {
               onClick={() => setBulkGridModule('units')}
               title="Spreadsheet Bulk Entry & Paste from Excel"
             >
-              <PenSquare size={14} />
+              <PencilSquareIcon style={{ width: 14, height: 14 }} />
               <span>Excel Entry</span>
             </button>
             <button
@@ -504,7 +502,7 @@ export const AppLayout: React.FC = () => {
               }}
               title="Export records to CSV"
             >
-              <Download size={14} />
+              <ArrowDownTrayIcon style={{ width: 14, height: 14 }} />
               <span>Export</span>
             </button>
             <button
@@ -513,7 +511,7 @@ export const AppLayout: React.FC = () => {
               onClick={() => setIsMpesaModalOpen(true)}
               title="Initiate Kenyan M-Pesa STK Push Prompt"
             >
-              <Smartphone size={14} />
+              <DevicePhoneMobileIcon style={{ width: 14, height: 14 }} />
               <span>M-Pesa Pay</span>
             </button>
             <button
@@ -523,7 +521,7 @@ export const AppLayout: React.FC = () => {
               title="Sign Out of Guri24 RMS"
               style={{ color: '#dc2626' }}
             >
-              <LogOut size={14} />
+              <ArrowRightOnRectangleIcon style={{ width: 14, height: 14 }} />
               <span>Sign Out</span>
             </button>
           </div>
@@ -556,7 +554,7 @@ export const AppLayout: React.FC = () => {
                 onClick={() => setIsMobileMenuOpen(false)}
                 aria-label="Close navigation menu"
               >
-                <X size={18} />
+                <XMarkIcon style={{ width: 18, height: 18 }} />
               </button>
             </div>
 
@@ -628,7 +626,7 @@ export const AppLayout: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  <LogOut size={16} />
+                  <ArrowRightOnRectangleIcon style={{ width: 16, height: 16 }} />
                   <span>Sign Out</span>
                 </button>
               </div>
@@ -648,7 +646,7 @@ export const AppLayout: React.FC = () => {
           }`}
           aria-label="Dashboard"
         >
-          <Home size={20} />
+          <HomeIcon style={{ width: 20, height: 20 }} />
           <span>Home</span>
           {(location.pathname === '/app/dashboard' || location.pathname === '/app') && (
             <span className="bottom-nav-indicator" />
@@ -660,7 +658,7 @@ export const AppLayout: React.FC = () => {
           className={`bottom-nav-item ${location.pathname.startsWith('/app/properties-units') ? 'active' : ''}`}
           aria-label="Properties & Units"
         >
-          <Building2 size={20} />
+          <BuildingOffice2Icon style={{ width: 20, height: 20 }} />
           <span>Units</span>
           {location.pathname.startsWith('/app/properties-units') && <span className="bottom-nav-indicator" />}
         </Link>
@@ -670,7 +668,7 @@ export const AppLayout: React.FC = () => {
           className={`bottom-nav-item ${location.pathname.startsWith('/app/payments-mpesa') ? 'active' : ''}`}
           aria-label="Payments & M-Pesa"
         >
-          <CreditCard size={20} />
+          <CreditCardIcon style={{ width: 20, height: 20 }} />
           <span>Payments</span>
           {location.pathname.startsWith('/app/payments-mpesa') && <span className="bottom-nav-indicator" />}
         </Link>
@@ -680,7 +678,7 @@ export const AppLayout: React.FC = () => {
           className={`bottom-nav-item ${location.pathname.startsWith('/app/assistant') ? 'active' : ''}`}
           aria-label="AI Assistant"
         >
-          <Bot size={20} />
+          <SparklesIcon style={{ width: 20, height: 20 }} />
           <span>AI Help</span>
           {location.pathname.startsWith('/app/assistant') && <span className="bottom-nav-indicator" />}
         </Link>
@@ -691,7 +689,7 @@ export const AppLayout: React.FC = () => {
           onClick={() => setIsMobileMenuOpen(true)}
           aria-label="All Modules Menu"
         >
-          <Menu size={20} />
+          <Bars3Icon style={{ width: 20, height: 20 }} />
           <span>Menu</span>
         </button>
       </nav>
@@ -779,7 +777,7 @@ export const AppLayout: React.FC = () => {
                           Jurisdiction: {org.county} &bull; Currency: {org.currency}
                         </div>
                       </div>
-                      {isSelected && <Check size={18} color="#2563eb" />}
+                      {isSelected && <CheckIcon style={{ width: 18, height: 18, color: '#2563eb' }} />}
                     </div>
                   );
                 })}
