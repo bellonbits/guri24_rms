@@ -65,13 +65,30 @@ class ApiClient {
     if (typeof window !== 'undefined') {
       this.token = localStorage.getItem('guri24_token');
       this.refreshToken = localStorage.getItem('guri24_refresh_token');
+      if (!this.token) {
+        try {
+          const stored = localStorage.getItem('guri24_rms_auth_session');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && typeof parsed.token === 'string') {
+              this.token = parsed.token;
+            }
+          }
+        } catch {
+          // ignore parsing error
+        }
+      }
     }
   }
 
-  public setToken(token: string, refreshToken?: string) {
+  public setToken(token: string | null, refreshToken?: string) {
     this.token = token;
     if (typeof window !== 'undefined') {
-      localStorage.setItem('guri24_token', token);
+      if (token) {
+        localStorage.setItem('guri24_token', token);
+      } else {
+        localStorage.removeItem('guri24_token');
+      }
       if (refreshToken) {
         this.refreshToken = refreshToken;
         localStorage.setItem('guri24_refresh_token', refreshToken);
@@ -95,8 +112,27 @@ class ApiClient {
       ...(options.headers as Record<string, string>),
     };
 
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+    let effectiveToken = this.token;
+    if (!effectiveToken && typeof window !== 'undefined') {
+      effectiveToken = localStorage.getItem('guri24_token');
+      if (!effectiveToken) {
+        try {
+          const stored = localStorage.getItem('guri24_rms_auth_session');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && typeof parsed.token === 'string') {
+              effectiveToken = parsed.token;
+              this.token = effectiveToken;
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    if (effectiveToken) {
+      headers['Authorization'] = `Bearer ${effectiveToken}`;
     }
 
     const url = `${API_BASE_URL.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;

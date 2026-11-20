@@ -82,8 +82,8 @@ interface ResponsiveTableProps {
 export function ResponsiveTable({ caption, headers, children }: ResponsiveTableProps) {
   const captionId = useId();
   const labelVariables: Record<string, string> = {};
-  headers.forEach((h, idx) => {
-    labelVariables[`--label-${idx + 1}`] = `"${h.replace(/"/g, '')}"`;
+  (headers || []).forEach((h, idx) => {
+    labelVariables[`--label-${idx + 1}`] = `"${(h || '').replace(/"/g, '')}"`;
   });
 
   return (

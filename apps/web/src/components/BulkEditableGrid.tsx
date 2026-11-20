@@ -1,25 +1,47 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Clipboard, CheckCircle2, AlertCircle, Save, Download } from 'lucide-react';
-import { FieldDefinition, parseClipboardTsv, validateImportRows, exportRowsToCsv } from '../lib/importEngine';
+import { Plus, Trash2, Clipboard, CheckCircle2, AlertCircle, Save, Download, X } from 'lucide-react';
+import {
+  FieldDefinition,
+  ImportModuleKey,
+  MODULE_TEMPLATES,
+  parseClipboardTsv,
+  validateImportRows,
+  exportRowsToCsv,
+} from '../lib/importEngine';
+import type { Organization } from '../types';
 
-interface BulkEditableGridProps {
-  moduleTitle: string;
-  fields: FieldDefinition[];
+export interface BulkEditableGridProps {
+  moduleTitle?: string;
+  fields?: FieldDefinition[];
+  initialModule?: ImportModuleKey;
+  currentOrg?: Organization;
   initialRows?: Record<string, string>[];
-  onCommit: (rows: Record<string, string>[]) => Promise<void> | void;
+  onCommit?: (rows: Record<string, string>[]) => Promise<void> | void;
+  onSave?: (rows: Record<string, string>[], modKey?: ImportModuleKey) => Promise<void> | void;
   onCancel?: () => void;
+  onClose?: () => void;
 }
 
 export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
   moduleTitle,
   fields,
+  initialModule,
+  currentOrg,
   initialRows = [],
   onCommit,
+  onSave,
   onCancel,
+  onClose,
 }) => {
+  const resolvedTemplate = initialModule ? MODULE_TEMPLATES[initialModule] : undefined;
+  const effectiveFields: FieldDefinition[] =
+    fields && fields.length > 0 ? fields : (resolvedTemplate?.fields || []);
+  const effectiveTitle =
+    moduleTitle || resolvedTemplate?.title || (initialModule ? initialModule.toUpperCase() : 'Data Entry');
+
   const createEmptyRow = () => {
     const row: Record<string, string> = {};
-    fields.forEach((f) => {
+    (effectiveFields || []).forEach((f) => {
       row[f.key] = '';
     });
     return row;
@@ -58,12 +80,11 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
         setPasteNotice('Clipboard is empty.');
         return;
       }
-      const fieldKeys = fields.map((f) => f.key);
+      const fieldKeys = (effectiveFields || []).map((f) => f.key);
       const parsed = parseClipboardTsv(text, fieldKeys);
       if (parsed.length > 0) {
         setRows((prev) => {
-          // If all current rows are empty, replace them; otherwise append
-          const hasData = prev.some((r) => Object.values(r).some((v) => v.trim() !== ''));
+          const hasData = prev.some((r) => Object.values(r).some((v) => (v || '').trim() !== ''));
           return hasData ? [...prev, ...parsed] : parsed;
         });
         setPasteNotice(`Successfully pasted ${parsed.length} row(s) from clipboard!`);
@@ -79,29 +100,35 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
   };
 
   // Instant validation
-  const validation = validateImportRows('units', rows); // generic validation
   const validCount = rows.filter((r) => {
-    return fields.every((f) => {
+    return (effectiveFields || []).every((f) => {
       if (f.required && !r[f.key]) return false;
       return true;
     });
   }).length;
 
   const handleSave = async () => {
-    const nonEmptyRows = rows.filter((r) => Object.values(r).some((v) => v.trim() !== ''));
+    const nonEmptyRows = rows.filter((r) => Object.values(r).some((v) => (v || '').trim() !== ''));
     if (nonEmptyRows.length === 0) {
       alert('Please enter at least one non-empty row to submit.');
       return;
     }
     setIsCommitting(true);
     try {
-      await onCommit(nonEmptyRows);
+      if (onSave) {
+        await onSave(nonEmptyRows, initialModule);
+      } else if (onCommit) {
+        await onCommit(nonEmptyRows);
+      }
+      if (onClose) {
+        onClose();
+      }
     } finally {
       setIsCommitting(false);
     }
   };
 
-  return (
+  const gridContent = (
     <div
       style={{
         display: 'flex',
@@ -110,14 +137,19 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
         background: '#FFFFFF',
         border: '1px solid #E2E8F0',
         borderRadius: '12px',
-        padding: '18px',
+        padding: '20px',
+        maxWidth: '1200px',
+        width: '100%',
+        maxHeight: onClose ? '90vh' : 'auto',
+        overflow: 'hidden',
+        boxShadow: onClose ? '0 25px 50px -12px rgba(0, 0, 0, 0.25)' : 'none',
       }}
     >
       {/* Top Bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
         <div>
-          <div style={{ fontSize: '1.02rem', fontWeight: 700, color: '#0F172A' }}>
-            Spreadsheet Bulk Data Entry — {moduleTitle}
+          <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0F172A' }}>
+            Spreadsheet Bulk Data Entry — {effectiveTitle}
           </div>
           <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '2px' }}>
             Type directly into cells or copy-paste (Ctrl+V / Cmd+V) multiple rows from Excel or Google Sheets.
@@ -158,13 +190,33 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
           <button
             type="button"
             className="btn-outline"
-            onClick={() => exportRowsToCsv(`${moduleTitle.toLowerCase()}_grid.csv`, rows)}
+            onClick={() => exportRowsToCsv(`${effectiveTitle.toLowerCase().replace(/\s+/g, '_')}_grid.csv`, rows)}
             style={{ fontSize: '0.78rem', padding: '6px 14px', display: 'flex', alignItems: 'center', gap: '4px' }}
             title="Export current grid to CSV"
           >
             <Download size={14} />
             <span>Export CSV</span>
           </button>
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#64748B',
+                cursor: 'pointer',
+                padding: '4px',
+                marginLeft: '8px',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+              title="Close modal"
+              aria-label="Close"
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -193,7 +245,7 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
           border: '1px solid #E2E8F0',
           borderRadius: '8px',
           overflow: 'auto',
-          maxHeight: '400px',
+          maxHeight: onClose ? '55vh' : '400px',
           background: '#FFFFFF',
         }}
       >
@@ -214,7 +266,7 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
                 />
               </th>
               <th style={{ padding: '8px 6px', textAlign: 'center', width: '36px', color: '#64748B' }}>#</th>
-              {fields.map((f) => (
+              {(effectiveFields || []).map((f) => (
                 <th key={f.key} style={{ padding: '8px 10px', textAlign: 'left', color: '#334155', fontWeight: 600, whiteSpace: 'nowrap' }}>
                   {f.label} {f.required && <span style={{ color: '#DC2626' }}>*</span>}
                 </th>
@@ -249,7 +301,7 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
                   <td style={{ padding: '4px 6px', textAlign: 'center', color: '#64748B', fontSize: '0.74rem' }}>
                     {rIdx + 1}
                   </td>
-                  {fields.map((f) => {
+                  {(effectiveFields || []).map((f) => {
                     const isMissing = f.required && !row[f.key];
                     return (
                       <td key={f.key} style={{ padding: '3px 4px' }}>
@@ -309,11 +361,11 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
         </div>
 
         <div style={{ display: 'flex', gap: '8px' }}>
-          {onCancel && (
+          {(onCancel || onClose) && (
             <button
               type="button"
               className="btn-outline"
-              onClick={onCancel}
+              onClick={onClose || onCancel}
               style={{ fontSize: '0.82rem', padding: '6px 16px' }}
             >
               Cancel
@@ -333,4 +385,33 @@ export const BulkEditableGrid: React.FC<BulkEditableGridProps> = ({
       </div>
     </div>
   );
+
+  if (onClose) {
+    return (
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Spreadsheet Bulk Data Entry - ${effectiveTitle}`}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px',
+          overflowY: 'auto',
+        }}
+      >
+        {gridContent}
+      </div>
+    );
+  }
+
+  return gridContent;
 };

@@ -536,10 +536,10 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
     let totalCredits = 0;
     let unbalancedCount = 0;
 
-    localJournals.forEach((j) => {
+    (localJournals || []).forEach((j) => {
       let jDr = 0;
       let jCr = 0;
-      j.lines.forEach((l) => {
+      (j.lines || []).forEach((l) => {
         jDr += l.debit_kes || 0;
         jCr += l.credit_kes || 0;
       });
