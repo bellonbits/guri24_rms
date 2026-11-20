@@ -19,11 +19,36 @@ import { AnalyticsLedgerPage } from './pages/AnalyticsLedgerPage';
 import { AutomatedEmailsPage } from './pages/AutomatedEmailsPage';
 import { SettingsPortalPage } from './pages/SettingsPortalPage';
 import { LoginPage } from './pages/LoginPage';
-import { HomePage } from './pages/HomePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AcceptInvitationPage } from './pages/AcceptInvitationPage';
 import { PlatformLayout } from './layouts/PlatformLayout';
 import { PlatformAdminPage } from './pages/PlatformAdminPage';
+
+// Marketing SaaS Architecture
+import { MarketingLayout } from './marketing/MarketingLayout';
+import { HomePage as MarketingHomePage } from './marketing/HomePage';
+import { AboutPage } from './marketing/AboutPage';
+import { PricingPage } from './marketing/PricingPage';
+import { ContactPage } from './marketing/ContactPage';
+import { HowItWorksPage } from './marketing/HowItWorksPage';
+import { FaqPage } from './marketing/FaqPage';
+import { SolutionsPages } from './marketing/SolutionsPages';
+import { FeaturesHubPage, FeatureDetailPage } from './marketing/FeaturesPages';
+import { ResourcesPages } from './marketing/ResourcesPages';
+import { SupportPages, CustomErrorPage } from './marketing/SupportPages';
+import { RegisterPage, ForgotPasswordPage, OnboardingPage } from './marketing/AuthPages';
+
+// Legal & Compliance Architecture
+import { LegalOverviewPage } from './marketing/legal/LegalOverviewPage';
+import { TermsPage } from './marketing/legal/TermsPage';
+import { PrivacyPolicyPage } from './marketing/legal/PrivacyPolicyPage';
+import { CookiePolicyPage } from './marketing/legal/CookiePolicyPage';
+import { DataProtectionPage } from './marketing/legal/DataProtectionPage';
+import { AcceptableUsePage } from './marketing/legal/AcceptableUsePage';
+import { SubscriptionBillingPage } from './marketing/legal/SubscriptionBillingPage';
+import { DataProcessingPage } from './marketing/legal/DataProcessingPage';
+import { SecurityPage } from './marketing/legal/SecurityPage';
+import { AccessibilityPage } from './marketing/legal/AccessibilityPage';
 
 export type NavSection =
   | 'dashboard'
@@ -45,14 +70,75 @@ export const App: React.FC = () => {
       <AuthProvider>
         <RmsProvider>
           <Routes>
-            {/* Public Platform Homepage */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/home" element={<HomePage />} />
+            {/* Public Marketing SaaS Platform Experience */}
+            <Route path="/" element={<MarketingLayout><MarketingHomePage /></MarketingLayout>} />
+            <Route path="/home" element={<MarketingLayout><MarketingHomePage /></MarketingLayout>} />
+            <Route path="/about" element={<MarketingLayout><AboutPage /></MarketingLayout>} />
+            <Route path="/pricing" element={<MarketingLayout><PricingPage /></MarketingLayout>} />
+            <Route path="/contact" element={<MarketingLayout><ContactPage /></MarketingLayout>} />
+            <Route path="/how-it-works" element={<MarketingLayout><HowItWorksPage /></MarketingLayout>} />
+            <Route path="/faq" element={<MarketingLayout><FaqPage /></MarketingLayout>} />
 
-            {/* Public Authentication Route */}
+            {/* Solutions Routes */}
+            <Route path="/solutions" element={<MarketingLayout><SolutionsPages /></MarketingLayout>} />
+            <Route path="/solutions/landlords" element={<MarketingLayout><SolutionsPages /></MarketingLayout>} />
+            <Route path="/solutions/property-managers" element={<MarketingLayout><SolutionsPages /></MarketingLayout>} />
+            <Route path="/solutions/real-estate-companies" element={<MarketingLayout><SolutionsPages /></MarketingLayout>} />
+            <Route path="/solutions/estate-managers" element={<MarketingLayout><SolutionsPages /></MarketingLayout>} />
+
+            {/* Features Hub & 14 Dedicated Feature Routes */}
+            <Route path="/features" element={<MarketingLayout><FeaturesHubPage /></MarketingLayout>} />
+            <Route path="/features/:slug" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+            <Route path="/features/property-management" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+            <Route path="/features/units-and-estates" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+            <Route path="/features/tenant-management" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+            <Route path="/features/leases-and-bookings" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+            <Route path="/features/rent-collection" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+            <Route path="/features/mpesa-and-payments" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+            <Route path="/features/bank-and-cash-management" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+            <Route path="/features/financial-management" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+            <Route path="/features/maintenance" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+            <Route path="/features/documents-and-ocr" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+            <Route path="/features/analytics-and-reporting" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+            <Route path="/features/ai-assistant" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+            <Route path="/features/tenant-portal" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+            <Route path="/features/notifications" element={<MarketingLayout><FeatureDetailPage /></MarketingLayout>} />
+
+            {/* Resources Routes */}
+            <Route path="/resources" element={<MarketingLayout><ResourcesPages /></MarketingLayout>} />
+            <Route path="/resources/:category" element={<MarketingLayout><ResourcesPages /></MarketingLayout>} />
+
+            {/* Legal & Compliance Architecture */}
+            <Route path="/legal" element={<MarketingLayout><LegalOverviewPage /></MarketingLayout>} />
+            <Route path="/legal/terms" element={<MarketingLayout><TermsPage /></MarketingLayout>} />
+            <Route path="/legal/privacy" element={<MarketingLayout><PrivacyPolicyPage /></MarketingLayout>} />
+            <Route path="/legal/cookies" element={<MarketingLayout><CookiePolicyPage /></MarketingLayout>} />
+            <Route path="/legal/data-protection" element={<MarketingLayout><DataProtectionPage /></MarketingLayout>} />
+            <Route path="/legal/acceptable-use" element={<MarketingLayout><AcceptableUsePage /></MarketingLayout>} />
+            <Route path="/legal/subscription-and-billing" element={<MarketingLayout><SubscriptionBillingPage /></MarketingLayout>} />
+            <Route path="/legal/data-processing" element={<MarketingLayout><DataProcessingPage /></MarketingLayout>} />
+            <Route path="/security" element={<MarketingLayout><SecurityPage /></MarketingLayout>} />
+            <Route path="/accessibility" element={<MarketingLayout><AccessibilityPage /></MarketingLayout>} />
+
+            {/* Support, Status & Sitemap */}
+            <Route path="/support" element={<MarketingLayout><SupportPages /></MarketingLayout>} />
+            <Route path="/support/contact" element={<MarketingLayout><ContactPage /></MarketingLayout>} />
+            <Route path="/support/report-issue" element={<MarketingLayout><ContactPage /></MarketingLayout>} />
+            <Route path="/status" element={<MarketingLayout><SupportPages /></MarketingLayout>} />
+            <Route path="/sitemap" element={<MarketingLayout><SupportPages /></MarketingLayout>} />
+
+            {/* Error Pages */}
+            <Route path="/403" element={<CustomErrorPage code="403" />} />
+            <Route path="/500" element={<CustomErrorPage code="500" />} />
+            <Route path="/maintenance" element={<CustomErrorPage code="maintenance" />} />
+
+            {/* Public Authentication & Onboarding Routes */}
             <Route path="/login" element={<LoginPage />} />
-
-            {/* Public Invitation Acceptance Route */}
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ForgotPasswordPage />} />
+            <Route path="/verify-email" element={<ForgotPasswordPage />} />
+            <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
             <Route path="/accept-invitation/:token" element={<AcceptInvitationPage />} />
 
