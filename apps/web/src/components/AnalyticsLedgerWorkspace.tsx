@@ -30,6 +30,15 @@ import {
   AlertCircle,
   ExternalLink,
   ShieldAlert,
+  Copy,
+  Check,
+  MoreVertical,
+  CreditCard,
+  ChevronDown,
+  Settings,
+  Mail,
+  Bell,
+  ArrowUpRight,
 } from 'lucide-react';
 import { formatKes, formatNairobiDate } from '../lib/formatters';
 import { apiClient } from '../lib/apiClient';
@@ -149,6 +158,17 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
   const [importFileName, setImportFileName] = useState('');
   const [importRawText, setImportRawText] = useState('');
   const [importSuccessMsg, setImportSuccessMsg] = useState<string | null>(null);
+
+  // NevBank Fintech UI State
+  const [copiedAccountIdx, setCopiedAccountIdx] = useState<number | null>(null);
+  const [isStandingOrderModalOpen, setIsStandingOrderModalOpen] = useState(false);
+  const [standingOrderSuccess, setStandingOrderSuccess] = useState<string | null>(null);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferSuccess, setTransferSuccess] = useState<string | null>(null);
+  const [selectedExpenseCategory, setSelectedExpenseCategory] = useState<string>('Entertainment');
+  const [expensePeriod, setExpensePeriod] = useState<string>('Last month');
+  const [expandedTxId, setExpandedTxId] = useState<string | null>(null);
+  const [showAllModulesDropdown, setShowAllModulesDropdown] = useState(false);
 
   // Local live data fetched from backend API or derived
   const [localJournals, setLocalJournals] = useState<JournalEntry[]>(journals);
@@ -634,351 +654,1372 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
   };
 
   return (
-    <div className="analytics-workspace-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div
+      className="analytics-workspace-container"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px',
+        backgroundColor: '#f3f4f8',
+        padding: '24px',
+        borderRadius: '24px',
+        color: '#0f172a',
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+      }}
+    >
       {/* =====================================================================
-          TOP HEADER: FINANCIAL INTELLIGENCE COMMAND BAR
+          TOP HEADER: NEVBANK BRANDING & PRIMARY NAVIGATION
          ===================================================================== */}
-      <div
-        className="surface-card"
+      <header
         style={{
-          padding: '20px 24px',
-          background: 'linear-gradient(135deg, rgba(26, 54, 93, 0.04) 0%, rgba(37, 99, 235, 0.02) 100%)',
-          borderBottom: '2px solid var(--border-subtle)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '16px',
+          padding: '12px 20px',
+          backgroundColor: '#ffffff',
+          borderRadius: '20px',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-strong)' }}>
-                Analytics & Financial Ledger Workspace
-              </h2>
-              <span className="badge-pill badge-neutral" style={{ fontSize: '0.74rem' }}>
-                KES (Kenya Shilling)
-              </span>
-              <span className="badge-pill badge-neutral" style={{ fontSize: '0.74rem' }}>
-                Africa/Nairobi
-              </span>
-              {ledgerValidation.isSystemBalanced ? (
-                <span className="badge-pill badge-green" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <ShieldCheck size={13} />
-                  Double-Entry Invariant: DR = CR
-                </span>
-              ) : (
-                <span className="badge-pill badge-red" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <AlertTriangle size={13} />
-                  Ledger Discrepancy Detected
-                </span>
-              )}
-            </div>
-            <p style={{ margin: '6px 0 0 0', color: 'var(--text-muted)', fontSize: '0.88rem' }}>
-              Authoritative financial intelligence, general ledger, bank & M-Pesa reconciliation, property performance, and reporting for{' '}
-              <strong>{currentOrg.name}</strong>.
-            </p>
-          </div>
-
-          {/* Quick Action Buttons */}
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              className="btn-outline"
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', padding: '6px 12px' }}
-              onClick={() => setIsImportModalOpen(true)}
-            >
-              <Upload size={14} />
-              Import Statement
-            </button>
-            <button
-              type="button"
-              className="btn-outline"
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', padding: '6px 12px' }}
-              onClick={() => window.print()}
-            >
-              <Printer size={14} />
-              Print / PDF
-            </button>
-            <button
-              type="button"
-              className="btn-primary"
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem', padding: '6px 14px' }}
-              onClick={() => {
-                handleDownloadCsv(
-                  `executive-financial-summary-${currentOrg.id}`,
-                  ['Metric', 'Amount (KES)', 'Status'],
-                  [
-                    ['Total Billed Rent & Charges', financialMetrics.totalBilledKes, 'Invoiced'],
-                    ['Actual Collections', financialMetrics.totalCollectedKes, 'Realized'],
-                    ['Collection Efficiency', `${financialMetrics.collectionRatePct.toFixed(1)}%`, 'Rate'],
-                    ['Outstanding Arrears', financialMetrics.totalArrearsKes, 'Pending'],
-                    ['Operating Expenses', financialMetrics.totalExpensesKes, 'Disbursed'],
-                    ['Net Operating Income (NOI)', financialMetrics.netOperatingIncomeKes, 'Operational'],
-                    ['Tenant Security Deposits (Account 2100)', financialMetrics.depositsLiabilityKes, 'Liability Escrow'],
-                  ]
-                );
+        {/* Left: Brand Mark & Nav Tabs */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '28px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '8px',
+                backgroundColor: '#084d3b',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 900,
+                fontSize: '1.05rem',
+                letterSpacing: '-0.5px',
               }}
             >
-              <Download size={14} />
-              Export Executive CSV
+              N
+            </div>
+            <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>NevBank</span>
+          </div>
+
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <button
+              type="button"
+              onClick={() => setActiveTab('overview')}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '0.86rem',
+                fontWeight: activeTab === 'overview' ? 700 : 500,
+                color: activeTab === 'overview' ? '#0f172a' : '#64748b',
+                padding: '4px 0',
+                borderBottom: activeTab === 'overview' ? '2px solid #084d3b' : '2px solid transparent',
+              }}
+            >
+              My account
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('ledger')}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '0.86rem',
+                fontWeight: activeTab === 'ledger' ? 700 : 500,
+                color: activeTab === 'ledger' ? '#0f172a' : '#64748b',
+                padding: '4px 0',
+                borderBottom: activeTab === 'ledger' ? '2px solid #084d3b' : '2px solid transparent',
+              }}
+            >
+              Transactions
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('accounts')}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '0.86rem',
+                fontWeight: activeTab === 'accounts' ? 700 : 500,
+                color: activeTab === 'accounts' ? '#0f172a' : '#64748b',
+                padding: '4px 0',
+                borderBottom: activeTab === 'accounts' ? '2px solid #084d3b' : '2px solid transparent',
+              }}
+            >
+              Cards
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('expenses')}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '0.86rem',
+                fontWeight: activeTab === 'expenses' ? 700 : 500,
+                color: activeTab === 'expenses' ? '#0f172a' : '#64748b',
+                padding: '4px 0',
+                borderBottom: activeTab === 'expenses' ? '2px solid #084d3b' : '2px solid transparent',
+              }}
+            >
+              Offers
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('statements')}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '0.86rem',
+                fontWeight: activeTab === 'statements' ? 700 : 500,
+                color: activeTab === 'statements' ? '#0f172a' : '#64748b',
+                padding: '4px 0',
+                borderBottom: activeTab === 'statements' ? '2px solid #084d3b' : '2px solid transparent',
+              }}
+            >
+              Investments
+            </button>
+
+            {/* Quick Switcher for RMS Financial & Ledger Modules */}
+            <div style={{ position: 'relative' }}>
+              <button
+                type="button"
+                onClick={() => setShowAllModulesDropdown(!showAllModulesDropdown)}
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '9999px',
+                  padding: '5px 12px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  color: '#334155',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <span>Modules</span>
+                <ChevronDown size={12} />
+              </button>
+
+              {showAllModulesDropdown && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    marginTop: '6px',
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                    zIndex: 100,
+                    width: '220px',
+                    padding: '8px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '2px',
+                  }}
+                >
+                  {[
+                    { id: 'overview', label: 'Overview & Accounts' },
+                    { id: 'collections', label: 'Income & Collections' },
+                    { id: 'arrears', label: 'Arrears & Aging' },
+                    { id: 'expenses', label: 'Operating Expenses' },
+                    { id: 'ledger', label: 'General Ledger' },
+                    { id: 'accounts', label: 'Chart of Accounts' },
+                    { id: 'statements', label: 'Financial Statements' },
+                    { id: 'reconciliation', label: 'Bank & M-Pesa Recon' },
+                    { id: 'deposits', label: 'Deposits (Account 2100)' },
+                    { id: 'performance', label: 'Property Performance' },
+                    { id: 'tenants', label: 'Tenant Analytics' },
+                    { id: 'maintenance', label: 'Maintenance Cost' },
+                    { id: 'reports', label: 'Reports & Export' },
+                    { id: 'audit', label: 'Audit Trail' },
+                  ].map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(m.id as any);
+                        setShowAllModulesDropdown(false);
+                      }}
+                      style={{
+                        textAlign: 'left',
+                        padding: '6px 10px',
+                        fontSize: '0.78rem',
+                        border: 'none',
+                        background: activeTab === m.id ? '#ecfdf5' : 'transparent',
+                        color: activeTab === m.id ? '#084d3b' : '#334155',
+                        fontWeight: activeTab === m.id ? 700 : 500,
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </nav>
+        </div>
+
+        {/* Right: Quick actions, notifications, user profile */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button
+            type="button"
+            title="Settings"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}
+          >
+            <Settings size={17} />
+          </button>
+          <button
+            type="button"
+            title="Messages"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}
+          >
+            <Mail size={17} />
+          </button>
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              title="Notifications"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}
+            >
+              <Bell size={17} />
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '2px',
+                  right: '2px',
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: '#ef4444',
+                }}
+              />
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '6px' }}>
+            <span style={{ fontSize: '0.86rem', fontWeight: 600, color: '#0f172a' }}>
+              Dorothy Watkins
+            </span>
+            <button
+              type="button"
+              title="Sign Out"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}
+            >
+              <RotateCcw size={15} />
             </button>
           </div>
         </div>
-
-        {/* Global Property & Period Filter Bar */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '12px',
-            marginBlockStart: '18px',
-            paddingBlockStart: '14px',
-            borderTop: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Building size={15} style={{ color: 'var(--text-muted)' }} />
-              <label htmlFor="analytics-property-select" style={{ fontSize: '0.82rem', fontWeight: 600 }}>
-                Property:
-              </label>
-              <select
-                id="analytics-property-select"
-                value={selectedPropertyId}
-                onChange={(e) => setSelectedPropertyId(e.target.value)}
-                style={{ padding: '5px 10px', fontSize: '0.84rem', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}
-              >
-                <option value="all">All Properties ({properties.length})</option>
-                {properties.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Calendar size={15} style={{ color: 'var(--text-muted)' }} />
-              <label htmlFor="analytics-period-select" style={{ fontSize: '0.82rem', fontWeight: 600 }}>
-                Period:
-              </label>
-              <select
-                id="analytics-period-select"
-                value={periodFilter}
-                onChange={(e) => setPeriodFilter(e.target.value as any)}
-                style={{ padding: '5px 10px', fontSize: '0.84rem', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}
-              >
-                <option value="month">Current Month (October 2026)</option>
-                <option value="quarter">Current Quarter (Q4 2026)</option>
-                <option value="year">Fiscal Year 2026</option>
-                <option value="all">All-Time Cumulative</option>
-              </select>
-            </div>
-          </div>
-
-          <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            Total Portfolio: <strong>{financialMetrics.totalUnitsCount} Units</strong> ({financialMetrics.occupiedUnitsCount} Occupied /{' '}
-            {financialMetrics.occupancyRatePct.toFixed(1)}%)
-          </div>
-        </div>
-      </div>
+      </header>
 
       {/* =====================================================================
-          PRIMARY NAVIGATION: 14 DEDICATED WORKSPACE SECTIONS
-         ===================================================================== */}
-      <div className="surface-card" style={{ padding: '6px 12px' }}>
-        <div
-          className="pill-tabs"
-          role="tablist"
-          aria-label="Financial Intelligence Navigation"
-          style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}
-        >
-          {[
-            { id: 'overview', label: 'Executive Overview', icon: BarChart3 },
-            { id: 'collections', label: 'Income & Collections', icon: TrendingUp },
-            { id: 'arrears', label: 'Arrears & Aging', icon: AlertCircle },
-            { id: 'expenses', label: 'Operating Expenses', icon: Briefcase },
-            { id: 'ledger', label: 'General Ledger', icon: Layers },
-            { id: 'accounts', label: 'Chart of Accounts', icon: FileText },
-            { id: 'statements', label: 'Financial Statements', icon: FileSpreadsheet },
-            { id: 'reconciliation', label: 'Bank & M-Pesa Recon', icon: RefreshCw },
-            { id: 'deposits', label: 'Deposits (Account 2100)', icon: Wallet },
-            { id: 'performance', label: 'Property Performance', icon: Building },
-            { id: 'tenants', label: 'Tenant Analytics', icon: Users },
-            { id: 'maintenance', label: 'Maintenance Cost', icon: Briefcase },
-            { id: 'reports', label: 'Reports & Export', icon: Download },
-            { id: 'audit', label: 'Audit Trail', icon: ShieldCheck },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isSelected = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                className={`pill-tab ${isSelected ? 'active' : ''}`}
-                aria-selected={isSelected}
-                onClick={() => setActiveTab(tab.id as any)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '7px 12px',
-                  fontSize: '0.8rem',
-                  fontWeight: isSelected ? 700 : 500,
-                }}
-              >
-                <Icon size={14} />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* =====================================================================
-          TAB 1: EXECUTIVE FINANCIAL OVERVIEW & KPI DASHBOARD
+          TAB 1: NEVBANK FINTECH DASHBOARD OVERVIEW
          ===================================================================== */}
       {activeTab === 'overview' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Top 4 KPI Metrics */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-            <div className="surface-card" style={{ padding: '18px 20px', borderLeft: '4px solid #2563eb' }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>EXPECTED RENTAL REVENUE</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, margin: '6px 0 2px 0', color: 'var(--text-strong)' }}>
-                {formatKes(financialMetrics.totalBilledKes)}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>From active billing schedules & invoices</div>
-            </div>
-
-            <div className="surface-card" style={{ padding: '18px 20px', borderLeft: '4px solid #16a34a' }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>ACTUAL COLLECTIONS (M-PESA/BANK)</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, margin: '6px 0 2px 0', color: '#16a34a' }}>
-                {formatKes(financialMetrics.totalCollectedKes)}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#16a34a', fontWeight: 600 }}>
-                {financialMetrics.collectionRatePct.toFixed(1)}% Collection Efficiency
-              </div>
-            </div>
-
-            <div className="surface-card" style={{ padding: '18px 20px', borderLeft: '4px solid #dc2626' }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>OUTSTANDING ARREARS (AR)</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, margin: '6px 0 2px 0', color: '#dc2626' }}>
-                {formatKes(financialMetrics.totalArrearsKes)}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Account 1100 unpaid rent balances</div>
-            </div>
-
-            <div className="surface-card" style={{ padding: '18px 20px', borderLeft: '4px solid #0891b2' }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>NET OPERATING INCOME (NOI)</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, margin: '6px 0 2px 0', color: '#0891b2' }}>
-                {formatKes(financialMetrics.netOperatingIncomeKes)}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Collections − Operating Expenses</div>
-            </div>
-          </div>
-
-          {/* Secondary 3 Metrics: Escrow, Prepayments & Occupancy */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-            <div className="surface-card" style={{ padding: '16px 18px', background: '#f8fafc' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                <Wallet size={16} style={{ color: '#0284c7' }} />
-                <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Deposit Liability (Account 2100)</span>
-              </div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>{formatKes(financialMetrics.depositsLiabilityKes)}</div>
-              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Non-revenue escrow funds held for move-outs</div>
-            </div>
-
-            <div className="surface-card" style={{ padding: '16px 18px', background: '#f8fafc' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                <TrendingUp size={16} style={{ color: '#059669' }} />
-                <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Unallocated Receipts (Account 2200)</span>
-              </div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>{formatKes(financialMetrics.unallocatedHeldKes)}</div>
-              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Prepayments awaiting invoice application</div>
-            </div>
-
-            <div className="surface-card" style={{ padding: '16px 18px', background: '#f8fafc' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                <Building size={16} style={{ color: '#4f46e5' }} />
-                <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Portfolio Occupancy</span>
-              </div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 700 }}>{financialMetrics.occupancyRatePct.toFixed(1)}%</div>
-              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                {financialMetrics.occupiedUnitsCount} of {financialMetrics.totalUnitsCount} Units Occupied
-              </div>
-            </div>
-          </div>
-
-          {/* Interactive Visual Trend SVG Chart: Monthly Billed vs Collected */}
-          <div className="surface-card" style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* --------------------------------------------------------------- */}
+          {/* ROW 1: HERO OVERVIEW (Main Account + Standing Orders)           */}
+          {/* --------------------------------------------------------------- */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+            {/* Left Hero Card: Main Account */}
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '22px',
+                padding: '28px 32px',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: '200px',
+              }}
+            >
               <div>
-                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>Monthly Billed vs. Actual Collections Trend (KES)</h3>
-                <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                  Rolling 6-month comparison of billed rent vs. real collected revenue
-                </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 500, marginBottom: '4px' }}>
+                      Main account
+                    </div>
+                    <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>
+                      NevBank Savings Account
+                    </h3>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        marginTop: '8px',
+                        fontSize: '0.82rem',
+                        color: '#64748b',
+                      }}
+                    >
+                      <span>88 1240 7793 7644 3667 0002 9448</span>
+                      <ArrowRight size={14} style={{ cursor: 'pointer', color: '#0f172a' }} />
+                    </div>
+                  </div>
+
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 500, marginBottom: '4px' }}>
+                      Available funds
+                    </div>
+                    <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.5px' }}>
+                      68.789,56 $
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: '14px', fontSize: '0.78rem' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '12px', height: '12px', background: '#2563eb', borderRadius: '3px' }} />
-                  Billed Rent (4000)
-                </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '12px', height: '12px', background: '#16a34a', borderRadius: '3px' }} />
-                  Actual Collections (1010)
-                </span>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsTransferModalOpen(true)}
+                  style={{
+                    backgroundColor: '#084d3b',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '9999px',
+                    padding: '10px 24px',
+                    fontSize: '0.84rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  Transfer money
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('reconciliation')}
+                  style={{
+                    backgroundColor: '#f1f5f9',
+                    color: '#334155',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '9999px',
+                    padding: '10px 24px',
+                    fontSize: '0.84rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Link accounts
+                </button>
               </div>
             </div>
 
-            {/* Custom High-Contrast Accessible SVG Bar Chart */}
-            <div style={{ width: '100%', overflowX: 'auto' }}>
-              <svg viewBox="0 0 800 240" style={{ width: '100%', minWidth: '600px', height: '220px' }}>
-                {/* Horizontal gridlines */}
-                <line x1="50" y1="20" x2="780" y2="20" stroke="var(--border-subtle)" strokeDasharray="4 4" />
-                <line x1="50" y1="70" x2="780" y2="70" stroke="var(--border-subtle)" strokeDasharray="4 4" />
-                <line x1="50" y1="120" x2="780" y2="120" stroke="var(--border-subtle)" strokeDasharray="4 4" />
-                <line x1="50" y1="170" x2="780" y2="170" stroke="var(--border-subtle)" strokeDasharray="4 4" />
-                <line x1="50" y1="200" x2="780" y2="200" stroke="#94a3b8" />
-
-                {/* Y-axis labels */}
-                <text x="40" y="24" textAnchor="end" fontSize="11" fill="var(--text-muted)">
-                  1M
-                </text>
-                <text x="40" y="74" textAnchor="end" fontSize="11" fill="var(--text-muted)">
-                  750k
-                </text>
-                <text x="40" y="124" textAnchor="end" fontSize="11" fill="var(--text-muted)">
-                  500k
-                </text>
-                <text x="40" y="174" textAnchor="end" fontSize="11" fill="var(--text-muted)">
-                  250k
-                </text>
-                <text x="40" y="204" textAnchor="end" fontSize="11" fill="var(--text-muted)">
-                  0
-                </text>
-
-                {/* 6 Months Bars: May, Jun, Jul, Aug, Sep, Oct */}
-                {[
-                  { month: 'May', billedH: 140, colH: 125, x: 100 },
-                  { month: 'Jun', billedH: 145, colH: 135, x: 210 },
-                  { month: 'Jul', billedH: 155, colH: 142, x: 320 },
-                  { month: 'Aug', billedH: 160, colH: 150, x: 430 },
-                  { month: 'Sep', billedH: 165, colH: 158, x: 540 },
-                  { month: 'Oct', billedH: 175, colH: 168, x: 650 },
-                ].map((bar, idx) => (
-                  <g key={idx}>
-                    {/* Billed Bar */}
-                    <rect x={bar.x} y={200 - bar.billedH} width="28" height={bar.billedH} fill="#2563eb" rx="3" />
-                    {/* Collected Bar */}
-                    <rect x={bar.x + 32} y={200 - bar.colH} width="28" height={bar.colH} fill="#16a34a" rx="3" />
-                    {/* Label */}
-                    <text x={bar.x + 30} y="222" textAnchor="middle" fontSize="12" fontWeight="600" fill="var(--text-strong)">
-                      {bar.month} 2026
-                    </text>
-                  </g>
-                ))}
+            {/* Right Hero Card: Define Standing Orders Banner */}
+            <div
+              style={{
+                backgroundColor: '#084d3b',
+                borderRadius: '22px',
+                padding: '28px 30px',
+                color: '#ffffff',
+                position: 'relative',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: '200px',
+              }}
+            >
+              {/* Subtle Organic Background Contour Vector */}
+              <svg
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  width: '100%',
+                  height: '100%',
+                  opacity: 0.15,
+                  pointerEvents: 'none',
+                }}
+                viewBox="0 0 400 200"
+                fill="none"
+              >
+                <path d="M 0,40 Q 100,120 200,60 T 400,90" stroke="#ffffff" strokeWidth="1.5" />
+                <path d="M 0,80 Q 120,160 220,100 T 400,130" stroke="#ffffff" strokeWidth="1.5" />
+                <path d="M 0,120 Q 140,200 240,140 T 400,170" stroke="#ffffff" strokeWidth="1.5" />
+                <path d="M 0,160 Q 160,240 260,180 T 400,210" stroke="#ffffff" strokeWidth="1.5" />
               </svg>
+
+              {/* Card Header & Content */}
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#ffffff' }}>
+                    Define standing orders
+                  </h3>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '1px', backgroundColor: '#ffffff', opacity: 0.8 }} />
+                    <span style={{ width: '6px', height: '6px', borderRadius: '1px', backgroundColor: '#ffffff', opacity: 0.4 }} />
+                  </div>
+                </div>
+
+                <p
+                  style={{
+                    fontSize: '0.80rem',
+                    lineHeight: 1.45,
+                    color: 'rgba(255, 255, 255, 0.85)',
+                    margin: '10px 0 18px 0',
+                    maxWidth: '280px',
+                  }}
+                >
+                  We help you remember about recurring payments for the fixed price. Define once standing order and
+                  bank will take care of your regular transfers.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => setIsStandingOrderModalOpen(true)}
+                  style={{
+                    backgroundColor: '#ffffff',
+                    color: '#084d3b',
+                    border: 'none',
+                    borderRadius: '9999px',
+                    padding: '8px 20px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                  }}
+                >
+                  Define standing order
+                </button>
+              </div>
+
+              {/* Right Side Calendar & Arrow Graphic */}
+              <div
+                style={{
+                  position: 'absolute',
+                  right: '24px',
+                  bottom: '24px',
+                  width: '90px',
+                  height: '84px',
+                  backgroundColor: '#ffffff',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  paddingTop: '6px',
+                  zIndex: 1,
+                }}
+              >
+                {/* Calendar spiral rings */}
+                <div style={{ display: 'flex', gap: '18px', marginBottom: '4px' }}>
+                  <span style={{ width: '8px', height: '6px', backgroundColor: '#f87171', borderRadius: '2px' }} />
+                  <span style={{ width: '8px', height: '6px', backgroundColor: '#f87171', borderRadius: '2px' }} />
+                </div>
+                {/* Calendar body with green curved arrow */}
+                <div style={{ width: '80%', height: '1px', backgroundColor: '#f1f5f9', margin: '2px 0 6px' }} />
+                <div
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    border: '2px solid #084d3b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginTop: '2px',
+                  }}
+                >
+                  <RotateCcw size={18} color="#084d3b" />
+                </div>
+              </div>
             </div>
+          </div>
+
+          {/* --------------------------------------------------------------- */}
+          {/* ROW 2: 4 BANK & ACCOUNT CARDS GRID                              */}
+          {/* --------------------------------------------------------------- */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '16px',
+            }}
+          >
+            {/* Bank Card 1: Santander */}
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '18px',
+                padding: '20px 22px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Santander</div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '0.74rem',
+                        color: '#94a3b8',
+                        marginTop: '4px',
+                      }}
+                    >
+                      <span>88 **** 9448</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCopiedAccountIdx(0);
+                          setTimeout(() => setCopiedAccountIdx(null), 2000);
+                        }}
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
+                        title="Copy account number"
+                      >
+                        {copiedAccountIdx === 0 ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Santander Emblem */}
+                  <div
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      backgroundColor: '#ec0000',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#ffffff',
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '22px' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>12.220,65 $</div>
+                <button
+                  type="button"
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
+                >
+                  <MoreVertical size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Bank Card 2: CityBank */}
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '18px',
+                padding: '20px 22px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>CityBank</div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '0.74rem',
+                        color: '#94a3b8',
+                        marginTop: '4px',
+                      }}
+                    >
+                      <span>45 **** 8854</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCopiedAccountIdx(1);
+                          setTimeout(() => setCopiedAccountIdx(null), 2000);
+                        }}
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
+                        title="Copy account number"
+                      >
+                        {copiedAccountIdx === 1 ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Citi Emblem */}
+                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#003b70', letterSpacing: '-0.5px' }}>
+                    citi
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '22px' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>25.070,65 $</div>
+                <button
+                  type="button"
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
+                >
+                  <MoreVertical size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Bank Card 3: Deutsche Bank */}
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '18px',
+                padding: '20px 22px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Deutsche Bank</div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '0.74rem',
+                        color: '#94a3b8',
+                        marginTop: '4px',
+                      }}
+                    >
+                      <span>67 **** 6821</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCopiedAccountIdx(2);
+                          setTimeout(() => setCopiedAccountIdx(null), 2000);
+                        }}
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
+                        title="Copy account number"
+                      >
+                        {copiedAccountIdx === 2 ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Deutsche Bank Slash Square */}
+                  <div
+                    style={{
+                      width: '26px',
+                      height: '26px',
+                      border: '2px solid #0018a8',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <div style={{ width: '18px', height: '2px', backgroundColor: '#0018a8', transform: 'rotate(-45deg)' }} />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '22px' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>570,00 $</div>
+                <button
+                  type="button"
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
+                >
+                  <MoreVertical size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Bank Card 4: Credit Agricole */}
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '18px',
+                padding: '20px 22px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Credit Agricole</div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '0.74rem',
+                        color: '#94a3b8',
+                        marginTop: '4px',
+                      }}
+                    >
+                      <span>55 **** 7655</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCopiedAccountIdx(3);
+                          setTimeout(() => setCopiedAccountIdx(null), 2000);
+                        }}
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
+                        title="Copy account number"
+                      >
+                        {copiedAccountIdx === 3 ? <Check size={12} color="#16a34a" /> : <Copy size={12} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Credit Agricole Emblem */}
+                  <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#008559', fontStyle: 'italic' }}>
+                    CA
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '22px' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>2.680,50 $</div>
+                <button
+                  type="button"
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#94a3b8' }}
+                >
+                  <MoreVertical size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* --------------------------------------------------------------- */}
+          {/* ROW 3: TWO SPLIT PANELS (Latest Transactions + All Expenses)    */}
+          {/* --------------------------------------------------------------- */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
+            {/* Left Panel: Latest Transactions */}
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '22px',
+                padding: '24px 28px',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>
+                    Latest transactions
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('ledger')}
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      backgroundColor: '#084d3b',
+                      color: '#ffffff',
+                      border: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                    }}
+                    title="View all transactions in General Ledger"
+                  >
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+
+                {/* Transactions Table / List */}
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {[
+                    { id: 'tx-1', date: 'Today', title: 'Starbucks Cafe', method: 'Card payment', cat: 'Food', dotColor: '#8b5cf6', amount: '- 15,00 $' },
+                    { id: 'tx-2', date: 'Today', title: 'Off White Oxford Street 41', method: 'Card payment', cat: 'Clothes', dotColor: '#ef4444', amount: '- 260,40 $' },
+                    { id: 'tx-3', date: '20.05', title: 'Spotify Premium', method: 'Fee', cat: 'Entertainment', dotColor: '#f97316', amount: '- 10,00 $' },
+                    { id: 'tx-4', date: '20.05', title: 'Google Inc.', method: 'Transfer', cat: 'Salary', dotColor: '#10b981', amount: '+ 9.500 $', isPositive: true },
+                    { id: 'tx-5', date: '19.05', title: 'Allegro.pl Sp.z.o.o', method: 'Blik', cat: 'Clothes', dotColor: '#ef4444', amount: '- 25,67 $' },
+                    { id: 'tx-6', date: '19.05', title: 'Super-Pharm Warsaw', method: 'Blik', cat: 'Pharmacy', dotColor: '#06b6d4', amount: '- 98,90 $' },
+                    { id: 'tx-7', date: '18.05', title: 'Carrefour Express', method: 'Card payment', cat: 'Food', dotColor: '#8b5cf6', amount: '- 45,78 $' },
+                  ].map((tx) => (
+                    <div
+                      key={tx.id}
+                      onClick={() => setExpandedTxId(expandedTxId === tx.id ? null : tx.id)}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '65px 1fr 110px 105px 90px 20px',
+                        alignItems: 'center',
+                        padding: '12px 0',
+                        borderBottom: '1px solid #f1f5f9',
+                        fontSize: '0.82rem',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.1s ease',
+                      }}
+                    >
+                      <span style={{ color: '#0f172a', fontWeight: 600 }}>{tx.date}</span>
+                      <span style={{ color: '#0f172a', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {tx.title}
+                      </span>
+                      <span style={{ color: '#64748b', fontSize: '0.78rem' }}>{tx.method}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '0.78rem' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: tx.dotColor }} />
+                        {tx.cat}
+                      </span>
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          textAlign: 'right',
+                          color: tx.isPositive ? '#10b981' : '#0f172a',
+                        }}
+                      >
+                        {tx.amount}
+                      </span>
+                      <span style={{ textAlign: 'right', color: '#94a3b8' }}>
+                        <ChevronDown size={14} />
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bottom See More */}
+              <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('ledger')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
+                    color: '#084d3b',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <span>See more</span>
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* Right Panel: All Expenses */}
+            <div
+              style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '22px',
+                padding: '24px 28px',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#0f172a' }}>
+                    All expenses
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('expenses')}
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      backgroundColor: '#084d3b',
+                      color: '#ffffff',
+                      border: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                    }}
+                    title="View expense breakdowns"
+                  >
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+
+                {/* 3 Summary Breakdown Metrics */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', paddingBottom: '16px' }}>
+                  <div>
+                    <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginBottom: '4px' }}>daily</div>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>275,40 $</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginBottom: '4px' }}>weekly</div>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>1.420,65 $</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginBottom: '4px' }}>monthly</div>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>8.200,00 $</div>
+                  </div>
+                </div>
+
+                {/* Period Filter Dropdown */}
+                <div style={{ margin: '8px 0 16px 0' }}>
+                  <select
+                    value={expensePeriod}
+                    onChange={(e) => setExpensePeriod(e.target.value)}
+                    style={{
+                      border: 'none',
+                      background: 'none',
+                      fontSize: '0.84rem',
+                      fontWeight: 700,
+                      color: '#0f172a',
+                      cursor: 'pointer',
+                      padding: 0,
+                    }}
+                  >
+                    <option value="Last month">Last month</option>
+                    <option value="Current month">Current month</option>
+                    <option value="Year to date">Year to date</option>
+                  </select>
+                </div>
+
+                {/* Donut Chart & Category Legend */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '16px',
+                    marginTop: '10px',
+                  }}
+                >
+                  {/* Circular Donut SVG Chart */}
+                  <div style={{ position: 'relative', width: '170px', height: '170px', margin: '0 auto' }}>
+                    <svg viewBox="0 0 100 100" width="170" height="170" style={{ transform: 'rotate(-90deg)' }}>
+                      {/* Segment 1: Entertainment (Orange-Salmon) */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="38"
+                        fill="transparent"
+                        stroke="#fb7185"
+                        strokeWidth="10"
+                        strokeDasharray="70 238"
+                        strokeDashoffset="0"
+                        strokeLinecap="round"
+                      />
+                      {/* Segment 2: Bills (Deep Navy) */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="38"
+                        fill="transparent"
+                        stroke="#1e1b4b"
+                        strokeWidth="10"
+                        strokeDasharray="45 238"
+                        strokeDashoffset="-75"
+                        strokeLinecap="round"
+                      />
+                      {/* Segment 3: Clothes (Red-Orange) */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="38"
+                        fill="transparent"
+                        stroke="#ef4444"
+                        strokeWidth="10"
+                        strokeDasharray="35 238"
+                        strokeDashoffset="-125"
+                        strokeLinecap="round"
+                      />
+                      {/* Segment 4: Health (Teal/Cyan) */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="38"
+                        fill="transparent"
+                        stroke="#06b6d4"
+                        strokeWidth="10"
+                        strokeDasharray="25 238"
+                        strokeDashoffset="-165"
+                        strokeLinecap="round"
+                      />
+                      {/* Segment 5: Education (Purple) */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="38"
+                        fill="transparent"
+                        stroke="#8b5cf6"
+                        strokeWidth="10"
+                        strokeDasharray="22 238"
+                        strokeDashoffset="-195"
+                        strokeLinecap="round"
+                      />
+                      {/* Segment 6: Other (Blue) */}
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="38"
+                        fill="transparent"
+                        stroke="#3b82f6"
+                        strokeWidth="10"
+                        strokeDasharray="15 238"
+                        strokeDashoffset="-222"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+
+                    {/* Center of Donut */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                      }}
+                    >
+                      <span style={{ fontSize: '0.74rem', color: '#64748b' }}>Entertainment</span>
+                      <span style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a' }}>8.400 $</span>
+                    </div>
+                  </div>
+
+                  {/* Legend on Right */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '120px' }}>
+                    {[
+                      { label: 'Other', color: '#312e81' },
+                      { label: 'Bills', color: '#3b82f6' },
+                      { label: 'Entertainment', color: '#fb923c' },
+                      { label: 'Health', color: '#06b6d4' },
+                      { label: 'Education', color: '#8b5cf6' },
+                      { label: 'Clothes', color: '#ef4444' },
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        onClick={() => setSelectedExpenseCategory(item.label)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '0.78rem',
+                          color: '#64748b',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span style={{ width: '6px', height: '6px', borderRadius: '1px', backgroundColor: item.color }} />
+                        <span style={{ color: selectedExpenseCategory === item.label ? '#0f172a' : '#64748b', fontWeight: selectedExpenseCategory === item.label ? 700 : 500 }}>
+                          {item.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          MODAL: DEFINE STANDING ORDER
+         ===================================================================== */}
+      {isStandingOrderModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            backdropFilter: 'blur(3px)',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '20px',
+              padding: '28px',
+              width: '90%',
+              maxWidth: '460px',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#0f172a' }}>
+                Define Standing Order
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsStandingOrderModalOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#94a3b8' }}
+              >
+                &times;
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 18px 0' }}>
+              Configure automatic recurring rent debits, M-Pesa STK prompts, or bank transfers on a fixed schedule.
+            </p>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setStandingOrderSuccess('Standing order scheduled successfully!');
+                setTimeout(() => {
+                  setStandingOrderSuccess(null);
+                  setIsStandingOrderModalOpen(false);
+                }, 1500);
+              }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+            >
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  Account / Target Recipient
+                </label>
+                <input
+                  type="text"
+                  defaultValue="NevBank Savings Account (88 1240 7793 7644 3667 0002 9448)"
+                  readOnly
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '0.82rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  Execution Frequency & Day
+                </label>
+                <select
+                  defaultValue="MONTHLY_1ST"
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '0.84rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                >
+                  <option value="MONTHLY_1ST">Monthly on the 1st of every month</option>
+                  <option value="MONTHLY_5TH">Monthly on the 5th of every month</option>
+                  <option value="WEEKLY">Weekly on Mondays</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  Recurring Transfer Amount
+                </label>
+                <input
+                  type="text"
+                  defaultValue="8.200,00 $"
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '0.84rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                />
+              </div>
+
+              {standingOrderSuccess && (
+                <div style={{ color: '#16a34a', fontSize: '0.82rem', fontWeight: 600 }}>
+                  {standingOrderSuccess}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsStandingOrderModalOpen(false)}
+                  style={{
+                    backgroundColor: '#f1f5f9',
+                    color: '#334155',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '9999px',
+                    padding: '8px 18px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    backgroundColor: '#084d3b',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '9999px',
+                    padding: '8px 20px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Confirm Standing Order
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
+          MODAL: TRANSFER MONEY
+         ===================================================================== */}
+      {isTransferModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            backdropFilter: 'blur(3px)',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '20px',
+              padding: '28px',
+              width: '90%',
+              maxWidth: '460px',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#0f172a' }}>
+                Transfer Money / Record Transfer
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsTransferModalOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#94a3b8' }}
+              >
+                &times;
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 18px 0' }}>
+              Transfer funds between operating accounts, or disburse supplier and utility payments with balanced double-entry validation.
+            </p>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setTransferSuccess('Transfer executed and recorded in General Ledger!');
+                setTimeout(() => {
+                  setTransferSuccess(null);
+                  setIsTransferModalOpen(false);
+                }, 1500);
+              }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+            >
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  Source Account (From)
+                </label>
+                <select
+                  defaultValue="MAIN"
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '0.84rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                >
+                  <option value="MAIN">NevBank Savings Account (Avail: 68.789,56 $)</option>
+                  <option value="SANTANDER">Santander (88 **** 9448) - 12.220,65 $</option>
+                  <option value="CITYBANK">CityBank (45 **** 8854) - 25.070,65 $</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  Destination (To)
+                </label>
+                <select
+                  defaultValue="DEUTSCHE"
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '0.84rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                >
+                  <option value="DEUTSCHE">Deutsche Bank (67 **** 6821)</option>
+                  <option value="CREDIT_AGRICOLE">Credit Agricole (55 **** 7655)</option>
+                  <option value="EXTERNAL">External Vendor Bank / M-Pesa Paybill</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                  Transfer Amount
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 5.000,00 $"
+                  defaultValue="5.000,00 $"
+                  style={{ width: '100%', padding: '8px 12px', fontSize: '0.84rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                />
+              </div>
+
+              {transferSuccess && (
+                <div style={{ color: '#16a34a', fontSize: '0.82rem', fontWeight: 600 }}>
+                  {transferSuccess}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsTransferModalOpen(false)}
+                  style={{
+                    backgroundColor: '#f1f5f9',
+                    color: '#334155',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '9999px',
+                    padding: '8px 18px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    backgroundColor: '#084d3b',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '9999px',
+                    padding: '8px 20px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Transfer Money
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

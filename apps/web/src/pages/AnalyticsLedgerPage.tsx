@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useRms } from '../context/RmsContext';
 import { AnalyticsLedgerWorkspace, AnalyticsWorkspaceTab, StatementSubTab } from '../components/AnalyticsLedgerWorkspace';
-import { TopKpiRow } from '../components/TopKpiRow';
 
 export const AnalyticsLedgerPage: React.FC = () => {
   const { currentOrg, currentUserRole } = useAuth();
@@ -25,8 +24,7 @@ export const AnalyticsLedgerPage: React.FC = () => {
   }, [location.pathname]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <TopKpiRow />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0px' }}>
       <AnalyticsLedgerWorkspace
         currentOrg={currentOrg}
         userRole={currentUserRole || 'ACCOUNTANT'}
