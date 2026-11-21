@@ -325,6 +325,13 @@ class ApiClient {
     return this.request('/organizations/current');
   }
 
+  async updateCurrentOrganization(cmd: Partial<Organization>): Promise<Organization> {
+    return this.request('/organizations/current', {
+      method: 'PATCH',
+      body: JSON.stringify(cmd),
+    });
+  }
+
   async getOrganizationSettings(): Promise<any> {
     return this.request('/organizations/settings');
   }

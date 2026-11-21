@@ -14,6 +14,7 @@ interface AuthContextType {
   logout: () => void;
   switchOrganization: (orgId: string) => void;
   switchRole: (role: SystemRole) => void;
+  updateOrganization: (updated: Partial<Organization>) => Promise<Organization>;
   hasPermission: (permission: string) => boolean;
   hasRole: (roles: SystemRole | SystemRole[]) => boolean;
 }
@@ -23,13 +24,13 @@ const DEFAULT_ORG: Organization = {
   name: 'Guri24 Rental Management Ltd',
   slug: 'guri24-rental-management',
   organization_type: 'PROPERTY_MANAGEMENT_COMPANY',
-  kra_pin: 'P051892341K',
-  contact_email: 'petergatitu61@gmail.com',
-  contact_phone: '+254712345678',
+  kra_pin: '',
+  contact_email: '',
+  contact_phone: '',
   county: 'Nairobi',
   currency: 'KES',
   timezone: 'Africa/Nairobi',
-  mpesa_paybill_shortcode: '174379',
+  mpesa_paybill_shortcode: '',
   late_fee_percentage: 5.0,
   late_fee_grace_days: 5,
   rent_calculation_strategy: 'FIXED_MONTHLY',
@@ -80,14 +81,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return !!currentUserSession?.token && !!currentUserRole;
   }, [currentUserSession, currentUserRole]);
 
-  // Synchronize token with apiClient
+  // Synchronize token with apiClient and refresh authentic organization profile
   useEffect(() => {
     if (currentUserSession?.token) {
       apiClient.setToken(currentUserSession.token);
+
+      // Fetch authentic organization profile for current tenant
+      let isMounted = true;
+      apiClient
+        .getCurrentOrganization()
+        .then((org) => {
+          if (!isMounted || !org || !org.id) return;
+          setOrganizations((prev) => {
+            const idx = prev.findIndex((o) => o.id === org.id);
+            if (idx >= 0) {
+              const next = [...prev];
+              next[idx] = { ...next[idx], ...org };
+              return next;
+            }
+            return [...prev, org];
+          });
+        })
+        .catch(() => {
+          // Graceful ignore if offline or mock
+        });
+
+      return () => {
+        isMounted = false;
+      };
     } else {
       apiClient.setToken(null);
     }
-  }, [currentUserSession]);
+  }, [currentUserSession?.token, currentUserSession?.organizationId]);
 
   const logout = useCallback(() => {
     apiClient.clearToken();
@@ -112,6 +137,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setActiveOrgId(session.organizationId);
     if (session.token) {
       apiClient.setToken(session.token);
+    }
+    if (session.organizationId && session.organizationName) {
+      setOrganizations((prev) => {
+        const match = prev.find((o) => o.id === session.organizationId);
+        if (match) {
+          return prev.map((o) =>
+            o.id === session.organizationId
+              ? { ...o, name: session.organizationName || o.name, contact_email: session.email || o.contact_email }
+              : o
+          );
+        }
+        return [
+          ...prev,
+          {
+            ...DEFAULT_ORG,
+            id: session.organizationId,
+            name: session.organizationName,
+            contact_email: session.email || '',
+            contact_phone: session.phone || '',
+          },
+        ];
+      });
     }
   }, []);
 
@@ -143,12 +190,75 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const currentOrg = useMemo(() => {
-    return (
-      organizations.find((o) => o.id === activeOrgId) ||
-      organizations.find((o) => o.id === currentUserSession?.organizationId) ||
-      DEFAULT_ORG
-    );
+    const orgId = activeOrgId || currentUserSession?.organizationId;
+    const match = organizations.find((o) => o.id === orgId);
+    if (match) return match;
+
+    if (currentUserSession?.organizationName) {
+      return {
+        ...DEFAULT_ORG,
+        id: orgId || DEFAULT_ORG.id,
+        name: currentUserSession.organizationName,
+        contact_email: currentUserSession.email || '',
+        contact_phone: currentUserSession.phone || '',
+      };
+    }
+
+    return DEFAULT_ORG;
   }, [organizations, activeOrgId, currentUserSession]);
+
+  const updateOrganization = useCallback(
+    async (updated: Partial<Organization>): Promise<Organization> => {
+      try {
+        const res = await apiClient.updateCurrentOrganization(updated);
+        setOrganizations((prev) => {
+          const idx = prev.findIndex((o) => o.id === res.id);
+          if (idx >= 0) {
+            const next = [...prev];
+            next[idx] = { ...next[idx], ...res };
+            return next;
+          }
+          return [...prev, res];
+        });
+        if (updated.name) {
+          setCurrentUserSession((prev) => {
+            if (!prev) return null;
+            const next = { ...prev, organizationName: updated.name! };
+            localStorage.setItem('guri24_rms_auth_session', JSON.stringify(next));
+            return next;
+          });
+        }
+        return res;
+      } catch {
+        // Fallback update in state and session
+        const orgId = activeOrgId || currentUserSession?.organizationId || DEFAULT_ORG.id;
+        const merged: Organization = {
+          ...currentOrg,
+          ...updated,
+          id: orgId,
+        };
+        setOrganizations((prev) => {
+          const idx = prev.findIndex((o) => o.id === orgId);
+          if (idx >= 0) {
+            const next = [...prev];
+            next[idx] = merged;
+            return next;
+          }
+          return [...prev, merged];
+        });
+        if (updated.name) {
+          setCurrentUserSession((prev) => {
+            if (!prev) return null;
+            const next = { ...prev, organizationName: updated.name! };
+            localStorage.setItem('guri24_rms_auth_session', JSON.stringify(next));
+            return next;
+          });
+        }
+        return merged;
+      }
+    },
+    [activeOrgId, currentOrg, currentUserSession?.organizationId]
+  );
 
   const hasPermission = useCallback(
     (permission: string) => {
@@ -180,6 +290,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout,
       switchOrganization,
       switchRole,
+      updateOrganization,
       hasPermission,
       hasRole,
     }),
@@ -193,6 +304,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout,
       switchOrganization,
       switchRole,
+      updateOrganization,
       hasPermission,
       hasRole,
     ]

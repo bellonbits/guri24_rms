@@ -54,7 +54,7 @@ import type {
 } from '../types';
 
 export const SettingsPortalPage: React.FC = () => {
-  const { currentOrg, currentUserSession, currentUserRole } = useAuth();
+  const { currentOrg, currentUserSession, currentUserRole, updateOrganization } = useAuth();
   const { state, setState, loadWorkspaceSnapshot } = useRms();
   const location = useLocation();
 
@@ -66,6 +66,80 @@ export const SettingsPortalPage: React.FC = () => {
   const isIntegrationsView = location.pathname.includes('/integrations');
   const isGeneralView =
     !isOrgView && !isFinanceConfigView && !isUsersView && !isRolesView && !isBillingView && !isIntegrationsView;
+
+  // Organization Profile editing state
+  const [orgForm, setOrgForm] = useState({
+    name: currentOrg.name || '',
+    organization_type: currentOrg.organization_type || 'PROPERTY_MANAGEMENT_COMPANY',
+    contact_email: currentOrg.contact_email || '',
+    contact_phone: currentOrg.contact_phone || '',
+    county: currentOrg.county || 'Nairobi',
+    kra_pin: currentOrg.kra_pin || '',
+  });
+  const [orgSaving, setOrgSaving] = useState(false);
+  const [orgSaveNotice, setOrgSaveNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Sync form when currentOrg updates
+  useEffect(() => {
+    setOrgForm({
+      name: currentOrg.name || '',
+      organization_type: currentOrg.organization_type || 'PROPERTY_MANAGEMENT_COMPANY',
+      contact_email: currentOrg.contact_email || '',
+      contact_phone: currentOrg.contact_phone || '',
+      county: currentOrg.county || 'Nairobi',
+      kra_pin: currentOrg.kra_pin || '',
+    });
+  }, [currentOrg]);
+
+  const handleSaveOrgProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setOrgSaving(true);
+    setOrgSaveNotice(null);
+
+    if (!orgForm.name.trim()) {
+      setOrgSaveNotice({ type: 'error', message: 'Legal company name is required.' });
+      setOrgSaving(false);
+      return;
+    }
+
+    try {
+      await updateOrganization({
+        name: orgForm.name.trim(),
+        organization_type: orgForm.organization_type,
+        contact_email: orgForm.contact_email.trim(),
+        contact_phone: orgForm.contact_phone.trim(),
+        county: orgForm.county,
+        kra_pin: orgForm.kra_pin.trim() || undefined,
+      });
+
+      setState((prev) => {
+        const orgId = currentOrg.id;
+        const nextPlatforms = (prev.platformOrganizations || []).map((o: any) =>
+          o.id === orgId
+            ? {
+                ...o,
+                name: orgForm.name.trim(),
+                organization_type: orgForm.organization_type,
+                contact_email: orgForm.contact_email.trim(),
+                contact_phone: orgForm.contact_phone.trim(),
+                county: orgForm.county,
+                kra_pin: orgForm.kra_pin.trim() || undefined,
+              }
+            : o
+        );
+        return {
+          ...prev,
+          platformOrganizations: nextPlatforms,
+        };
+      });
+
+      setOrgSaveNotice({ type: 'success', message: 'Organization profile updated successfully.' });
+    } catch (err: any) {
+      setOrgSaveNotice({ type: 'error', message: err?.message || 'Failed to update organization profile.' });
+    } finally {
+      setOrgSaving(false);
+    }
+  };
 
   // Sub-tab inside Users & Access Management
   const [usersSubTab, setUsersSubTab] = useState<'STAFF' | 'TENANTS' | 'INVITATIONS' | 'AUDIT'>('STAFF');
@@ -1709,53 +1783,145 @@ export const SettingsPortalPage: React.FC = () => {
         /* 4. ORGANIZATION PROFILE VIEW                                  */
         /* ------------------------------------------------------------- */
         <div className="surface-card">
-          <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0 0 14px 0' }}>Organization Profile</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div>
-              <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>
-                Legal Company Name
-              </label>
-              <input
-                type="text"
-                readOnly
-                value={currentOrg.name}
-                style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc', boxSizing: 'border-box' }}
-              />
-            </div>
-            <div>
-              <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>
-                Contact Email
-              </label>
-              <input
-                type="email"
-                readOnly
-                value={currentOrg.contact_email}
-                style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc', boxSizing: 'border-box' }}
-              />
-            </div>
-            <div>
-              <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>
-                Primary County Jurisdiction
-              </label>
-              <input
-                type="text"
-                readOnly
-                value={currentOrg.county}
-                style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc', boxSizing: 'border-box' }}
-              />
-            </div>
-            <div>
-              <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>
-                KRA PIN
-              </label>
-              <input
-                type="text"
-                readOnly
-                value={currentOrg.kra_pin || 'P051892341K'}
-                style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc', boxSizing: 'border-box' }}
-              />
+              <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: '#0f172a' }}>Organization Profile</h2>
+              <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '4px 0 0 0' }}>
+                Manage authoritative organization identification, legal entity naming, and KRA eTIMS tax details.
+              </p>
             </div>
           </div>
+
+          {orgSaveNotice && (
+            <div
+              style={{
+                padding: '10px 14px',
+                borderRadius: '8px',
+                fontSize: '0.85rem',
+                marginBottom: '16px',
+                background: orgSaveNotice.type === 'success' ? '#f0fdf4' : '#fef2f2',
+                border: `1px solid ${orgSaveNotice.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
+                color: orgSaveNotice.type === 'success' ? '#15803d' : '#b91c1c',
+              }}
+            >
+              {orgSaveNotice.message}
+            </div>
+          )}
+
+          <form onSubmit={handleSaveOrgProfile}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '6px' }}>
+                  Legal Company Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Skyline Property Investments Ltd"
+                  value={orgForm.name}
+                  onChange={(e) => setOrgForm({ ...orgForm, name: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '6px' }}>
+                  Organization Entity Type
+                </label>
+                <select
+                  value={orgForm.organization_type}
+                  onChange={(e) => setOrgForm({ ...orgForm, organization_type: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', backgroundColor: '#ffffff', outline: 'none', boxSizing: 'border-box' }}
+                >
+                  <option value="PROPERTY_MANAGEMENT_COMPANY">Property Management Company</option>
+                  <option value="INDIVIDUAL_LANDLORD">Individual Landlord</option>
+                  <option value="ESTATE_HOA">Gated Estate / HOA</option>
+                  <option value="REAL_ESTATE_DEVELOPER">Real Estate Developer / Fund</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '6px' }}>
+                  Contact Email Address *
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="contact@company.co.ke"
+                  value={orgForm.contact_email}
+                  onChange={(e) => setOrgForm({ ...orgForm, contact_email: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '6px' }}>
+                  Official Contact Phone
+                </label>
+                <input
+                  type="tel"
+                  placeholder="+254 7..."
+                  value={orgForm.contact_phone}
+                  onChange={(e) => setOrgForm({ ...orgForm, contact_phone: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '6px' }}>
+                  Primary County Jurisdiction
+                </label>
+                <select
+                  value={orgForm.county}
+                  onChange={(e) => setOrgForm({ ...orgForm, county: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', backgroundColor: '#ffffff', outline: 'none', boxSizing: 'border-box' }}
+                >
+                  <option value="Nairobi">Nairobi</option>
+                  <option value="Mombasa">Mombasa</option>
+                  <option value="Kiambu">Kiambu</option>
+                  <option value="Machakos">Machakos</option>
+                  <option value="Nakuru">Nakuru</option>
+                  <option value="Kisumu">Kisumu</option>
+                  <option value="Uasin Gishu">Uasin Gishu (Eldoret)</option>
+                  <option value="Other">Other Region</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '6px' }}>
+                  KRA PIN (for eTIMS Invoicing)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. P051234567X (leave blank if not registered)"
+                  value={orgForm.kra_pin}
+                  onChange={(e) => setOrgForm({ ...orgForm, kra_pin: e.target.value.toUpperCase() })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+              <button
+                type="submit"
+                disabled={orgSaving}
+                className="btn-primary"
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: orgSaving ? 'not-allowed' : 'pointer',
+                  opacity: orgSaving ? 0.7 : 1,
+                }}
+              >
+                {orgSaving ? 'Saving Changes...' : 'Save Organization Profile'}
+              </button>
+            </div>
+          </form>
         </div>
       ) : isBillingView ? (
         /* ------------------------------------------------------------- */

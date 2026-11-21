@@ -59,6 +59,7 @@ use crate::{
         },
         organizations::{
             Organization, OrganizationSettings, RegisterOrganizationCommand,
+            UpdateOrganizationCommand,
         },
         payments::{InitiateMpesaPaymentCommand, Payment},
         properties::{
@@ -109,7 +110,10 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             get(get_workspace_snapshot_handler).post(save_workspace_snapshot_handler),
         )
         // Organizations & Settings
-        .route("/organizations/current", get(get_organization_handler))
+        .route(
+            "/organizations/current",
+            get(get_organization_handler).patch(update_organization_handler),
+        )
         .route(
             "/organizations/settings",
             get(get_organization_settings_handler).patch(update_organization_settings_handler),
@@ -511,6 +515,15 @@ async fn get_organization_handler(
     ctx: TenantContext,
 ) -> AppResult<Json<Organization>> {
     let org = state.repositories.organizations.get_organization(&ctx)?;
+    Ok(Json(org))
+}
+
+async fn update_organization_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Json(cmd): Json<UpdateOrganizationCommand>,
+) -> AppResult<Json<Organization>> {
+    let org = state.repositories.organizations.update_organization(&ctx, cmd)?;
     Ok(Json(org))
 }
 

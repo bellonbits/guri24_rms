@@ -109,6 +109,16 @@ pub struct RegisterOrganizationCommand {
     pub admin_password: String,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct UpdateOrganizationCommand {
+    pub name: Option<String>,
+    pub organization_type: Option<String>,
+    pub kra_pin: Option<String>,
+    pub contact_email: Option<String>,
+    pub contact_phone: Option<String>,
+    pub county: Option<String>,
+}
+
 /// Section 5.1: Repository Pattern - OrganizationRepository
 pub trait OrganizationRepository: Send + Sync {
     fn create_organization_with_admin(
@@ -116,6 +126,11 @@ pub trait OrganizationRepository: Send + Sync {
         cmd: RegisterOrganizationCommand,
     ) -> AppResult<(Organization, UserRecord, OrganizationMembership)>;
     fn get_organization(&self, ctx: &TenantContext) -> AppResult<Organization>;
+    fn update_organization(
+        &self,
+        ctx: &TenantContext,
+        cmd: UpdateOrganizationCommand,
+    ) -> AppResult<Organization>;
     fn get_settings(&self, ctx: &TenantContext) -> AppResult<OrganizationSettings>;
     fn update_settings(
         &self,
@@ -346,6 +361,55 @@ impl OrganizationRepository for InMemoryOrganizationRepository {
             .get(&ctx.organization_id)
             .cloned()
             .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))
+    }
+
+    fn update_organization(
+        &self,
+        ctx: &TenantContext,
+        cmd: UpdateOrganizationCommand,
+    ) -> AppResult<Organization> {
+        ctx.require_permission("users.manage")?;
+        let mut orgs = self.organizations.write().unwrap_or_else(|e| e.into_inner());
+        let org = orgs
+            .get_mut(&ctx.organization_id)
+            .ok_or_else(|| AppError::NotFound("Organization not found".to_string()))?;
+
+        if let Some(name) = cmd.name {
+            let trimmed = name.trim();
+            if !trimmed.is_empty() {
+                org.name = trimmed.to_string();
+            }
+        }
+        if let Some(org_type) = cmd.organization_type {
+            let trimmed = org_type.trim();
+            if !trimmed.is_empty() {
+                org.organization_type = trimmed.to_string();
+            }
+        }
+        if let Some(kra) = cmd.kra_pin {
+            let trimmed = kra.trim();
+            org.kra_pin = if trimmed.is_empty() { None } else { Some(trimmed.to_uppercase()) };
+        }
+        if let Some(email) = cmd.contact_email {
+            let trimmed = email.trim();
+            if !trimmed.is_empty() {
+                org.contact_email = trimmed.to_lowercase();
+            }
+        }
+        if let Some(phone) = cmd.contact_phone {
+            let trimmed = phone.trim();
+            if !trimmed.is_empty() {
+                org.contact_phone = trimmed.to_string();
+            }
+        }
+        if let Some(county) = cmd.county {
+            let trimmed = county.trim();
+            if !trimmed.is_empty() {
+                org.county = trimmed.to_string();
+            }
+        }
+
+        Ok(org.clone())
     }
 
     fn get_settings(&self, ctx: &TenantContext) -> AppResult<OrganizationSettings> {
