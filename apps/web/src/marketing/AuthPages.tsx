@@ -352,7 +352,7 @@ export const OnboardingPage: React.FC = () => {
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 600, color: BRAND_TOKENS.colors.darkNavy, marginBottom: '6px' }}>Property Name</label>
-              <input type="text" defaultValue="Kilimani Heights Residency" style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '0.95rem' }} />
+              <input type="text" placeholder="e.g. Parkview Apartments" style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', border: '1px solid #CBD5E1', fontSize: '0.95rem' }} />
             </div>
 
             <div style={{ marginBottom: '24px' }}>

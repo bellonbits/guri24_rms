@@ -307,41 +307,62 @@ export const DashboardPage: React.FC = () => {
               </Link>
             </div>
 
-            <FeaturedPropertyIllustration
-              propertyName={featuredProperty?.name || 'Jacaranda Heights Residency'}
-              estateLocation={`${featuredProperty?.county || 'Nairobi'}, ${featuredProperty?.estate_zone || 'Westlands'}`}
-            />
+            {featuredProperty ? (
+              <>
+                <FeaturedPropertyIllustration
+                  propertyName={featuredProperty.name}
+                  estateLocation={`${featuredProperty.county || 'Nairobi'}, ${featuredProperty.estate_or_area || featuredProperty.estate_zone || 'Kenya'}`}
+                />
 
-            <div style={{ marginBlockStart: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                  {featuredProperty?.name || 'Jacaranda Heights Residency'}
+                <div style={{ marginBlockStart: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                      {featuredProperty.name}
+                    </h3>
+                    <span style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      {featuredProperty.property_code}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBlock: '4px 12px' }}>
+                    {featuredProperty.county || 'Nairobi'} County &bull; {featuredProperty.property_type || 'Residential Estate'}
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', marginBlockStart: '12px' }}>
+                  <Link
+                    to={`/app/properties-units`}
+                    className="btn-dark"
+                    style={{ flex: 1, textDecoration: 'none', textAlign: 'center' }}
+                  >
+                    <span>Manage Units</span>
+                  </Link>
+                  <Link
+                    to="/app/leases-bookings"
+                    className="btn-outline"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <span>Bookings</span>
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: '28px 16px', textAlign: 'center' }}>
+                <Building2 size={36} color="#94A3B8" style={{ margin: '0 auto 12px' }} />
+                <h3 style={{ fontSize: '0.98rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                  No Properties Registered
                 </h3>
-                <span style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  {formatKes(45000)}/mo
-                </span>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '16px', lineHeight: 1.5 }}>
+                  Get started by adding your first real residential or commercial property to the platform.
+                </p>
+                <Link
+                  to="/app/properties-units/properties"
+                  className="btn-dark"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', padding: '8px 18px', borderRadius: '8px', fontSize: '0.84rem' }}
+                >
+                  <span>Add Real Property</span>
+                </Link>
               </div>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBlock: '4px 12px' }}>
-                {featuredProperty?.county || 'Nairobi'} County &bull; {featuredProperty?.property_type || 'Multi-Unit Complex'}
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', marginBlockStart: '12px' }}>
-              <Link
-                to={`/app/properties-units`}
-                className="btn-dark"
-                style={{ flex: 1, textDecoration: 'none', textAlign: 'center' }}
-              >
-                <span>Manage Units</span>
-              </Link>
-              <Link
-                to="/app/leases-bookings"
-                className="btn-outline"
-                style={{ textDecoration: 'none' }}
-              >
-                <span>Bookings</span>
-              </Link>
-            </div>
+            )}
           </section>
 
           {/* Quick Operations Matrix */}

@@ -415,7 +415,7 @@ export const PropertiesUnitsPage: React.FC = () => {
               <input
                 type="text"
                 className="form-control"
-                placeholder="e.g. Jacaranda Heights"
+                placeholder="e.g. Parkview Residences"
                 value={propName}
                 onChange={(e) => setPropName(e.target.value)}
                 required

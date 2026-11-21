@@ -341,7 +341,48 @@ export function sanitizeWorkspaceState(raw: any): RmsPlatformState {
   clean.accessAuditLogs = Array.isArray(clean.accessAuditLogs) ? clean.accessAuditLogs : [];
   clean.platformOrganizations = Array.isArray(clean.platformOrganizations) ? clean.platformOrganizations : [];
 
-  // Seed baseline staff if empty for default organization
+  // 5. Purge any fake/simulated staff members, invitations, or organizations
+  clean.staffMembers = clean.staffMembers.filter((s: any) => {
+    const email = (s.email || '').toLowerCase();
+    const id = (s.id || '').toLowerCase();
+    return (
+      !email.includes('sarah.wanjiku') &&
+      !email.includes('david.ochieng') &&
+      !email.includes('joseph.karanja') &&
+      !email.includes('example.com') &&
+      id !== 'usr-staff-pm-001' &&
+      id !== 'usr-staff-acc-001' &&
+      id !== 'usr-staff-mnt-001'
+    );
+  });
+
+  clean.invitations = clean.invitations.filter((i: any) => {
+    const email = (i.email || '').toLowerCase();
+    const id = (i.id || '').toLowerCase();
+    return (
+      !email.includes('jane.mutua') &&
+      !email.includes('brian.kiprop') &&
+      !email.includes('example.com') &&
+      id !== 'inv-init-001' &&
+      id !== 'inv-init-002'
+    );
+  });
+
+  clean.platformOrganizations = clean.platformOrganizations.filter((o: any) => {
+    const slug = (o.slug || '').toLowerCase();
+    return slug !== 'kilimani-prime-properties' && slug !== 'coastal-haven-residences';
+  });
+
+  // Purge any fake simulated properties (e.g. legacy demo IDs)
+  if (Array.isArray(clean.properties)) {
+    clean.properties = clean.properties.filter((p: any) => {
+      const id = (p.id || '').toLowerCase();
+      const name = (p.name || '').toLowerCase();
+      return id !== 'prop-001' && id !== 'prop-002' && !name.includes('demo property') && !name.includes('test estate');
+    });
+  }
+
+  // Seed baseline real administrator only if staff list is empty
   if (clean.staffMembers.length === 0) {
     clean.staffMembers = [
       {
@@ -352,88 +393,14 @@ export function sanitizeWorkspaceState(raw: any): RmsPlatformState {
         full_name: 'Peter Gatitu Mwangi',
         role: 'ORGANIZATION_ADMINISTRATOR',
         status: 'ACTIVE',
-        assigned_property_ids: ['prop-001', 'prop-002'],
+        assigned_property_ids: [],
         created_at: '2026-01-01T00:00:00Z',
         last_login_at: '2026-11-17T08:30:00Z',
       },
-      {
-        id: 'usr-staff-pm-001',
-        organization_id: clean.currentOrganizationId || 'org-guri24-001',
-        email: 'sarah.wanjiku@guri24.co.ke',
-        phone: '+254722112233',
-        full_name: 'Sarah Wanjiku',
-        role: 'PROPERTY_MANAGER',
-        status: 'ACTIVE',
-        assigned_property_ids: ['prop-001'],
-        created_at: '2026-02-15T09:00:00Z',
-        last_login_at: '2026-11-16T14:20:00Z',
-      },
-      {
-        id: 'usr-staff-acc-001',
-        organization_id: clean.currentOrganizationId || 'org-guri24-001',
-        email: 'david.ochieng@guri24.co.ke',
-        phone: '+254733445566',
-        full_name: 'David Ochieng',
-        role: 'ACCOUNTANT',
-        status: 'ACTIVE',
-        assigned_property_ids: ['prop-001', 'prop-002'],
-        created_at: '2026-03-01T10:00:00Z',
-        last_login_at: '2026-11-17T11:15:00Z',
-      },
-      {
-        id: 'usr-staff-mnt-001',
-        organization_id: clean.currentOrganizationId || 'org-guri24-001',
-        email: 'joseph.karanja@guri24.co.ke',
-        phone: '+254711889900',
-        full_name: 'Joseph Karanja',
-        role: 'MAINTENANCE_OFFICER',
-        status: 'ACTIVE',
-        assigned_property_ids: ['prop-001'],
-        created_at: '2026-04-10T08:00:00Z',
-        last_login_at: '2026-11-15T16:45:00Z',
-      },
     ];
   }
 
-  // Seed baseline invitations if empty
-  if (clean.invitations.length === 0) {
-    clean.invitations = [
-      {
-        id: 'inv-init-001',
-        organization_id: clean.currentOrganizationId || 'org-guri24-001',
-        invitation_type: 'STAFF',
-        email: 'jane.mutua@gmail.com',
-        phone: '+254799001122',
-        full_name: 'Jane Mutua',
-        role: 'RECEPTIONIST',
-        token_hash: 'hash-jane-mutua-token-2026',
-        status: 'PENDING',
-        property_ids: ['prop-001'],
-        delivery_status: 'DELIVERED',
-        sent_count: 1,
-        expires_at: new Date(Date.now() + 5 * 86400000).toISOString(),
-        created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
-      },
-      {
-        id: 'inv-init-002',
-        organization_id: clean.currentOrganizationId || 'org-guri24-001',
-        invitation_type: 'STAFF',
-        email: 'brian.kiprop@gmail.com',
-        phone: '+254788334455',
-        full_name: 'Brian Kiprop',
-        role: 'CARETAKER',
-        token_hash: 'hash-brian-kiprop-token-2026',
-        status: 'PENDING',
-        property_ids: ['prop-002'],
-        delivery_status: 'DELIVERED',
-        sent_count: 1,
-        expires_at: new Date(Date.now() + 4 * 86400000).toISOString(),
-        created_at: new Date(Date.now() - 3 * 86400000).toISOString(),
-      },
-    ];
-  }
-
-  // Seed platform organizations if empty
+  // Seed default primary real organization only if empty
   if (clean.platformOrganizations.length === 0) {
     clean.platformOrganizations = [
       {
@@ -448,47 +415,11 @@ export function sanitizeWorkspaceState(raw: any): RmsPlatformState {
         admin_email: 'petergatitu61@gmail.com',
         status: 'ACTIVE',
         subscription_plan: 'PROFESSIONAL',
-        properties_count: 2,
-        units_count: 8,
-        active_tenants_count: 6,
-        monthly_mrr_kes: 45000,
+        properties_count: (clean.properties || []).length,
+        units_count: (clean.units || []).length,
+        active_tenants_count: (clean.tenants || []).length,
+        monthly_mrr_kes: 0,
         created_at: '2026-01-01T00:00:00Z',
-      },
-      {
-        id: 'org-kilimani-002',
-        name: 'Kilimani Prime Properties Ltd',
-        slug: 'kilimani-prime-properties',
-        organization_type: 'REAL_ESTATE_AGENCY',
-        county: 'Nairobi',
-        contact_email: 'info@kilimaniprime.co.ke',
-        contact_phone: '+254722556677',
-        admin_full_name: 'Grace Njeri',
-        admin_email: 'grace@kilimaniprime.co.ke',
-        status: 'ACTIVE',
-        subscription_plan: 'STARTER',
-        properties_count: 1,
-        units_count: 14,
-        active_tenants_count: 12,
-        monthly_mrr_kes: 25000,
-        created_at: '2026-03-12T00:00:00Z',
-      },
-      {
-        id: 'org-coastal-003',
-        name: 'Coastal Haven Residences',
-        slug: 'coastal-haven-residences',
-        organization_type: 'INDIVIDUAL_LANDLORD',
-        county: 'Mombasa',
-        contact_email: 'contact@coastalhaven.co.ke',
-        contact_phone: '+254733889911',
-        admin_full_name: 'Omar Said',
-        admin_email: 'omar@coastalhaven.co.ke',
-        status: 'ACTIVE',
-        subscription_plan: 'ENTERPRISE',
-        properties_count: 3,
-        units_count: 24,
-        active_tenants_count: 20,
-        monthly_mrr_kes: 65000,
-        created_at: '2026-04-05T00:00:00Z',
       },
     ];
   }
