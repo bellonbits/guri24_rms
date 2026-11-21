@@ -55,9 +55,11 @@ export const OcrDocumentsPage: React.FC = () => {
     [state.documents, currentOrg.id]
   );
 
+  const hasSpecificId = Boolean(reviewJobId && reviewJobId !== 'unspecified');
+
   // Try to find the active job in local state
   const localReviewJob = useMemo(() => {
-    if (reviewJobId) {
+    if (hasSpecificId) {
       return (
         orgOcrJobs.find((j) => j.id === reviewJobId) ||
         state.ocrJobs.find((j) => j.id === reviewJobId) ||
@@ -65,14 +67,20 @@ export const OcrDocumentsPage: React.FC = () => {
       );
     }
     if (isReviewView) {
-      return orgOcrJobs.find((j) => j.status === 'NEEDS_REVIEW') || orgOcrJobs[0] || null;
+      return (
+        orgOcrJobs.find((j) => j.status === 'NEEDS_REVIEW') ||
+        orgOcrJobs[0] ||
+        state.ocrJobs.find((j) => j.status === 'NEEDS_REVIEW') ||
+        state.ocrJobs[0] ||
+        null
+      );
     }
     return null;
-  }, [reviewJobId, isReviewView, orgOcrJobs, state.ocrJobs]);
+  }, [hasSpecificId, reviewJobId, isReviewView, orgOcrJobs, state.ocrJobs]);
 
   // If deep-linked by reviewJobId and not found locally, query backend
   useEffect(() => {
-    if (!reviewJobId) {
+    if (!hasSpecificId) {
       setRemoteJob(null);
       setJobNotFound(false);
       setJobError(null);
@@ -410,8 +418,52 @@ export const OcrDocumentsPage: React.FC = () => {
             </section>
           )}
 
-          {/* Genuine 404 Not Found Page */}
-          {!isLoadingJob && !activeReviewJob && (
+          {/* Empty Review Queue State (When on /review with no specific job ID or review queue is clear) */}
+          {!isLoadingJob && !activeReviewJob && !hasSpecificId && (
+            <section className="surface-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: '#f0fdf4',
+                  color: '#16a34a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px auto',
+                }}
+              >
+                <CheckCircle2 size={28} />
+              </div>
+              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase' }}>
+                Review Queue Clear
+              </span>
+              <h2 style={{ margin: '8px 0', fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>
+                No Documents Awaiting Review
+              </h2>
+              <p style={{ margin: '0 auto 20px auto', maxWidth: '480px', fontSize: '0.86rem', color: '#64748b', lineHeight: 1.5 }}>
+                All OCR extractions for <strong>{currentOrg.name}</strong> have been verified, or no documents have been uploaded to the pipeline yet. Upload a tenancy agreement, tenant ID, or payment receipt to begin extraction.
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                <button
+                  type="button"
+                  className="btn-dark"
+                  onClick={() => setIsUploadModalOpen(true)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Upload size={14} />
+                  <span>Upload Document</span>
+                </button>
+                <Link to="/app/ocr-documents/processing-jobs" className="btn-outline" style={{ textDecoration: 'none' }}>
+                  View All Processing Jobs ({orgOcrJobs.length})
+                </Link>
+              </div>
+            </section>
+          )}
+
+          {/* Genuine 404 Not Found Page (ONLY when a specific non-existent job ID was requested) */}
+          {!isLoadingJob && !activeReviewJob && hasSpecificId && (
             <section className="surface-card" style={{ textAlign: 'center', padding: '48px 24px' }}>
               <div
                 style={{
@@ -432,7 +484,7 @@ export const OcrDocumentsPage: React.FC = () => {
                 HTTP 404 — Not Found
               </span>
               <h2 style={{ margin: '8px 0', fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>
-                OCR Job "{reviewJobId || 'unspecified'}" Not Found
+                OCR Job "{reviewJobId}" Not Found
               </h2>
               <p style={{ margin: '0 auto 20px auto', maxWidth: '480px', fontSize: '0.86rem', color: '#64748b' }}>
                 The requested OCR job identifier does not exist in the database, document storage, or background worker queue for <strong>{currentOrg.name}</strong>.
