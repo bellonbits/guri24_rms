@@ -567,128 +567,115 @@ export const FeaturesHubPage: React.FC = () => {
       }}
     >
       {/* =========================================================================
-          SECTION 1: ARCHITECTURAL HERO BANNER
+          SECTION 1: ROUNDED ARCHITECTURAL HERO CARD
           ========================================================================= */}
       <section
         style={{
-          position: 'relative',
-          width: '100%',
-          minHeight: '65vh',
-          backgroundImage: 'url(/modern-organic-balconies.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center 45%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          textAlign: 'center',
-          padding: '100px 32px 80px',
+          maxWidth: '1360px',
+          margin: '12px auto 80px',
+          padding: '0 24px',
           boxSizing: 'border-box',
-          overflow: 'hidden',
         }}
       >
         <div
           style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'linear-gradient(180deg, rgba(2, 20, 41, 0.78) 0%, rgba(2, 20, 41, 0.52) 50%, rgba(2, 20, 41, 0.9) 100%)',
-            zIndex: 1,
-            pointerEvents: 'none',
-          }}
-        />
-
-        <div
-          style={{
-            position: 'absolute',
-            top: '18%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            fontSize: 'clamp(50px, 13vw, 175px)',
-            fontWeight: 900,
-            letterSpacing: '0.12em',
-            color: 'rgba(255, 255, 255, 0.08)',
-            textTransform: 'uppercase',
-            pointerEvents: 'none',
-            zIndex: 1,
-            userSelect: 'none',
-            whiteSpace: 'nowrap',
+            position: 'relative',
+            borderRadius: '32px',
+            overflow: 'hidden',
+            minHeight: '560px',
+            backgroundImage: 'url(/hero-apex-architecture.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center 46%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            padding: '64px 54px',
+            boxSizing: 'border-box',
+            boxShadow: '0 25px 60px -15px rgba(2, 20, 41, 0.25)',
           }}
         >
-          PLATFORM CAPABILITIES
-        </div>
-
-        <div style={{ position: 'relative', zIndex: 10, maxWidth: '840px', margin: '0 auto' }}>
+          {/* Dark Vignette Overlay on the Left for Readability */}
           <div
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 18px',
-              borderRadius: '999px',
-              backgroundColor: 'rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
-              color: '#FFFFFF',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              marginBottom: '20px',
+              position: 'absolute',
+              inset: 0,
+              background:
+                'linear-gradient(90deg, rgba(2, 20, 41, 0.88) 0%, rgba(2, 20, 41, 0.72) 42%, rgba(2, 20, 41, 0.2) 78%, transparent 100%)',
+              zIndex: 1,
+              pointerEvents: 'none',
             }}
-          >
-            <span style={{ color: '#03D8BF' }}>07</span>
-            <span>&bull;</span>
-            <span>MODULE CATALOG</span>
-          </div>
+          />
 
-          <h1
-            style={{
-              fontSize: 'clamp(2.4rem, 4.8vw, 3.8rem)',
-              fontWeight: 900,
-              letterSpacing: '-0.035em',
-              color: '#FFFFFF',
-              lineHeight: 1.12,
-              marginBottom: '20px',
-            }}
-          >
-            Engineered for Authoritative{' '}
-            <span style={{ color: '#B89047' }}>Property Control</span>
-          </h1>
+          <div style={{ position: 'relative', zIndex: 2, maxWidth: '680px' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '4px 14px',
+                borderRadius: '999px',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)',
+                color: '#FFFFFF',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                marginBottom: '16px',
+              }}
+            >
+              <span>07 &bull; MODULE CATALOG</span>
+            </div>
 
-          <p
-            style={{
-              fontSize: 'clamp(1rem, 1.6vw, 1.18rem)',
-              color: 'rgba(255, 255, 255, 0.88)',
-              lineHeight: 1.6,
-              maxWidth: '680px',
-              margin: '0 auto 32px',
-            }}
-          >
-            Explore all 14 core modules designed to eliminate manual paper receipts, spreadsheet errors, and unallocated bank transfers.
-          </p>
+            <h1
+              style={{
+                fontSize: 'clamp(2.4rem, 4.5vw, 4rem)',
+                fontWeight: 900,
+                letterSpacing: '-0.035em',
+                lineHeight: 1.08,
+                color: '#FFFFFF',
+                marginBottom: '18px',
+              }}
+            >
+              Engineered for Authoritative
+              <br />
+              Property Control
+            </h1>
 
-          {/* Category Filter Pills */}
-          <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '8px' }}>
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCat(cat)}
-                style={{
-                  padding: '8px 18px',
-                  borderRadius: '999px',
-                  border: selectedCat === cat ? '1px solid #FFFFFF' : '1px solid rgba(255, 255, 255, 0.25)',
-                  backgroundColor: selectedCat === cat ? '#FFFFFF' : 'rgba(255, 255, 255, 0.12)',
-                  color: selectedCat === cat ? '#021429' : 'rgba(255, 255, 255, 0.88)',
-                  fontWeight: 700,
-                  fontSize: '0.84rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  backdropFilter: 'blur(10px)',
-                }}
-              >
-                {cat}
-              </button>
-            ))}
+            <p
+              style={{
+                fontSize: 'clamp(1rem, 1.6vw, 1.18rem)',
+                color: 'rgba(255, 255, 255, 0.90)',
+                lineHeight: 1.6,
+                marginBottom: '28px',
+                maxWidth: '560px',
+              }}
+            >
+              Explore all 14 core modules designed to eliminate manual paper receipts, spreadsheet errors, and unallocated bank transfers.
+            </p>
+
+            {/* Category Filter Pills */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCat(cat)}
+                  style={{
+                    padding: '8px 18px',
+                    borderRadius: '999px',
+                    border: selectedCat === cat ? '1px solid #FFFFFF' : '1px solid rgba(255, 255, 255, 0.25)',
+                    backgroundColor: selectedCat === cat ? '#FFFFFF' : 'rgba(255, 255, 255, 0.12)',
+                    color: selectedCat === cat ? '#021429' : 'rgba(255, 255, 255, 0.88)',
+                    fontWeight: 700,
+                    fontSize: '0.84rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    backdropFilter: 'blur(10px)',
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>

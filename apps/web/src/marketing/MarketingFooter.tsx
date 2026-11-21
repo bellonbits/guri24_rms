@@ -25,19 +25,20 @@ export const MarketingFooter: React.FC = () => {
         overflow: 'hidden',
         width: '100%',
         boxSizing: 'border-box',
+        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
       }}
     >
       {/* Giant Architectural Background Watermark */}
       <div
         style={{
           position: 'absolute',
-          top: '30px',
+          top: '20px',
           left: '50%',
           transform: 'translateX(-50%)',
-          fontSize: 'clamp(54px, 11vw, 150px)',
+          fontSize: 'clamp(50px, 11vw, 150px)',
           fontWeight: 900,
           letterSpacing: '0.12em',
-          color: 'rgba(255, 255, 255, 0.035)',
+          color: 'rgba(255, 255, 255, 0.025)',
           textTransform: 'uppercase',
           pointerEvents: 'none',
           userSelect: 'none',
@@ -49,154 +50,14 @@ export const MarketingFooter: React.FC = () => {
       </div>
 
       {/* =========================================================================
-          UPPER EXECUTIVE CONSULTATION & CALL-TO-ACTION SECTION
-          ========================================================================= */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 2,
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          padding: '80px 32px',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1280px',
-            margin: '0 auto',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '40px',
-          }}
-        >
-          <div>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '5px 14px',
-                borderRadius: '999px',
-                backgroundColor: 'rgba(3, 216, 191, 0.12)',
-                border: '1px solid rgba(3, 216, 191, 0.3)',
-                color: '#03D8BF',
-                fontSize: '0.80rem',
-                fontWeight: 700,
-                letterSpacing: '0.04em',
-                marginBottom: '16px',
-                textTransform: 'uppercase',
-              }}
-            >
-              <Sparkles size={14} /> Authoritative Real Estate Operations
-            </div>
-            <h2
-              style={{
-                fontSize: 'clamp(2.2rem, 3.8vw, 3.4rem)',
-                fontWeight: 800,
-                letterSpacing: '-0.03em',
-                lineHeight: 1.12,
-                color: '#FFFFFF',
-                margin: 0,
-                maxWidth: '680px',
-              }}
-            >
-              Designing the Property Operations of the Future.
-            </h2>
-            <p
-              style={{
-                fontSize: '1.05rem',
-                color: '#94A3B8',
-                lineHeight: 1.6,
-                marginTop: '16px',
-                maxWidth: '580px',
-              }}
-            >
-              Join 500+ residential estates, property management firms, and commercial landlords across Kenya managing their entire lifecycle with zero manual reconciliation.
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <Link
-              to="/register"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '10px',
-                backgroundColor: '#FFFFFF',
-                color: '#021429',
-                padding: '10px 10px 10px 24px',
-                borderRadius: '999px',
-                fontSize: '0.94rem',
-                fontWeight: 700,
-                textDecoration: 'none',
-                boxShadow: '0 12px 30px rgba(0, 0, 0, 0.25)',
-                transition: 'transform 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            >
-              <span>Start 14-Day Free Trial</span>
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  backgroundColor: '#021429',
-                  color: '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <ArrowUpRight size={17} />
-              </div>
-            </Link>
-
-            <Link
-              to="/contact"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                color: '#FFFFFF',
-                padding: '12px 24px',
-                borderRadius: '999px',
-                fontSize: '0.90rem',
-                fontWeight: 600,
-                border: '1px solid rgba(255, 255, 255, 0.18)',
-                textDecoration: 'none',
-                transition: 'background-color 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
-              }}
-            >
-              <span>Schedule Live Demo</span>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* =========================================================================
           EDITORIAL NAVIGATION & COLUMNS (5-COLUMN LUXURY STRUCTURE)
           ========================================================================= */}
       <div
         style={{
           position: 'relative',
           zIndex: 2,
-          padding: '80px 32px 64px',
-          maxWidth: '1280px',
+          padding: '80px 32px 56px',
+          maxWidth: '1320px',
           margin: '0 auto',
         }}
       >
@@ -304,7 +165,7 @@ export const MarketingFooter: React.FC = () => {
                 { to: '/solutions/landlords', label: 'Independent Landlords' },
                 { to: '/solutions/property-managers', label: 'Property Managers & Agencies' },
                 { to: '/solutions/real-estate-companies', label: 'Real Estate Funds & REITs' },
-                { to: '/solutions/estate-managers', label: 'Gated Communities & HOAs' },
+                { to: '/solutions/gated-communities', label: 'Gated Communities & HOAs' },
                 { to: '/pricing', label: 'Transparent Pricing Tiers' },
                 { to: '/how-it-works', label: 'Platform Workflow' },
               ].map((link, idx) => (
@@ -330,17 +191,16 @@ export const MarketingFooter: React.FC = () => {
           {/* Column 4: Resources & Insights */}
           <div>
             <div style={{ fontSize: '0.80rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '20px' }}>
-              Resources
+              Resources &amp; Insights
             </div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { to: '/resources/guides', label: 'Property Accounting Guides' },
-                { to: '/resources/tutorials', label: 'Video Walkthroughs' },
-                { to: '/resources/blog', label: 'PropTech Industry Insights' },
+                { to: '/resources', label: 'Latest Editorial Publications' },
+                { to: '/about', label: 'About Company & Story' },
                 { to: '/faq', label: 'Frequently Asked Questions' },
-                { to: '/status', label: 'Live System Telemetry' },
-                { to: '/support', label: 'Support Help Desk' },
-                { to: '/sitemap', label: 'Platform Sitemap' },
+                { to: '/status', label: 'Live System Health Status' },
+                { to: '/sitemap', label: 'Platform Sitemap Index' },
+                { to: '/contact', label: 'Direct Advisory Desk' },
               ].map((link, idx) => (
                 <li key={idx}>
                   <Link
@@ -361,109 +221,94 @@ export const MarketingFooter: React.FC = () => {
             </ul>
           </div>
 
-          {/* Column 5: Trust & Governance (KDPA 2019) */}
+          {/* Column 5: Trust, Legal & Contact */}
           <div>
             <div style={{ fontSize: '0.80rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '20px' }}>
-              Trust & Legal
+              Trust &amp; Office
             </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {[
-                { to: '/legal/terms', label: 'Terms & Conditions' },
-                { to: '/legal/privacy', label: 'Privacy Policy (KDPA)' },
-                { to: '/legal/cookies', label: 'Cookie Policy' },
-                { to: '/legal/data-protection', label: 'Data Protection Architecture' },
-                { to: '/legal/acceptable-use', label: 'Acceptable Use Policy' },
-                { to: '/legal/subscription-and-billing', label: 'Subscription & Billing' },
-                { to: '/security', label: 'Security & Row-Level Isolation' },
-                { to: '/accessibility', label: 'Accessibility Statement' },
-              ].map((link, idx) => (
-                <li key={idx}>
-                  <Link
-                    to={link.to}
-                    style={{
-                      color: '#94A3B8',
-                      fontSize: '0.88rem',
-                      textDecoration: 'none',
-                      transition: 'color 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = '#94A3B8')}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <button
-                  type="button"
-                  onClick={triggerCookieSettingsDialog}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                    color: '#03D8BF',
-                    fontSize: '0.88rem',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                  }}
-                >
-                  <Cookie size={14} />
-                  <span>Cookie Settings</span>
-                </button>
-              </li>
-            </ul>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.86rem', color: '#94A3B8', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                <MapPin size={16} style={{ color: '#03D8BF', marginTop: '2px', flexShrink: 0 }} />
+                <span>The Mirage, Tower 2, 7th Fl, Chiromo Rd, Westlands, Nairobi</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <Phone size={16} style={{ color: '#03D8BF', flexShrink: 0 }} />
+                <span>+254 700 000 000</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <Mail size={16} style={{ color: '#03D8BF', flexShrink: 0 }} />
+                <span>advisory@guri24.com</span>
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', color: '#CBD5E1', marginBottom: '8px' }}>
+                <ShieldCheck size={14} style={{ color: '#0057FC' }} />
+                <span>KDPA 2019 Certified Compliant</span>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', fontSize: '0.78rem' }}>
+                <Link to="/legal/privacy" style={{ color: '#64748B', textDecoration: 'none' }}>Privacy</Link>
+                <span style={{ color: '#334155' }}>&bull;</span>
+                <Link to="/legal/terms" style={{ color: '#64748B', textDecoration: 'none' }}>Terms</Link>
+                <span style={{ color: '#334155' }}>&bull;</span>
+                <Link to="/legal/cookies" style={{ color: '#64748B', textDecoration: 'none' }}>Cookies</Link>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* =========================================================================
-          LOWER FOOTER BAR: COPYRIGHT & EXECUTIVE CONTACTS
-          ========================================================================= */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 2,
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          padding: '28px 32px',
-          backgroundColor: '#010E1D',
-        }}
-      >
+        {/* Lower Horizontal Bar */}
         <div
           style={{
-            maxWidth: '1280px',
-            margin: '0 auto',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            marginTop: '56px',
+            paddingTop: '28px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '20px',
-            fontSize: '0.82rem',
+            gap: '16px',
+            fontSize: '0.80rem',
             color: '#64748B',
           }}
         >
           <div>
-            &copy; 2026 Guri24 Rental Management Ltd. All rights reserved.
+            &copy; {new Date().getFullYear()} Guri24 RMS Ltd. All rights reserved. Registered in Kenya.
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#94A3B8' }}>
-              <MapPin size={13} color="#03D8BF" /> Westlands Innovation District, Nairobi, Kenya
-            </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#94A3B8' }}>
-              <Mail size={13} color="#03D8BF" /> support@guri24.com
-            </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#94A3B8' }}>
-              <Phone size={13} color="#03D8BF" /> +254 (0) 700 000 000
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button
+              onClick={() => triggerCookieSettingsDialog()}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#94A3B8',
+                fontSize: '0.80rem',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: 0,
+              }}
+            >
+              <Cookie size={14} />
+              <span>Cookie Settings</span>
+            </button>
+            <span>&bull;</span>
+            <Link to="/security" style={{ color: '#94A3B8', textDecoration: 'none' }}>
+              Security Center
+            </Link>
+            <span>&bull;</span>
+            <Link to="/accessibility" style={{ color: '#94A3B8', textDecoration: 'none' }}>
+              Accessibility
+            </Link>
           </div>
         </div>
       </div>
 
+      {/* Responsive Breakpoint CSS */}
       <style>{`
-        @media (max-width: 900px) {
+        @media (max-width: 960px) {
           .footer-editorial-grid {
             grid-template-columns: 1fr 1fr !important;
             gap: 36px !important;

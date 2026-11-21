@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   Building2,
@@ -30,170 +30,129 @@ export const AboutPage: React.FC = () => {
       }}
     >
       {/* =========================================================================
-          SECTION 1: ARCHITECTURAL HERO BANNER
+          SECTION 1: ROUNDED ARCHITECTURAL HERO CARD
           ========================================================================= */}
       <section
         style={{
-          position: 'relative',
-          width: '100%',
-          minHeight: '70vh',
-          backgroundImage: 'url(/hero-luxury-architecture.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center 45%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          textAlign: 'center',
-          padding: '100px 32px 80px',
+          maxWidth: '1360px',
+          margin: '12px auto 80px',
+          padding: '0 24px',
           boxSizing: 'border-box',
-          overflow: 'hidden',
         }}
       >
-        {/* Dark Vignette Overlay */}
         <div
           style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'linear-gradient(180deg, rgba(2, 20, 41, 0.72) 0%, rgba(2, 20, 41, 0.45) 50%, rgba(2, 20, 41, 0.85) 100%)',
-            zIndex: 1,
-            pointerEvents: 'none',
-          }}
-        />
-
-        {/* Giant Sky Watermark */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '20%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            fontSize: 'clamp(64px, 15vw, 190px)',
-            fontWeight: 900,
-            letterSpacing: '0.12em',
-            color: 'rgba(255, 255, 255, 0.08)',
-            textTransform: 'uppercase',
-            pointerEvents: 'none',
-            zIndex: 1,
-            userSelect: 'none',
-            whiteSpace: 'nowrap',
+            position: 'relative',
+            borderRadius: '32px',
+            overflow: 'hidden',
+            minHeight: '560px',
+            backgroundImage: 'url(/hero-apex-architecture.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center 46%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            padding: '64px 54px',
+            boxSizing: 'border-box',
+            boxShadow: '0 25px 60px -15px rgba(2, 20, 41, 0.25)',
           }}
         >
-          OUR STORY
-        </div>
-
-        {/* Content Wrapper */}
-        <div style={{ position: 'relative', zIndex: 10, maxWidth: '880px', margin: '0 auto' }}>
-          {/* Category Pill */}
+          {/* Subtle Dark Vignette Overlay on the Left for Crystal-Clear Text */}
           <div
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 18px',
-              borderRadius: '999px',
-              backgroundColor: 'rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
-              color: '#FFFFFF',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              marginBottom: '24px',
+              position: 'absolute',
+              inset: 0,
+              background:
+                'linear-gradient(90deg, rgba(2, 20, 41, 0.88) 0%, rgba(2, 20, 41, 0.72) 42%, rgba(2, 20, 41, 0.2) 78%, transparent 100%)',
+              zIndex: 1,
+              pointerEvents: 'none',
             }}
-          >
-            <span style={{ color: '#03D8BF' }}>01</span>
-            <span>&bull;</span>
-            <span>ABOUT GURI24</span>
-          </div>
+          />
 
-          <h1
-            style={{
-              fontSize: 'clamp(2.5rem, 5vw, 4.2rem)',
-              fontWeight: 900,
-              letterSpacing: '-0.035em',
-              color: '#FFFFFF',
-              lineHeight: 1.12,
-              marginBottom: '24px',
-            }}
-          >
-            Engineering The Future of{' '}
-            <span style={{ color: '#B89047' }}>Property Ecosystems</span>
-          </h1>
+          <div style={{ position: 'relative', zIndex: 2, maxWidth: '680px' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '4px 14px',
+                borderRadius: '999px',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)',
+                color: '#FFFFFF',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                marginBottom: '16px',
+              }}
+            >
+              <span>01 &bull; ABOUT GURI24</span>
+            </div>
 
-          <p
-            style={{
-              fontSize: 'clamp(1rem, 1.8vw, 1.25rem)',
-              color: 'rgba(255, 255, 255, 0.88)',
-              lineHeight: 1.65,
-              maxWidth: '720px',
-              margin: '0 auto 36px',
-              fontWeight: 400,
-            }}
-          >
-            Guri24 replaces paper receipts, chaotic WhatsApp spreadsheets, and manual M-Pesa statement reconciliation with an authoritative, enterprise-grade property cloud.
-          </p>
+            <h1
+              style={{
+                fontSize: 'clamp(2.4rem, 4.5vw, 4rem)',
+                fontWeight: 900,
+                letterSpacing: '-0.035em',
+                lineHeight: 1.08,
+                color: '#FFFFFF',
+                marginBottom: '18px',
+              }}
+            >
+              Engineering Spaces
+              <br />
+              That Inspire &amp; Endure
+            </h1>
 
-          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <p
+              style={{
+                fontSize: 'clamp(1rem, 1.6vw, 1.18rem)',
+                color: 'rgba(255, 255, 255, 0.90)',
+                lineHeight: 1.6,
+                marginBottom: '28px',
+                maxWidth: '560px',
+              }}
+            >
+              Guri24 replaces paper receipts, chaotic WhatsApp spreadsheets, and manual M-Pesa statement reconciliation with an authoritative, enterprise-grade property cloud.
+            </p>
+
             <Link
               to="/contact?type=consultation"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '8px',
-                backgroundColor: '#FFFFFF',
-                color: '#021429',
-                padding: '12px 28px',
-                borderRadius: '999px',
-                fontSize: '0.92rem',
-                fontWeight: 700,
-                textDecoration: 'none',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-              }}
-            >
-              <span>Book Executive Demo</span>
-              <ArrowUpRight size={16} />
-            </Link>
-            <Link
-              to="/features"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                gap: '10px',
+                backgroundColor: '#021429',
                 color: '#FFFFFF',
                 padding: '12px 28px',
                 borderRadius: '999px',
-                fontSize: '0.92rem',
-                fontWeight: 600,
+                fontSize: '0.90rem',
+                fontWeight: 700,
                 textDecoration: 'none',
-                backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(255, 255, 255, 0.25)',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
               }}
             >
-              <span>Explore Platform</span>
+              <span>Schedule a Free Consultation</span>
+              <ArrowUpRight size={16} />
             </Link>
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          SECTION 2: "WHO WE ARE" & ASYMMETRIC STORY GRID
+          SECTION 2: "ABOUT COMPANY" & 4 KEY STATS
           ========================================================================= */}
       <section
         style={{
-          padding: '96px 48px',
-          backgroundColor: '#FFFFFF',
-          borderBottom: '1px solid #F1F5F9',
-          width: '100%',
+          maxWidth: '1320px',
+          margin: '0 auto 96px',
+          padding: '0 32px',
           boxSizing: 'border-box',
         }}
       >
         <div
           style={{
-            maxWidth: '1320px',
-            margin: '0 auto',
             display: 'grid',
             gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 1fr)',
             gap: '64px',
@@ -201,159 +160,98 @@ export const AboutPage: React.FC = () => {
           }}
           className="editorial-about-grid"
         >
-          {/* Left Column: Heading & Mission */}
           <div>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '4px 14px',
-                borderRadius: '999px',
-                border: '1px solid #CBD5E1',
-                fontSize: '0.78rem',
-                fontWeight: 600,
-                color: '#475569',
-                marginBottom: '20px',
-              }}
-            >
-              <span>01</span>
-              <span>-</span>
-              <span>our foundation</span>
-            </div>
-
             <h2
               style={{
-                fontSize: 'clamp(2.4rem, 4.2vw, 3.8rem)',
+                fontSize: 'clamp(2rem, 3.4vw, 2.8rem)',
                 fontWeight: 900,
-                letterSpacing: '-0.035em',
-                lineHeight: 1.08,
                 color: '#021429',
-                margin: '0 0 24px',
+                letterSpacing: '-0.03em',
+                marginBottom: '16px',
+                lineHeight: 1.15,
               }}
             >
-              WHO <span style={{ color: '#B89047' }}>WE ARE</span>
+              About Company
             </h2>
 
             <p
               style={{
-                fontSize: '1.18rem',
+                fontSize: '1.08rem',
                 lineHeight: 1.65,
                 color: '#1E293B',
                 fontWeight: 500,
-                marginBottom: '20px',
+                marginBottom: '16px',
               }}
             >
               We are a forward-thinking technology team creating unique property management architectures that blend modern software design, double-entry financial discipline, and automated banking reconciliation together.
             </p>
 
-            <p style={{ color: '#64748B', lineHeight: 1.7, fontSize: '0.98rem', marginBottom: '28px' }}>
-              For decades, property management across Kenya has operated on manual friction: tenants paying via disparate Paybills, caretakers scribbling receipts in duplicate books, bank statements arriving weeks after month-end, and landlords left guessing their actual Net Operating Income.
+            <p style={{ color: '#64748B', lineHeight: 1.65, fontSize: '0.96rem', marginBottom: '32px' }}>
+              Built with memory-safe Rust services and automated banking connectors, Guri24 guarantees that every shilling billed matches an immutable general ledger entry.
             </p>
 
-            <p style={{ color: '#64748B', lineHeight: 1.7, fontSize: '0.98rem', marginBottom: '36px' }}>
-              We engineered Guri24 RMS to solve this fundamentally. Built with memory-safe Rust services and automated banking connectors, Guri24 guarantees that every shilling billed matches an immutable general ledger entry.
-            </p>
-
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <Link
-                to="/contact"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '10px 24px',
-                  borderRadius: '999px',
-                  border: '1px solid #021429',
-                  backgroundColor: '#021429',
-                  color: '#FFFFFF',
-                  fontWeight: 700,
-                  fontSize: '0.88rem',
-                  textDecoration: 'none',
-                }}
-              >
-                <span>Consultation</span>
-                <ArrowUpRight size={15} />
-              </Link>
-              <Link
-                to="/pricing"
-                style={{
-                  fontSize: '0.88rem',
-                  fontWeight: 600,
-                  color: '#0057FC',
-                  textDecoration: 'none',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                <span>View tier pricing</span>
-                <ArrowRight size={14} />
-              </Link>
-            </div>
+            <Link
+              to="/contact"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 24px',
+                borderRadius: '999px',
+                backgroundColor: '#021429',
+                color: '#FFFFFF',
+                fontWeight: 700,
+                fontSize: '0.88rem',
+                textDecoration: 'none',
+              }}
+            >
+              <span>Consultation</span>
+              <ArrowUpRight size={15} />
+            </Link>
           </div>
 
-          {/* Right Column: High-End Asymmetric Architectural Photo Card */}
+          {/* 4 Stats Grid */}
           <div
             style={{
-              position: 'relative',
-              borderRadius: '28px',
-              overflow: 'hidden',
-              backgroundColor: '#021429',
-              boxShadow: '0 25px 60px -15px rgba(2, 20, 41, 0.25)',
-              minHeight: '480px',
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '36px 28px',
             }}
+            className="metrics-row-grid"
           >
-            <img
-              src="/modern-organic-balconies.jpg"
-              alt="Organic curved modern architecture"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block',
-              }}
-            />
-            {/* Detail Lens Floating Overlay */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '24px',
-                right: '24px',
-                backgroundColor: 'rgba(255, 255, 255, 0.22)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                border: '1px solid rgba(255, 255, 255, 0.35)',
-                color: '#FFFFFF',
-                padding: '6px 14px',
-                borderRadius: '999px',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
-            >
-              <span>Westlands HQ</span>
-              <ArrowUpRight size={14} />
+            <div>
+              <div style={{ fontSize: 'clamp(2.4rem, 3.8vw, 3.2rem)', fontWeight: 900, color: '#021429', letterSpacing: '-0.035em', lineHeight: 1, marginBottom: '6px' }}>
+                25+
+              </div>
+              <div style={{ fontSize: '0.84rem', color: '#64748B', fontWeight: 500 }}>
+                Years of Excellence in Architecture &amp; Real Estate
+              </div>
             </div>
 
-            <div
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                padding: '28px',
-                background: 'linear-gradient(0deg, rgba(2,20,41,0.85) 0%, transparent 100%)',
-                color: '#FFFFFF',
-              }}
-            >
-              <div style={{ fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#03D8BF', fontWeight: 700, marginBottom: '4px' }}>
-                Architecture &bull; Technology
+            <div>
+              <div style={{ fontSize: 'clamp(2.4rem, 3.8vw, 3.2rem)', fontWeight: 900, color: '#021429', letterSpacing: '-0.035em', lineHeight: 1, marginBottom: '6px' }}>
+                500+
               </div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>
-                High-Performance Real Estate Infrastructure
+              <div style={{ fontSize: '0.84rem', color: '#64748B', fontWeight: 500 }}>
+                Estates &amp; Portfolios Successfully Managed
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 'clamp(2.4rem, 3.8vw, 3.2rem)', fontWeight: 900, color: '#021429', letterSpacing: '-0.035em', lineHeight: 1, marginBottom: '6px' }}>
+                98%
+              </div>
+              <div style={{ fontSize: '0.84rem', color: '#64748B', fontWeight: 500 }}>
+                Client &amp; Landlord Retention Rate
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 'clamp(2.4rem, 3.8vw, 3.2rem)', fontWeight: 900, color: '#021429', letterSpacing: '-0.035em', lineHeight: 1, marginBottom: '6px' }}>
+                15+
+              </div>
+              <div style={{ fontSize: '0.84rem', color: '#64748B', fontWeight: 500 }}>
+                Counties with Active Residential Estates
               </div>
             </div>
           </div>
@@ -361,93 +259,19 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* =========================================================================
-          SECTION 3: KEY METRICS BAR
+          SECTION 3: CORE ENGINEERING PRINCIPLES
           ========================================================================= */}
       <section
         style={{
-          padding: '64px 48px',
-          backgroundColor: '#FFFFFF',
-          borderBottom: '1px solid #F1F5F9',
-          width: '100%',
-          boxSizing: 'border-box',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1320px',
-            margin: '0 auto',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '32px',
-            textAlign: 'left',
-          }}
-          className="metrics-row-grid"
-        >
-          <div>
-            <div style={{ fontSize: 'clamp(2.4rem, 3.8vw, 3.2rem)', fontWeight: 800, color: '#021429', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-              300+
-            </div>
-            <div style={{ fontSize: '0.84rem', color: '#64748B', fontWeight: 500, marginTop: '6px' }}>
-              Satisfied Client Portfolios
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: 'clamp(2.4rem, 3.8vw, 3.2rem)', fontWeight: 800, color: '#021429', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-              620+
-            </div>
-            <div style={{ fontSize: '0.84rem', color: '#64748B', fontWeight: 500, marginTop: '6px' }}>
-              Estates &amp; Buildings Managed
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: 'clamp(2.4rem, 3.8vw, 3.2rem)', fontWeight: 800, color: '#021429', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-              100%
-            </div>
-            <div style={{ fontSize: '0.84rem', color: '#64748B', fontWeight: 500, marginTop: '6px' }}>
-              Double-Entry Ledger Invariance
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: 'clamp(2.4rem, 3.8vw, 3.2rem)', fontWeight: 800, color: '#021429', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-              KDPA
-            </div>
-            <div style={{ fontSize: '0.84rem', color: '#64748B', fontWeight: 500, marginTop: '6px' }}>
-              Kenya Data Protection Certified
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 4: CORE ENGINEERING PRINCIPLES
-          ========================================================================= */}
-      <section
-        style={{
-          padding: '88px 48px',
+          padding: '88px 32px 100px',
           backgroundColor: '#FAFBFD',
-          borderBottom: '1px solid #F1F5F9',
+          borderTop: '1px solid #F1F5F9',
           width: '100%',
           boxSizing: 'border-box',
         }}
       >
         <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 60px' }}>
-            <div
-              style={{
-                display: 'inline-flex',
-                padding: '4px 14px',
-                borderRadius: '999px',
-                border: '1px solid #CBD5E1',
-                fontSize: '0.78rem',
-                fontWeight: 600,
-                color: '#475569',
-                marginBottom: '16px',
-              }}
-            >
-              <span>02</span>
-              <span>-</span>
-              <span>engineering discipline</span>
-            </div>
+          <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 60px' }}>
             <h2
               style={{
                 fontSize: 'clamp(2.2rem, 3.6vw, 3rem)',
@@ -534,100 +358,6 @@ export const AboutPage: React.FC = () => {
                 </div>
               );
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 5: CLOSING CONSULTATION BANNER
-          ========================================================================= */}
-      <section
-        style={{
-          padding: '80px 32px 100px',
-          backgroundColor: '#FFFFFF',
-          width: '100%',
-          boxSizing: 'border-box',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1320px',
-            margin: '0 auto',
-            borderRadius: '28px',
-            backgroundColor: '#021429',
-            padding: '72px 48px',
-            textAlign: 'center',
-            color: '#FFFFFF',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              top: '-40%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '600px',
-              height: '300px',
-              background: 'radial-gradient(circle, rgba(0, 87, 252, 0.35) 0%, transparent 70%)',
-              pointerEvents: 'none',
-            }}
-          />
-          <div style={{ position: 'relative', zIndex: 1, maxWidth: '640px', margin: '0 auto' }}>
-            <h2
-              style={{
-                fontSize: 'clamp(2rem, 3.5vw, 2.8rem)',
-                fontWeight: 900,
-                letterSpacing: '-0.03em',
-                marginBottom: '16px',
-                lineHeight: 1.15,
-              }}
-            >
-              Partner with the Property Cloud Built for Scale
-            </h2>
-            <p style={{ fontSize: '1rem', color: '#94A3B8', lineHeight: 1.6, marginBottom: '32px' }}>
-              Schedule a personalized walkthrough with our senior property technology architects today.
-            </p>
-            <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link
-                to="/register"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  backgroundColor: '#0057FC',
-                  color: '#FFFFFF',
-                  padding: '12px 28px',
-                  borderRadius: '999px',
-                  fontSize: '0.94rem',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                }}
-              >
-                <span>Start Free Trial</span>
-                <ArrowRight size={16} />
-              </Link>
-              <Link
-                to="/contact?type=consultation"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  color: '#FFFFFF',
-                  padding: '12px 28px',
-                  borderRadius: '999px',
-                  fontSize: '0.94rem',
-                  fontWeight: 600,
-                  border: '1px solid rgba(255, 255, 255, 0.25)',
-                  textDecoration: 'none',
-                }}
-              >
-                <span>Book Consultation</span>
-                <ArrowUpRight size={16} />
-              </Link>
-            </div>
           </div>
         </div>
       </section>

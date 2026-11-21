@@ -119,166 +119,153 @@ export const PricingPage: React.FC = () => {
       }}
     >
       {/* =========================================================================
-          SECTION 1: ARCHITECTURAL HERO BANNER
+          SECTION 1: ROUNDED ARCHITECTURAL HERO CARD
           ========================================================================= */}
       <section
         style={{
-          position: 'relative',
-          width: '100%',
-          minHeight: '65vh',
-          backgroundImage: 'url(/luxury-pool-villa.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center 40%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          textAlign: 'center',
-          padding: '100px 32px 80px',
+          maxWidth: '1360px',
+          margin: '12px auto 80px',
+          padding: '0 24px',
           boxSizing: 'border-box',
-          overflow: 'hidden',
         }}
       >
         <div
           style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'linear-gradient(180deg, rgba(2, 20, 41, 0.75) 0%, rgba(2, 20, 41, 0.5) 50%, rgba(2, 20, 41, 0.88) 100%)',
-            zIndex: 1,
-            pointerEvents: 'none',
-          }}
-        />
-
-        <div
-          style={{
-            position: 'absolute',
-            top: '18%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            fontSize: 'clamp(54px, 14vw, 175px)',
-            fontWeight: 900,
-            letterSpacing: '0.12em',
-            color: 'rgba(255, 255, 255, 0.08)',
-            textTransform: 'uppercase',
-            pointerEvents: 'none',
-            zIndex: 1,
-            userSelect: 'none',
-            whiteSpace: 'nowrap',
+            position: 'relative',
+            borderRadius: '32px',
+            overflow: 'hidden',
+            minHeight: '560px',
+            backgroundImage: 'url(/hero-apex-architecture.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center 46%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            padding: '64px 54px',
+            boxSizing: 'border-box',
+            boxShadow: '0 25px 60px -15px rgba(2, 20, 41, 0.25)',
           }}
         >
-          CAPITAL ARCHITECTURE
-        </div>
-
-        <div style={{ position: 'relative', zIndex: 10, maxWidth: '840px', margin: '0 auto' }}>
+          {/* Dark Vignette Overlay on the Left for Readability */}
           <div
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 18px',
-              borderRadius: '999px',
-              backgroundColor: 'rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
-              color: '#FFFFFF',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              marginBottom: '20px',
+              position: 'absolute',
+              inset: 0,
+              background:
+                'linear-gradient(90deg, rgba(2, 20, 41, 0.88) 0%, rgba(2, 20, 41, 0.72) 42%, rgba(2, 20, 41, 0.2) 78%, transparent 100%)',
+              zIndex: 1,
+              pointerEvents: 'none',
             }}
-          >
-            <span style={{ color: '#03D8BF' }}>02</span>
-            <span>&bull;</span>
-            <span>TIER ARCHITECTURE</span>
-          </div>
+          />
 
-          <h1
-            style={{
-              fontSize: 'clamp(2.4rem, 4.8vw, 3.8rem)',
-              fontWeight: 900,
-              letterSpacing: '-0.035em',
-              color: '#FFFFFF',
-              lineHeight: 1.12,
-              marginBottom: '20px',
-            }}
-          >
-            Predictable Pricing for{' '}
-            <span style={{ color: '#B89047' }}>Property Leaders</span>
-          </h1>
-
-          <p
-            style={{
-              fontSize: 'clamp(1rem, 1.6vw, 1.2rem)',
-              color: 'rgba(255, 255, 255, 0.88)',
-              lineHeight: 1.6,
-              maxWidth: '680px',
-              margin: '0 auto 32px',
-            }}
-          >
-            Invest in financial precision. All subscriptions include double-entry ledger invariance, real-time M-Pesa IPN reconciliation, and KDPA 2019 compliance.
-          </p>
-
-          {/* Billing Cycle Pill Toggle */}
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              backgroundColor: 'rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(14px)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
-              borderRadius: '999px',
-              padding: '5px',
-            }}
-          >
-            <button
-              onClick={() => setBillingCycle('annual')}
+          <div style={{ position: 'relative', zIndex: 2, maxWidth: '680px' }}>
+            <div
               style={{
-                padding: '8px 20px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '4px 14px',
                 borderRadius: '999px',
-                border: 'none',
-                backgroundColor: billingCycle === 'annual' ? '#FFFFFF' : 'transparent',
-                color: billingCycle === 'annual' ? '#021429' : 'rgba(255, 255, 255, 0.88)',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)',
+                color: '#FFFFFF',
+                fontSize: '0.78rem',
                 fontWeight: 700,
-                fontSize: '0.86rem',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                display: 'flex',
+                letterSpacing: '0.04em',
+                marginBottom: '16px',
+              }}
+            >
+              <span>02 &bull; TIER ARCHITECTURE</span>
+            </div>
+
+            <h1
+              style={{
+                fontSize: 'clamp(2.4rem, 4.5vw, 4rem)',
+                fontWeight: 900,
+                letterSpacing: '-0.035em',
+                lineHeight: 1.08,
+                color: '#FFFFFF',
+                marginBottom: '18px',
+              }}
+            >
+              Predictable Pricing
+              <br />
+              for Property Leaders
+            </h1>
+
+            <p
+              style={{
+                fontSize: 'clamp(1rem, 1.6vw, 1.18rem)',
+                color: 'rgba(255, 255, 255, 0.90)',
+                lineHeight: 1.6,
+                marginBottom: '28px',
+                maxWidth: '560px',
+              }}
+            >
+              Invest in financial precision. All subscriptions include double-entry ledger invariance, real-time M-Pesa IPN reconciliation, and KDPA 2019 compliance.
+            </p>
+
+            {/* Billing Cycle Pill Toggle */}
+            <div
+              style={{
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(14px)',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                borderRadius: '999px',
+                padding: '5px',
               }}
             >
-              <span>Annual Billing</span>
-              <span
+              <button
+                onClick={() => setBillingCycle('annual')}
                 style={{
-                  fontSize: '0.72rem',
-                  backgroundColor: '#03D8BF',
-                  color: '#021429',
-                  padding: '2px 8px',
+                  padding: '8px 20px',
                   borderRadius: '999px',
-                  fontWeight: 800,
+                  border: 'none',
+                  backgroundColor: billingCycle === 'annual' ? '#FFFFFF' : 'transparent',
+                  color: billingCycle === 'annual' ? '#021429' : 'rgba(255, 255, 255, 0.88)',
+                  fontWeight: 700,
+                  fontSize: '0.86rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
                 }}
               >
-                SAVE 20%
-              </span>
-            </button>
-            <button
-              onClick={() => setBillingCycle('monthly')}
-              style={{
-                padding: '8px 20px',
-                borderRadius: '999px',
-                border: 'none',
-                backgroundColor: billingCycle === 'monthly' ? '#FFFFFF' : 'transparent',
-                color: billingCycle === 'monthly' ? '#021429' : 'rgba(255, 255, 255, 0.88)',
-                fontWeight: 700,
-                fontSize: '0.86rem',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              Monthly Billing
-            </button>
+                <span>Annual Billing</span>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    backgroundColor: '#03D8BF',
+                    color: '#021429',
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    fontWeight: 800,
+                  }}
+                >
+                  SAVE 20%
+                </span>
+              </button>
+              <button
+                onClick={() => setBillingCycle('monthly')}
+                style={{
+                  padding: '8px 20px',
+                  borderRadius: '999px',
+                  border: 'none',
+                  backgroundColor: billingCycle === 'monthly' ? '#FFFFFF' : 'transparent',
+                  color: billingCycle === 'monthly' ? '#021429' : 'rgba(255, 255, 255, 0.88)',
+                  fontWeight: 700,
+                  fontSize: '0.86rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                Monthly Billing
+              </button>
+            </div>
           </div>
         </div>
       </section>

@@ -17,7 +17,7 @@ export const MarketingNavbar: React.FC = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 15);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -29,8 +29,7 @@ export const MarketingNavbar: React.FC = () => {
   }, [location.pathname]);
 
   const navLinks = [
-    { to: '/', label: 'Home' },
-    { to: '/about', label: 'About us' },
+    { to: '/about', label: 'About Us' },
     { to: '/features', label: 'Features' },
     { to: '/solutions', label: 'Solutions' },
     { to: '/how-it-works', label: 'How it works' },
@@ -43,37 +42,33 @@ export const MarketingNavbar: React.FC = () => {
     <header
       style={{
         position: 'sticky',
-        top: '16px',
+        top: 0,
         left: 0,
         right: 0,
-        margin: '0 auto',
-        maxWidth: '1360px',
-        width: 'calc(100% - 32px)',
         zIndex: 100,
-        backgroundColor: scrolled ? 'rgba(2, 20, 41, 0.94)' : 'rgba(2, 20, 41, 0.88)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderRadius: '999px',
-        border: '1px solid rgba(255, 255, 255, 0.18)',
-        boxShadow: scrolled
-          ? '0 20px 45px -10px rgba(2, 20, 41, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1)'
-          : '0 12px 32px rgba(2, 20, 41, 0.25)',
-        transition: 'all 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+        width: '100%',
+        backgroundColor: scrolled ? 'rgba(255, 255, 255, 0.96)' : '#FFFFFF',
+        backdropFilter: scrolled ? 'blur(16px)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'blur(16px)' : 'none',
+        borderBottom: scrolled ? '1px solid #E2E8F0' : '1px solid transparent',
+        transition: 'all 200ms ease',
         fontFamily: BRAND_TOKENS.fonts.sans,
-        padding: '8px 18px',
+        padding: '18px 32px',
         boxSizing: 'border-box',
       }}
     >
       <div
         style={{
+          maxWidth: '1360px',
+          margin: '0 auto',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          gap: '24px',
           width: '100%',
-          gap: '16px',
         }}
       >
-        {/* Left: Brand Logo */}
+        {/* Left: Brand Wordmark (matches Apex Arc reference) */}
         <Link
           to="/"
           style={{
@@ -81,124 +76,96 @@ export const MarketingNavbar: React.FC = () => {
             alignItems: 'center',
             gap: '10px',
             textDecoration: 'none',
-            color: '#FFFFFF',
+            color: '#021429',
           }}
         >
           <div
             style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '10px',
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              width: '34px',
+              height: '34px',
+              borderRadius: '9px',
+              backgroundColor: '#021429',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              boxShadow: '0 4px 10px rgba(2, 20, 41, 0.15)',
             }}
           >
             <img
               src="/logo.png"
               alt="Guri24"
-              style={{ width: '22px', height: '22px', objectFit: 'contain' }}
+              style={{ width: '20px', height: '20px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
               }}
             />
           </div>
-          <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#FFFFFF' }}>
-            Guri<span style={{ color: '#03D8BF' }}>24</span>
+          <span
+            style={{
+              fontSize: '1.35rem',
+              fontWeight: 800,
+              letterSpacing: '-0.03em',
+              color: '#021429',
+            }}
+          >
+            Guri<span style={{ color: '#0057FC' }}>24</span>
           </span>
         </Link>
 
-        {/* Center: Desktop Frosted Pill Navigation */}
+        {/* Right: Clean Minimal Navigation Links (matches reference) */}
         <nav
-          aria-label="Marketing Navigation"
+          aria-label="Desktop Navigation"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '4px',
-            backgroundColor: 'rgba(255, 255, 255, 0.12)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            padding: '4px 6px',
-            borderRadius: '999px',
+            gap: '32px',
           }}
-          className="desktop-pill-nav"
+          className="desktop-clean-nav"
         >
           {navLinks.map((item, idx) => {
-            const isActive =
-              item.to === '/'
-                ? location.pathname === '/' || location.pathname === '/home'
-                : location.pathname.startsWith(item.to);
+            const isActive = location.pathname.startsWith(item.to);
 
             return (
               <Link
                 key={idx}
                 to={item.to}
                 style={{
-                  padding: '6px 14px',
-                  borderRadius: '999px',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
+                  fontSize: '0.90rem',
+                  fontWeight: isActive ? 700 : 500,
                   textDecoration: 'none',
-                  color: isActive ? '#021429' : 'rgba(255, 255, 255, 0.88)',
-                  backgroundColor: isActive ? '#FFFFFF' : 'transparent',
-                  boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.14)' : 'none',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap',
+                  color: isActive ? '#021429' : '#475569',
+                  transition: 'color 0.2s ease',
+                  borderBottom: isActive ? '2px solid #021429' : '2px solid transparent',
+                  paddingBottom: '2px',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) e.currentTarget.style.color = '#021429';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) e.currentTarget.style.color = '#475569';
                 }}
               >
                 {item.label}
               </Link>
             );
           })}
-        </nav>
 
-        {/* Right: Social Indicators & Primary Consultation Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Social Badges */}
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }} className="hero-socials">
-            {['f', 'ig', 'x'].map((social, i) => (
-              <div
-                key={i}
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.14)',
-                  backdropFilter: 'blur(8px)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  color: '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.68rem',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                }}
-              >
-                {social}
-              </div>
-            ))}
-          </div>
-
-          {/* Consultation Pill Button */}
+          {/* Action CTA Pill */}
           <Link
             to="/contact?type=consultation"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              backgroundColor: '#FFFFFF',
-              color: '#021429',
-              padding: '6px 16px',
+              backgroundColor: '#021429',
+              color: '#FFFFFF',
+              padding: '9px 20px',
               borderRadius: '999px',
-              fontSize: '0.84rem',
+              fontSize: '0.86rem',
               fontWeight: 700,
               textDecoration: 'none',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
-              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 14px rgba(2, 20, 41, 0.18)',
+              transition: 'transform 0.2s ease',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-1px)';
@@ -208,74 +175,43 @@ export const MarketingNavbar: React.FC = () => {
             }}
           >
             <span>Consultation</span>
-            <div
-              style={{
-                width: '22px',
-                height: '22px',
-                borderRadius: '50%',
-                backgroundColor: '#021429',
-                color: '#FFFFFF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <ArrowUpRight size={13} />
-            </div>
+            <ArrowUpRight size={14} />
           </Link>
+        </nav>
 
-          {/* Login Link */}
-          <Link
-            to="/login"
-            style={{
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              color: 'rgba(255, 255, 255, 0.9)',
-              textDecoration: 'none',
-              padding: '6px 12px',
-            }}
-            className="navbar-login-link"
-          >
-            Sign in
-          </Link>
-
-          {/* Mobile Hamburger Button */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen((prev) => !prev)}
-            style={{
-              display: 'none',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(255, 255, 255, 0.15)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
-              color: '#FFFFFF',
-              cursor: 'pointer',
-            }}
-            className="mobile-hamburger-btn"
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
+        {/* Mobile Hamburger Button */}
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen((prev) => !prev)}
+          style={{
+            display: 'none',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'none',
+            border: 'none',
+            color: '#021429',
+            padding: '6px',
+            cursor: 'pointer',
+          }}
+          className="mobile-hamburger-btn"
+          aria-label="Toggle navigation menu"
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
         <div
           style={{
             marginTop: '16px',
-            backgroundColor: '#021429',
-            borderRadius: '20px',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            padding: '20px',
+            backgroundColor: '#FFFFFF',
+            borderTop: '1px solid #E2E8F0',
+            padding: '24px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+            gap: '16px',
+            boxShadow: '0 20px 30px rgba(0,0,0,0.08)',
           }}
         >
           {navLinks.map((item, idx) => (
@@ -283,44 +219,42 @@ export const MarketingNavbar: React.FC = () => {
               key={idx}
               to={item.to}
               style={{
-                fontSize: '0.95rem',
+                fontSize: '1rem',
                 fontWeight: 600,
-                color: '#FFFFFF',
+                color: '#021429',
                 textDecoration: 'none',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                backgroundColor: location.pathname === item.to ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
+                padding: '6px 0',
               }}
             >
               {item.label}
             </Link>
           ))}
-          <div style={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.12)', margin: '4px 0' }} />
+          <div style={{ height: '1px', backgroundColor: '#E2E8F0', margin: '4px 0' }} />
           <Link
-            to="/register"
+            to="/contact?type=consultation"
             style={{
-              backgroundColor: '#0057FC',
+              backgroundColor: '#021429',
               color: '#FFFFFF',
               textAlign: 'center',
-              padding: '10px',
+              padding: '12px',
               borderRadius: '999px',
               fontWeight: 700,
-              fontSize: '0.88rem',
+              fontSize: '0.90rem',
               textDecoration: 'none',
             }}
           >
-            Start Free Trial
+            Schedule a Free Consultation
           </Link>
           <Link
             to="/login"
             style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              color: '#FFFFFF',
+              backgroundColor: '#F1F5F9',
+              color: '#021429',
               textAlign: 'center',
-              padding: '10px',
+              padding: '12px',
               borderRadius: '999px',
               fontWeight: 600,
-              fontSize: '0.88rem',
+              fontSize: '0.90rem',
               textDecoration: 'none',
             }}
           >
@@ -331,14 +265,8 @@ export const MarketingNavbar: React.FC = () => {
 
       {/* Responsive Breakpoint CSS */}
       <style>{`
-        @media (max-width: 980px) {
-          .desktop-pill-nav {
-            display: none !important;
-          }
-          .hero-socials {
-            display: none !important;
-          }
-          .navbar-login-link {
+        @media (max-width: 900px) {
+          .desktop-clean-nav {
             display: none !important;
           }
           .mobile-hamburger-btn {

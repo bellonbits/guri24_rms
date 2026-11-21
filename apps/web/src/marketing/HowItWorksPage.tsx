@@ -61,120 +61,107 @@ export const HowItWorksPage: React.FC = () => {
       }}
     >
       {/* =========================================================================
-          SECTION 1: ARCHITECTURAL HERO BANNER
+          SECTION 1: ROUNDED ARCHITECTURAL HERO CARD
           ========================================================================= */}
       <section
         style={{
-          position: 'relative',
-          width: '100%',
-          minHeight: '65vh',
-          backgroundImage: 'url(/hero-luxury-architecture.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center 45%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          textAlign: 'center',
-          padding: '100px 32px 80px',
+          maxWidth: '1360px',
+          margin: '12px auto 80px',
+          padding: '0 24px',
           boxSizing: 'border-box',
-          overflow: 'hidden',
         }}
       >
         <div
           style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'linear-gradient(180deg, rgba(2, 20, 41, 0.75) 0%, rgba(2, 20, 41, 0.5) 50%, rgba(2, 20, 41, 0.88) 100%)',
-            zIndex: 1,
-            pointerEvents: 'none',
-          }}
-        />
-
-        <div
-          style={{
-            position: 'absolute',
-            top: '18%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            fontSize: 'clamp(50px, 13vw, 175px)',
-            fontWeight: 900,
-            letterSpacing: '0.12em',
-            color: 'rgba(255, 255, 255, 0.08)',
-            textTransform: 'uppercase',
-            pointerEvents: 'none',
-            zIndex: 1,
-            userSelect: 'none',
-            whiteSpace: 'nowrap',
+            position: 'relative',
+            borderRadius: '32px',
+            overflow: 'hidden',
+            minHeight: '560px',
+            backgroundImage: 'url(/hero-apex-architecture.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center 46%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            padding: '64px 54px',
+            boxSizing: 'border-box',
+            boxShadow: '0 25px 60px -15px rgba(2, 20, 41, 0.25)',
           }}
         >
-          LIFECYCLE WORKFLOW
-        </div>
-
-        <div style={{ position: 'relative', zIndex: 10, maxWidth: '840px', margin: '0 auto' }}>
+          {/* Dark Vignette Overlay on the Left for Readability */}
           <div
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 18px',
-              borderRadius: '999px',
-              backgroundColor: 'rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
-              color: '#FFFFFF',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              marginBottom: '20px',
+              position: 'absolute',
+              inset: 0,
+              background:
+                'linear-gradient(90deg, rgba(2, 20, 41, 0.88) 0%, rgba(2, 20, 41, 0.72) 42%, rgba(2, 20, 41, 0.2) 78%, transparent 100%)',
+              zIndex: 1,
+              pointerEvents: 'none',
             }}
-          >
-            <span style={{ color: '#03D8BF' }}>04</span>
-            <span>&bull;</span>
-            <span>SYSTEM ARCHITECTURE</span>
-          </div>
+          />
 
-          <h1
-            style={{
-              fontSize: 'clamp(2.4rem, 4.8vw, 3.8rem)',
-              fontWeight: 900,
-              letterSpacing: '-0.035em',
-              color: '#FFFFFF',
-              lineHeight: 1.12,
-              marginBottom: '20px',
-            }}
-          >
-            How Guri24 Automates{' '}
-            <span style={{ color: '#B89047' }}>Property Portfolios</span>
-          </h1>
+          <div style={{ position: 'relative', zIndex: 2, maxWidth: '680px' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '4px 14px',
+                borderRadius: '999px',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)',
+                color: '#FFFFFF',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                marginBottom: '16px',
+              }}
+            >
+              <span>04 &bull; SYSTEM ARCHITECTURE</span>
+            </div>
 
-          <p
-            style={{
-              fontSize: 'clamp(1rem, 1.6vw, 1.2rem)',
-              color: 'rgba(255, 255, 255, 0.88)',
-              lineHeight: 1.6,
-              maxWidth: '680px',
-              margin: '0 auto 32px',
-            }}
-          >
-            From your first day of organizational setup to closing your monthly double-entry ledger, discover how our automated engine eliminates operational friction.
-          </p>
+            <h1
+              style={{
+                fontSize: 'clamp(2.4rem, 4.5vw, 4rem)',
+                fontWeight: 900,
+                letterSpacing: '-0.035em',
+                lineHeight: 1.08,
+                color: '#FFFFFF',
+                marginBottom: '18px',
+              }}
+            >
+              How Guri24 Automates
+              <br />
+              Property Portfolios
+            </h1>
 
-          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center' }}>
+            <p
+              style={{
+                fontSize: 'clamp(1rem, 1.6vw, 1.18rem)',
+                color: 'rgba(255, 255, 255, 0.90)',
+                lineHeight: 1.6,
+                marginBottom: '28px',
+                maxWidth: '560px',
+              }}
+            >
+              From your first day of organizational setup to closing your monthly double-entry ledger, discover how our automated engine eliminates operational friction.
+            </p>
+
             <Link
               to="/contact?type=consultation"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                backgroundColor: '#FFFFFF',
-                color: '#021429',
+                backgroundColor: '#021429',
+                color: '#FFFFFF',
                 padding: '12px 28px',
                 borderRadius: '999px',
-                fontSize: '0.92rem',
+                fontSize: '0.90rem',
                 fontWeight: 700,
                 textDecoration: 'none',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
               }}
             >
               <span>Schedule Architecture Walkthrough</span>
