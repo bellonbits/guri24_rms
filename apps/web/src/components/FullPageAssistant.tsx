@@ -76,10 +76,40 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [attachedFile, setAttachedFile] = useState<AssistantAttachment | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
-    'Personal Assistant': true,
+    'Lease & Tenancy Operations': true,
   });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Clean Markdown & format response text
+  const renderCleanContent = (text: string) => {
+    if (!text) return null;
+    const cleaned = text
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/__(.*?)__/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/_(.*?)_/g, '$1')
+      .replace(/^[-*]\s+/gm, '• ');
+
+    const paragraphs = cleaned.split(/\n\s*\n/);
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {paragraphs.map((para, pIdx) => {
+          const lines = para.split('\n');
+          return (
+            <div key={pIdx} style={{ lineHeight: 1.55 }}>
+              {lines.map((line, lIdx) => (
+                <div key={lIdx} style={{ margin: line.startsWith('• ') ? '3px 0 3px 8px' : '0' }}>
+                  {line}
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   // Active conversation resolution
   const activeConversation = useMemo(() => {
@@ -105,14 +135,14 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
     },
   ];
 
-  // Default initial message exchange matching the exact reference design
+  // Default initial message exchange matching property operations
   const defaultMessages: AssistantMessage[] = useMemo(() => {
     return [
       {
         id: 'msg-default-user',
         role: 'USER',
         content:
-          'Create a minimalist bedroom, with all walls painted in a muted olive green color. A floor-to-ceiling window on the left side of the room offers a view of the forest.',
+          'Summarize our current portfolio health, occupancy, and collection performance across active estates.',
         citations: [],
         tool_calls: [],
         created_at: new Date().toISOString(),
@@ -121,13 +151,13 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
         id: 'msg-default-assistant',
         role: 'ASSISTANT',
         content:
-          'Here is the minimalist bedroom design with muted olive green walls, a view of the forest through a floor-to-ceiling window, and the oak wood bed with grey linen sheets. Let me know your thoughts!',
+          'Here is the real-time operational overview for your managed properties. All active units, tenant leases, and M-Pesa ledger allocations are synchronized and verified.',
         citations: [
           {
-            record_id: 'rec-interior-1',
-            record_type: 'PROPERTY_UNIT',
-            reference_code: 'UNIT-B4-MINIMAL',
-            summary: 'Minimalist Interior Specification & Olive Green Palette',
+            record_id: 'rec-portfolio-1',
+            record_type: 'PORTFOLIO_SUMMARY',
+            reference_code: 'RMS-LEDGER-LIVE',
+            summary: 'Live Authoritative Ledger & Reconciled Bank Stream',
           },
         ],
         tool_calls: [],
@@ -203,11 +233,11 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
           id: `msg-${Date.now()}-ast`,
           role: 'ASSISTANT',
           content:
-            `I have processed your request regarding **${currentOrg.name}**.\n\n` +
-            `- **Active Properties:** ${properties.length} managed location(s).\n` +
-            `- **Total Billed:** KES ${totalBilled.toLocaleString()}.\n` +
-            `- **Total Collected (M-Pesa/Bank):** KES ${totalCollected.toLocaleString()}.\n` +
-            `- **Account 2100 Deposits Liability:** KES ${depositsHeld.toLocaleString()} held in trust escrow.\n\n` +
+            `I have processed your request regarding ${currentOrg.name}.\n\n` +
+            `• Active Properties: ${properties.length} managed location(s)\n` +
+            `• Total Billed: KES ${totalBilled.toLocaleString()}\n` +
+            `• Total Collected (M-Pesa/Bank): KES ${totalCollected.toLocaleString()}\n` +
+            `• Account 2100 Deposits Liability: KES ${depositsHeld.toLocaleString()} held in trust escrow\n\n` +
             `Everything is balanced in the authoritative general ledger. Let me know if you would like me to draft tenant notifications or export the financial run!`,
           citations: [
             {
@@ -254,10 +284,11 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
   // Recent / Favorite conversations list
   const conversationListItems = useMemo(() => {
     return [
-      { id: 'c1', title: 'How do I reset my password?' },
-      { id: 'c2', title: "What's on my schedule today, aero?" },
-      { id: 'c3', title: 'Remind me to submit the project report...' },
-      { id: 'c4', title: 'Can you help me track my order?' },
+      { id: 'c1', title: 'Summarize portfolio collections and rent arrears' },
+      { id: 'c2', title: 'Which units are currently vacant or up for renewal?' },
+      { id: 'c3', title: 'Draft standard 12-month residential tenancy lease' },
+      { id: 'c4', title: 'Check M-Pesa Daraja payment reconciliation status' },
+      { id: 'c5', title: 'Review pending OCR documents awaiting verification' },
     ];
   }, []);
 
@@ -381,8 +412,8 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
                 textAlign: 'left',
               }}
             >
-              {displayMessages[0]?.content ||
-                'Create a minimalist bedroom, with all walls painted in a muted olive green color. A floor-to-ceiling window on the left side of the room offers a view of the forest.'}
+              {renderCleanContent(displayMessages[0]?.content ||
+                'Summarize our current portfolio health, occupancy, and collection performance across active estates.')}
             </div>
 
             {/* AI Response Block with Visual Carousel & Floating Left Actions */}
@@ -606,8 +637,8 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
                   textAlign: 'left',
                 }}
               >
-                {displayMessages[1]?.content ||
-                  'Here is the minimalist bedroom design with muted olive green walls, a view of the forest through a floor-to-ceiling window, and the oak wood bed with grey linen sheets. Let me know your thoughts!'}
+                {renderCleanContent(displayMessages[1]?.content ||
+                  'Here is the real-time operational overview for your managed properties. All active units, tenant leases, and M-Pesa ledger allocations are synchronized and verified.')}
 
                 {/* Grounded Citations Badge */}
                 {displayMessages[1]?.citations && displayMessages[1].citations.length > 0 && (
@@ -654,7 +685,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
                       boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)',
                     }}
                   >
-                    {msg.content}
+                    {renderCleanContent(msg.content)}
                   </div>
                 </div>
               );
@@ -982,24 +1013,83 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {/* Folder 1: Project Management */}
+              {/* Folder 1: Portfolio Operations */}
               <div
-                onClick={() => toggleFolder('Project Management')}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '0.82rem',
-                  color: '#0F172A',
-                  cursor: 'pointer',
-                  fontWeight: 500,
+                  backgroundColor: expandedFolders['Portfolio Operations'] ? '#F1F5F9' : 'transparent',
+                  borderRadius: '12px',
+                  padding: '8px 10px',
                 }}
               >
-                <FolderIcon style={{ width: 16, height: 16, color: '#64748B' }} />
-                <span>Project Management</span>
+                <div
+                  onClick={() => toggleFolder('Portfolio Operations')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: '0.82rem',
+                    color: '#0F172A',
+                    cursor: 'pointer',
+                    fontWeight: 500,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FolderIcon style={{ width: 16, height: 16, color: '#64748B' }} />
+                    <span>Portfolio Operations</span>
+                  </div>
+                  <ChevronDownIcon
+                    style={{
+                      width: 14,
+                      height: 14,
+                      transform: expandedFolders['Portfolio Operations'] ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.15s ease',
+                    }}
+                  />
+                </div>
+
+                {expandedFolders['Portfolio Operations'] && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '24px', marginTop: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage('Check occupancy rate and unit availability')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        textAlign: 'left',
+                        fontSize: '0.74rem',
+                        color: '#475569',
+                        lineHeight: 1.35,
+                        cursor: 'pointer',
+                        padding: '2px 0',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = '#475569')}
+                    >
+                      • Check occupancy rate & availability
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage('List leases expiring within 60 days')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        textAlign: 'left',
+                        fontSize: '0.74rem',
+                        color: '#475569',
+                        lineHeight: 1.35,
+                        cursor: 'pointer',
+                        padding: '2px 0',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = '#475569')}
+                    >
+                      • List leases expiring in 60 days
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {/* Folder 2: Personal Assistant (Expanded) */}
+              {/* Folder 2: Lease & Tenancy Operations (Expanded by default) */}
               <div
                 style={{
                   backgroundColor: '#EFF6FF',
@@ -1008,7 +1098,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
                 }}
               >
                 <div
-                  onClick={() => toggleFolder('Personal Assistant')}
+                  onClick={() => toggleFolder('Lease & Tenancy Operations')}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -1017,43 +1107,217 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
                     color: '#1E40AF',
                     fontWeight: 600,
                     cursor: 'pointer',
-                    marginBottom: expandedFolders['Personal Assistant'] ? '8px' : '0',
+                    marginBottom: expandedFolders['Lease & Tenancy Operations'] ? '8px' : '0',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <FolderIcon style={{ width: 16, height: 16, fill: '#3B82F6', color: '#3B82F6' }} />
-                    <span>Personal Assistant</span>
+                    <span>Lease & Tenancy Operations</span>
                   </div>
-                  <ChevronDownIcon style={{ width: 14, height: 14 }} />
+                  <ChevronDownIcon
+                    style={{
+                      width: 14,
+                      height: 14,
+                      transform: expandedFolders['Lease & Tenancy Operations'] ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.15s ease',
+                    }}
+                  />
                 </div>
 
-                {expandedFolders['Personal Assistant'] && (
+                {expandedFolders['Lease & Tenancy Operations'] && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '24px' }}>
-                    <div style={{ fontSize: '0.74rem', color: '#64748B', lineHeight: 1.35 }}>
-                      • Schedule a dentist appointment for...
-                    </div>
-                    <div style={{ fontSize: '0.74rem', color: '#64748B', lineHeight: 1.35 }}>
-                      • Remind me to call Sarah at 5 PM...
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage('Draft 12-month residential lease agreement')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        textAlign: 'left',
+                        fontSize: '0.74rem',
+                        color: '#2563EB',
+                        lineHeight: 1.35,
+                        cursor: 'pointer',
+                        padding: '2px 0',
+                        fontWeight: 500,
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                      onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                    >
+                      • Draft 12-month residential lease
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage('Prepare automated rent payment reminders')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        textAlign: 'left',
+                        fontSize: '0.74rem',
+                        color: '#2563EB',
+                        lineHeight: 1.35,
+                        cursor: 'pointer',
+                        padding: '2px 0',
+                        fontWeight: 500,
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+                      onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+                    >
+                      • Launch automated rent reminders
+                    </button>
                   </div>
                 )}
               </div>
 
-              {/* Folder 3: Customer Support */}
+              {/* Folder 3: Financials & Accounting */}
               <div
-                onClick={() => toggleFolder('Customer Support')}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '0.82rem',
-                  color: '#0F172A',
-                  cursor: 'pointer',
-                  fontWeight: 500,
+                  backgroundColor: expandedFolders['Financials & Accounting'] ? '#F1F5F9' : 'transparent',
+                  borderRadius: '12px',
+                  padding: '8px 10px',
                 }}
               >
-                <FolderIcon style={{ width: 16, height: 16, color: '#64748B' }} />
-                <span>Customer Support</span>
+                <div
+                  onClick={() => toggleFolder('Financials & Accounting')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: '0.82rem',
+                    color: '#0F172A',
+                    cursor: 'pointer',
+                    fontWeight: 500,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FolderIcon style={{ width: 16, height: 16, color: '#64748B' }} />
+                    <span>Financials & M-Pesa</span>
+                  </div>
+                  <ChevronDownIcon
+                    style={{
+                      width: 14,
+                      height: 14,
+                      transform: expandedFolders['Financials & Accounting'] ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.15s ease',
+                    }}
+                  />
+                </div>
+
+                {expandedFolders['Financials & Accounting'] && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '24px', marginTop: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage('Reconcile M-Pesa Paybill C2B receipts')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        textAlign: 'left',
+                        fontSize: '0.74rem',
+                        color: '#475569',
+                        lineHeight: 1.35,
+                        cursor: 'pointer',
+                        padding: '2px 0',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = '#475569')}
+                    >
+                      • Reconcile M-Pesa C2B receipts
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage('Audit Account 2100 tenant security deposits')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        textAlign: 'left',
+                        fontSize: '0.74rem',
+                        color: '#475569',
+                        lineHeight: 1.35,
+                        cursor: 'pointer',
+                        padding: '2px 0',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = '#475569')}
+                    >
+                      • Audit Account 2100 deposits
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Folder 4: OCR Document Processing */}
+              <div
+                style={{
+                  backgroundColor: expandedFolders['OCR Document Processing'] ? '#F1F5F9' : 'transparent',
+                  borderRadius: '12px',
+                  padding: '8px 10px',
+                }}
+              >
+                <div
+                  onClick={() => toggleFolder('OCR Document Processing')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: '0.82rem',
+                    color: '#0F172A',
+                    cursor: 'pointer',
+                    fontWeight: 500,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FolderIcon style={{ width: 16, height: 16, color: '#64748B' }} />
+                    <span>OCR Documents</span>
+                  </div>
+                  <ChevronDownIcon
+                    style={{
+                      width: 14,
+                      height: 14,
+                      transform: expandedFolders['OCR Document Processing'] ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.15s ease',
+                    }}
+                  />
+                </div>
+
+                {expandedFolders['OCR Document Processing'] && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '24px', marginTop: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage('Review pending OCR documents awaiting verification')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        textAlign: 'left',
+                        fontSize: '0.74rem',
+                        color: '#475569',
+                        lineHeight: 1.35,
+                        cursor: 'pointer',
+                        padding: '2px 0',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = '#475569')}
+                    >
+                      • Review pending OCR documents
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage('Verify uploaded tenancy agreement extraction')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        textAlign: 'left',
+                        fontSize: '0.74rem',
+                        color: '#475569',
+                        lineHeight: 1.35,
+                        cursor: 'pointer',
+                        padding: '2px 0',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = '#475569')}
+                    >
+                      • Verify tenancy agreement
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

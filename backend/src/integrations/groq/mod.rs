@@ -86,6 +86,7 @@ impl GroqLlmAdapter {
                  Answer strictly using the live authorized RMS database tool records below. \
                  Never invent properties, units, tenants, leases, invoices, or payments. \
                  If no matching records exist, state clearly that the database contains 0 matching records.\n\n\
+                 CRITICAL FORMATTING INSTRUCTION: Do NOT use markdown syntax. Do not output markdown headers (no '#', '##', '###'), do not output asterisks for bold or italic (no '**' or '*'), and do not use raw markdown bullet dashes (no '- '). Provide responses in clean, natural plain text paragraphs with clear line spacing.\n\n\
                  LIVE AUTHORIZED RMS TOOL RECORDS:\n{live_tool_context}"
             );
 
@@ -146,7 +147,14 @@ impl GroqLlmAdapter {
                     if let Some(text) = choice.message.content {
                         let trimmed = text.trim();
                         if !trimmed.is_empty() {
-                            return Ok(Some(trimmed.to_string()));
+                            // Strip any residual markdown syntax to ensure clean plain text
+                            let clean_text = trimmed
+                                .replace("### ", "")
+                                .replace("## ", "")
+                                .replace("# ", "")
+                                .replace("**", "")
+                                .replace("*", "");
+                            return Ok(Some(clean_text));
                         }
                     }
                 }
