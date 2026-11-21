@@ -9,8 +9,19 @@ export const SupportPages: React.FC = () => {
   // If path is `/status`
   if (pathname === '/status') {
     return (
-      <div style={{ backgroundColor: BRAND_TOKENS.colors.bgCanvas, minHeight: '100vh', padding: '64px 24px 100px' }}>
-        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+      <div
+        style={{
+          backgroundColor: '#FFFFFF',
+          width: '100%',
+          minHeight: '100vh',
+          margin: 0,
+          padding: '64px 32px 100px',
+          boxSizing: 'border-box',
+          overflowX: 'hidden',
+          fontFamily: BRAND_TOKENS.fonts.sans,
+        }}
+      >
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
           {/* Status Header */}
           <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 48px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '6px 16px', backgroundColor: '#DCFCE7', borderRadius: '999px', color: '#166534', fontSize: '0.85rem', fontWeight: 700, marginBottom: '16px' }}>
@@ -61,8 +72,19 @@ export const SupportPages: React.FC = () => {
   // If path is `/sitemap`
   if (pathname === '/sitemap') {
     return (
-      <div style={{ backgroundColor: BRAND_TOKENS.colors.bgCanvas, minHeight: '100vh', padding: '64px 24px 100px' }}>
-        <div style={{ maxWidth: '1080px', margin: '0 auto' }}>
+      <div
+        style={{
+          backgroundColor: '#FFFFFF',
+          width: '100%',
+          minHeight: '100vh',
+          margin: 0,
+          padding: '64px 32px 100px',
+          boxSizing: 'border-box',
+          overflowX: 'hidden',
+          fontFamily: BRAND_TOKENS.fonts.sans,
+        }}
+      >
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 48px' }}>
             <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: BRAND_TOKENS.colors.darkNavy, letterSpacing: '-0.03em', marginBottom: '12px' }}>
               Platform Sitemap
@@ -130,8 +152,19 @@ export const SupportPages: React.FC = () => {
 
   // Default /support Hub
   return (
-    <div style={{ backgroundColor: BRAND_TOKENS.colors.bgCanvas, minHeight: '100vh', padding: '64px 24px 100px' }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+    <div
+      style={{
+        backgroundColor: '#FFFFFF',
+        width: '100%',
+        minHeight: '100vh',
+        margin: 0,
+        padding: '64px 32px 100px',
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
+        fontFamily: BRAND_TOKENS.fonts.sans,
+      }}
+    >
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 54px' }}>
           <div style={{ display: 'inline-flex', padding: '6px 16px', backgroundColor: BRAND_TOKENS.colors.primaryTint, borderRadius: '999px', color: BRAND_TOKENS.colors.primaryBlue, fontSize: '0.85rem', fontWeight: 600, marginBottom: '16px' }}>
             Customer Support

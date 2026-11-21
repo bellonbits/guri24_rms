@@ -1,27 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  Building2,
-  ChevronDown,
-  Layers,
-  Users,
-  FileText,
-  CreditCard,
-  Landmark,
-  Scale,
-  Wrench,
-  Scan,
-  BarChart3,
-  Sparkles,
-  Smartphone,
   Menu,
   X,
-  ArrowRight,
-  BookOpen,
-  HelpCircle,
-  Video,
-  Newspaper,
-  Compass,
+  ArrowUpRight,
+  ShieldCheck,
+  Building2,
+  Sparkles,
 } from 'lucide-react';
 import { BRAND_TOKENS } from './BrandTokens';
 
@@ -29,51 +14,63 @@ export const MarketingNavbar: React.FC = () => {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<'product' | 'solutions' | 'resources' | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 15);
+      setScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close menus on route change
+  // Close menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
-    setOpenDropdown(null);
   }, [location.pathname]);
+
+  const navLinks = [
+    { to: '/', label: 'Home' },
+    { to: '/about', label: 'About us' },
+    { to: '/features', label: 'Features' },
+    { to: '/solutions', label: 'Solutions' },
+    { to: '/how-it-works', label: 'How it works' },
+    { to: '/pricing', label: 'Pricing' },
+    { to: '/faq', label: 'FAQ' },
+    { to: '/contact', label: 'Contacts' },
+  ];
 
   return (
     <header
       style={{
         position: 'sticky',
-        top: '16px', // B7: floating resting state off top edge
+        top: '16px',
         left: 0,
         right: 0,
         margin: '0 auto',
-        maxWidth: '1240px',
+        maxWidth: '1360px',
         width: 'calc(100% - 32px)',
-        zIndex: 50,
-        backgroundColor: scrolled ? 'rgba(255, 255, 255, 0.94)' : 'rgba(255, 255, 255, 0.86)',
-        backdropFilter: 'blur(16px)',
-        borderRadius: '16px', // B3 radius
-        border: `1px solid ${scrolled ? BRAND_TOKENS.colors.slateBorder : 'rgba(226, 232, 240, 0.7)'}`,
-        boxShadow: scrolled ? '0 10px 25px -5px rgba(2, 20, 41, 0.08)' : '0 4px 16px rgba(2, 20, 41, 0.04)',
-        transition: `all 300ms ${BRAND_TOKENS.motion.baseCurve}`, // B7 base curve
+        zIndex: 100,
+        backgroundColor: scrolled ? 'rgba(2, 20, 41, 0.94)' : 'rgba(2, 20, 41, 0.88)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRadius: '999px',
+        border: '1px solid rgba(255, 255, 255, 0.18)',
+        boxShadow: scrolled
+          ? '0 20px 45px -10px rgba(2, 20, 41, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+          : '0 12px 32px rgba(2, 20, 41, 0.25)',
+        transition: 'all 300ms cubic-bezier(0.22, 1, 0.36, 1)',
         fontFamily: BRAND_TOKENS.fonts.sans,
+        padding: '8px 18px',
+        boxSizing: 'border-box',
       }}
     >
       <div
         style={{
-          maxWidth: '1280px',
-          margin: '0 auto',
-          padding: '0 24px',
-          height: '76px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          width: '100%',
+          gap: '16px',
         }}
       >
         {/* Left: Brand Logo */}
@@ -84,435 +81,184 @@ export const MarketingNavbar: React.FC = () => {
             alignItems: 'center',
             gap: '10px',
             textDecoration: 'none',
+            color: '#FFFFFF',
           }}
         >
-          <img
-            src={BRAND_TOKENS.assets.emblem}
-            alt="Guri24 RMS Logo"
-            style={{ width: '38px', height: '38px', objectFit: 'contain' }}
-          />
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span
-              style={{
-                fontSize: '1.35rem',
-                fontWeight: 800,
-                color: BRAND_TOKENS.colors.darkNavy,
-                letterSpacing: '-0.03em',
-                lineHeight: 1.1,
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            }}
+          >
+            <img
+              src="/logo.png"
+              alt="Guri24"
+              style={{ width: '22px', height: '22px', objectFit: 'contain' }}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
               }}
-            >
-              Guri24
-            </span>
-            <span
-              style={{
-                fontSize: '0.62rem',
-                fontWeight: 700,
-                color: BRAND_TOKENS.colors.primary,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Property Cloud
-            </span>
+            />
           </div>
+          <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#FFFFFF' }}>
+            Guri<span style={{ color: '#03D8BF' }}>24</span>
+          </span>
         </Link>
 
-        {/* Center Desktop Navigation */}
+        {/* Center: Desktop Frosted Pill Navigation */}
         <nav
-          aria-label="Desktop Navigation"
+          aria-label="Marketing Navigation"
           style={{
-            display: 'none',
+            display: 'flex',
             alignItems: 'center',
-            gap: '24px',
+            gap: '4px',
+            backgroundColor: 'rgba(255, 255, 255, 0.12)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            padding: '4px 6px',
+            borderRadius: '999px',
           }}
-          className="desktop-nav-container"
+          className="desktop-pill-nav"
         >
-          {/* 1. Product Dropdown */}
-          <div
-            style={{ position: 'relative' }}
-            onMouseEnter={() => setOpenDropdown('product')}
-            onMouseLeave={() => setOpenDropdown(null)}
-          >
-            <button
-              type="button"
-              style={{
-                background: 'none',
-                border: 'none',
-                color: openDropdown === 'product' ? BRAND_TOKENS.colors.primary : BRAND_TOKENS.colors.darkNavy,
-                fontSize: '0.92rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '8px 4px',
-              }}
-              aria-expanded={openDropdown === 'product'}
-            >
-              <span>Product</span>
-              <ChevronDown
-                size={14}
-                style={{
-                  transform: openDropdown === 'product' ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.2s ease',
-                }}
-              />
-            </button>
+          {navLinks.map((item, idx) => {
+            const isActive =
+              item.to === '/'
+                ? location.pathname === '/' || location.pathname === '/home'
+                : location.pathname.startsWith(item.to);
 
-            {openDropdown === 'product' && (
-              <div
+            return (
+              <Link
+                key={idx}
+                to={item.to}
                 style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: '-120px',
-                  width: '640px',
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '18px',
-                  border: `1px solid ${BRAND_TOKENS.colors.slateBorder}`,
-                  boxShadow: '0 20px 40px -10px rgba(2, 20, 41, 0.15)',
-                  padding: '24px',
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '14px',
-                  zIndex: 100,
-                  animation: 'fadeIn 0.15s ease',
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  color: isActive ? '#021429' : 'rgba(255, 255, 255, 0.88)',
+                  backgroundColor: isActive ? '#FFFFFF' : 'transparent',
+                  boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.14)' : 'none',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                {[
-                  { to: '/features/property-management', icon: Building2, label: 'Property & Buildings', desc: 'Estates, blocks, floors & occupancy tracking' },
-                  { to: '/features/tenant-management', icon: Users, label: 'Tenants & Screening', desc: 'Kenyan KYC, ID verification & communications' },
-                  { to: '/features/leases-and-bookings', icon: FileText, label: 'Living Leases', desc: 'Automated billing schedules & renewals' },
-                  { to: '/features/mpesa-and-payments', icon: CreditCard, label: 'M-Pesa Daraja Recon', desc: 'Instant STK push & automatic invoice allocation' },
-                  { to: '/features/financial-management', icon: Scale, label: 'Double-Entry Ledger', desc: 'Balanced trial balance & Account 2100 deposit trust' },
-                  { to: '/features/documents-and-ocr', icon: Scan, label: 'Document Intelligence', desc: 'OCR verification without fake data' },
-                  { to: '/features/analytics-and-reporting', icon: BarChart3, label: 'Executive Analytics', desc: 'NOI, arrears aging & multi-bank dashboards' },
-                  { to: '/features/ai-assistant', icon: Sparkles, label: 'Grounded AI Assistant', desc: 'Groq Llama 3.3 financial interpreter' },
-                ].map((item, idx) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={idx}
-                      to={item.to}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '12px',
-                        padding: '10px 12px',
-                        borderRadius: '12px',
-                        textDecoration: 'none',
-                        transition: 'background-color 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BRAND_TOKENS.colors.primaryLight)}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    >
-                      <div
-                        style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '8px',
-                          backgroundColor: BRAND_TOKENS.colors.primaryLight,
-                          color: BRAND_TOKENS.colors.primary,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          marginTop: '2px',
-                        }}
-                      >
-                        <Icon size={18} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '0.88rem', fontWeight: 700, color: BRAND_TOKENS.colors.darkNavy }}>
-                          {item.label}
-                        </div>
-                        <div style={{ fontSize: '0.76rem', color: BRAND_TOKENS.colors.slateSubtle, marginTop: '2px' }}>
-                          {item.desc}
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* 2. Solutions Dropdown */}
-          <div
-            style={{ position: 'relative' }}
-            onMouseEnter={() => setOpenDropdown('solutions')}
-            onMouseLeave={() => setOpenDropdown(null)}
-          >
-            <button
-              type="button"
-              style={{
-                background: 'none',
-                border: 'none',
-                color: openDropdown === 'solutions' ? BRAND_TOKENS.colors.primary : BRAND_TOKENS.colors.darkNavy,
-                fontSize: '0.92rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '8px 4px',
-              }}
-              aria-expanded={openDropdown === 'solutions'}
-            >
-              <span>Solutions</span>
-              <ChevronDown
-                size={14}
-                style={{
-                  transform: openDropdown === 'solutions' ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.2s ease',
-                }}
-              />
-            </button>
-
-            {openDropdown === 'solutions' && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: '-40px',
-                  width: '340px',
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '18px',
-                  border: `1px solid ${BRAND_TOKENS.colors.slateBorder}`,
-                  boxShadow: '0 20px 40px -10px rgba(2, 20, 41, 0.15)',
-                  padding: '16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px',
-                  zIndex: 100,
-                  animation: 'fadeIn 0.15s ease',
-                }}
-              >
-                {[
-                  { to: '/solutions/landlords', label: 'Individual Landlords', sub: 'M-Pesa billing & effortless rent tracking' },
-                  { to: '/solutions/property-managers', label: 'Property Management Firms', sub: 'Multi-property portfolios & staff assignment' },
-                  { to: '/solutions/real-estate-companies', label: 'Real Estate Companies', sub: 'Multi-bank accounting & corporate scale' },
-                  { to: '/solutions/estate-managers', label: 'Gated Estates & Communities', sub: 'Service charges, utilities & security' },
-                  { to: '/solutions', label: 'Solutions Overview →', sub: 'Compare operational tailored editions' },
-                ].map((s, idx) => (
-                  <Link
-                    key={idx}
-                    to={s.to}
-                    style={{
-                      padding: '10px 14px',
-                      borderRadius: '10px',
-                      textDecoration: 'none',
-                      transition: 'background-color 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BRAND_TOKENS.colors.bgCanvas)}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  >
-                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: BRAND_TOKENS.colors.darkNavy }}>
-                      {s.label}
-                    </div>
-                    <div style={{ fontSize: '0.76rem', color: BRAND_TOKENS.colors.slateSubtle, marginTop: '2px' }}>
-                      {s.sub}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* 3. Direct Link: How it Works */}
-          <Link
-            to="/how-it-works"
-            style={{
-              textDecoration: 'none',
-              color: location.pathname === '/how-it-works' ? BRAND_TOKENS.colors.primary : BRAND_TOKENS.colors.darkNavy,
-              fontSize: '0.92rem',
-              fontWeight: 600,
-            }}
-          >
-            How it works
-          </Link>
-
-          {/* 4. Direct Link: Pricing */}
-          <Link
-            to="/pricing"
-            style={{
-              textDecoration: 'none',
-              color: location.pathname === '/pricing' ? BRAND_TOKENS.colors.primary : BRAND_TOKENS.colors.darkNavy,
-              fontSize: '0.92rem',
-              fontWeight: 600,
-            }}
-          >
-            Pricing
-          </Link>
-
-          {/* 5. Resources Dropdown */}
-          <div
-            style={{ position: 'relative' }}
-            onMouseEnter={() => setOpenDropdown('resources')}
-            onMouseLeave={() => setOpenDropdown(null)}
-          >
-            <button
-              type="button"
-              style={{
-                background: 'none',
-                border: 'none',
-                color: openDropdown === 'resources' ? BRAND_TOKENS.colors.primary : BRAND_TOKENS.colors.darkNavy,
-                fontSize: '0.92rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '8px 4px',
-              }}
-              aria-expanded={openDropdown === 'resources'}
-            >
-              <span>Resources</span>
-              <ChevronDown
-                size={14}
-                style={{
-                  transform: openDropdown === 'resources' ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.2s ease',
-                }}
-              />
-            </button>
-
-            {openDropdown === 'resources' && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: '-40px',
-                  width: '320px',
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '18px',
-                  border: `1px solid ${BRAND_TOKENS.colors.slateBorder}`,
-                  boxShadow: '0 20px 40px -10px rgba(2, 20, 41, 0.15)',
-                  padding: '16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px',
-                  zIndex: 100,
-                  animation: 'fadeIn 0.15s ease',
-                }}
-              >
-                {[
-                  { to: '/resources/help', label: 'Help Center', icon: HelpCircle },
-                  { to: '/resources/guides', label: 'Property Guides', icon: BookOpen },
-                  { to: '/resources/tutorials', label: 'Video Walkthroughs', icon: Video },
-                  { to: '/resources/blog', label: 'Property Tech Blog', icon: Newspaper },
-                  { to: '/faq', label: 'Frequently Asked Questions', icon: Compass },
-                ].map((r, idx) => {
-                  const Icon = r.icon;
-                  return (
-                    <Link
-                      key={idx}
-                      to={r.to}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        padding: '10px 12px',
-                        borderRadius: '10px',
-                        textDecoration: 'none',
-                        color: BRAND_TOKENS.colors.darkNavy,
-                        fontSize: '0.88rem',
-                        fontWeight: 600,
-                        transition: 'background-color 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BRAND_TOKENS.colors.bgCanvas)}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                    >
-                      <Icon size={16} color={BRAND_TOKENS.colors.primary} />
-                      <span>{r.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* 6. Direct Link: About */}
-          <Link
-            to="/about"
-            style={{
-              textDecoration: 'none',
-              color: location.pathname === '/about' ? BRAND_TOKENS.colors.primary : BRAND_TOKENS.colors.darkNavy,
-              fontSize: '0.92rem',
-              fontWeight: 600,
-            }}
-          >
-            About
-          </Link>
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
-        {/* Right CTA Area */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <Link
-            to="/login"
-            style={{
-              textDecoration: 'none',
-              color: BRAND_TOKENS.colors.darkNavy,
-              fontSize: '14px', // Button-sm per B1
-              lineHeight: '20px',
-              fontWeight: 600,
-              padding: '8px 14px', // B2 main button padding
-              borderRadius: '8px',
-              transition: `background-color 200ms ${BRAND_TOKENS.motion.baseCurve}`,
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BRAND_TOKENS.colors.bgAlt)}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-          >
-            Log in
-          </Link>
+        {/* Right: Social Indicators & Primary Consultation Button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Social Badges */}
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }} className="hero-socials">
+            {['f', 'ig', 'x'].map((social, i) => (
+              <div
+                key={i}
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.14)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.68rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                }}
+              >
+                {social}
+              </div>
+            ))}
+          </div>
 
+          {/* Consultation Pill Button */}
           <Link
-            to="/register"
+            to="/contact?type=consultation"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
-              backgroundColor: BRAND_TOKENS.colors.primary,
-              color: '#FFFFFF',
-              padding: '8px 16px', // B2 main button padding (8px vert, 12-16px horiz)
-              borderRadius: '8px',
-              fontSize: '14px', // Button-sm per B1
-              lineHeight: '20px',
-              fontWeight: 600,
+              gap: '8px',
+              backgroundColor: '#FFFFFF',
+              color: '#021429',
+              padding: '6px 16px',
+              borderRadius: '999px',
+              fontSize: '0.84rem',
+              fontWeight: 700,
               textDecoration: 'none',
-              boxShadow: BRAND_TOKENS.shadows.brand,
-              transition: `all 300ms ${BRAND_TOKENS.motion.baseCurve}`,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+              transition: 'all 0.2s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = BRAND_TOKENS.colors.primaryHover;
               e.currentTarget.style.transform = 'translateY(-1px)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = BRAND_TOKENS.colors.primary;
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
-            <span>Start free trial</span>
-            <ArrowRight size={15} />
+            <span>Consultation</span>
+            <div
+              style={{
+                width: '22px',
+                height: '22px',
+                borderRadius: '50%',
+                backgroundColor: '#021429',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <ArrowUpRight size={13} />
+            </div>
           </Link>
 
-          {/* Mobile Menu Hamburger */}
+          {/* Login Link */}
+          <Link
+            to="/login"
+            style={{
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              color: 'rgba(255, 255, 255, 0.9)',
+              textDecoration: 'none',
+              padding: '6px 12px',
+            }}
+            className="navbar-login-link"
+          >
+            Sign in
+          </Link>
+
+          {/* Mobile Hamburger Button */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
             style={{
-              display: 'flex',
+              display: 'none',
               alignItems: 'center',
               justifyContent: 'center',
-              background: 'none',
-              border: 'none',
-              color: BRAND_TOKENS.colors.darkNavy,
-              padding: '6px',
+              background: 'rgba(255, 255, 255, 0.15)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              borderRadius: '50%',
+              width: '36px',
+              height: '36px',
+              color: '#FFFFFF',
               cursor: 'pointer',
             }}
             className="mobile-hamburger-btn"
             aria-label="Toggle navigation menu"
           >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
@@ -521,59 +267,60 @@ export const MarketingNavbar: React.FC = () => {
       {mobileMenuOpen && (
         <div
           style={{
-            backgroundColor: '#FFFFFF',
-            borderTop: `1px solid ${BRAND_TOKENS.colors.slateBorder}`,
-            padding: '24px',
+            marginTop: '16px',
+            backgroundColor: '#021429',
+            borderRadius: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            padding: '20px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '16px',
-            boxShadow: '0 20px 25px -5px rgba(2, 20, 41, 0.1)',
-            maxHeight: 'calc(100vh - 80px)',
-            overflowY: 'auto',
+            gap: '12px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
           }}
         >
-          <Link to="/features" style={{ fontSize: '1rem', fontWeight: 700, color: BRAND_TOKENS.colors.darkNavy, textDecoration: 'none' }}>
-            All Features
-          </Link>
-          <Link to="/solutions" style={{ fontSize: '1rem', fontWeight: 700, color: BRAND_TOKENS.colors.darkNavy, textDecoration: 'none' }}>
-            Solutions
-          </Link>
-          <Link to="/how-it-works" style={{ fontSize: '1rem', fontWeight: 700, color: BRAND_TOKENS.colors.darkNavy, textDecoration: 'none' }}>
-            How it works
-          </Link>
-          <Link to="/pricing" style={{ fontSize: '1rem', fontWeight: 700, color: BRAND_TOKENS.colors.darkNavy, textDecoration: 'none' }}>
-            Pricing
-          </Link>
-          <Link to="/about" style={{ fontSize: '1rem', fontWeight: 700, color: BRAND_TOKENS.colors.darkNavy, textDecoration: 'none' }}>
-            About
-          </Link>
-          <Link to="/contact" style={{ fontSize: '1rem', fontWeight: 700, color: BRAND_TOKENS.colors.darkNavy, textDecoration: 'none' }}>
-            Contact Us
-          </Link>
-          <div style={{ height: '1px', backgroundColor: BRAND_TOKENS.colors.slateBorder, margin: '8px 0' }} />
+          {navLinks.map((item, idx) => (
+            <Link
+              key={idx}
+              to={item.to}
+              style={{
+                fontSize: '0.95rem',
+                fontWeight: 600,
+                color: '#FFFFFF',
+                textDecoration: 'none',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                backgroundColor: location.pathname === item.to ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
+              }}
+            >
+              {item.label}
+            </Link>
+          ))}
+          <div style={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.12)', margin: '4px 0' }} />
           <Link
             to="/register"
             style={{
-              backgroundColor: BRAND_TOKENS.colors.primary,
+              backgroundColor: '#0057FC',
               color: '#FFFFFF',
               textAlign: 'center',
-              padding: '12px',
-              borderRadius: '12px',
+              padding: '10px',
+              borderRadius: '999px',
               fontWeight: 700,
+              fontSize: '0.88rem',
               textDecoration: 'none',
             }}
           >
-            Get Started Free
+            Start Free Trial
           </Link>
           <Link
             to="/login"
             style={{
-              backgroundColor: BRAND_TOKENS.colors.bgAlt,
-              color: BRAND_TOKENS.colors.darkNavy,
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              color: '#FFFFFF',
               textAlign: 'center',
-              padding: '12px',
-              borderRadius: '12px',
-              fontWeight: 700,
+              padding: '10px',
+              borderRadius: '999px',
+              fontWeight: 600,
+              fontSize: '0.88rem',
               textDecoration: 'none',
             }}
           >
@@ -582,14 +329,20 @@ export const MarketingNavbar: React.FC = () => {
         </div>
       )}
 
-      {/* Responsive media query styling */}
+      {/* Responsive Breakpoint CSS */}
       <style>{`
-        @media (min-width: 900px) {
-          .desktop-nav-container {
-            display: flex !important;
+        @media (max-width: 980px) {
+          .desktop-pill-nav {
+            display: none !important;
+          }
+          .hero-socials {
+            display: none !important;
+          }
+          .navbar-login-link {
+            display: none !important;
           }
           .mobile-hamburger-btn {
-            display: none !important;
+            display: flex !important;
           }
         }
       `}</style>

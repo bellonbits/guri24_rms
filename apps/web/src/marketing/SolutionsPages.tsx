@@ -1,6 +1,18 @@
-import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { Building2, Users, Landmark, Home, CheckCircle, ArrowRight, ShieldCheck, Zap, PieChart } from 'lucide-react';
+import React, { useState } from 'react';
+import { useLocation, Link, useParams } from 'react-router-dom';
+import {
+  Building2,
+  Users,
+  Landmark,
+  Home,
+  CheckCircle,
+  ArrowRight,
+  ArrowUpRight,
+  ShieldCheck,
+  Zap,
+  PieChart,
+  Layers,
+} from 'lucide-react';
 import { BRAND_TOKENS } from './BrandTokens';
 
 interface SolutionConfig {
@@ -8,6 +20,7 @@ interface SolutionConfig {
   badge: string;
   title: string;
   subtitle: string;
+  image: string;
   heroMetrics: { label: string; value: string }[];
   challenges: { title: string; desc: string }[];
   features: { title: string; desc: string }[];
@@ -17,18 +30,19 @@ interface SolutionConfig {
 const SOLUTIONS: Record<string, SolutionConfig> = {
   landlords: {
     id: 'landlords',
-    badge: 'For Independent Landlords & Owners',
-    title: 'Automate Rent Collections & Stop Chasing M-Pesa Messages',
-    subtitle: 'Designed for individual property owners managing residential apartments, single-family homes, or commercial shop lots.',
+    badge: 'Independent Landlords & Owners',
+    title: 'Automate Rent Collections & Eliminate Paper Ledgers',
+    subtitle: 'Designed for individual property owners managing residential blocks, boutique apartments, or commercial storefronts.',
+    image: '/hero-luxury-architecture.jpg',
     heroMetrics: [
       { label: 'Time Saved on Billing', value: '85%' },
       { label: 'Unreconciled M-Pesa', value: '0%' },
       { label: 'On-Time Rent Collections', value: '+34%' },
     ],
     challenges: [
-      { title: 'Manual M-Pesa Message Checking', desc: 'Tenants sending screenshots of M-Pesa SMS that require painstaking manual cross-checking against bank records.' },
+      { title: 'Manual M-Pesa Code Checking', desc: 'Tenants sending screenshots of M-Pesa SMS requiring tedious manual cross-checking against bank statements.' },
       { title: 'Disorganized Tenant Ledgers', desc: 'Tracking water bills, rent arrears, and security deposits across notebooks or fragmented spreadsheets.' },
-      { title: 'Tax & Return Confusion', desc: 'Scrambling during tax season to calculate rental income and deductible maintenance expenses.' },
+      { title: 'Tax & Annual Return Confusion', desc: 'Scrambling during tax season to calculate rental income and deductible maintenance expenses.' },
     ],
     features: [
       { title: 'Instant M-Pesa Paybill / Till Matching', desc: 'Tenant payments via M-Pesa are automatically matched to unit numbers and issued instant SMS receipts.' },
@@ -39,9 +53,10 @@ const SOLUTIONS: Record<string, SolutionConfig> = {
   },
   'property-managers': {
     id: 'property-managers',
-    badge: 'For Professional Property Managers & Agents',
+    badge: 'Professional Property Managers & Agencies',
     title: 'Scale Managed Portfolios Without Adding Back-Office Headcount',
     subtitle: 'Empower your management firm to handle dozens of landlords, hundreds of units, and complex commission split disbursements seamlessly.',
+    image: '/modern-organic-balconies.jpg',
     heroMetrics: [
       { label: 'Disbursement Speed', value: 'Same-day' },
       { label: 'Staff Efficiency', value: '4x Units/Mgr' },
@@ -61,249 +76,435 @@ const SOLUTIONS: Record<string, SolutionConfig> = {
   },
   'real-estate-companies': {
     id: 'real-estate-companies',
-    badge: 'For Real Estate Companies & Institutional Funds',
-    title: 'Enterprise Multi-Branch Operations, Double-Entry GL & Compliance',
-    subtitle: 'Institutional-grade architecture designed for regional developers, REITs, and enterprise property management corporations with complex entity structures.',
+    badge: 'Real Estate Developers & REITs',
+    title: 'Institutional Portfolio Governance with Double-Entry Authority',
+    subtitle: 'Enterprise-grade accounting segregation, fund management, and KRA withholding tax compliance across large-scale assets.',
+    image: '/luxury-pool-villa.jpg',
     heroMetrics: [
-      { label: 'Audit Readiness', value: '100% GL' },
-      { label: 'Multi-Branch Portfolios', value: 'Unlimited' },
-      { label: 'Security Isolation', value: 'Row-Level' },
+      { label: 'Trial Balance Accuracy', value: '100%' },
+      { label: 'Audit Prep Time', value: '-80%' },
+      { label: 'Portfolio Net Yield', value: '+14%' },
     ],
     challenges: [
-      { title: 'Siloed Financial Records', desc: 'Separate branches using disconnected accounting packages without consolidated executive visibility.' },
-      { title: 'Statutory & Tax Audit Exposure', desc: 'Lack of immutable double-entry general ledger records exposing the firm to compliance penalties.' },
-      { title: 'Multi-Entity Confusion', desc: 'Managing inter-company loans, shared service charges, and segregated landlord bank accounts.' },
+      { title: 'Entity & Branch Co-mingling', desc: 'Difficulty segregating operational funds and tax liabilities across multiple holding companies and special purpose vehicles.' },
+      { title: 'Disparate Bank Account Reconciliations', desc: 'Managing corporate accounts across multiple commercial banks with manual spreadsheet exports.' },
+      { title: 'Executive Reporting Delays', desc: 'Waiting 3 weeks after month-end to compile trial balances, balance sheets, and occupancy reports.' },
     ],
     features: [
-      { title: 'Full Double-Entry General Ledger', desc: 'Complete chart of accounts, journal entries, trial balance, P&L, balance sheet, and cash flow statements.' },
-      { title: 'Multi-Branch Entity Segregation', desc: 'Segment portfolios by legal entity, subsidiary, or regional branch with consolidated parent roll-ups.' },
-      { title: 'Granular Role-Based Permissions (RBAC)', desc: 'Configure strict permission matrices across finance controllers, audit teams, leasing agents, and executive directors.' },
+      { title: 'Multi-Entity Chart of Accounts', desc: 'Authoritative double-entry general ledger with branch segregation and automated inter-company balance elimination.' },
+      { title: 'Direct Host-to-Host Bank Integration', desc: 'Direct corporate banking API webhooks for automated statement ingestion and sweep verification.' },
+      { title: 'Executive BI & Occupancy Dashboards', desc: 'Real-time Net Operating Income (NOI), tenant churn analysis, and automated KRA withholding tax exports.' },
     ],
-    idealFor: ['Regional real estate conglomerates', 'Institutional real estate investment trusts (REITs)', 'Multi-branch commercial property managers'],
+    idealFor: ['Real Estate Investment Trusts (REITs)', 'Commercial mixed-use developers', 'Private equity property asset managers'],
   },
-  'estate-managers': {
-    id: 'estate-managers',
-    badge: 'For Gated Communities & Estate Associations',
-    title: 'Master Community Management, Service Charges & Resident Access',
-    subtitle: 'Streamline service charge billing, communal amenity bookings, visitor management, and infrastructure upkeep for gated communities.',
+  'gated-communities': {
+    id: 'gated-communities',
+    badge: 'Gated Communities & HOAs',
+    title: 'Transparent Service Charge Accounting & Amenity Governance',
+    subtitle: 'Purpose-built for resident associations, community committees, and court management trusts seeking trust and transparency.',
+    image: '/luxury-minimalist-living.jpg',
     heroMetrics: [
-      { label: 'Service Charge Collection', value: '98%' },
-      { label: 'Visitor Processing', value: '< 15 sec' },
-      { label: 'Resident Portal Adoption', value: '94%' },
+      { label: 'Levy Collection Rate', value: '98.5%' },
+      { label: 'Dispute Reduction', value: '-90%' },
+      { label: 'Resident Trust', value: '99%' },
     ],
     challenges: [
-      { title: 'Service Charge Deficits', desc: 'Residents falling behind on security, garbage, and lighting levies, leading to communal budget shortfalls.' },
-      { title: 'Gate Security & Visitor Congestion', desc: 'Manual paper logbooks at access gates creating vehicle queues and security vulnerabilities.' },
-      { title: 'Disorganized AGM Reporting', desc: 'Struggling to provide transparent accounting of resident association reserve funds and maintenance outlays.' },
+      { title: 'Service Charge Arrears & Deficits', desc: 'Struggling to collect communal service charges needed for security guards, borehole pumps, and trash collection.' },
+      { title: 'Lack of Financial Transparency', desc: 'Residents disputing utility bills or questioning how monthly maintenance reserves are disbursed.' },
+      { title: 'Visitor & Security Log Jam', desc: 'Uncoordinated access control leading to security lapses at the estate main gate.' },
     ],
     features: [
-      { title: 'Recurring Service Charge Levies', desc: 'Automate monthly or quarterly service charge billing with individual homeowner ledger tracking.' },
-      { title: 'Resident Self-Service Portal', desc: 'Homeowners can view balances, download statements, submit repair requests, and pay via M-Pesa.' },
-      { title: 'Reserve Fund & Capex Accounting', desc: 'Segregate sinking fund contributions from operational maintenance expenses in dedicated ledger accounts.' },
+      { title: 'Communal Levy Invoicing & M-Pesa Matching', desc: 'Automate monthly service charge billing with instant M-Pesa confirmation and arrears tracking.' },
+      { title: 'Audited Sinking Fund & Expense Reporting', desc: 'Transparent breakdown of estate operating expenses and sinking fund reserve balances shared with owners.' },
+      { title: 'Security Gate & Visitor Pass Logs', desc: 'Digital pass generation for visitors and contractors with automated entry notifications.' },
     ],
-    idealFor: ['Home Owners Associations (HOAs)', 'Gated estate management committees', 'Commercial office parks and retail plazas'],
+    idealFor: ['Homeowners Associations (HOAs)', 'Residential court management committees', 'Serviced apartment clusters'],
   },
 };
 
 export const SolutionsPages: React.FC = () => {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const pathParts = location.pathname.split('/');
+  const activeSlug = pathParts[2] || 'landlords';
+  const solution = SOLUTIONS[activeSlug] || SOLUTIONS['landlords'];
 
-  // Extract segment
-  const segment = pathname.split('/solutions/')[1] || '';
-  const currentSolution = SOLUTIONS[segment];
+  return (
+    <div
+      style={{
+        backgroundColor: '#FFFFFF',
+        width: '100%',
+        minHeight: '100vh',
+        margin: 0,
+        padding: 0,
+        fontFamily: BRAND_TOKENS.fonts.sans,
+        color: '#0F172A',
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
+      }}
+    >
+      {/* =========================================================================
+          SECTION 1: ARCHITECTURAL HERO BANNER
+          ========================================================================= */}
+      <section
+        style={{
+          position: 'relative',
+          width: '100%',
+          minHeight: '65vh',
+          backgroundImage: `url(${solution.image})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 45%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          textAlign: 'center',
+          padding: '100px 32px 80px',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(180deg, rgba(2, 20, 41, 0.78) 0%, rgba(2, 20, 41, 0.52) 50%, rgba(2, 20, 41, 0.9) 100%)',
+            zIndex: 1,
+            pointerEvents: 'none',
+          }}
+        />
 
-  // If path is purely `/solutions`, render overview index
-  if (!currentSolution) {
-    return (
-      <div style={{ backgroundColor: BRAND_TOKENS.colors.bgCanvas, minHeight: '100vh', padding: '64px 24px 100px' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', maxWidth: '760px', margin: '0 auto 64px' }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: '18%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontSize: 'clamp(50px, 13vw, 175px)',
+            fontWeight: 900,
+            letterSpacing: '0.12em',
+            color: 'rgba(255, 255, 255, 0.08)',
+            textTransform: 'uppercase',
+            pointerEvents: 'none',
+            zIndex: 1,
+            userSelect: 'none',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          PORTFOLIO SOLUTIONS
+        </div>
+
+        <div style={{ position: 'relative', zIndex: 10, maxWidth: '860px', margin: '0 auto' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 18px',
+              borderRadius: '999px',
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              color: '#FFFFFF',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              marginBottom: '20px',
+            }}
+          >
+            <span style={{ color: '#03D8BF' }}>06</span>
+            <span>&bull;</span>
+            <span>{solution.badge}</span>
+          </div>
+
+          <h1
+            style={{
+              fontSize: 'clamp(2.4rem, 4.6vw, 3.8rem)',
+              fontWeight: 900,
+              letterSpacing: '-0.035em',
+              color: '#FFFFFF',
+              lineHeight: 1.12,
+              marginBottom: '20px',
+            }}
+          >
+            {solution.title.split('&')[0]} &amp;{' '}
+            <span style={{ color: '#B89047' }}>{solution.title.split('&')[1] || 'SaaS Authority'}</span>
+          </h1>
+
+          <p
+            style={{
+              fontSize: 'clamp(1rem, 1.6vw, 1.18rem)',
+              color: 'rgba(255, 255, 255, 0.88)',
+              lineHeight: 1.6,
+              maxWidth: '680px',
+              margin: '0 auto 32px',
+            }}
+          >
+            {solution.subtitle}
+          </p>
+
+          {/* Solutions Switcher Tabs */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(14px)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              borderRadius: '999px',
+              padding: '5px',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+            }}
+          >
+            {[
+              { id: 'landlords', label: 'Landlords' },
+              { id: 'property-managers', label: 'Property Managers' },
+              { id: 'real-estate-companies', label: 'REITs & Developers' },
+              { id: 'gated-communities', label: 'Gated Communities' },
+            ].map((tab) => {
+              const isCurrent = activeSlug === tab.id;
+              return (
+                <Link
+                  key={tab.id}
+                  to={`/solutions/${tab.id}`}
+                  style={{
+                    padding: '8px 18px',
+                    borderRadius: '999px',
+                    textDecoration: 'none',
+                    backgroundColor: isCurrent ? '#FFFFFF' : 'transparent',
+                    color: isCurrent ? '#021429' : 'rgba(255, 255, 255, 0.88)',
+                    fontWeight: 700,
+                    fontSize: '0.84rem',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {tab.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 2: METRICS ROW
+          ========================================================================= */}
+      <section
+        style={{
+          padding: '60px 48px',
+          backgroundColor: '#FFFFFF',
+          borderBottom: '1px solid #F1F5F9',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: '1320px',
+            margin: '0 auto',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '32px',
+            textAlign: 'center',
+          }}
+          className="metrics-row-grid-3"
+        >
+          {solution.heroMetrics.map((m, mi) => (
+            <div key={mi}>
+              <div style={{ fontSize: 'clamp(2.4rem, 4vw, 3.4rem)', fontWeight: 900, color: '#021429', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+                {m.value}
+              </div>
+              <div style={{ fontSize: '0.86rem', color: '#64748B', fontWeight: 600, marginTop: '6px' }}>
+                {m.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 3: CHALLENGES VS GURI24 CAPABILITIES
+          ========================================================================= */}
+      <section
+        style={{
+          padding: '96px 48px',
+          backgroundColor: '#FAFBFD',
+          borderBottom: '1px solid #F1F5F9',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '48px',
+            }}
+            className="challenges-vs-features-grid"
+          >
+            {/* Common Friction */}
             <div
               style={{
-                display: 'inline-flex',
-                padding: '6px 16px',
-                backgroundColor: BRAND_TOKENS.colors.primaryTint,
-                borderRadius: '999px',
-                color: BRAND_TOKENS.colors.primaryBlue,
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                marginBottom: '16px',
+                backgroundColor: '#FFFFFF',
+                borderRadius: '28px',
+                border: '1px solid #E2E8F0',
+                padding: '44px',
+                boxShadow: '0 8px 24px -6px rgba(2, 20, 41, 0.04)',
               }}
             >
-              Tailored Solutions
+              <div style={{ fontSize: '0.80rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#EF4444', fontWeight: 800, marginBottom: '12px' }}>
+                Operational Friction Solved
+              </div>
+              <h3 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#021429', marginBottom: '28px' }}>
+                Legacy Workflow Pitfalls
+              </h3>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {solution.challenges.map((c, ci) => (
+                  <div key={ci}>
+                    <div style={{ fontSize: '1rem', fontWeight: 800, color: '#021429', marginBottom: '6px' }}>
+                      {c.title}
+                    </div>
+                    <div style={{ fontSize: '0.90rem', color: '#64748B', lineHeight: 1.55 }}>
+                      {c.desc}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <h1
+
+            {/* The Guri24 Advantage */}
+            <div
               style={{
-                fontSize: 'clamp(2.4rem, 4vw, 3.4rem)',
-                fontWeight: 800,
+                backgroundColor: '#021429',
+                color: '#FFFFFF',
+                borderRadius: '28px',
+                padding: '44px',
+                boxShadow: '0 20px 45px -10px rgba(2, 20, 41, 0.3)',
+              }}
+            >
+              <div style={{ fontSize: '0.80rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#03D8BF', fontWeight: 800, marginBottom: '12px' }}>
+                The Guri24 Engine
+              </div>
+              <h3 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#FFFFFF', marginBottom: '28px' }}>
+                Automated Architectural Advantage
+              </h3>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {solution.features.map((f, fi) => (
+                  <div key={fi}>
+                    <div style={{ fontSize: '1rem', fontWeight: 800, color: '#03D8BF', marginBottom: '6px' }}>
+                      {f.title}
+                    </div>
+                    <div style={{ fontSize: '0.90rem', color: '#CBD5E1', lineHeight: 1.55 }}>
+                      {f.desc}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 4: CLOSING CALLOUT
+          ========================================================================= */}
+      <section
+        style={{
+          padding: '80px 32px 100px',
+          backgroundColor: '#FFFFFF',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: '1320px',
+            margin: '0 auto',
+            borderRadius: '28px',
+            backgroundColor: '#021429',
+            padding: '72px 48px',
+            textAlign: 'center',
+            color: '#FFFFFF',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div style={{ position: 'relative', zIndex: 1, maxWidth: '640px', margin: '0 auto' }}>
+            <h2
+              style={{
+                fontSize: 'clamp(2rem, 3.5vw, 2.8rem)',
+                fontWeight: 900,
                 letterSpacing: '-0.03em',
-                color: BRAND_TOKENS.colors.darkNavy,
-                marginBottom: '18px',
+                marginBottom: '16px',
                 lineHeight: 1.15,
               }}
             >
-              Purpose-Built for Every Property Stakeholder
-            </h1>
-            <p style={{ fontSize: '1.15rem', color: BRAND_TOKENS.colors.slateSubtle, lineHeight: 1.6 }}>
-              Whether you are an individual landlord with a single apartment block or a commercial real estate fund managing thousands of units, Guri24 adapts to your exact operational workflow.
+              Ready to Modernize Your Operations?
+            </h2>
+            <p style={{ fontSize: '1rem', color: '#94A3B8', lineHeight: 1.6, marginBottom: '32px' }}>
+              Explore how Guri24 fits your specific property structure.
             </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px' }}>
-            {Object.values(SOLUTIONS).map((sol) => (
-              <div
-                key={sol.id}
+            <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link
+                to="/register"
                 style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '24px',
-                  border: `1px solid ${BRAND_TOKENS.colors.slateBorder}`,
-                  padding: '40px 32px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: '#0057FC',
+                  color: '#FFFFFF',
+                  padding: '12px 28px',
+                  borderRadius: '999px',
+                  fontSize: '0.94rem',
+                  fontWeight: 700,
+                  textDecoration: 'none',
                 }}
               >
-                <div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: BRAND_TOKENS.colors.primaryBlue, marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    {sol.badge}
-                  </div>
-                  <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: BRAND_TOKENS.colors.darkNavy, marginBottom: '14px', lineHeight: 1.3 }}>
-                    {sol.title}
-                  </h2>
-                  <p style={{ fontSize: '0.94rem', color: '#64748B', lineHeight: 1.6, marginBottom: '24px' }}>
-                    {sol.subtitle}
-                  </p>
-                </div>
-
-                <div>
-                  <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '20px', marginBottom: '24px' }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: BRAND_TOKENS.colors.darkNavy, marginBottom: '10px' }}>Ideal For:</div>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {sol.idealFor.map((item, i) => (
-                        <li key={i} style={{ fontSize: '0.85rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <CheckCircle size={14} color="#10B981" /> {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <Link
-                    to={`/solutions/${sol.id}`}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      padding: '12px',
-                      borderRadius: '12px',
-                      backgroundColor: BRAND_TOKENS.colors.bgCanvas,
-                      border: `1px solid ${BRAND_TOKENS.colors.slateBorder}`,
-                      color: BRAND_TOKENS.colors.darkNavy,
-                      fontWeight: 600,
-                      fontSize: '0.92rem',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    Explore Solution <ArrowRight size={16} />
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Render dedicated Solution Page
-  return (
-    <div style={{ backgroundColor: BRAND_TOKENS.colors.bgCanvas, minHeight: '100vh', padding: '64px 24px 100px' }}>
-      <div style={{ maxWidth: '1160px', margin: '0 auto' }}>
-        {/* Breadcrumb */}
-        <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-          <Link to="/" style={{ color: BRAND_TOKENS.colors.slateSubtle, textDecoration: 'none' }}>Home</Link>
-          <span style={{ color: BRAND_TOKENS.colors.slateBorder }}>/</span>
-          <Link to="/solutions" style={{ color: BRAND_TOKENS.colors.slateSubtle, textDecoration: 'none' }}>Solutions</Link>
-          <span style={{ color: BRAND_TOKENS.colors.slateBorder }}>/</span>
-          <span style={{ color: BRAND_TOKENS.colors.darkNavy, fontWeight: 600 }}>{currentSolution.badge}</span>
-        </div>
-
-        {/* Hero Section */}
-        <div style={{ backgroundColor: '#FFFFFF', borderRadius: '24px', border: `1px solid ${BRAND_TOKENS.colors.slateBorder}`, padding: '56px 48px', marginBottom: '48px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'inline-flex', padding: '6px 16px', backgroundColor: BRAND_TOKENS.colors.primaryTint, borderRadius: '999px', color: BRAND_TOKENS.colors.primaryBlue, fontSize: '0.85rem', fontWeight: 700, marginBottom: '20px' }}>
-            {currentSolution.badge}
-          </div>
-          <h1 style={{ fontSize: 'clamp(2.2rem, 3.8vw, 3.2rem)', fontWeight: 800, color: BRAND_TOKENS.colors.darkNavy, letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: '20px', maxWidth: '880px' }}>
-            {currentSolution.title}
-          </h1>
-          <p style={{ fontSize: '1.15rem', color: BRAND_TOKENS.colors.slateSubtle, lineHeight: 1.7, maxWidth: '780px', marginBottom: '36px' }}>
-            {currentSolution.subtitle}
-          </p>
-
-          {/* Hero Metrics */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', paddingTop: '28px', borderTop: '1px solid #F1F5F9' }}>
-            {currentSolution.heroMetrics.map((metric, i) => (
-              <div key={i} style={{ backgroundColor: '#F8FAFC', padding: '20px', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
-                <div style={{ fontSize: '2.2rem', fontWeight: 800, color: BRAND_TOKENS.colors.primaryBlue, marginBottom: '4px' }}>{metric.value}</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748B' }}>{metric.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Pain Points vs Solutions Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px', marginBottom: '56px' }}>
-          {/* Challenges */}
-          <div style={{ backgroundColor: '#FFFFFF', borderRadius: '24px', border: `1px solid ${BRAND_TOKENS.colors.slateBorder}`, padding: '40px 36px' }}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: BRAND_TOKENS.colors.darkNavy, marginBottom: '24px' }}>
-              Common Operational Headwinds
-            </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {currentSolution.challenges.map((c, i) => (
-                <div key={i}>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#B91C1C', marginBottom: '6px' }}>✕ {c.title}</h3>
-                  <p style={{ fontSize: '0.92rem', color: '#64748B', lineHeight: 1.6 }}>{c.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* How Guri24 Solves It */}
-          <div style={{ backgroundColor: '#FFFFFF', borderRadius: '24px', border: `1px solid ${BRAND_TOKENS.colors.slateBorder}`, padding: '40px 36px' }}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: BRAND_TOKENS.colors.darkNavy, marginBottom: '24px' }}>
-              How Guri24 Solves It Authoritatively
-            </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {currentSolution.features.map((f, i) => (
-                <div key={i}>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#15803D', marginBottom: '6px' }}>✓ {f.title}</h3>
-                  <p style={{ fontSize: '0.92rem', color: '#64748B', lineHeight: 1.6 }}>{f.desc}</p>
-                </div>
-              ))}
+                <span>Start Free Trial</span>
+                <ArrowRight size={16} />
+              </Link>
+              <Link
+                to="/contact?type=consultation"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: '#FFFFFF',
+                  padding: '12px 28px',
+                  borderRadius: '999px',
+                  fontSize: '0.94rem',
+                  fontWeight: 600,
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  textDecoration: 'none',
+                }}
+              >
+                <span>Book Consultation</span>
+                <ArrowUpRight size={16} />
+              </Link>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* CTA */}
-        <div style={{ backgroundColor: BRAND_TOKENS.colors.darkNavy, borderRadius: '24px', padding: '54px 48px', textAlign: 'center', color: '#FFFFFF' }}>
-          <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '14px', letterSpacing: '-0.02em' }}>
-            Ready to upgrade your property operations?
-          </h2>
-          <p style={{ color: '#94A3B8', fontSize: '1.05rem', maxWidth: '600px', margin: '0 auto 28px', lineHeight: 1.6 }}>
-            Experience the peace of mind of real-time general ledger accounting and automated rent reconciliation.
-          </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
-            <Link to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '14px 28px', borderRadius: '12px', backgroundColor: BRAND_TOKENS.colors.primaryBlue, color: '#FFFFFF', fontWeight: 600, fontSize: '1rem', textDecoration: 'none' }}>
-              Start 14-Day Free Trial <ArrowRight size={18} />
-            </Link>
-            <Link to="/contact" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '14px 28px', borderRadius: '12px', backgroundColor: 'transparent', border: '1px solid #334155', color: '#FFFFFF', fontWeight: 600, fontSize: '1rem', textDecoration: 'none' }}>
-              Schedule Live Consultation
-            </Link>
-          </div>
-        </div>
-      </div>
+      {/* Responsive Breakpoint CSS */}
+      <style>{`
+        @media (max-width: 900px) {
+          .challenges-vs-features-grid {
+            grid-template-columns: 1fr !important;
+            gap: 32px !important;
+          }
+          .metrics-row-grid-3 {
+            grid-template-columns: 1fr !important;
+            gap: 24px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

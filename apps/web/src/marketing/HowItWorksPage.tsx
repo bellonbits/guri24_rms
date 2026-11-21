@@ -1,158 +1,377 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Building, UploadCloud, Cpu, CheckCircle2, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import {
+  Building2,
+  UploadCloud,
+  Cpu,
+  CheckCircle2,
+  ArrowRight,
+  ArrowUpRight,
+  ShieldCheck,
+  Zap,
+  Layers,
+  Sparkles,
+} from 'lucide-react';
 import { BRAND_TOKENS } from './BrandTokens';
 
 export const HowItWorksPage: React.FC = () => {
   const steps = [
     {
       num: '01',
-      title: 'Configure Your Organization & Chart of Accounts',
-      desc: 'Set up your company, add buildings, estate clusters, and individual units. Configure custom rental rates, deposit escrow requirements, and connect your bank accounts and M-Pesa Paybill / Till numbers.',
-      icon: Building,
+      title: 'Configure Hierarchy & Chart of Accounts',
+      desc: 'Model your organization by Estate > Building > Floor > Unit. Establish your chart of accounts with custom rental rates, deposit escrow rules, and connect your bank accounts and Safaricom Paybill / Till channels.',
+      icon: Building2,
+      highlights: ['Row-level multi-tenant isolation', 'Granular ownership split equity ratios', 'Customizable property metadata attributes'],
     },
     {
       num: '02',
-      title: 'Digitize Leases & Onboard Tenants',
-      desc: 'Create enforceable digital leases with automated start and termination triggers. Upload existing paper leases or scan them directly using our integrated OCR pipeline to auto-extract tenant contacts and rent terms.',
+      title: 'Digitize Leases & Ingest Paper Records',
+      desc: 'Create legally enforceable digital leases with automated start and termination triggers. Scan legacy paper leases directly using our OCR pipeline to automatically extract tenant contacts, KYC IDs, and rental terms.',
       icon: UploadCloud,
+      highlights: ['OCR verification confidence scores', 'Statutory rent escalation formulas', 'Digital signature and tenant portal onboarding'],
     },
     {
       num: '03',
-      title: 'Automated Billing & Instant Reconciliation',
-      desc: 'On the 1st of each month, invoices with itemized rent, water, and trash are generated. When tenants pay via M-Pesa or bank transfer, our system matches the payment to the exact tenant ledger within seconds.',
+      title: 'Automated Billing & Instant M-Pesa Reconciliation',
+      desc: 'On the 1st of each month, itemized invoices covering rent, water, and amenities are dispatched. When tenants pay via M-Pesa or bank transfer, our system matches the payment to the exact lease ledger in under 2 seconds.',
       icon: Cpu,
+      highlights: ['Real-time Safaricom Daraja C2B IPN webhooks', 'Multi-bank statement CSV/Excel OCR import', 'Automated SMS and email receipts'],
     },
     {
       num: '04',
-      title: 'Real-Time Financial Intelligence & Reports',
-      desc: 'Generate authoritative general ledger entries, trial balances, income statements, and cash flows. Export audit-ready tax reports or consult our AI Assistant for instant portfolio health diagnostics.',
+      title: 'Authoritative General Ledger & Asset Diagnostics',
+      desc: 'Every transaction creates immutable balancing debit and credit entries. Generate real-time trial balances, profit & loss, balance sheets, and consult our grounded AI Assistant for instant portfolio health diagnostics.',
       icon: CheckCircle2,
+      highlights: ['100% double-entry ledger balance guaranteed', 'KRA withholding tax and VAT reports', 'Grounded AI conversational financial queries'],
     },
   ];
 
   return (
-    <div style={{ backgroundColor: BRAND_TOKENS.colors.bgCanvas, minHeight: '100vh', padding: '64px 24px 100px' }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 64px' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              padding: '6px 16px',
-              backgroundColor: BRAND_TOKENS.colors.primaryTint,
-              borderRadius: '999px',
-              color: BRAND_TOKENS.colors.primaryBlue,
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              marginBottom: '16px',
-            }}
-          >
-            Streamlined Workflow
-          </div>
-          <h1
-            style={{
-              fontSize: 'clamp(2.3rem, 4vw, 3.2rem)',
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              color: BRAND_TOKENS.colors.darkNavy,
-              marginBottom: '16px',
-              lineHeight: 1.15,
-            }}
-          >
-            How Guri24 RMS Powers Modern Property Portfolios
-          </h1>
-          <p style={{ fontSize: '1.1rem', color: BRAND_TOKENS.colors.slateSubtle, lineHeight: 1.6 }}>
-            From day one of onboarding to closing your monthly general ledger, here is how our automated platform eliminates operational friction.
-          </p>
-        </div>
-
-        {/* 4 Step Timeline */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', marginBottom: '80px' }}>
-          {steps.map((step, idx) => {
-            const Icon = step.icon;
-            return (
-              <div
-                key={step.num}
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '24px',
-                  border: `1px solid ${BRAND_TOKENS.colors.slateBorder}`,
-                  padding: '44px 40px',
-                  display: 'grid',
-                  gridTemplateColumns: '80px minmax(0, 1fr)',
-                  gap: '32px',
-                  alignItems: 'flex-start',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-                }}
-              >
-                <div
-                  style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '16px',
-                    backgroundColor: idx % 2 === 0 ? BRAND_TOKENS.colors.primaryTint : '#F0FDF4',
-                    color: idx % 2 === 0 ? BRAND_TOKENS.colors.primaryBlue : '#16A34A',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 800,
-                    fontSize: '1.2rem',
-                  }}
-                >
-                  <Icon size={30} />
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 800, color: BRAND_TOKENS.colors.primaryBlue, letterSpacing: '0.08em', marginBottom: '6px' }}>
-                    STEP {step.num}
-                  </div>
-                  <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: BRAND_TOKENS.colors.darkNavy, marginBottom: '10px' }}>
-                    {step.title}
-                  </h3>
-                  <p style={{ fontSize: '1rem', color: '#475569', lineHeight: 1.65 }}>
-                    {step.desc}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* CTA Card */}
+    <div
+      style={{
+        backgroundColor: '#FFFFFF',
+        width: '100%',
+        minHeight: '100vh',
+        margin: 0,
+        padding: 0,
+        fontFamily: BRAND_TOKENS.fonts.sans,
+        color: '#0F172A',
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
+      }}
+    >
+      {/* =========================================================================
+          SECTION 1: ARCHITECTURAL HERO BANNER
+          ========================================================================= */}
+      <section
+        style={{
+          position: 'relative',
+          width: '100%',
+          minHeight: '65vh',
+          backgroundImage: 'url(/hero-luxury-architecture.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 45%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          textAlign: 'center',
+          padding: '100px 32px 80px',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+        }}
+      >
         <div
           style={{
-            backgroundColor: BRAND_TOKENS.colors.darkNavy,
-            borderRadius: '24px',
-            padding: '54px 48px',
-            textAlign: 'center',
-            color: '#FFFFFF',
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(180deg, rgba(2, 20, 41, 0.75) 0%, rgba(2, 20, 41, 0.5) 50%, rgba(2, 20, 41, 0.88) 100%)',
+            zIndex: 1,
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div
+          style={{
+            position: 'absolute',
+            top: '18%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontSize: 'clamp(50px, 13vw, 175px)',
+            fontWeight: 900,
+            letterSpacing: '0.12em',
+            color: 'rgba(255, 255, 255, 0.08)',
+            textTransform: 'uppercase',
+            pointerEvents: 'none',
+            zIndex: 1,
+            userSelect: 'none',
+            whiteSpace: 'nowrap',
           }}
         >
-          <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '14px', letterSpacing: '-0.02em' }}>
-            Transform your property management workflow in 15 minutes
-          </h2>
-          <p style={{ color: '#94A3B8', fontSize: '1.05rem', maxWidth: '600px', margin: '0 auto 28px', lineHeight: 1.6 }}>
-            Sign up today, import your current properties, and enjoy stress-free automated rent collections.
-          </p>
-          <Link
-            to="/register"
+          LIFECYCLE WORKFLOW
+        </div>
+
+        <div style={{ position: 'relative', zIndex: 10, maxWidth: '840px', margin: '0 auto' }}>
+          <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              padding: '14px 28px',
-              borderRadius: '12px',
-              backgroundColor: BRAND_TOKENS.colors.primaryBlue,
+              padding: '6px 18px',
+              borderRadius: '999px',
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
               color: '#FFFFFF',
-              fontWeight: 600,
-              fontSize: '1rem',
-              textDecoration: 'none',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              marginBottom: '20px',
             }}
           >
-            Get Started Free <ArrowRight size={18} />
-          </Link>
+            <span style={{ color: '#03D8BF' }}>04</span>
+            <span>&bull;</span>
+            <span>SYSTEM ARCHITECTURE</span>
+          </div>
+
+          <h1
+            style={{
+              fontSize: 'clamp(2.4rem, 4.8vw, 3.8rem)',
+              fontWeight: 900,
+              letterSpacing: '-0.035em',
+              color: '#FFFFFF',
+              lineHeight: 1.12,
+              marginBottom: '20px',
+            }}
+          >
+            How Guri24 Automates{' '}
+            <span style={{ color: '#B89047' }}>Property Portfolios</span>
+          </h1>
+
+          <p
+            style={{
+              fontSize: 'clamp(1rem, 1.6vw, 1.2rem)',
+              color: 'rgba(255, 255, 255, 0.88)',
+              lineHeight: 1.6,
+              maxWidth: '680px',
+              margin: '0 auto 32px',
+            }}
+          >
+            From your first day of organizational setup to closing your monthly double-entry ledger, discover how our automated engine eliminates operational friction.
+          </p>
+
+          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center' }}>
+            <Link
+              to="/contact?type=consultation"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                backgroundColor: '#FFFFFF',
+                color: '#021429',
+                padding: '12px 28px',
+                borderRadius: '999px',
+                fontSize: '0.92rem',
+                fontWeight: 700,
+                textDecoration: 'none',
+              }}
+            >
+              <span>Schedule Architecture Walkthrough</span>
+              <ArrowUpRight size={16} />
+            </Link>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 2: 4-STEP TIMELINE EDITORIAL CARDS
+          ========================================================================= */}
+      <section
+        style={{
+          padding: '96px 48px',
+          backgroundColor: '#FFFFFF',
+          borderBottom: '1px solid #F1F5F9',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
+            {steps.map((step, idx) => {
+              const Icon = step.icon;
+              return (
+                <div
+                  key={step.num}
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '28px',
+                    border: '1px solid #E2E8F0',
+                    padding: '48px',
+                    boxShadow: '0 12px 32px -8px rgba(2, 20, 41, 0.06)',
+                    display: 'grid',
+                    gridTemplateColumns: '120px minmax(0, 1fr)',
+                    gap: '40px',
+                    alignItems: 'flex-start',
+                  }}
+                  className="step-timeline-card"
+                >
+                  {/* Step Num & Icon */}
+                  <div>
+                    <div
+                      style={{
+                        fontSize: '3.4rem',
+                        fontWeight: 900,
+                        color: '#CBD5E1',
+                        letterSpacing: '-0.04em',
+                        lineHeight: 1,
+                        marginBottom: '12px',
+                      }}
+                    >
+                      {step.num}
+                    </div>
+                    <div
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '16px',
+                        backgroundColor: '#EFF5FF',
+                        color: '#0057FC',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Icon size={28} />
+                    </div>
+                  </div>
+
+                  {/* Step Content */}
+                  <div>
+                    <h3
+                      style={{
+                        fontSize: '1.65rem',
+                        fontWeight: 900,
+                        color: '#021429',
+                        letterSpacing: '-0.025em',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      {step.title}
+                    </h3>
+                    <p
+                      style={{
+                        color: '#64748B',
+                        fontSize: '1.02rem',
+                        lineHeight: 1.65,
+                        marginBottom: '24px',
+                      }}
+                    >
+                      {step.desc}
+                    </p>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                      {step.highlights.map((h, hi) => (
+                        <div
+                          key={hi}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            backgroundColor: '#FAFBFD',
+                            border: '1px solid #E2E8F0',
+                            padding: '6px 14px',
+                            borderRadius: '999px',
+                            fontSize: '0.82rem',
+                            fontWeight: 600,
+                            color: '#021429',
+                          }}
+                        >
+                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0057FC' }} />
+                          <span>{h}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 3: CLOSING CALLOUT
+          ========================================================================= */}
+      <section
+        style={{
+          padding: '80px 32px 100px',
+          backgroundColor: '#FFFFFF',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: '1320px',
+            margin: '0 auto',
+            borderRadius: '28px',
+            backgroundColor: '#021429',
+            padding: '72px 48px',
+            textAlign: 'center',
+            color: '#FFFFFF',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div style={{ position: 'relative', zIndex: 1, maxWidth: '640px', margin: '0 auto' }}>
+            <h2
+              style={{
+                fontSize: 'clamp(2rem, 3.5vw, 2.8rem)',
+                fontWeight: 900,
+                letterSpacing: '-0.03em',
+                marginBottom: '16px',
+                lineHeight: 1.15,
+              }}
+            >
+              Ready to Upgrade Your Operational Architecture?
+            </h2>
+            <p style={{ fontSize: '1rem', color: '#94A3B8', lineHeight: 1.6, marginBottom: '32px' }}>
+              Start your 14-day free trial or book a custom migration consultation today.
+            </p>
+            <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link
+                to="/register"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: '#0057FC',
+                  color: '#FFFFFF',
+                  padding: '12px 28px',
+                  borderRadius: '999px',
+                  fontSize: '0.94rem',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                }}
+              >
+                <span>Start Free Trial</span>
+                <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Responsive Breakpoint CSS */}
+      <style>{`
+        @media (max-width: 768px) {
+          .step-timeline-card {
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

@@ -1,289 +1,470 @@
 import React, { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { BookOpen, FileText, Sparkles, HelpCircle, Video, RefreshCw, ArrowRight, Search, Clock, Tag } from 'lucide-react';
+import {
+  BookOpen,
+  FileText,
+  Sparkles,
+  HelpCircle,
+  Video,
+  RefreshCw,
+  ArrowRight,
+  ArrowUpRight,
+  Search,
+  Clock,
+  Tag,
+  Calendar,
+} from 'lucide-react';
 import { BRAND_TOKENS } from './BrandTokens';
 
 interface ResourceItem {
   id: string;
-  category: 'guides' | 'blog' | 'help' | 'tutorials' | 'updates';
+  category: 'guides' | 'blog' | 'accounting' | 'legal';
   title: string;
   excerpt: string;
+  image: string;
   readTime: string;
   date: string;
   tag: string;
-  content?: string;
+  author: { name: string; role: string };
 }
 
 const RESOURCES: ResourceItem[] = [
   {
-    id: 'mpesa-c2b-reconciliation-guide',
+    id: 'passive-income-rental-properties',
     category: 'guides',
+    title: 'How to Start Earning Passive Income with Rental Properties',
+    excerpt: 'A comprehensive operational blueprint on acquiring, tenanting, and automating multi-unit residential property in Kenya without daily owner intervention.',
+    image: '/featured_nairobi_apartment.jpg',
+    readTime: '7 min read',
+    date: 'April 14, 2026',
+    tag: 'Property Investment',
+    author: { name: 'Kevin Omondi', role: 'Chief Portfolio Strategist' },
+  },
+  {
+    id: 'common-mistakes-buying-home',
+    category: 'guides',
+    title: '10 Common Mistakes to Avoid When Buying or Leasing a Home',
+    excerpt: 'Critical legal due diligence checklist: title deed searches, sectional properties act compliance, and understanding tenant deposit escrow liabilities.',
+    image: '/luxury-pool-villa.jpg',
+    readTime: '9 min read',
+    date: 'April 10, 2026',
+    tag: 'Due Diligence',
+    author: { name: 'Faith Wanjiku', role: 'Senior Legal & Conveyance Counsel' },
+  },
+  {
+    id: 'mpesa-c2b-reconciliation-guide',
+    category: 'accounting',
     title: 'Complete Guide to Automating M-Pesa C2B Rent Reconciliation in Kenya',
-    excerpt: 'Step-by-step blueprint on integrating Safaricom Daraja API Paybill and Till notifications with double-entry general ledger accounts.',
+    excerpt: 'Step-by-step blueprint on integrating Safaricom Daraja API Paybill and Till notifications directly with double-entry general ledger accounts.',
+    image: '/modern-organic-balconies.jpg',
     readTime: '8 min read',
-    date: 'Oct 18, 2026',
+    date: 'March 28, 2026',
     tag: 'Financial Operations',
+    author: { name: 'Brian Koech', role: 'Lead Financial Systems Architect' },
   },
   {
     id: 'kdpa-compliance-for-landlords',
-    category: 'guides',
+    category: 'legal',
     title: 'Kenya Data Protection Act 2019: Landlord & Property Manager Compliance Manual',
-    excerpt: 'How to legally handle tenant national ID copies, phone numbers, and emergency contact KYC records without regulatory penalties.',
+    excerpt: 'How to legally handle tenant national ID copies, phone numbers, and emergency contact KYC records without regulatory penalties under the KDPA.',
+    image: '/luxury-minimalist-living.jpg',
     readTime: '11 min read',
-    date: 'Sep 29, 2026',
+    date: 'March 15, 2026',
     tag: 'Legal & Privacy',
+    author: { name: 'Faith Wanjiku', role: 'Senior Legal & Conveyance Counsel' },
   },
   {
     id: 'double-entry-accounting-for-real-estate',
-    category: 'guides',
+    category: 'accounting',
     title: 'Double-Entry Accounting Principles for Commercial & Residential Real Estate',
-    excerpt: 'Demystifying why tenant security deposits are liabilities (Account 2100) and how accrual rent invoicing protects asset yield.',
+    excerpt: 'Demystifying why tenant security deposits are liabilities (Account 2100) and how accrual rent invoicing protects asset yield and net operating income.',
+    image: '/hero-luxury-architecture.jpg',
     readTime: '9 min read',
-    date: 'Sep 14, 2026',
-    tag: 'Accounting',
-  },
-  {
-    id: 'eliminating-rent-delinquency-playbook',
-    category: 'blog',
-    title: 'How Forward-Thinking Property Firms Reduced Delinquency to Under 2.5%',
-    excerpt: 'Operational strategies from top Kenyan property managers on automated SMS reminders, tiered grace periods, and mobile STK push.',
-    readTime: '6 min read',
-    date: 'Oct 22, 2026',
-    tag: 'Industry Insights',
+    date: 'February 24, 2026',
+    tag: 'Accounting Discipline',
+    author: { name: 'Brian Koech', role: 'Lead Financial Systems Architect' },
   },
   {
     id: 'future-of-proptech-east-africa',
     category: 'blog',
     title: 'The State of PropTech in East Africa: Beyond Basic Excel Spreadsheets',
-    excerpt: 'Why institutional investors and commercial banks now demand immutable digital rent rolls and audited cash collection trails.',
-    readTime: '7 min read',
-    date: 'Oct 05, 2026',
-    tag: 'Technology',
-  },
-  {
-    id: 'video-setting-up-first-property',
-    category: 'tutorials',
-    title: 'Video Tutorial: Setting Up Your First Property & Bulk Generating Units',
-    excerpt: 'A 6-minute visual walkthrough on defining buildings, floors, unit numbering formulas, and custom rental rates in Guri24 RMS.',
-    readTime: '6 min watch',
-    date: 'Oct 12, 2026',
-    tag: 'Getting Started',
-  },
-  {
-    id: 'video-bank-statement-ocr-import',
-    category: 'tutorials',
-    title: 'Video Tutorial: Importing Multi-Bank Statements & Resolving Exceptions',
-    excerpt: 'How to upload Co-op, KCB, or Equity Bank CSV/PDF statements and run automated rule-based reconciliation in under 60 seconds.',
-    readTime: '8 min watch',
-    date: 'Sep 24, 2026',
-    tag: 'Banking',
-  },
-  {
-    id: 'v2-4-release-notes',
-    category: 'updates',
-    title: 'Guri24 RMS Release v2.4: Instant STK Push & Multi-Bank Segregation',
-    excerpt: 'Full changelog of our October 2026 release introducing one-click M-Pesa STK push, improved OCR extraction, and faster trial balance queries.',
-    readTime: '4 min read',
-    date: 'Oct 24, 2026',
-    tag: 'Product Updates',
-  },
-  {
-    id: 'help-how-to-refund-tenant-deposit',
-    category: 'help',
-    title: 'Help Article: Processing Tenant Deposit Escrow Refunds & Move-Out Deductions',
-    excerpt: 'Standard operating procedure for performing unit exit inspections, recording damage deductions, and disbursing net refunds.',
-    readTime: '5 min read',
-    date: 'Oct 15, 2026',
-    tag: 'Help & FAQ',
+    excerpt: 'Why institutional investors and commercial banks now demand immutable digital rent rolls and audited cash collection trails before financing portfolios.',
+    image: '/modern-organic-balconies.jpg',
+    readTime: '6 min read',
+    date: 'February 10, 2026',
+    tag: 'Industry Perspectives',
+    author: { name: 'Kevin Omondi', role: 'Chief Portfolio Strategist' },
   },
 ];
 
 export const ResourcesPages: React.FC = () => {
-  const { pathname } = useLocation();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Extract category from /resources/:cat
-  const subCategory = pathname.split('/resources/')[1] || '';
-  const currentCategory = ['guides', 'blog', 'help', 'tutorials', 'updates'].includes(subCategory)
-    ? subCategory
-    : 'all';
+  const categories = [
+    { id: 'all', label: 'All Resources' },
+    { id: 'guides', label: 'Investment & Operations' },
+    { id: 'accounting', label: 'Accounting & Banking' },
+    { id: 'legal', label: 'KDPA & Compliance' },
+    { id: 'blog', label: 'Industry Perspectives' },
+  ];
 
-  const filtered = RESOURCES.filter((item) => {
-    const matchesCategory = currentCategory === 'all' || item.category === currentCategory;
+  const filteredResources = RESOURCES.filter((r) => {
+    const matchesCategory = activeCategory === 'all' || r.category === activeCategory;
     const matchesSearch =
-      searchQuery === '' ||
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.tag.toLowerCase().includes(searchQuery.toLowerCase());
+      r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.tag.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  const categoriesNav = [
-    { id: 'all', label: 'All Resources', path: '/resources', icon: BookOpen },
-    { id: 'guides', label: 'Guides & Manuals', path: '/resources/guides', icon: FileText },
-    { id: 'blog', label: 'Blog & Insights', path: '/resources/blog', icon: Sparkles },
-    { id: 'tutorials', label: 'Video Tutorials', path: '/resources/tutorials', icon: Video },
-    { id: 'help', label: 'Help Articles', path: '/resources/help', icon: HelpCircle },
-    { id: 'updates', label: 'Product Updates', path: '/resources/updates', icon: RefreshCw },
-  ];
-
   return (
-    <div style={{ backgroundColor: BRAND_TOKENS.colors.bgCanvas, minHeight: '100vh', padding: '64px 24px 100px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ textAlign: 'center', maxWidth: '760px', margin: '0 auto 54px' }}>
+    <div
+      style={{
+        backgroundColor: '#FFFFFF',
+        width: '100%',
+        minHeight: '100vh',
+        margin: 0,
+        padding: 0,
+        fontFamily: BRAND_TOKENS.fonts.sans,
+        color: '#0F172A',
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
+      }}
+    >
+      {/* =========================================================================
+          SECTION 1: ARCHITECTURAL HERO BANNER
+          ========================================================================= */}
+      <section
+        style={{
+          position: 'relative',
+          width: '100%',
+          minHeight: '65vh',
+          backgroundImage: 'url(/hero-luxury-architecture.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 45%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          textAlign: 'center',
+          padding: '100px 32px 80px',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(180deg, rgba(2, 20, 41, 0.78) 0%, rgba(2, 20, 41, 0.52) 50%, rgba(2, 20, 41, 0.9) 100%)',
+            zIndex: 1,
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div
+          style={{
+            position: 'absolute',
+            top: '18%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontSize: 'clamp(50px, 13vw, 175px)',
+            fontWeight: 900,
+            letterSpacing: '0.12em',
+            color: 'rgba(255, 255, 255, 0.08)',
+            textTransform: 'uppercase',
+            pointerEvents: 'none',
+            zIndex: 1,
+            userSelect: 'none',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          EDITORIAL PERSPECTIVES
+        </div>
+
+        <div style={{ position: 'relative', zIndex: 10, maxWidth: '840px', margin: '0 auto' }}>
           <div
             style={{
               display: 'inline-flex',
-              padding: '6px 16px',
-              backgroundColor: BRAND_TOKENS.colors.primaryTint,
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 18px',
               borderRadius: '999px',
-              color: BRAND_TOKENS.colors.primaryBlue,
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              marginBottom: '16px',
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              color: '#FFFFFF',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              marginBottom: '20px',
             }}
           >
-            Knowledge & Resources Hub
+            <span style={{ color: '#03D8BF' }}>08</span>
+            <span>&bull;</span>
+            <span>PUBLICATIONS &amp; INSIGHTS</span>
           </div>
+
           <h1
             style={{
-              fontSize: 'clamp(2.4rem, 4vw, 3.4rem)',
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              color: BRAND_TOKENS.colors.darkNavy,
-              marginBottom: '16px',
-              lineHeight: 1.15,
+              fontSize: 'clamp(2.4rem, 4.8vw, 3.8rem)',
+              fontWeight: 900,
+              letterSpacing: '-0.035em',
+              color: '#FFFFFF',
+              lineHeight: 1.12,
+              marginBottom: '20px',
             }}
           >
-            Property Operations, Accounting & Engineering Insights
+            Real Estate &amp; Financial{' '}
+            <span style={{ color: '#B89047' }}>Intelligence</span>
           </h1>
-          <p style={{ fontSize: '1.15rem', color: BRAND_TOKENS.colors.slateSubtle, lineHeight: 1.6 }}>
-            Comprehensive documentation, legal playbooks, accounting frameworks, and product tutorials designed for modern real estate managers.
+
+          <p
+            style={{
+              fontSize: 'clamp(1rem, 1.6vw, 1.18rem)',
+              color: 'rgba(255, 255, 255, 0.88)',
+              lineHeight: 1.6,
+              maxWidth: '680px',
+              margin: '0 auto 28px',
+            }}
+          >
+            Actionable blueprints on M-Pesa automated reconciliation, double-entry general ledgers, Kenya Data Protection Act compliance, and asset management.
           </p>
 
-          {/* Search Box */}
-          <div style={{ marginTop: '32px', maxWidth: '520px', margin: '32px auto 0', position: 'relative' }}>
-            <Search size={18} color="#94A3B8" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+          {/* Search Pill */}
+          <div style={{ maxWidth: '460px', margin: '0 auto', position: 'relative' }}>
+            <Search
+              size={18}
+              style={{
+                position: 'absolute',
+                left: '18px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'rgba(255, 255, 255, 0.6)',
+              }}
+            />
             <input
               type="text"
-              placeholder="Search guides, tutorials, or accounting topics..."
+              placeholder="Search guides, accounting, legal..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 width: '100%',
-                padding: '14px 16px 14px 46px',
-                borderRadius: '14px',
-                border: '1px solid #CBD5E1',
-                fontSize: '0.96rem',
+                padding: '12px 20px 12px 48px',
+                borderRadius: '999px',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                color: '#FFFFFF',
+                fontSize: '0.92rem',
                 outline: 'none',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                backgroundColor: '#FFFFFF',
+                boxSizing: 'border-box',
               }}
             />
           </div>
         </div>
+      </section>
 
-        {/* Categories Tab Navigation */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '48px' }}>
-          {categoriesNav.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = currentCategory === tab.id;
-            return (
-              <Link
-                key={tab.id}
-                to={tab.path}
+      {/* =========================================================================
+          SECTION 2: EDITORIAL MAGAZINE GRID (MATCHING REFERENCE EXACTLY)
+          ========================================================================= */}
+      <section
+        style={{
+          padding: '88px 48px',
+          backgroundColor: '#FFFFFF',
+          borderBottom: '1px solid #F1F5F9',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
+          {/* Category Chips */}
+          <div
+            style={{
+              display: 'flex',
+              gap: '8px',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              marginBottom: '56px',
+            }}
+          >
+            {categories.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setActiveCategory(c.id)}
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '10px 20px',
+                  padding: '8px 18px',
                   borderRadius: '999px',
-                  border: `1px solid ${isActive ? BRAND_TOKENS.colors.primaryBlue : BRAND_TOKENS.colors.slateBorder}`,
-                  backgroundColor: isActive ? BRAND_TOKENS.colors.primaryBlue : '#FFFFFF',
-                  color: isActive ? '#FFFFFF' : BRAND_TOKENS.colors.darkNavy,
+                  fontSize: '0.84rem',
                   fontWeight: 600,
-                  fontSize: '0.88rem',
-                  textDecoration: 'none',
+                  border: activeCategory === c.id ? '1px solid #021429' : '1px solid #E2E8F0',
+                  backgroundColor: activeCategory === c.id ? '#021429' : '#FFFFFF',
+                  color: activeCategory === c.id ? '#FFFFFF' : '#475569',
+                  cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  boxShadow: isActive ? '0 4px 12px rgba(0, 87, 252, 0.15)' : 'none',
                 }}
               >
-                <Icon size={16} />
-                {tab.label}
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Resources Cards Grid */}
-        {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '64px 20px', backgroundColor: '#FFFFFF', borderRadius: '24px', border: `1px solid ${BRAND_TOKENS.colors.slateBorder}` }}>
-            <p style={{ fontSize: '1.1rem', color: BRAND_TOKENS.colors.slateSubtle }}>No resources found matching your search criteria.</p>
-            <button
-              onClick={() => setSearchQuery('')}
-              style={{ marginTop: '16px', padding: '10px 20px', borderRadius: '10px', backgroundColor: BRAND_TOKENS.colors.primaryBlue, color: '#FFFFFF', border: 'none', cursor: 'pointer', fontWeight: 600 }}
-            >
-              Clear Search Filter
-            </button>
+                {c.label}
+              </button>
+            ))}
           </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '28px' }}>
-            {filtered.map((item) => (
-              <div
+
+          {/* Cards Grid */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+              gap: '36px',
+            }}
+            className="editorial-magazine-grid"
+          >
+            {filteredResources.map((item, idx) => (
+              <article
                 key={item.id}
                 style={{
                   backgroundColor: '#FFFFFF',
                   borderRadius: '24px',
-                  border: `1px solid ${BRAND_TOKENS.colors.slateBorder}`,
-                  padding: '36px 32px',
+                  overflow: 'hidden',
+                  border: '1px solid #E2E8F0',
+                  boxShadow: '0 10px 30px -10px rgba(2, 20, 41, 0.05)',
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.02)',
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 20px 40px -10px rgba(2, 20, 41, 0.12)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 10px 30px -10px rgba(2, 20, 41, 0.05)';
                 }}
               >
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', fontWeight: 700, color: BRAND_TOKENS.colors.primaryBlue, backgroundColor: BRAND_TOKENS.colors.primaryTint, padding: '3px 10px', borderRadius: '999px' }}>
-                      <Tag size={12} /> {item.tag}
-                    </span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: '#64748B' }}>
-                      <Clock size={13} /> {item.readTime}
-                    </span>
-                  </div>
-
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: BRAND_TOKENS.colors.darkNavy, marginBottom: '10px', lineHeight: 1.35 }}>
-                    {item.title}
-                  </h2>
-                  <p style={{ fontSize: '0.92rem', color: '#64748B', lineHeight: 1.6, marginBottom: '24px' }}>
-                    {item.excerpt}
-                  </p>
-                </div>
-
-                <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 500 }}>{item.date}</span>
-                  <Link
-                    to={`/resources/${item.category}#${item.id}`}
+                {/* Photographic Header */}
+                <div style={{ position: 'relative', height: '240px', backgroundColor: '#021429', overflow: 'hidden' }}>
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <div
                     style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      color: BRAND_TOKENS.colors.primaryBlue,
-                      fontWeight: 600,
-                      fontSize: '0.88rem',
-                      textDecoration: 'none',
+                      position: 'absolute',
+                      top: '16px',
+                      left: '16px',
+                      backgroundColor: 'rgba(2, 20, 41, 0.75)',
+                      backdropFilter: 'blur(10px)',
+                      color: '#03D8BF',
+                      padding: '4px 12px',
+                      borderRadius: '999px',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      border: '1px solid rgba(3, 216, 191, 0.3)',
                     }}
                   >
-                    Read Resource <ArrowRight size={14} />
-                  </Link>
+                    {item.tag}
+                  </div>
                 </div>
-              </div>
+
+                {/* Body Content */}
+                <div style={{ padding: '28px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.78rem', color: '#64748B', marginBottom: '12px' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Calendar size={13} />
+                        {item.date}
+                      </span>
+                      <span>&bull;</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Clock size={13} />
+                        {item.readTime}
+                      </span>
+                    </div>
+
+                    <h3
+                      style={{
+                        fontSize: '1.28rem',
+                        fontWeight: 900,
+                        color: '#021429',
+                        letterSpacing: '-0.02em',
+                        lineHeight: 1.35,
+                        marginBottom: '12px',
+                      }}
+                    >
+                      {item.title}
+                    </h3>
+
+                    <p style={{ color: '#64748B', fontSize: '0.90rem', lineHeight: 1.6, marginBottom: '24px' }}>
+                      {item.excerpt}
+                    </p>
+                  </div>
+
+                  {/* Footer Bar */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      borderTop: '1px solid #F1F5F9',
+                      paddingTop: '18px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          backgroundColor: '#021429',
+                          color: '#FFFFFF',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.76rem',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {item.author.name.split(' ').map((n) => n[0]).join('')}
+                      </div>
+                      <div style={{ fontSize: '0.80rem', fontWeight: 600, color: '#021429' }}>
+                        {item.author.name}
+                      </div>
+                    </div>
+
+                    <Link
+                      to={`/resources/${item.id}`}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '999px',
+                        border: '1px solid #CBD5E1',
+                        backgroundColor: '#FAFBFD',
+                        color: '#021429',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        textDecoration: 'none',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      Read More articles
+                    </Link>
+                  </div>
+                </div>
+              </article>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      </section>
+
+      {/* Responsive Breakpoint CSS */}
+      <style>{`
+        @media (max-width: 768px) {
+          .editorial-magazine-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

@@ -323,8 +323,19 @@ export const FeatureDetailPage: React.FC = () => {
   const Icon = feature.icon;
 
   return (
-    <div style={{ backgroundColor: BRAND_TOKENS.colors.bgCanvas, minHeight: '100vh', padding: '64px 24px 100px' }}>
-      <div style={{ maxWidth: '1160px', margin: '0 auto' }}>
+    <div
+      style={{
+        backgroundColor: '#FFFFFF',
+        width: '100%',
+        minHeight: '100vh',
+        margin: 0,
+        padding: '48px 32px 100px',
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
+        fontFamily: BRAND_TOKENS.fonts.sans,
+      }}
+    >
+      <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
         {/* Breadcrumb */}
         <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
           <Link to="/" style={{ color: BRAND_TOKENS.colors.slateSubtle, textDecoration: 'none' }}>Home</Link>
@@ -542,41 +553,122 @@ export const FeaturesHubPage: React.FC = () => {
     : Object.values(FEATURES_CATALOG).filter((f) => f.category === selectedCat);
 
   return (
-    <div style={{ backgroundColor: BRAND_TOKENS.colors.bgCanvas, minHeight: '100vh', padding: '64px 24px 100px' }}>
-      <div style={{ maxWidth: '1220px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', maxWidth: '760px', margin: '0 auto 54px' }}>
+    <div
+      style={{
+        backgroundColor: '#FFFFFF',
+        width: '100%',
+        minHeight: '100vh',
+        margin: 0,
+        padding: 0,
+        fontFamily: BRAND_TOKENS.fonts.sans,
+        color: '#0F172A',
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
+      }}
+    >
+      {/* =========================================================================
+          SECTION 1: ARCHITECTURAL HERO BANNER
+          ========================================================================= */}
+      <section
+        style={{
+          position: 'relative',
+          width: '100%',
+          minHeight: '65vh',
+          backgroundImage: 'url(/modern-organic-balconies.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 45%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          textAlign: 'center',
+          padding: '100px 32px 80px',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(180deg, rgba(2, 20, 41, 0.78) 0%, rgba(2, 20, 41, 0.52) 50%, rgba(2, 20, 41, 0.9) 100%)',
+            zIndex: 1,
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div
+          style={{
+            position: 'absolute',
+            top: '18%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontSize: 'clamp(50px, 13vw, 175px)',
+            fontWeight: 900,
+            letterSpacing: '0.12em',
+            color: 'rgba(255, 255, 255, 0.08)',
+            textTransform: 'uppercase',
+            pointerEvents: 'none',
+            zIndex: 1,
+            userSelect: 'none',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          PLATFORM CAPABILITIES
+        </div>
+
+        <div style={{ position: 'relative', zIndex: 10, maxWidth: '840px', margin: '0 auto' }}>
           <div
             style={{
               display: 'inline-flex',
-              padding: '6px 16px',
-              backgroundColor: BRAND_TOKENS.colors.primaryTint,
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 18px',
               borderRadius: '999px',
-              color: BRAND_TOKENS.colors.primaryBlue,
-              fontSize: '0.85rem',
-              fontWeight: 600,
-              marginBottom: '16px',
+              backgroundColor: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              color: '#FFFFFF',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              marginBottom: '20px',
             }}
           >
-            Complete Platform Capabilities
+            <span style={{ color: '#03D8BF' }}>07</span>
+            <span>&bull;</span>
+            <span>MODULE CATALOG</span>
           </div>
+
           <h1
             style={{
-              fontSize: 'clamp(2.4rem, 4vw, 3.4rem)',
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              color: BRAND_TOKENS.colors.darkNavy,
-              marginBottom: '18px',
-              lineHeight: 1.15,
+              fontSize: 'clamp(2.4rem, 4.8vw, 3.8rem)',
+              fontWeight: 900,
+              letterSpacing: '-0.035em',
+              color: '#FFFFFF',
+              lineHeight: 1.12,
+              marginBottom: '20px',
             }}
           >
-            Engineered for Authoritative Property Control
+            Engineered for Authoritative{' '}
+            <span style={{ color: '#B89047' }}>Property Control</span>
           </h1>
-          <p style={{ fontSize: '1.15rem', color: BRAND_TOKENS.colors.slateSubtle, lineHeight: 1.6 }}>
+
+          <p
+            style={{
+              fontSize: 'clamp(1rem, 1.6vw, 1.18rem)',
+              color: 'rgba(255, 255, 255, 0.88)',
+              lineHeight: 1.6,
+              maxWidth: '680px',
+              margin: '0 auto 32px',
+            }}
+          >
             Explore all 14 core modules designed to eliminate manual paper receipts, spreadsheet errors, and unallocated bank transfers.
           </p>
 
           {/* Category Filter Pills */}
-          <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '8px', marginTop: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '8px' }}>
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -584,13 +676,14 @@ export const FeaturesHubPage: React.FC = () => {
                 style={{
                   padding: '8px 18px',
                   borderRadius: '999px',
-                  border: `1px solid ${selectedCat === cat ? BRAND_TOKENS.colors.primaryBlue : BRAND_TOKENS.colors.slateBorder}`,
-                  backgroundColor: selectedCat === cat ? BRAND_TOKENS.colors.primaryBlue : '#FFFFFF',
-                  color: selectedCat === cat ? '#FFFFFF' : BRAND_TOKENS.colors.darkNavy,
-                  fontWeight: 600,
-                  fontSize: '0.88rem',
+                  border: selectedCat === cat ? '1px solid #FFFFFF' : '1px solid rgba(255, 255, 255, 0.25)',
+                  backgroundColor: selectedCat === cat ? '#FFFFFF' : 'rgba(255, 255, 255, 0.12)',
+                  color: selectedCat === cat ? '#021429' : 'rgba(255, 255, 255, 0.88)',
+                  fontWeight: 700,
+                  fontSize: '0.84rem',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
+                  backdropFilter: 'blur(10px)',
                 }}
               >
                 {cat}
@@ -598,88 +691,112 @@ export const FeaturesHubPage: React.FC = () => {
             ))}
           </div>
         </div>
+      </section>
 
-        {/* Feature Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '28px' }}>
-          {filtered.map((feat) => {
-            const Icon = feat.icon;
-            return (
-              <div
-                key={feat.slug}
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '24px',
-                  border: `1px solid ${BRAND_TOKENS.colors.slateBorder}`,
-                  padding: '36px 30px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.02)',
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                }}
-              >
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                    <div
+      {/* =========================================================================
+          SECTION 2: FEATURE GRID
+          ========================================================================= */}
+      <section
+        style={{
+          padding: '88px 48px',
+          backgroundColor: '#FFFFFF',
+          borderBottom: '1px solid #F1F5F9',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '28px' }}>
+            {filtered.map((feat) => {
+              const Icon = feat.icon;
+              return (
+                <div
+                  key={feat.slug}
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: '24px',
+                    border: '1px solid #E2E8F0',
+                    padding: '36px 30px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    boxShadow: '0 8px 24px -6px rgba(2, 20, 41, 0.04)',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-3px)';
+                    e.currentTarget.style.boxShadow = '0 16px 36px -8px rgba(2, 20, 41, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 8px 24px -6px rgba(2, 20, 41, 0.04)';
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                      <div
+                        style={{
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '14px',
+                          backgroundColor: '#EFF5FF',
+                          color: '#0057FC',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Icon size={24} />
+                      </div>
+                      <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#475569', backgroundColor: '#F1F5F9', padding: '4px 12px', borderRadius: '999px' }}>
+                        {feat.category}
+                      </span>
+                    </div>
+
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#021429', marginBottom: '8px' }}>
+                      {feat.name}
+                    </h3>
+                    <p style={{ fontSize: '0.90rem', color: '#64748B', lineHeight: 1.55, marginBottom: '20px', minHeight: '44px' }}>
+                      {feat.tagline}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '16px', marginBottom: '20px' }}>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#021429', marginBottom: '6px' }}>Key Architecture:</div>
+                      <div style={{ fontSize: '0.86rem', color: '#475569', lineHeight: 1.5 }}>
+                        {feat.benefits[0]?.desc}
+                      </div>
+                    </div>
+
+                    <Link
+                      to={`/features/${feat.slug}`}
                       style={{
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '14px',
-                        backgroundColor: BRAND_TOKENS.colors.primaryTint,
-                        color: BRAND_TOKENS.colors.primaryBlue,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        gap: '8px',
+                        padding: '11px',
+                        borderRadius: '999px',
+                        backgroundColor: '#FAFBFD',
+                        border: '1px solid #CBD5E1',
+                        color: '#021429',
+                        fontWeight: 700,
+                        fontSize: '0.88rem',
+                        textDecoration: 'none',
+                        transition: 'all 0.2s ease',
                       }}
                     >
-                      <Icon size={24} />
-                    </div>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748B', backgroundColor: '#F1F5F9', padding: '3px 10px', borderRadius: '999px' }}>
-                      {feat.category}
-                    </span>
+                      <span>View Module Details</span>
+                      <ArrowUpRight size={15} />
+                    </Link>
                   </div>
-
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: BRAND_TOKENS.colors.darkNavy, marginBottom: '8px' }}>
-                    {feat.name}
-                  </h3>
-                  <p style={{ fontSize: '0.9rem', color: BRAND_TOKENS.colors.slateSubtle, lineHeight: 1.55, marginBottom: '20px', minHeight: '44px' }}>
-                    {feat.tagline}
-                  </p>
                 </div>
-
-                <div>
-                  <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '16px', marginBottom: '20px' }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: BRAND_TOKENS.colors.darkNavy, marginBottom: '8px' }}>Key Highlight:</div>
-                    <div style={{ fontSize: '0.86rem', color: '#475569', lineHeight: 1.5 }}>
-                      {feat.benefits[0]?.desc}
-                    </div>
-                  </div>
-
-                  <Link
-                    to={`/features/${feat.slug}`}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      padding: '11px',
-                      borderRadius: '12px',
-                      backgroundColor: BRAND_TOKENS.colors.bgCanvas,
-                      border: `1px solid ${BRAND_TOKENS.colors.slateBorder}`,
-                      color: BRAND_TOKENS.colors.darkNavy,
-                      fontWeight: 600,
-                      fontSize: '0.9rem',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    View Module Details <ArrowRight size={15} />
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

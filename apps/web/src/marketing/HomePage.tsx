@@ -42,50 +42,36 @@ export const HomePage: React.FC = () => {
   return (
     <div
       style={{
-        backgroundColor: '#EAEFF5', // Soft luxury architectural backdrop matching reference canvas
+        backgroundColor: '#FFFFFF',
         minHeight: '100vh',
-        padding: '24px 16px 80px',
+        width: '100%',
+        margin: 0,
+        padding: 0,
         fontFamily: BRAND_TOKENS.fonts.sans,
         color: '#0F172A',
         boxSizing: 'border-box',
+        overflowX: 'hidden',
       }}
     >
       {/* =========================================================================
-          ELEVATED MASTER EDITORIAL CONTAINER
+          SECTION 1: HERO SECTION ("AXIOMA / GURI24" LUXURY ARCHITECTURE)
           ========================================================================= */}
-      <div
+      <section
         style={{
-          maxWidth: '1360px',
-          margin: '0 auto',
-          backgroundColor: '#FFFFFF',
-          borderRadius: '32px',
-          boxShadow: '0 30px 80px -20px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.04)',
+          position: 'relative',
+          width: '100%',
           overflow: 'hidden',
+          minHeight: '94vh',
+          backgroundImage: 'url(/hero-luxury-architecture.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 48%',
           display: 'flex',
           flexDirection: 'column',
-          position: 'relative',
+          justifyContent: 'space-between',
+          padding: '36px 40px 48px',
+          boxSizing: 'border-box',
         }}
       >
-        {/* =========================================================================
-            SECTION 1: HERO SECTION ("AXIOMA / GURI24" LUXURY ARCHITECTURE)
-            ========================================================================= */}
-        <section
-          style={{
-            position: 'relative',
-            margin: '16px',
-            borderRadius: '24px',
-            overflow: 'hidden',
-            minHeight: '720px',
-            backgroundImage: 'url(/hero-luxury-architecture.jpg)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center 48%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            padding: '28px 32px 36px',
-            boxSizing: 'border-box',
-          }}
-        >
           {/* Subtle Atmospheric Dark Vignette Overlay for Crisp Readability */}
           <div
             style={{
@@ -129,6 +115,8 @@ export const HomePage: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: '16px',
+              maxWidth: '1360px',
+              margin: '0 auto',
               width: '100%',
               flexWrap: 'wrap',
             }}
@@ -292,8 +280,9 @@ export const HomePage: React.FC = () => {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'flex-start',
+              maxWidth: '1360px',
+              margin: '28px auto',
               width: '100%',
-              margin: '28px 0',
             }}
           >
             <div
@@ -389,6 +378,8 @@ export const HomePage: React.FC = () => {
               display: 'flex',
               alignItems: 'flex-end',
               justifyContent: 'space-between',
+              maxWidth: '1360px',
+              margin: '0 auto',
               width: '100%',
               flexWrap: 'wrap',
               gap: '16px',
@@ -473,10 +464,14 @@ export const HomePage: React.FC = () => {
             padding: '72px 48px',
             backgroundColor: '#FFFFFF',
             borderBottom: '1px solid #F1F5F9',
+            width: '100%',
+            boxSizing: 'border-box',
           }}
         >
           <div
             style={{
+              maxWidth: '1320px',
+              margin: '0 auto',
               display: 'grid',
               gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 1fr)',
               gap: '64px',
@@ -616,10 +611,14 @@ export const HomePage: React.FC = () => {
             padding: '64px 48px',
             backgroundColor: '#FFFFFF',
             borderBottom: '1px solid #F1F5F9',
+            width: '100%',
+            boxSizing: 'border-box',
           }}
         >
           <div
             style={{
+              maxWidth: '1320px',
+              margin: '0 auto',
               display: 'grid',
               gridTemplateColumns: '1.45fr 0.65fr 1.35fr',
               gap: '20px',
@@ -826,10 +825,14 @@ export const HomePage: React.FC = () => {
             padding: '54px 48px',
             backgroundColor: '#FFFFFF',
             borderBottom: '1px solid #F1F5F9',
+            width: '100%',
+            boxSizing: 'border-box',
           }}
         >
           <div
             style={{
+              maxWidth: '1320px',
+              margin: '0 auto',
               display: 'grid',
               gridTemplateColumns: 'repeat(4, 1fr)',
               gap: '32px',
@@ -883,9 +886,12 @@ export const HomePage: React.FC = () => {
             padding: '72px 48px',
             backgroundColor: '#FFFFFF',
             borderBottom: '1px solid #F1F5F9',
+            width: '100%',
+            boxSizing: 'border-box',
           }}
         >
-          {/* Section Header Split */}
+          <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
+            {/* Section Header Split */}
           <div
             style={{
               display: 'flex',
@@ -1067,11 +1073,12 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 6: TAGLINE REVEAL (B11 OF apps/SKILL1.md)
-            ========================================================================= */}
+      {/* =========================================================================
+          SECTION 6: TAGLINE REVEAL (B11 OF apps/SKILL1.md)
+          ========================================================================= */}
         <TaglineReveal
           lines={[
             'Every shilling accounted for,',
@@ -1087,9 +1094,12 @@ export const HomePage: React.FC = () => {
             padding: '72px 48px',
             backgroundColor: '#FAFBFD',
             borderBottom: '1px solid #F1F5F9',
+            width: '100%',
+            boxSizing: 'border-box',
           }}
         >
-          <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 48px' }}>
+          <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 48px' }}>
             <h2
               style={{
                 fontSize: 'clamp(2.2rem, 3.5vw, 2.8rem)',
@@ -1179,15 +1189,25 @@ export const HomePage: React.FC = () => {
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 8: CLOSING CTA BANNER
-            ========================================================================= */}
-        <section
+      {/* =========================================================================
+          SECTION 8: CLOSING CTA BANNER
+          ========================================================================= */}
+      <section
+        style={{
+          padding: '64px 32px 80px',
+          backgroundColor: '#FFFFFF',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
           style={{
-            margin: '24px',
-            borderRadius: '24px',
+            maxWidth: '1320px',
+            margin: '0 auto',
+            borderRadius: '28px',
             backgroundColor: '#021429',
             padding: '64px 48px',
             textAlign: 'center',
@@ -1274,8 +1294,8 @@ export const HomePage: React.FC = () => {
               </button>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       {/* =========================================================================
           INTERACTIVE CONSULTATION MODAL DIALOG

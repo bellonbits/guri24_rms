@@ -1,6 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Mail, MapPin, Phone, ArrowUpRight, Cookie } from 'lucide-react';
+import {
+  ShieldCheck,
+  Mail,
+  MapPin,
+  Phone,
+  ArrowUpRight,
+  Cookie,
+  Sparkles,
+  ArrowRight,
+  CheckCircle,
+} from 'lucide-react';
 import { BRAND_TOKENS } from './BrandTokens';
 import { triggerCookieSettingsDialog } from './CookieConsent';
 
@@ -8,19 +18,45 @@ export const MarketingFooter: React.FC = () => {
   return (
     <footer
       style={{
-        backgroundColor: BRAND_TOKENS.colors.darkNavy,
+        backgroundColor: '#021429',
         color: '#FFFFFF',
         fontFamily: BRAND_TOKENS.fonts.sans,
-        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
         position: 'relative',
-        zIndex: 10,
+        overflow: 'hidden',
+        width: '100%',
+        boxSizing: 'border-box',
       }}
     >
-      {/* Upper CTA Banner */}
+      {/* Giant Architectural Background Watermark */}
       <div
         style={{
+          position: 'absolute',
+          top: '30px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          fontSize: 'clamp(54px, 11vw, 150px)',
+          fontWeight: 900,
+          letterSpacing: '0.12em',
+          color: 'rgba(255, 255, 255, 0.035)',
+          textTransform: 'uppercase',
+          pointerEvents: 'none',
+          userSelect: 'none',
+          whiteSpace: 'nowrap',
+          zIndex: 0,
+        }}
+      >
+        GURI24 ARCHITECTURE
+      </div>
+
+      {/* =========================================================================
+          UPPER EXECUTIVE CONSULTATION & CALL-TO-ACTION SECTION
+          ========================================================================= */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 2,
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          padding: '64px 24px',
+          padding: '80px 32px',
         }}
       >
         <div
@@ -31,133 +67,223 @@ export const MarketingFooter: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '32px',
+            gap: '40px',
           }}
         >
           <div>
-            <h3
+            <div
               style={{
-                fontFamily: BRAND_TOKENS.fonts.serif,
-                fontSize: 'clamp(1.8rem, 3.2vw, 2.4rem)',
-                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '5px 14px',
+                borderRadius: '999px',
+                backgroundColor: 'rgba(3, 216, 191, 0.12)',
+                border: '1px solid rgba(3, 216, 191, 0.3)',
+                color: '#03D8BF',
+                fontSize: '0.80rem',
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                marginBottom: '16px',
+                textTransform: 'uppercase',
+              }}
+            >
+              <Sparkles size={14} /> Authoritative Real Estate Operations
+            </div>
+            <h2
+              style={{
+                fontSize: 'clamp(2.2rem, 3.8vw, 3.4rem)',
+                fontWeight: 800,
+                letterSpacing: '-0.03em',
+                lineHeight: 1.12,
                 color: '#FFFFFF',
                 margin: 0,
-                letterSpacing: '-0.02em',
+                maxWidth: '680px',
               }}
             >
-              Bring Your Property Management Into One Place.
-            </h3>
+              Designing the Property Operations of the Future.
+            </h2>
             <p
               style={{
+                fontSize: '1.05rem',
                 color: '#94A3B8',
-                fontSize: '0.98rem',
-                margin: '8px 0 0',
-                maxWidth: '620px',
+                lineHeight: 1.6,
+                marginTop: '16px',
+                maxWidth: '580px',
               }}
             >
-              Join residential estates, landlords, and property firms across Kenya managing their entire operations on Guri24 RMS.
+              Join 500+ residential estates, property management firms, and commercial landlords across Kenya managing their entire lifecycle with zero manual reconciliation.
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-            <Link
-              to="/contact"
-              style={{
-                padding: '12px 24px',
-                borderRadius: '12px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                backgroundColor: 'transparent',
-                color: '#FFFFFF',
-                fontSize: '0.92rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-                transition: 'background-color 0.15s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-            >
-              Talk to Sales
-            </Link>
-
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <Link
               to="/register"
               style={{
-                padding: '12px 28px',
-                borderRadius: '12px',
-                backgroundColor: BRAND_TOKENS.colors.primary,
-                color: '#FFFFFF',
-                fontSize: '0.92rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                backgroundColor: '#FFFFFF',
+                color: '#021429',
+                padding: '10px 10px 10px 24px',
+                borderRadius: '999px',
+                fontSize: '0.94rem',
                 fontWeight: 700,
                 textDecoration: 'none',
-                boxShadow: '0 8px 24px rgba(0, 87, 252, 0.4)',
-                transition: 'all 0.15s ease',
+                boxShadow: '0 12px 30px rgba(0, 0, 0, 0.25)',
+                transition: 'transform 0.2s ease',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = BRAND_TOKENS.colors.primaryHover)}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = BRAND_TOKENS.colors.primary)}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
             >
-              Get Started Free →
+              <span>Start 14-Day Free Trial</span>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: '#021429',
+                  color: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <ArrowUpRight size={17} />
+              </div>
+            </Link>
+
+            <Link
+              to="/contact"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                color: '#FFFFFF',
+                padding: '12px 24px',
+                borderRadius: '999px',
+                fontSize: '0.90rem',
+                fontWeight: 600,
+                border: '1px solid rgba(255, 255, 255, 0.18)',
+                textDecoration: 'none',
+                transition: 'background-color 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+              }}
+            >
+              <span>Schedule Live Demo</span>
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Main 5-Column Navigation Grid */}
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '64px 24px' }}>
+      {/* =========================================================================
+          EDITORIAL NAVIGATION & COLUMNS (5-COLUMN LUXURY STRUCTURE)
+          ========================================================================= */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          padding: '80px 32px 64px',
+          maxWidth: '1280px',
+          margin: '0 auto',
+        }}
+      >
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            gap: '40px',
+            gridTemplateColumns: 'minmax(0, 1.4fr) repeat(4, minmax(0, 1fr))',
+            gap: '48px',
           }}
+          className="footer-editorial-grid"
         >
-          {/* Column 1: Brand Info */}
-          <div style={{ gridColumn: 'span 1' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-              <img
-                src={BRAND_TOKENS.assets.emblem}
-                alt="Guri24 RMS"
-                style={{ width: '36px', height: '36px', objectFit: 'contain' }}
-              />
-              <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
-                Guri24
+          {/* Column 1: Brand & Operational Identity */}
+          <div>
+            <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none', marginBottom: '18px' }}>
+              <div
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  backgroundColor: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <img
+                  src="/logo.png"
+                  alt="Guri24"
+                  style={{ width: '22px', height: '22px', objectFit: 'contain' }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+              <span style={{ fontSize: '1.3rem', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
+                Guri<span style={{ color: '#03D8BF' }}>24</span> RMS
               </span>
-            </div>
-            <p style={{ color: '#94A3B8', fontSize: '0.84rem', lineHeight: 1.6, margin: '0 0 18px' }}>
-              Multi-tenant residential rental management SaaS for Kenya. Real-time M-Pesa Daraja billing, living lease tracking, and double-entry general ledger.
+            </Link>
+
+            <p style={{ fontSize: '0.88rem', color: '#94A3B8', lineHeight: 1.6, marginBottom: '20px', maxWidth: '320px' }}>
+              Authoritative multi-tenant property management platform engineered for Kenyan residential estates, commercial portfolios, and diaspora real estate investors.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem', color: '#94A3B8' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <MapPin size={14} color={BRAND_TOKENS.colors.primary} />
-                <span>Nairobi, Kenya</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Mail size={14} color={BRAND_TOKENS.colors.primary} />
-                <span>support@guri24.com</span>
-              </div>
+
+            {/* Live Infrastructure Beacon */}
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 14px',
+                borderRadius: '999px',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.25)',
+                color: '#34D399',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+              }}
+            >
+              <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+              <span>All Systems Operational (99.98%)</span>
             </div>
           </div>
 
-          {/* Column 2: Product */}
+          {/* Column 2: Platform Architecture */}
           <div>
-            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' }}>
-              Product
+            <div style={{ fontSize: '0.80rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '20px' }}>
+              Platform Modules
             </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { to: '/features/property-management', label: 'Property & Units' },
-                { to: '/features/tenant-management', label: 'Tenant Screening & KYC' },
-                { to: '/features/leases-and-bookings', label: 'Living Leases' },
-                { to: '/features/mpesa-and-payments', label: 'M-Pesa Reconciliation' },
-                { to: '/features/bank-and-cash-management', label: 'Multi-Bank Accounts' },
-                { to: '/features/financial-management', label: 'General Ledger' },
-                { to: '/features/maintenance', label: 'Maintenance Operations' },
-                { to: '/features/ai-assistant', label: 'AI Assistant' },
-                { to: '/features', label: 'All 14 Features →' },
+                { to: '/features/mpesa-and-payments', label: 'M-Pesa IPN Reconciliation' },
+                { to: '/features/financial-management', label: 'Double-Entry General Ledger' },
+                { to: '/features/bank-and-cash-management', label: 'Multi-Bank Statement OCR' },
+                { to: '/features/leases-and-bookings', label: 'Digital Leases & Renewals' },
+                { to: '/features/maintenance', label: 'Maintenance & Work Orders' },
+                { to: '/features/analytics-and-reporting', label: 'Real-Time NOI & Aging' },
+                { to: '/features/ai-assistant', label: 'AI Property Copilot' },
               ].map((link, idx) => (
                 <li key={idx}>
                   <Link
                     to={link.to}
-                    style={{ color: '#94A3B8', fontSize: '0.84rem', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                    style={{
+                      color: '#94A3B8',
+                      fontSize: '0.88rem',
+                      textDecoration: 'none',
+                      transition: 'color 0.2s ease',
+                    }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
                     onMouseLeave={(e) => (e.currentTarget.style.color = '#94A3B8')}
                   >
@@ -168,25 +294,29 @@ export const MarketingFooter: React.FC = () => {
             </ul>
           </div>
 
-          {/* Column 3: Solutions */}
+          {/* Column 3: Audience Solutions */}
           <div>
-            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' }}>
+            <div style={{ fontSize: '0.80rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '20px' }}>
               Solutions
             </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { to: '/solutions/landlords', label: 'Individual Landlords' },
-                { to: '/solutions/property-managers', label: 'Property Managers' },
-                { to: '/solutions/real-estate-companies', label: 'Real Estate Companies' },
-                { to: '/solutions/estate-managers', label: 'Gated Communities' },
-                { to: '/how-it-works', label: 'Product Workflow' },
-                { to: '/pricing', label: 'Pricing Plans' },
-                { to: '/solutions', label: 'Solutions Overview' },
+                { to: '/solutions/landlords', label: 'Independent Landlords' },
+                { to: '/solutions/property-managers', label: 'Property Managers & Agencies' },
+                { to: '/solutions/real-estate-companies', label: 'Real Estate Funds & REITs' },
+                { to: '/solutions/estate-managers', label: 'Gated Communities & HOAs' },
+                { to: '/pricing', label: 'Transparent Pricing Tiers' },
+                { to: '/how-it-works', label: 'Platform Workflow' },
               ].map((link, idx) => (
                 <li key={idx}>
                   <Link
                     to={link.to}
-                    style={{ color: '#94A3B8', fontSize: '0.84rem', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                    style={{
+                      color: '#94A3B8',
+                      fontSize: '0.88rem',
+                      textDecoration: 'none',
+                      transition: 'color 0.2s ease',
+                    }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
                     onMouseLeave={(e) => (e.currentTarget.style.color = '#94A3B8')}
                   >
@@ -197,26 +327,30 @@ export const MarketingFooter: React.FC = () => {
             </ul>
           </div>
 
-          {/* Column 4: Resources & Support */}
+          {/* Column 4: Resources & Insights */}
           <div>
-            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' }}>
-              Resources & Support
+            <div style={{ fontSize: '0.80rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '20px' }}>
+              Resources
             </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
-                { to: '/resources', label: 'Resource Center' },
-                { to: '/resources/help', label: 'Help Center' },
-                { to: '/resources/guides', label: 'Best Practice Guides' },
+                { to: '/resources/guides', label: 'Property Accounting Guides' },
                 { to: '/resources/tutorials', label: 'Video Walkthroughs' },
-                { to: '/resources/blog', label: 'Property Insights Blog' },
+                { to: '/resources/blog', label: 'PropTech Industry Insights' },
                 { to: '/faq', label: 'Frequently Asked Questions' },
-                { to: '/status', label: 'System Telemetry Status' },
-                { to: '/support', label: 'Contact Support' },
+                { to: '/status', label: 'Live System Telemetry' },
+                { to: '/support', label: 'Support Help Desk' },
+                { to: '/sitemap', label: 'Platform Sitemap' },
               ].map((link, idx) => (
                 <li key={idx}>
                   <Link
                     to={link.to}
-                    style={{ color: '#94A3B8', fontSize: '0.84rem', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                    style={{
+                      color: '#94A3B8',
+                      fontSize: '0.88rem',
+                      textDecoration: 'none',
+                      transition: 'color 0.2s ease',
+                    }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
                     onMouseLeave={(e) => (e.currentTarget.style.color = '#94A3B8')}
                   >
@@ -227,28 +361,31 @@ export const MarketingFooter: React.FC = () => {
             </ul>
           </div>
 
-          {/* Column 5: Legal & Trust */}
+          {/* Column 5: Trust & Governance (KDPA 2019) */}
           <div>
-            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' }}>
-              Legal & Compliance
+            <div style={{ fontSize: '0.80rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '20px' }}>
+              Trust & Legal
             </div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
                 { to: '/legal/terms', label: 'Terms & Conditions' },
-                { to: '/legal/privacy', label: 'Privacy Policy' },
+                { to: '/legal/privacy', label: 'Privacy Policy (KDPA)' },
                 { to: '/legal/cookies', label: 'Cookie Policy' },
-                { to: '/legal/data-protection', label: 'Data Protection (KDPA 2019)' },
+                { to: '/legal/data-protection', label: 'Data Protection Architecture' },
                 { to: '/legal/acceptable-use', label: 'Acceptable Use Policy' },
-                { to: '/legal/subscription-and-billing', label: 'Billing & Cancellation' },
-                { to: '/legal/data-processing', label: 'Data Processing Agreement' },
-                { to: '/security', label: 'Security Overview' },
+                { to: '/legal/subscription-and-billing', label: 'Subscription & Billing' },
+                { to: '/security', label: 'Security & Row-Level Isolation' },
                 { to: '/accessibility', label: 'Accessibility Statement' },
-                { to: '/sitemap', label: 'Sitemap' },
               ].map((link, idx) => (
                 <li key={idx}>
                   <Link
                     to={link.to}
-                    style={{ color: '#94A3B8', fontSize: '0.84rem', textDecoration: 'none', transition: 'color 0.15s ease' }}
+                    style={{
+                      color: '#94A3B8',
+                      fontSize: '0.88rem',
+                      textDecoration: 'none',
+                      transition: 'color 0.2s ease',
+                    }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = '#FFFFFF')}
                     onMouseLeave={(e) => (e.currentTarget.style.color = '#94A3B8')}
                   >
@@ -256,60 +393,88 @@ export const MarketingFooter: React.FC = () => {
                   </Link>
                 </li>
               ))}
+              <li>
+                <button
+                  type="button"
+                  onClick={triggerCookieSettingsDialog}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: '#03D8BF',
+                    fontSize: '0.88rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Cookie size={14} />
+                  <span>Cookie Settings</span>
+                </button>
+              </li>
             </ul>
           </div>
         </div>
+      </div>
 
-        {/* Bottom Bar: Copyright & Cookie Preferences Button */}
+      {/* =========================================================================
+          LOWER FOOTER BAR: COPYRIGHT & EXECUTIVE CONTACTS
+          ========================================================================= */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+          padding: '28px 32px',
+          backgroundColor: '#010E1D',
+        }}
+      >
         <div
           style={{
-            marginTop: '56px',
-            paddingTop: '24px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            maxWidth: '1280px',
+            margin: '0 auto',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '16px',
+            gap: '20px',
             fontSize: '0.82rem',
             color: '#64748B',
           }}
         >
           <div>
-            © {new Date().getFullYear()} Guri24 Rental Management Ltd. All rights reserved. Registered in Kenya.
+            &copy; 2026 Guri24 Rental Management Ltd. All rights reserved.
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-            {/* Permanent Cookie Settings Trigger as required by Section 10 */}
-            <button
-              type="button"
-              onClick={triggerCookieSettingsDialog}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#94A3B8',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '0.82rem',
-                textDecoration: 'underline',
-                padding: 0,
-              }}
-            >
-              <Cookie size={14} />
-              <span>Cookie Settings</span>
-            </button>
-
-            <Link to="/legal" style={{ color: '#94A3B8', textDecoration: 'none' }}>
-              Legal Center
-            </Link>
-            <Link to="/privacy" style={{ color: '#94A3B8', textDecoration: 'none' }}>
-              Privacy
-            </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#94A3B8' }}>
+              <MapPin size={13} color="#03D8BF" /> Westlands Innovation District, Nairobi, Kenya
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#94A3B8' }}>
+              <Mail size={13} color="#03D8BF" /> support@guri24.com
+            </span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#94A3B8' }}>
+              <Phone size={13} color="#03D8BF" /> +254 (0) 700 000 000
+            </span>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 900px) {
+          .footer-editorial-grid {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 36px !important;
+          }
+        }
+        @media (max-width: 600px) {
+          .footer-editorial-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </footer>
   );
 };

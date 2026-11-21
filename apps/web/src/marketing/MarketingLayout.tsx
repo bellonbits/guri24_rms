@@ -22,15 +22,19 @@ export const MarketingLayout: React.FC<MarketingLayoutProps> = ({ children }) =>
     <div
       style={{
         minHeight: '100vh',
+        width: '100%',
+        margin: 0,
+        padding: 0,
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: BRAND_TOKENS.colors.bgCanvas,
+        backgroundColor: '#FFFFFF',
         color: BRAND_TOKENS.colors.darkNavy,
         fontFamily: BRAND_TOKENS.fonts.sans,
+        overflowX: 'hidden',
       }}
     >
       {!isHomePage && <MarketingNavbar />}
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>{children}</main>
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', margin: 0, padding: 0 }}>{children}</main>
       <MarketingFooter />
       <CookieConsentBanner />
     </div>

@@ -33,8 +33,19 @@ export const LegalLayout: React.FC<LegalLayoutProps> = ({
   ];
 
   return (
-    <div style={{ backgroundColor: BRAND_TOKENS.colors.bgCanvas, minHeight: '100%', padding: '48px 24px 80px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div
+      style={{
+        backgroundColor: '#FFFFFF',
+        minHeight: '100%',
+        width: '100%',
+        margin: 0,
+        padding: '48px 32px 80px',
+        boxSizing: 'border-box',
+        overflowX: 'hidden',
+        fontFamily: BRAND_TOKENS.fonts.sans,
+      }}
+    >
+      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
         {/* Top Breadcrumb */}
         <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.84rem' }}>
           <Link to="/" style={{ color: BRAND_TOKENS.colors.slateSubtle, textDecoration: 'none' }}>Home</Link>
