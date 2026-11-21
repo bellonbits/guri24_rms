@@ -58,13 +58,10 @@ export const RegisterPage: React.FC = () => {
         );
         navigate('/onboarding');
       } else {
-        // Fallback for simulation/demo
-        navigate('/onboarding');
+        setError('Registration response did not return an access token. Please try again.');
       }
     } catch (err: any) {
-      console.warn('Registration network notice:', err);
-      // If server is not responding to registration or endpoint is mocked, navigate to onboarding for demo experience
-      navigate('/onboarding');
+      setError(err?.message || 'Registration failed. Please check your details and try again.');
     } finally {
       setLoading(false);
     }

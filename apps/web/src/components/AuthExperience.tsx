@@ -40,6 +40,13 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
   const [showPassword, setShowPassword] = useState(false);
   const [verifyChannel, setVerifyChannel] = useState<'email' | 'sms'>('email');
 
+  // Organization Registration Fields
+  const [organizationName, setOrganizationName] = useState('');
+  const [organizationType, setOrganizationType] = useState('PROPERTY_MANAGEMENT_COMPANY');
+  const [county, setCounty] = useState('Nairobi');
+  const [kraPin, setKraPin] = useState('');
+  const [agreeTerms, setAgreeTerms] = useState(false);
+
   // Testimonial slider state
   const [testimonialIdx, setTestimonialIdx] = useState(0);
   const testimonials = [
@@ -127,13 +134,23 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
     e.preventDefault();
     setErrorMessage(null);
 
-    if (!email.trim() || !fullName.trim() || !password.trim()) {
-      setErrorMessage('Please fill in all required fields.');
+    if (!organizationName.trim()) {
+      setErrorMessage('Please enter your Organization / Entity name.');
+      return;
+    }
+
+    if (!fullName.trim() || !email.trim() || !password.trim()) {
+      setErrorMessage('Please fill in all required administrator fields.');
       return;
     }
 
     if (password.trim().length < 8) {
       setErrorMessage('Password must be at least 8 characters long.');
+      return;
+    }
+
+    if (!agreeTerms) {
+      setErrorMessage('You must accept the Terms of Service and Privacy Policy to register.');
       return;
     }
 
@@ -143,6 +160,67 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
     }
 
     await dispatchRealVerificationCode(verifyChannel);
+  };
+
+  const handleDirectRegister = async () => {
+    setErrorMessage(null);
+
+    if (!organizationName.trim()) {
+      setErrorMessage('Please enter your Organization / Entity name.');
+      return;
+    }
+
+    if (!fullName.trim() || !email.trim() || !password.trim()) {
+      setErrorMessage('Please fill in all required administrator fields.');
+      return;
+    }
+
+    if (password.trim().length < 8) {
+      setErrorMessage('Password must be at least 8 characters long.');
+      return;
+    }
+
+    if (!agreeTerms) {
+      setErrorMessage('You must accept the Terms of Service and Privacy Policy to register.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const regRes = await apiClient.register({
+        organization_name: organizationName.trim(),
+        organization_type: organizationType,
+        county: county,
+        kra_pin: kraPin.trim() || undefined,
+        admin_full_name: fullName.trim(),
+        admin_email: email.trim(),
+        admin_phone: phone.trim() || '+254712345678',
+        admin_password: password.trim(),
+      });
+
+      const session: AuthUserSession = {
+        userId: regRes.user?.id || (regRes as any).user_id || `usr-${Date.now()}`,
+        fullName: (regRes as any).full_name || regRes.user?.full_name || fullName.trim(),
+        email: (regRes as any).email || regRes.user?.email || email.trim(),
+        phone: phone.trim() || undefined,
+        role: (regRes as any).role || 'ORGANIZATION_ADMINISTRATOR',
+        organizationId: regRes.organization?.id || (regRes as any).organization_id || `org-${Date.now()}`,
+        organizationName: regRes.organization?.name || organizationName.trim(),
+        token: regRes.access_token,
+      };
+
+      apiClient.setToken(regRes.access_token, regRes.refresh_token);
+      localStorage.setItem('guri24_token', regRes.access_token);
+      if (regRes.refresh_token) {
+        localStorage.setItem('guri24_refresh_token', regRes.refresh_token);
+      }
+      localStorage.setItem('guri24_rms_auth_session', JSON.stringify(session));
+      onSuccess(session);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Registration failed. Please check your details.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -307,12 +385,13 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
 
       // 2. Real registration in database with Argon2 password hashing and JWT issuance
       const regRes = await apiClient.register({
-        organization_name: `${fullName.trim() || 'My'} Real Estate Ltd`,
-        organization_type: 'PROPERTY_MANAGEMENT_COMPANY',
-        county: 'Nairobi',
+        organization_name: organizationName.trim() || `${fullName.trim() || 'My'} Real Estate Ltd`,
+        organization_type: organizationType,
+        county: county,
+        kra_pin: kraPin.trim() || undefined,
         admin_full_name: fullName.trim(),
         admin_email: email.trim(),
-        admin_phone: phone.trim() || '254712345678',
+        admin_phone: phone.trim() || '+254712345678',
         admin_password: password.trim(),
       });
 
@@ -323,7 +402,7 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
         phone: phone.trim() || undefined,
         role: (regRes as any).role || 'ORGANIZATION_ADMINISTRATOR',
         organizationId: regRes.organization?.id || (regRes as any).organization_id || `org-${Date.now()}`,
-        organizationName: regRes.organization?.name || `${fullName.trim()}'s Properties`,
+        organizationName: regRes.organization?.name || organizationName.trim() || `${fullName.trim()}'s Properties`,
         token: regRes.access_token,
       };
 
@@ -1017,37 +1096,178 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
 
               <form onSubmit={authMode === 'signup' ? handleRegisterSubmit : handleLoginSubmit}>
                 {authMode === 'signup' && (
-                  <div style={{ marginBottom: '14px' }}>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        color: '#374151',
-                        marginBottom: '6px',
-                      }}
-                    >
-                      Name
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Your name"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      required
-                      style={{
-                        width: '100%',
-                        height: '42px',
-                        border: '1.5px solid #e5e7eb',
-                        borderRadius: '10px',
-                        padding: '0 14px',
-                        fontSize: '0.88rem',
-                        color: '#111827',
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
+                  <>
+                    <div style={{ marginBottom: '14px' }}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          color: '#374151',
+                          marginBottom: '6px',
+                        }}
+                      >
+                        Organization / Company Name *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Skyline Property Investments Ltd"
+                        value={organizationName}
+                        onChange={(e) => setOrganizationName(e.target.value)}
+                        required
+                        style={{
+                          width: '100%',
+                          height: '42px',
+                          border: '1.5px solid #e5e7eb',
+                          borderRadius: '10px',
+                          padding: '0 14px',
+                          fontSize: '0.88rem',
+                          color: '#111827',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+                      <div>
+                        <label
+                          style={{
+                            display: 'block',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            color: '#374151',
+                            marginBottom: '6px',
+                          }}
+                        >
+                          Organization Type
+                        </label>
+                        <select
+                          value={organizationType}
+                          onChange={(e) => setOrganizationType(e.target.value)}
+                          style={{
+                            width: '100%',
+                            height: '42px',
+                            border: '1.5px solid #e5e7eb',
+                            borderRadius: '10px',
+                            padding: '0 8px',
+                            fontSize: '0.8rem',
+                            color: '#111827',
+                            backgroundColor: '#ffffff',
+                            outline: 'none',
+                            boxSizing: 'border-box',
+                          }}
+                        >
+                          <option value="PROPERTY_MANAGEMENT_COMPANY">Property Management</option>
+                          <option value="INDIVIDUAL_LANDLORD">Individual Landlord</option>
+                          <option value="ESTATE_HOA">Gated Estate / HOA</option>
+                          <option value="REAL_ESTATE_DEVELOPER">Developer / Fund</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label
+                          style={{
+                            display: 'block',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            color: '#374151',
+                            marginBottom: '6px',
+                          }}
+                        >
+                          Primary County
+                        </label>
+                        <select
+                          value={county}
+                          onChange={(e) => setCounty(e.target.value)}
+                          style={{
+                            width: '100%',
+                            height: '42px',
+                            border: '1.5px solid #e5e7eb',
+                            borderRadius: '10px',
+                            padding: '0 8px',
+                            fontSize: '0.8rem',
+                            color: '#111827',
+                            backgroundColor: '#ffffff',
+                            outline: 'none',
+                            boxSizing: 'border-box',
+                          }}
+                        >
+                          <option value="Nairobi">Nairobi</option>
+                          <option value="Mombasa">Mombasa</option>
+                          <option value="Kiambu">Kiambu</option>
+                          <option value="Machakos">Machakos</option>
+                          <option value="Nakuru">Nakuru</option>
+                          <option value="Kisumu">Kisumu</option>
+                          <option value="Uasin Gishu">Uasin Gishu (Eldoret)</option>
+                          <option value="Other">Other Region</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: '14px' }}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          color: '#374151',
+                          marginBottom: '6px',
+                        }}
+                      >
+                        KRA PIN (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. P051234567X (for eTIMS tax invoices)"
+                        value={kraPin}
+                        onChange={(e) => setKraPin(e.target.value)}
+                        style={{
+                          width: '100%',
+                          height: '42px',
+                          border: '1.5px solid #e5e7eb',
+                          borderRadius: '10px',
+                          padding: '0 14px',
+                          fontSize: '0.88rem',
+                          color: '#111827',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                    </div>
+
+                    <div style={{ marginBottom: '14px' }}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          color: '#374151',
+                          marginBottom: '6px',
+                        }}
+                      >
+                        Administrator Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Peter Mwangi"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        required
+                        style={{
+                          width: '100%',
+                          height: '42px',
+                          border: '1.5px solid #e5e7eb',
+                          borderRadius: '10px',
+                          padding: '0 14px',
+                          fontSize: '0.88rem',
+                          color: '#111827',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                    </div>
+                  </>
                 )}
 
                 <div style={{ marginBottom: '14px' }}>
@@ -1060,11 +1280,11 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                       marginBottom: '6px',
                     }}
                   >
-                    Email
+                    {authMode === 'signup' ? 'Official Email Address *' : 'Email'}
                   </label>
                   <input
                     type="email"
-                    placeholder="Your email"
+                    placeholder={authMode === 'signup' ? 'admin@company.co.ke' : 'Your email'}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -1082,7 +1302,7 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                   />
                 </div>
 
-                {authMode === 'signup' && verifyChannel === 'sms' && (
+                {authMode === 'signup' && (
                   <div style={{ marginBottom: '14px' }}>
                     <label
                       style={{
@@ -1093,7 +1313,7 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                         marginBottom: '6px',
                       }}
                     >
-                      Kenyan Mobile Phone (OpenSMS)
+                      Kenyan Mobile Phone (SMS / M-Pesa) *
                     </label>
                     <input
                       type="tel"
@@ -1244,6 +1464,23 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                   </div>
                 )}
 
+                {/* Terms and Privacy / KDPA 2019 Checkbox */}
+                {authMode === 'signup' && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '16px' }}>
+                    <input
+                      type="checkbox"
+                      id="authAgreeTerms"
+                      checked={agreeTerms}
+                      onChange={(e) => setAgreeTerms(e.target.checked)}
+                      style={{ marginTop: '3px', cursor: 'pointer' }}
+                    />
+                    <label htmlFor="authAgreeTerms" style={{ fontSize: '0.78rem', color: '#6b7280', lineHeight: 1.4 }}>
+                      I agree to the <a href="/legal/terms" target="_blank" rel="noreferrer" style={{ color: '#2563eb', textDecoration: 'none' }}>Terms of Service</a>,{' '}
+                      <a href="/legal/privacy" target="_blank" rel="noreferrer" style={{ color: '#2563eb', textDecoration: 'none' }}>Privacy Policy</a>, and KDPA 2019 standards.
+                    </label>
+                  </div>
+                )}
+
                 {/* Guri24 Blue Primary Button */}
                 <button
                   type="submit"
@@ -1265,9 +1502,30 @@ export function AuthExperience({ onSuccess, initialMode = 'signup' }: AuthExperi
                   {isLoading
                     ? 'Processing...'
                     : authMode === 'signup'
-                    ? 'Create account'
+                    ? 'Create Organization & Verify'
                     : 'Sign In'}
                 </button>
+
+                {authMode === 'signup' && (
+                  <div style={{ textAlign: 'center', marginTop: '10px' }}>
+                    <button
+                      type="button"
+                      onClick={handleDirectRegister}
+                      disabled={isLoading}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#4b5563',
+                        fontSize: '0.78rem',
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        padding: '4px',
+                      }}
+                    >
+                      Or register organization directly without OTP
+                    </button>
+                  </div>
+                )}
 
                 {/* OR Divider */}
                 <div
