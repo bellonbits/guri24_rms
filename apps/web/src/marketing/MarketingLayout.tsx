@@ -11,6 +11,7 @@ interface MarketingLayoutProps {
 
 export const MarketingLayout: React.FC<MarketingLayoutProps> = ({ children }) => {
   const { pathname } = useLocation();
+  const isHomePage = pathname === '/' || pathname === '/home';
 
   // Scroll to top on route change
   useEffect(() => {
@@ -32,7 +33,7 @@ export const MarketingLayout: React.FC<MarketingLayoutProps> = ({ children }) =>
         overflowX: 'hidden',
       }}
     >
-      <MarketingNavbar />
+      {!isHomePage && <MarketingNavbar />}
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', margin: 0, padding: 0 }}>
         {children}
       </main>
