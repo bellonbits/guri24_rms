@@ -78,6 +78,28 @@ test('Guri24 RMS — User Onboarding, Staff Management, Property Scoping & Acces
     { id: 'mnt-1', property_id: 'prop-001', organization_id: 'org-guri24-001', title: 'Sink repair' },
     { id: 'mnt-2', property_id: 'prop-002', organization_id: 'org-guri24-001', title: 'Roof inspection' },
   ];
+  baseState.staffMembers = [
+    {
+      id: 'usr-org-admin-001',
+      organization_id: 'org-guri24-001',
+      full_name: 'Peter Mwangi',
+      email: 'petergatitu61@gmail.com',
+      role: 'ORGANIZATION_ADMINISTRATOR',
+      status: 'ACTIVE',
+      assigned_property_ids: ['prop-001', 'prop-002'],
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: 'usr-staff-pm-001',
+      organization_id: 'org-guri24-001',
+      full_name: 'Grace Wanjiku',
+      email: 'grace.wanjiku@guri24.co.ke',
+      role: 'PROPERTY_MANAGER',
+      status: 'ACTIVE',
+      assigned_property_ids: ['prop-001'],
+      created_at: new Date().toISOString(),
+    },
+  ];
 
   await t.test('1. Staff Member Invitation: Validates inputs, assigns property scopes, generates token & hash', () => {
     // Missing email throws error

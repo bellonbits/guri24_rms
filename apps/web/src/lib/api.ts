@@ -72,24 +72,61 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'properties.view',
     'properties.create',
     'properties.update',
+    'properties.manage',
     'tenants.view',
     'tenants.create',
+    'tenants.manage',
     'leases.view',
     'leases.create',
+    'leases.manage',
     'leases.approve',
     'invoices.view',
     'invoices.create',
     'payments.view',
+    'payments.status.view',
+    'payments.initiate',
+    'payments.manual_record',
+    'payments.allocate',
+    'payments.reverse',
     'payments.reconcile',
+    'payments.integrations.view',
+    'payments.integrations.manage',
+    'payments.credentials.manage',
+    'finance.accounts.view',
+    'finance.accounts.manage',
+    'finance.configuration.view',
+    'finance.configuration.manage',
+    'finance.reconciliation.view',
+    'finance.reconciliation.manage',
+    'finance.reconciliation.approve',
+    'ledger.view',
+    'ledger.journals.manage',
+    'ledger.journals.approve',
+    'refunds.view',
+    'refunds.manage',
+    'refunds.approve',
+    'expenses.create',
+    'expenses.view',
     'expenses.approve',
     'maintenance.view',
+    'maintenance.create',
+    'maintenance.manage',
     'maintenance.assign',
     'documents.view',
     'documents.upload',
+    'ocr.submit',
+    'ocr.results.view',
+    'ocr.results.edit',
     'ocr.review',
+    'ocr.approve',
+    'ocr.configuration.view',
+    'ocr.configuration.manage',
     'assistant.use',
     'reports.export',
+    'analytics.property.view',
     'users.manage',
+    'organization.users.manage',
+    'organization.roles.manage',
     'notifications.view',
     'notifications.manage',
     'notifications.settings',
@@ -101,32 +138,43 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'leases.approve',
     'invoices.view',
     'payments.view',
+    'payments.status.view',
     'expenses.approve',
     'maintenance.view',
     'documents.view',
     'assistant.use',
     'reports.export',
+    'analytics.property.view',
     'notifications.view',
   ],
   PROPERTY_MANAGER: [
     'properties.view',
     'properties.create',
     'properties.update',
+    'properties.manage',
     'tenants.view',
     'tenants.create',
+    'tenants.manage',
     'leases.view',
     'leases.create',
+    'leases.manage',
     'leases.approve',
     'invoices.view',
     'invoices.create',
     'payments.view',
+    'payments.status.view',
     'maintenance.view',
+    'maintenance.create',
+    'maintenance.manage',
     'maintenance.assign',
     'documents.view',
     'documents.upload',
+    'ocr.submit',
+    'ocr.results.view',
     'ocr.review',
     'assistant.use',
     'reports.export',
+    'analytics.property.view',
     'notifications.view',
   ],
   ACCOUNTANT: [
@@ -136,13 +184,26 @@ export const ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
     'invoices.view',
     'invoices.create',
     'payments.view',
+    'payments.status.view',
+    'payments.manual_record',
+    'payments.allocate',
     'payments.reconcile',
+    'finance.accounts.view',
+    'finance.reconciliation.view',
+    'finance.reconciliation.manage',
+    'ledger.view',
+    'refunds.view',
+    'refunds.manage',
+    'expenses.create',
+    'expenses.view',
     'expenses.approve',
     'documents.view',
     'documents.upload',
+    'ocr.results.view',
     'ocr.review',
     'assistant.use',
     'reports.export',
+    'financial.collections.view',
     'notifications.view',
   ],
   RECEPTIONIST: [
@@ -427,8 +488,27 @@ export function sanitizeWorkspaceState(raw: any): RmsPlatformState {
   return clean as RmsPlatformState;
 }
 
-export function hasPermission(role: SystemRole, permission: string): boolean {
-  return (ROLE_PERMISSIONS[role] ?? []).includes(permission);
+export function hasPermission(
+  role: SystemRole,
+  permission: string,
+  additionalPermissions?: string[]
+): boolean {
+  const rolePerms = ROLE_PERMISSIONS[role] ?? [];
+  if (rolePerms.includes(permission)) return true;
+  if (additionalPermissions?.includes(permission)) return true;
+  if (permission === 'properties.manage') {
+    return rolePerms.includes('properties.create') || rolePerms.includes('properties.update');
+  }
+  if (permission === 'tenants.manage') {
+    return rolePerms.includes('tenants.create') || rolePerms.includes('tenants.view');
+  }
+  if (permission === 'leases.manage') {
+    return rolePerms.includes('leases.create') || rolePerms.includes('leases.approve');
+  }
+  if (permission === 'maintenance.manage') {
+    return rolePerms.includes('maintenance.assign') || rolePerms.includes('maintenance.view');
+  }
+  return false;
 }
 
 export function assertPermission(role: SystemRole, permission: string): void {
@@ -1012,53 +1092,13 @@ export function submitOcrDocumentJob(
     });
   }
 
-  // If no raw key-value text was parsed from file, generate authentic realistic extraction fields for the category
-  if (fields.length === 0) {
-    const org = state.organizations.find((o) => o.id === orgId);
-    const orgProps = state.properties.filter((p) => p.organization_id === orgId);
-    const propName = orgProps[0]?.name || 'Kilimani Heights Residency';
-    const landlordName = org?.name || 'Guri24 Estates Management Ltd';
-
-    if (input.documentCategory === 'LEASE_AGREEMENT') {
-      fields = [
-        { id: `${jobId}-f1`, field_name: 'landlord', field_label: 'Landlord / Property Owner', extracted_value: landlordName, normalized_value: landlordName, confidence: 0.96, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.15, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f2`, field_name: 'tenant_name', field_label: 'Tenant Name', extracted_value: 'John Mwangi Kamau', normalized_value: 'John Mwangi Kamau', confidence: 0.95, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.22, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f3`, field_name: 'property_name', field_label: 'Property Name', extracted_value: propName, normalized_value: propName, confidence: 0.98, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.29, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f4`, field_name: 'unit_number', field_label: 'Unit Number', extracted_value: 'Unit B-204', normalized_value: 'Unit B-204', confidence: 0.97, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.36, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f5`, field_name: 'start_date', field_label: 'Lease Start Date (YYYY-MM-DD)', extracted_value: '2026-01-01', normalized_value: '2026-01-01', confidence: 0.94, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.43, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f6`, field_name: 'end_date', field_label: 'Lease End Date (YYYY-MM-DD)', extracted_value: '2026-12-31', normalized_value: '2026-12-31', confidence: 0.94, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.50, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f7`, field_name: 'monthly_rent_kes', field_label: 'Monthly Rent (KES)', extracted_value: '45,000', normalized_value: '45000', confidence: 0.98, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.57, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f8`, field_name: 'security_deposit_kes', field_label: 'Security Deposit (KES)', extracted_value: '45,000', normalized_value: '45000', confidence: 0.96, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.64, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f9`, field_name: 'billing_day', field_label: 'Monthly Billing Day (1-28)', extracted_value: '5', normalized_value: '5', confidence: 0.95, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.71, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-      ];
-    } else if (input.documentCategory === 'TENANT_IDENTIFICATION') {
-      fields = [
-        { id: `${jobId}-f1`, field_name: 'full_name', field_label: 'Full Name', extracted_value: 'John Mwangi Kamau', normalized_value: 'John Mwangi Kamau', confidence: 0.97, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.15, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f2`, field_name: 'id_type', field_label: 'Identification Document Type', extracted_value: 'Kenyan National ID', normalized_value: 'Kenyan National ID', confidence: 0.98, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.25, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f3`, field_name: 'id_number', field_label: 'Identification Number', extracted_value: '29845120', normalized_value: '29845120', confidence: 0.99, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.35, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f4`, field_name: 'phone', field_label: 'Phone Number (MSISDN)', extracted_value: '+254 712 345 678', normalized_value: '+254712345678', confidence: 0.96, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.45, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f5`, field_name: 'address', field_label: 'Residential Address', extracted_value: 'P.O. Box 45012 - 00100 Nairobi', normalized_value: 'P.O. Box 45012 - 00100 Nairobi', confidence: 0.93, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.55, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-      ];
-    } else if (input.documentCategory === 'RECEIPT_OR_INVOICE') {
-      fields = [
-        { id: `${jobId}-f1`, field_name: 'document_number', field_label: 'Receipt / Invoice Number', extracted_value: 'INV-2026-0891', normalized_value: 'INV-2026-0891', confidence: 0.98, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.15, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f2`, field_name: 'date', field_label: 'Transaction Date', extracted_value: '2026-02-05', normalized_value: '2026-02-05', confidence: 0.95, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.25, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f3`, field_name: 'amount_kes', field_label: 'Total Amount (KES)', extracted_value: '45,000', normalized_value: '45000', confidence: 0.99, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.35, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f4`, field_name: 'currency', field_label: 'Currency', extracted_value: 'KES', normalized_value: 'KES', confidence: 0.99, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.45, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f5`, field_name: 'supplier', field_label: 'Supplier / Recipient', extracted_value: 'Kenya Power & Lighting Co. (KPLC)', normalized_value: 'Kenya Power & Lighting Co. (KPLC)', confidence: 0.94, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.55, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f6`, field_name: 'payment_reference', field_label: 'M-Pesa / Bank Reference', extracted_value: 'QHK82910XZ', normalized_value: 'QHK82910XZ', confidence: 0.98, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.65, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-      ];
-    } else {
-      fields = [
-        { id: `${jobId}-f1`, field_name: 'property_name', field_label: 'Property Title Name', extracted_value: propName, normalized_value: propName, confidence: 0.96, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.15, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f2`, field_name: 'lr_number', field_label: 'Land Reference (LR) Number', extracted_value: 'LR 209/18420', normalized_value: 'LR 209/18420', confidence: 0.94, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.30, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-        { id: `${jobId}-f3`, field_name: 'title_number', field_label: 'Title Deed Number', extracted_value: 'NAIROBI/BLOCK 82/104', normalized_value: 'NAIROBI/BLOCK 82/104', confidence: 0.95, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.45, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-      ];
-    }
+  // Zero Fake Data Policy: If no raw text was extracted from document, do not synthesize fake names or properties
+  if (!rawText) {
+    fields = [];
   }
 
   const avgConfidence =
-    fields.reduce((acc, f) => acc + f.confidence, 0) / Math.max(1, fields.length);
+    fields.length === 0 ? 0 : fields.reduce((acc, f) => acc + f.confidence, 0) / fields.length;
 
   const newDoc: DocumentItem = {
     id: docId,
@@ -1884,7 +1924,7 @@ export function inviteStaff(
   }
 
   const { token, hash } = generateInvitationToken();
-  const expiryDays = cmd.expiry_days && cmd.expiry_days > 0 ? cmd.expiry_days : 7;
+  const expiryDays = cmd.expiry_days && cmd.expiry_days > 0 ? cmd.expiry_days : 2; // 48 hours default
   const now = new Date();
   const expiresAt = new Date(now.getTime() + expiryDays * 86400000).toISOString();
 
