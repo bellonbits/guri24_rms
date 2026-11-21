@@ -900,10 +900,19 @@ class ApiClient {
     });
   }
 
-  async resendInvitation(invitationId: string): Promise<Invitation> {
-    return this.request<Invitation>(`/invitations/${invitationId}/resend`, {
-      method: 'POST',
-    });
+  async resendInvitation(invitationId: string, email?: string): Promise<Invitation> {
+    try {
+      return await this.request<Invitation>(`/invitations/${encodeURIComponent(invitationId)}/resend`, {
+        method: 'POST',
+      });
+    } catch (err) {
+      if (email && email.includes('@')) {
+        return await this.request<Invitation>(`/invitations/${encodeURIComponent(email)}/resend`, {
+          method: 'POST',
+        });
+      }
+      throw err;
+    }
   }
 
   async revokeInvitation(invitationId: string): Promise<Invitation> {

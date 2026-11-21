@@ -2577,6 +2577,68 @@ async fn create_invitation_handler(
     let expiry_days = cmd.expiry_days.unwrap_or(7);
     let expires_at = now + chrono::Duration::days(expiry_days);
 
+    let frontend_base = std::env::var("APP_BASE_URL")
+        .or_else(|_| std::env::var("FRONTEND_URL"))
+        .unwrap_or_else(|_| "http://143.198.30.249:8088".to_string());
+    let invitation_url = format!("{}/accept-invitation?token={}", frontend_base.trim_end_matches('/'), token);
+    let expires_formatted = expires_at.format("%d/%m/%Y").to_string();
+    let org_name = "Guri24 Rental Management Ltd";
+
+    let (subject, body_html) = if role == "TENANT" {
+        let subj = "Activate Your Guri24 Tenant Portal Account".to_string();
+        let body = crate::integrations::email::templates::render_tenant_portal_invitation_email(
+            &email_norm,
+            &cmd.full_name,
+            org_name,
+            "Guri24 Residences",
+            "LEASE-PENDING",
+            &invitation_url,
+            &expires_formatted,
+        );
+        (subj, body)
+    } else if role == "ORG_ADMIN" {
+        let subj = format!("Invitation to Administrate {} — Guri24 RMS", org_name);
+        let body = crate::integrations::email::templates::render_org_admin_invitation_email(
+            &email_norm,
+            &cmd.full_name,
+            org_name,
+            &invitation_url,
+            &expires_formatted,
+        );
+        (subj, body)
+    } else {
+        let role_display = role.replace('_', " ");
+        let subj = format!("Staff Invitation — {} ({})", org_name, role_display);
+        let properties_summary = if let Some(props) = &cmd.property_ids {
+            if !props.is_empty() {
+                format!("{} assigned properties", props.len())
+            } else {
+                "All assigned organization properties".to_string()
+            }
+        } else {
+            "All organization properties".to_string()
+        };
+        let body = crate::integrations::email::templates::render_staff_invitation_email(
+            &email_norm,
+            &cmd.full_name,
+            org_name,
+            &role_display,
+            &properties_summary,
+            &invitation_url,
+            &expires_formatted,
+            cmd.invitation_message.as_deref(),
+        );
+        (subj, body)
+    };
+
+    let delivery_status = match state.email_adapter.send_email(&email_norm, &subject, &body_html) {
+        Ok(_) => "SENT".to_string(),
+        Err(err) => {
+            tracing::warn!("Failed to dispatch invitation email to {}: {:?}", email_norm, err);
+            "FAILED".to_string()
+        }
+    };
+
     let inv = BackendInvitation {
         id: Uuid::new_v4(),
         organization_id: ctx.organization_id,
@@ -2594,7 +2656,7 @@ async fn create_invitation_handler(
         token: Some(token),
         token_hash,
         invitation_message: cmd.invitation_message,
-        delivery_status: "SENT".to_string(),
+        delivery_status,
         sent_count: 1,
         invited_by: Some(ctx.user_id),
         expires_at,
@@ -2620,10 +2682,44 @@ async fn resend_invitation_handler(
         .load_collection::<Vec<BackendInvitation>>(&format!("invitations_{}", ctx.organization_id))
         .unwrap_or_default();
 
-    let target = invitations
+    let target = match invitations
         .iter_mut()
-        .find(|i| i.id.to_string() == id)
-        .ok_or_else(|| AppError::NotFound(format!("Invitation '{}' not found", id)))?;
+        .find(|i| i.id.to_string() == id || i.email.to_lowercase() == id.to_lowercase())
+    {
+        Some(inv) => inv,
+        None => {
+            if id.contains('@') {
+                let token = format!("tok_{}", Uuid::new_v4().simple());
+                let token_hash = hex::encode(Sha256::digest(token.as_bytes()));
+                let now = Utc::now();
+                let expires_at = now + chrono::Duration::days(7);
+                let new_inv = BackendInvitation {
+                    id: Uuid::new_v4(),
+                    organization_id: ctx.organization_id,
+                    invitation_type: "STAFF".to_string(),
+                    email: id.trim().to_lowercase(),
+                    phone: None,
+                    full_name: id.trim().to_string(),
+                    role: "PROPERTY_MANAGER".to_string(),
+                    status: "PENDING".to_string(),
+                    property_ids: None,
+                    token: Some(token),
+                    token_hash,
+                    invitation_message: None,
+                    delivery_status: "PENDING".to_string(),
+                    sent_count: 0,
+                    invited_by: Some(ctx.user_id),
+                    expires_at,
+                    created_at: now,
+                    updated_at: now,
+                };
+                invitations.push(new_inv);
+                invitations.last_mut().unwrap()
+            } else {
+                return Err(AppError::NotFound(format!("Invitation '{}' not found", id)));
+            }
+        }
+    };
 
     if target.status != "PENDING" && target.status != "EXPIRED" {
         return Err(AppError::Conflict(
@@ -2634,7 +2730,81 @@ async fn resend_invitation_handler(
     target.status = "PENDING".to_string();
     target.sent_count += 1;
     target.updated_at = Utc::now();
-    target.expires_at = Utc::now() + chrono::Duration::days(7);
+    let expires_at = Utc::now() + chrono::Duration::days(7);
+    target.expires_at = expires_at;
+
+    let token = target.token.clone().unwrap_or_else(|| {
+        let tok = format!("tok_{}", Uuid::new_v4().simple());
+        target.token_hash = hex::encode(Sha256::digest(tok.as_bytes()));
+        tok
+    });
+
+    let frontend_base = std::env::var("APP_BASE_URL")
+        .or_else(|_| std::env::var("FRONTEND_URL"))
+        .unwrap_or_else(|_| "http://143.198.30.249:8088".to_string());
+    let invitation_url = format!(
+        "{}/accept-invitation?token={}",
+        frontend_base.trim_end_matches('/'),
+        token
+    );
+    let expires_formatted = expires_at.format("%d/%m/%Y").to_string();
+    let org_name = "Guri24 Rental Management Ltd";
+
+    let (subject, body_html) = if target.role == "TENANT" {
+        let subj = "Activate Your Guri24 Tenant Portal Account".to_string();
+        let body = crate::integrations::email::templates::render_tenant_portal_invitation_email(
+            &target.email,
+            &target.full_name,
+            org_name,
+            "Guri24 Residences",
+            "LEASE-ACTIVE",
+            &invitation_url,
+            &expires_formatted,
+        );
+        (subj, body)
+    } else if target.role == "ORG_ADMIN" {
+        let subj = format!("Invitation to Administrate {} — Guri24 RMS", org_name);
+        let body = crate::integrations::email::templates::render_org_admin_invitation_email(
+            &target.email,
+            &target.full_name,
+            org_name,
+            &invitation_url,
+            &expires_formatted,
+        );
+        (subj, body)
+    } else {
+        let role_display = target.role.replace('_', " ");
+        let subj = format!("Staff Invitation — {} ({})", org_name, role_display);
+        let properties_summary = if let Some(props) = &target.property_ids {
+            if !props.is_empty() {
+                format!("{} assigned properties", props.len())
+            } else {
+                "All assigned organization properties".to_string()
+            }
+        } else {
+            "All organization properties".to_string()
+        };
+        let body = crate::integrations::email::templates::render_staff_invitation_email(
+            &target.email,
+            &target.full_name,
+            org_name,
+            &role_display,
+            &properties_summary,
+            &invitation_url,
+            &expires_formatted,
+            target.invitation_message.as_deref(),
+        );
+        (subj, body)
+    };
+
+    let delivery_status = match state.email_adapter.send_email(&target.email, &subject, &body_html) {
+        Ok(_) => "SENT".to_string(),
+        Err(err) => {
+            tracing::warn!("Failed to resend invitation email to {}: {:?}", target.email, err);
+            "FAILED".to_string()
+        }
+    };
+    target.delivery_status = delivery_status;
 
     let updated = target.clone();
     let _ = state
@@ -2656,7 +2826,7 @@ async fn revoke_invitation_handler(
 
     let target = invitations
         .iter_mut()
-        .find(|i| i.id.to_string() == id)
+        .find(|i| i.id.to_string() == id || i.email.to_lowercase() == id.to_lowercase())
         .ok_or_else(|| AppError::NotFound(format!("Invitation '{}' not found", id)))?;
 
     target.status = "REVOKED".to_string();

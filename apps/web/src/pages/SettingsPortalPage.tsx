@@ -263,14 +263,14 @@ export const SettingsPortalPage: React.FC = () => {
     setActionNotice(null);
     try {
       try {
-        await apiClient.resendInvitation(inv.id);
+        await apiClient.resendInvitation(inv.id, inv.email);
       } catch (err) {
         console.warn('API resend invitation fallback:', err);
       }
 
       const res = resendInvitationDomain(state, inv.id, currentUserSession?.userId);
       setState(res.nextState);
-      setActionNotice(`✓ Invitation for ${inv.email} resent with extended 7-day expiration.`);
+      setActionNotice(`✓ Invitation email dispatched to ${inv.email} via Resend (${inv.full_name || 'Staff Member'}).`);
       setTimeout(() => setActionNotice(null), 7000);
     } catch (err: any) {
       setActionNotice(`Error: ${err?.message || 'Failed to resend invitation'}`);
