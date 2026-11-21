@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import {
   HomeIcon,
   CalendarDaysIcon,
@@ -528,7 +529,9 @@ export const AppLayout: React.FC = () => {
         </header>
 
         {/* Page Content Outlet */}
-        <Outlet />
+        <ErrorBoundary fallbackTitle="An error occurred while loading this workspace screen">
+          <Outlet />
+        </ErrorBoundary>
       </main>
 
       {/* ------------------------------------------------------------- */}

@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { RmsProvider } from './context/RmsContext';
 import { AuthGuard } from './layouts/AuthGuard';
 import { AppLayout } from './layouts/AppLayout';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Dedicated Page Components
 import { DashboardPage } from './pages/DashboardPage';
@@ -69,7 +70,8 @@ export const App: React.FC = () => {
     <BrowserRouter>
       <AuthProvider>
         <RmsProvider>
-          <Routes>
+          <ErrorBoundary fallbackTitle="An application error occurred">
+            <Routes>
             {/* Public Marketing SaaS Platform Experience */}
             <Route path="/" element={<MarketingLayout><MarketingHomePage /></MarketingLayout>} />
             <Route path="/home" element={<MarketingLayout><MarketingHomePage /></MarketingLayout>} />
@@ -262,7 +264,8 @@ export const App: React.FC = () => {
             {/* 404 Unknown Route Fallback */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
-        </RmsProvider>
+        </ErrorBoundary>
+      </RmsProvider>
       </AuthProvider>
     </BrowserRouter>
   );

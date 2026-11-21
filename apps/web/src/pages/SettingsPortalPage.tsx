@@ -92,6 +92,10 @@ export const SettingsPortalPage: React.FC = () => {
   const [selectedTenantId, setSelectedTenantId] = useState('');
   const [isSubmittingTenant, setIsSubmittingTenant] = useState(false);
 
+  // In-Modal Error States (ensures errors are visible to user without crashing the screen)
+  const [staffModalError, setStaffModalError] = useState<string | null>(null);
+  const [tenantModalError, setTenantModalError] = useState<string | null>(null);
+
   // Active Data from Context
   const staffMembers = state.staffMembers || [];
   const invitations = state.invitations || [];
@@ -112,6 +116,7 @@ export const SettingsPortalPage: React.FC = () => {
   const handleInviteStaffSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setActionNotice(null);
+    setStaffModalError(null);
 
     const scopedRoles: SystemRole[] = [
       'PROPERTY_MANAGER',
@@ -130,9 +135,29 @@ export const SettingsPortalPage: React.FC = () => {
       }
     }
 
+    // 1. Pre-validate with pure domain function safely before React state or API mutations
+    let res;
+    try {
+      res = inviteStaffDomain(state, {
+        full_name: staffFullName.trim(),
+        email: staffEmail.trim(),
+        phone: staffPhone.trim(),
+        role: staffRole,
+        property_ids: effectivePropertyIds,
+        invitation_message: staffMessage.trim() || undefined,
+        expiry_days: staffExpiryDays,
+        invited_by: currentUserSession?.userId,
+      });
+    } catch (err: any) {
+      const msg = err?.message || 'Failed to dispatch staff invitation';
+      setStaffModalError(msg);
+      setActionNotice(`Error: ${msg}`);
+      return;
+    }
+
     setIsSubmittingStaff(true);
     try {
-      // 1. API Call
+      // 2. Optional Backend API Call
       try {
         await apiClient.createStaffInvitation({
           full_name: staffFullName.trim(),
@@ -147,31 +172,12 @@ export const SettingsPortalPage: React.FC = () => {
         console.warn('Backend staff invitation API notice:', err);
       }
 
-      // 2. Pure domain state update
-      let createdToken = '';
-      try {
-        setState((prev) => {
-          const res = inviteStaffDomain(prev, {
-            full_name: staffFullName.trim(),
-            email: staffEmail.trim(),
-            phone: staffPhone.trim(),
-            role: staffRole,
-            property_ids: effectivePropertyIds,
-            invitation_message: staffMessage.trim() || undefined,
-            expiry_days: staffExpiryDays,
-            invited_by: currentUserSession?.userId,
-          });
-          createdToken = res.token;
-          return res.nextState;
-        });
-      } catch (err: any) {
-        setActionNotice(`Error: ${err?.message || 'Failed to dispatch staff invitation'}`);
-        return;
-      }
+      // 3. Commit pre-validated state
+      setState(res.nextState);
 
       setIsInviteStaffModalOpen(false);
       setActionNotice(
-        `✓ Staff invitation dispatched to ${staffEmail} for role ${staffRole}. Token link: /accept-invitation?token=${createdToken}`
+        `✓ Staff invitation dispatched to ${staffEmail} for role ${staffRole}. Token link: /accept-invitation?token=${res.token}`
       );
       setTimeout(() => setActionNotice(null), 10000);
 
@@ -181,7 +187,9 @@ export const SettingsPortalPage: React.FC = () => {
       setStaffPhone('+254');
       setStaffPropertyIds([]);
       setStaffMessage('');
+      setStaffModalError(null);
     } catch (err: any) {
+      setStaffModalError(err?.message || 'Failed to dispatch staff invitation');
       setActionNotice(`Error: ${err?.message || 'Failed to dispatch staff invitation'}`);
     } finally {
       setIsSubmittingStaff(false);
@@ -195,10 +203,31 @@ export const SettingsPortalPage: React.FC = () => {
     const tenant = tenants.find((t) => t.id === selectedTenantId);
     if (!tenant) return;
 
-    setIsSubmittingTenant(true);
     setActionNotice(null);
+    setTenantModalError(null);
+
+    const lease = leases.find((l) => l.tenant_id === tenant.id && l.status === 'ACTIVE');
+
+    // 1. Pre-validate domain state update
+    let res;
     try {
-      const lease = leases.find((l) => l.tenant_id === tenant.id && l.status === 'ACTIVE');
+      res = inviteTenantDomain(state, {
+        tenant_id: tenant.id,
+        email: tenant.email,
+        phone: tenant.phone,
+        lease_id: lease?.id,
+        property_id: lease?.property_id,
+        invited_by: currentUserSession?.userId,
+      });
+    } catch (err: any) {
+      const msg = err?.message || 'Failed to invite tenant to portal';
+      setTenantModalError(msg);
+      setActionNotice(`Error: ${msg}`);
+      return;
+    }
+
+    setIsSubmittingTenant(true);
+    try {
       try {
         await apiClient.createTenantInvitation({
           tenant_id: tenant.id,
@@ -211,27 +240,18 @@ export const SettingsPortalPage: React.FC = () => {
         console.warn('Backend tenant invite API notice:', err);
       }
 
-      let createdToken = '';
-      setState((prev) => {
-        const res = inviteTenantDomain(prev, {
-          tenant_id: tenant.id,
-          email: tenant.email,
-          phone: tenant.phone,
-          lease_id: lease?.id,
-          property_id: lease?.property_id,
-          invited_by: currentUserSession?.userId,
-        });
-        createdToken = res.token;
-        return res.nextState;
-      });
+      // 2. Commit validated state
+      setState(res.nextState);
 
       setIsInviteTenantModalOpen(false);
       setActionNotice(
-        `✓ Tenant portal invitation sent to ${tenant.first_name} ${tenant.last_name} (${tenant.email}). Token link: /accept-invitation?token=${createdToken}`
+        `✓ Tenant portal invitation sent to ${tenant.first_name} ${tenant.last_name} (${tenant.email}). Token link: /accept-invitation?token=${res.token}`
       );
       setTimeout(() => setActionNotice(null), 10000);
       setSelectedTenantId('');
+      setTenantModalError(null);
     } catch (err: any) {
+      setTenantModalError(err?.message || 'Failed to invite tenant to portal');
       setActionNotice(`Error: ${err?.message || 'Failed to invite tenant to portal'}`);
     } finally {
       setIsSubmittingTenant(false);
@@ -248,7 +268,8 @@ export const SettingsPortalPage: React.FC = () => {
         console.warn('API resend invitation fallback:', err);
       }
 
-      setState((prev) => resendInvitationDomain(prev, inv.id, currentUserSession?.userId).nextState);
+      const res = resendInvitationDomain(state, inv.id, currentUserSession?.userId);
+      setState(res.nextState);
       setActionNotice(`✓ Invitation for ${inv.email} resent with extended 7-day expiration.`);
       setTimeout(() => setActionNotice(null), 7000);
     } catch (err: any) {
@@ -266,7 +287,8 @@ export const SettingsPortalPage: React.FC = () => {
         console.warn('API revoke invitation fallback:', err);
       }
 
-      setState((prev) => revokeInvitationDomain(prev, inv.id, currentUserSession?.userId).nextState);
+      const res = revokeInvitationDomain(state, inv.id, currentUserSession?.userId);
+      setState(res.nextState);
       setActionNotice(`✓ Invitation for ${inv.email} has been revoked.`);
       setTimeout(() => setActionNotice(null), 7000);
     } catch (err: any) {
@@ -285,7 +307,8 @@ export const SettingsPortalPage: React.FC = () => {
         console.warn('API update staff status fallback:', err);
       }
 
-      setState((prev) => updateUserStatusDomain(prev, staff.id, nextStatus, currentUserSession?.userId).nextState);
+      const res = updateUserStatusDomain(state, staff.id, nextStatus, currentUserSession?.userId);
+      setState(res.nextState);
       setActionNotice(`✓ Staff member ${staff.full_name} status updated to ${nextStatus}.`);
       setTimeout(() => setActionNotice(null), 7000);
     } catch (err: any) {
@@ -303,7 +326,8 @@ export const SettingsPortalPage: React.FC = () => {
         console.warn('API revoke sessions fallback:', err);
       }
 
-      setState((prev) => revokeSessionsDomain(prev, staff.id, 'Administrative termination', currentUserSession?.userId).nextState);
+      const res = revokeSessionsDomain(state, staff.id, 'Administrative termination', currentUserSession?.userId);
+      setState(res.nextState);
       setActionNotice(`✓ All active web and mobile sessions for ${staff.full_name} have been revoked.`);
       setTimeout(() => setActionNotice(null), 7000);
     } catch (err: any) {
@@ -323,14 +347,13 @@ export const SettingsPortalPage: React.FC = () => {
         console.warn('API property access fallback:', err);
       }
 
-      setState((prev) =>
-        updatePropertyAccessDomain(
-          prev,
-          editingStaffMember.id,
-          staffPropertyIds,
-          currentUserSession?.userId
-        ).nextState
+      const res = updatePropertyAccessDomain(
+        state,
+        editingStaffMember.id,
+        staffPropertyIds,
+        currentUserSession?.userId
       );
+      setState(res.nextState);
       setEditingStaffMember(null);
       setActionNotice(`✓ Property scoping updated for ${editingStaffMember.full_name}.`);
       setTimeout(() => setActionNotice(null), 7000);
@@ -1423,6 +1446,25 @@ export const SettingsPortalPage: React.FC = () => {
           maxWidth="560px"
         >
           <form onSubmit={handleInviteStaffSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {staffModalError && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 14px',
+                  backgroundColor: '#FEF2F2',
+                  border: '1px solid #FECACA',
+                  borderRadius: '8px',
+                  color: '#B91C1C',
+                  fontSize: '0.84rem',
+                  lineHeight: 1.4,
+                }}
+              >
+                <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                <span>{staffModalError}</span>
+              </div>
+            )}
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
                 Staff Member Full Name
@@ -1598,6 +1640,25 @@ export const SettingsPortalPage: React.FC = () => {
           maxWidth="480px"
         >
           <form onSubmit={handleInviteTenantSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {tenantModalError && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 14px',
+                  backgroundColor: '#FEF2F2',
+                  border: '1px solid #FECACA',
+                  borderRadius: '8px',
+                  color: '#B91C1C',
+                  fontSize: '0.84rem',
+                  lineHeight: 1.4,
+                }}
+              >
+                <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                <span>{tenantModalError}</span>
+              </div>
+            )}
             <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0 }}>
               Inviting a tenant generates a single-use secure onboarding token and dispatches the branded{' '}
               <strong>Tenant Portal Invitation</strong> email.
