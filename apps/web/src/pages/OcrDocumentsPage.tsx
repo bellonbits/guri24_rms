@@ -35,6 +35,7 @@ export const OcrDocumentsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<'LEASE_AGREEMENT' | 'TENANT_IDENTIFICATION' | 'RECEIPT_OR_INVOICE'>('LEASE_AGREEMENT');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Async job fetching state for direct deep-link URLs (e.g. /app/ocr-documents/review/ocr-1794913229695)
   const [isLoadingJob, setIsLoadingJob] = useState(false);
@@ -140,96 +141,43 @@ export const OcrDocumentsPage: React.FC = () => {
     if (!selectedFile) return;
 
     setIsUploading(true);
+    setUploadError(null);
+
     try {
-      // Create new job with real metadata and empty/genuine extracted fields
-      const newJobId = `ocr-${Date.now()}`;
-      const newDocId = `doc-${Date.now()}`;
-
-      // In real backend mode, we submit to API
-      let createdJob: OcrJobRecord;
-      try {
-        createdJob = await apiClient.submitOcrJob({
-          file_name: selectedFile.name,
-          mime_type: selectedFile.type || 'application/pdf',
-          file_size_bytes: selectedFile.size,
-          page_count: 1,
-          category: selectedCategory,
-        });
-
-        if (!createdJob.fields || createdJob.fields.length === 0) {
-          throw new Error('Backend returned empty fields; using structured intelligence fallback');
+      // Optional: Read text content if plain text or markdown
+      let contentHint: string | undefined = undefined;
+      if (selectedFile.type.startsWith('text/') || selectedFile.name.endsWith('.txt') || selectedFile.name.endsWith('.md')) {
+        try {
+          contentHint = await selectedFile.text();
+        } catch {
+          // Ignore read error
         }
-      } catch (err) {
-        // Fallback to local state with authentic structured fields derived from category and document metadata
-        const propName = properties[0]?.name || 'Kilimani Heights Residency';
-        const landlordName = currentOrg.name || 'Guri24 Estates Management Ltd';
-
-        let extractedFields: any[] = [];
-        if (selectedCategory === 'LEASE_AGREEMENT') {
-          extractedFields = [
-            { id: `${newJobId}-f1`, field_name: 'landlord', field_label: 'Landlord / Property Owner', extracted_value: landlordName, normalized_value: landlordName, confidence: 0.96, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.15, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f2`, field_name: 'tenant_name', field_label: 'Tenant Name', extracted_value: 'John Mwangi Kamau', normalized_value: 'John Mwangi Kamau', confidence: 0.95, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.22, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f3`, field_name: 'property_name', field_label: 'Property Name', extracted_value: propName, normalized_value: propName, confidence: 0.98, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.29, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f4`, field_name: 'unit_number', field_label: 'Unit Number', extracted_value: 'Unit B-204', normalized_value: 'Unit B-204', confidence: 0.97, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.36, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f5`, field_name: 'start_date', field_label: 'Lease Start Date (YYYY-MM-DD)', extracted_value: '2026-01-01', normalized_value: '2026-01-01', confidence: 0.94, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.43, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f6`, field_name: 'end_date', field_label: 'Lease End Date (YYYY-MM-DD)', extracted_value: '2026-12-31', normalized_value: '2026-12-31', confidence: 0.94, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.50, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f7`, field_name: 'monthly_rent_kes', field_label: 'Monthly Rent (KES)', extracted_value: '45,000', normalized_value: '45000', confidence: 0.98, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.57, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f8`, field_name: 'security_deposit_kes', field_label: 'Security Deposit (KES)', extracted_value: '45,000', normalized_value: '45000', confidence: 0.96, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.64, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f9`, field_name: 'billing_day', field_label: 'Monthly Billing Day (1-28)', extracted_value: '5', normalized_value: '5', confidence: 0.95, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.71, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-          ];
-        } else if (selectedCategory === 'TENANT_IDENTIFICATION') {
-          extractedFields = [
-            { id: `${newJobId}-f1`, field_name: 'full_name', field_label: 'Full Name', extracted_value: 'John Mwangi Kamau', normalized_value: 'John Mwangi Kamau', confidence: 0.97, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.15, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f2`, field_name: 'id_type', field_label: 'Identification Document Type', extracted_value: 'Kenyan National ID', normalized_value: 'Kenyan National ID', confidence: 0.98, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.25, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f3`, field_name: 'id_number', field_label: 'Identification Number', extracted_value: '29845120', normalized_value: '29845120', confidence: 0.99, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.35, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f4`, field_name: 'phone', field_label: 'Phone Number (MSISDN)', extracted_value: '+254 712 345 678', normalized_value: '+254712345678', confidence: 0.96, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.45, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f5`, field_name: 'address', field_label: 'Residential Address', extracted_value: 'P.O. Box 45012 - 00100 Nairobi', normalized_value: 'P.O. Box 45012 - 00100 Nairobi', confidence: 0.93, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.55, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-          ];
-        } else if (selectedCategory === 'RECEIPT_OR_INVOICE') {
-          extractedFields = [
-            { id: `${newJobId}-f1`, field_name: 'document_number', field_label: 'Receipt / Invoice Number', extracted_value: 'INV-2026-0891', normalized_value: 'INV-2026-0891', confidence: 0.98, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.15, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f2`, field_name: 'date', field_label: 'Transaction Date', extracted_value: '2026-02-05', normalized_value: '2026-02-05', confidence: 0.95, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.25, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f3`, field_name: 'amount_kes', field_label: 'Total Amount (KES)', extracted_value: '45,000', normalized_value: '45000', confidence: 0.99, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.35, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f4`, field_name: 'currency', field_label: 'Currency', extracted_value: 'KES', normalized_value: 'KES', confidence: 0.99, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.45, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f5`, field_name: 'supplier', field_label: 'Supplier / Recipient', extracted_value: 'Kenya Power & Lighting Co. (KPLC)', normalized_value: 'Kenya Power & Lighting Co. (KPLC)', confidence: 0.94, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.55, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f6`, field_name: 'payment_reference', field_label: 'M-Pesa / Bank Reference', extracted_value: 'QHK82910XZ', normalized_value: 'QHK82910XZ', confidence: 0.98, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.65, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-          ];
-        } else {
-          extractedFields = [
-            { id: `${newJobId}-f1`, field_name: 'property_name', field_label: 'Property Title Name', extracted_value: propName, normalized_value: propName, confidence: 0.96, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.15, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f2`, field_name: 'lr_number', field_label: 'Land Reference (LR) Number', extracted_value: 'LR 209/18420', normalized_value: 'LR 209/18420', confidence: 0.94, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.30, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-            { id: `${newJobId}-f3`, field_name: 'title_number', field_label: 'Title Deed Number', extracted_value: 'NAIROBI/BLOCK 82/104', normalized_value: 'NAIROBI/BLOCK 82/104', confidence: 0.95, page_number: 1, bounding_box: { page: 1, x: 0.15, y: 0.45, width: 0.4, height: 0.04 }, validation_errors: [], human_verified: false },
-          ];
-        }
-
-        createdJob = {
-          id: newJobId,
-          organization_id: currentOrg.id,
-          document_id: newDocId,
-          file_name: selectedFile.name,
-          mime_type: selectedFile.type || 'application/pdf',
-          file_size_kb: Math.ceil(selectedFile.size / 1024),
-          page_count: 1,
-          document_category: selectedCategory,
-          provider_name: 'allenai/olmOCR-2-7B-1025-FP8',
-          status: 'NEEDS_REVIEW',
-          raw_extracted_text: '',
-          overall_confidence: 0.96,
-          fields: extractedFields,
-          authoritative_record_applied: false,
-          created_at: new Date().toISOString(),
-          completed_at: new Date().toISOString(),
-        };
       }
+
+      // Submit to real backend OCR pipeline - strictly NO mock fallback
+      const createdJob = await apiClient.submitOcrJob({
+        file_name: selectedFile.name,
+        mime_type: selectedFile.type || 'application/pdf',
+        file_size_bytes: selectedFile.size,
+        page_count: 1,
+        category: selectedCategory,
+        raw_content_hint: contentHint,
+      });
 
       setState((prev) => ({
         ...prev,
-        ocrJobs: [createdJob, ...prev.ocrJobs],
+        ocrJobs: [createdJob, ...prev.ocrJobs.filter((j) => j.id !== createdJob.id)],
       }));
 
       setSelectedFile(null);
       setIsUploadModalOpen(false);
       navigate(`/app/ocr-documents/review/${createdJob.id}`);
+    } catch (err: any) {
+      console.error('OCR submission error:', err);
+      setUploadError(
+        err?.message ||
+        'Failed to process document with OCR engine. Please ensure the OCR service is reachable and retry with a valid document.'
+      );
     } finally {
       setIsUploading(false);
     }
@@ -579,10 +527,36 @@ export const OcrDocumentsPage: React.FC = () => {
       {isUploadModalOpen && (
         <ModalDialog
           isOpen={isUploadModalOpen}
-          onClose={() => setIsUploadModalOpen(false)}
+          onClose={() => {
+            setIsUploadModalOpen(false);
+            setUploadError(null);
+          }}
           title="Upload Document for OCR Processing"
         >
           <form onSubmit={handleUploadSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {uploadError && (
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  color: '#b91c1c',
+                  fontSize: '0.82rem',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '8px',
+                  lineHeight: 1.45,
+                }}
+              >
+                <AlertCircle size={16} style={{ marginTop: '2px', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontWeight: 700 }}>OCR Processing Failure</div>
+                  <div style={{ marginTop: '2px' }}>{uploadError}</div>
+                </div>
+              </div>
+            )}
+
             <div className="field-group">
               <label>Document Category</label>
               <select

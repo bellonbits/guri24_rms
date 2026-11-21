@@ -69,91 +69,20 @@ export const OCRReviewForm: React.FC<OCRReviewFormProps> = ({
     if (confidence !== undefined) return confidence;
     if (job?.overall_confidence !== undefined) return job.overall_confidence;
     if (job?.overall_confidence_pct !== undefined) return Number(job.overall_confidence_pct) / 100;
-    return 0.96;
+    return 0;
   }, [confidence, job]);
 
-  // Normalized fields list
+  // Normalized fields list - strictly genuine data, never synthesized mock fields
   const normalizedFields = useMemo(() => {
-    const getDefaultFieldsForCategory = (category: string) => {
-      const cat = String(category || '').toUpperCase();
-      if (cat.includes('ID') || cat.includes('IDENTIFICATION')) {
-        return [
-          { field_name: 'full_name', field_label: 'Full Name', extracted_value: 'John Mwangi Kamau', confidence: 0.97, is_sensitive_pii: false },
-          { field_name: 'id_type', field_label: 'Identification Document Type', extracted_value: 'Kenyan National ID', confidence: 0.98, is_sensitive_pii: false },
-          { field_name: 'id_number', field_label: 'Identification Number', extracted_value: '29845120', confidence: 0.99, is_sensitive_pii: true },
-          { field_name: 'phone', field_label: 'Phone Number (MSISDN)', extracted_value: '+254 712 345 678', confidence: 0.96, is_sensitive_pii: false },
-          { field_name: 'address', field_label: 'Residential Address', extracted_value: 'P.O. Box 45012 - 00100 Nairobi', confidence: 0.93, is_sensitive_pii: false },
-        ];
-      }
-      if (cat.includes('RECEIPT') || cat.includes('INVOICE')) {
-        return [
-          { field_name: 'document_number', field_label: 'Receipt / Invoice Number', extracted_value: 'INV-2026-0891', confidence: 0.98, is_sensitive_pii: false },
-          { field_name: 'date', field_label: 'Transaction Date', extracted_value: '2026-02-05', confidence: 0.95, is_sensitive_pii: false },
-          { field_name: 'amount_kes', field_label: 'Total Amount (KES)', extracted_value: '45,000', confidence: 0.99, is_sensitive_pii: false },
-          { field_name: 'currency', field_label: 'Currency', extracted_value: 'KES', confidence: 0.99, is_sensitive_pii: false },
-          { field_name: 'supplier', field_label: 'Supplier / Recipient', extracted_value: 'Kenya Power & Lighting Co. (KPLC)', confidence: 0.94, is_sensitive_pii: false },
-          { field_name: 'payment_reference', field_label: 'M-Pesa / Bank Reference', extracted_value: 'QHK82910XZ', confidence: 0.98, is_sensitive_pii: false },
-        ];
-      }
-      if (cat.includes('PROPERTY')) {
-        return [
-          { field_name: 'property_name', field_label: 'Property Title Name', extracted_value: 'Kilimani Heights Residency', confidence: 0.96, is_sensitive_pii: false },
-          { field_name: 'lr_number', field_label: 'Land Reference (LR) Number', extracted_value: 'LR 209/18420', confidence: 0.94, is_sensitive_pii: false },
-          { field_name: 'title_number', field_label: 'Title Deed Number', extracted_value: 'NAIROBI/BLOCK 82/104', confidence: 0.95, is_sensitive_pii: false },
-        ];
-      }
-      // Default to Lease Agreement
-      return [
-        { field_name: 'landlord', field_label: 'Landlord / Property Owner', extracted_value: 'Guri24 Estates Management Ltd', confidence: 0.96, is_sensitive_pii: false },
-        { field_name: 'tenant_name', field_label: 'Tenant Name', extracted_value: 'John Mwangi Kamau', confidence: 0.95, is_sensitive_pii: false },
-        { field_name: 'property_name', field_label: 'Property Name', extracted_value: 'Kilimani Heights Residency', confidence: 0.98, is_sensitive_pii: false },
-        { field_name: 'unit_number', field_label: 'Unit Number', extracted_value: 'Unit B-204', confidence: 0.97, is_sensitive_pii: false },
-        { field_name: 'start_date', field_label: 'Lease Start Date (YYYY-MM-DD)', extracted_value: '2026-01-01', confidence: 0.94, is_sensitive_pii: false },
-        { field_name: 'end_date', field_label: 'Lease End Date (YYYY-MM-DD)', extracted_value: '2026-12-31', confidence: 0.94, is_sensitive_pii: false },
-        { field_name: 'monthly_rent_kes', field_label: 'Monthly Rent (KES)', extracted_value: '45,000', confidence: 0.98, is_sensitive_pii: false },
-        { field_name: 'security_deposit_kes', field_label: 'Security Deposit (KES)', extracted_value: '45,000', confidence: 0.96, is_sensitive_pii: false },
-        { field_name: 'billing_day', field_label: 'Monthly Billing Day (1-28)', extracted_value: '5', confidence: 0.95, is_sensitive_pii: false },
-      ];
-    };
-
-    const getFallbackValue = (fieldName: string): string => {
-      const k = (fieldName || '').toLowerCase();
-      if (k.includes('landlord') || k.includes('owner')) return 'Guri24 Estates Management Ltd';
-      if (k.includes('tenant') || k.includes('full_name') || k === 'name') return 'John Mwangi Kamau';
-      if (k.includes('property')) return 'Kilimani Heights Residency';
-      if (k.includes('unit')) return 'Unit B-204';
-      if (k.includes('start') || k.includes('commence')) return '2026-01-01';
-      if (k.includes('end') || k.includes('expir')) return '2026-12-31';
-      if (k.includes('rent')) return '45,000';
-      if (k.includes('deposit')) return '45,000';
-      if (k.includes('billing') || k.includes('day')) return '5';
-      if (k.includes('id_type')) return 'Kenyan National ID';
-      if (k.includes('id_number') || k.includes('national_id')) return '29845120';
-      if (k.includes('phone') || k.includes('mobile') || k.includes('msisdn')) return '+254 712 345 678';
-      if (k.includes('address')) return 'P.O. Box 45012 - 00100 Nairobi';
-      if (k.includes('document_number') || k.includes('invoice') || k.includes('receipt')) return 'INV-2026-0891';
-      if (k.includes('date')) return '2026-02-05';
-      if (k.includes('amount')) return '45,000';
-      if (k.includes('currency')) return 'KES';
-      if (k.includes('supplier') || k.includes('vendor')) return 'Kenya Power & Lighting Co. (KPLC)';
-      if (k.includes('payment_ref') || k.includes('reference')) return 'QHK82910XZ';
-      if (k.includes('lr_number')) return 'LR 209/18420';
-      if (k.includes('title')) return 'NAIROBI/BLOCK 82/104';
-      return 'Verified';
-    };
-
-    let raw = extractedFields || job?.fields || job?.extracted_fields || [];
+    const raw = extractedFields || job?.fields || job?.extracted_fields || [];
     if (!Array.isArray(raw) || raw.length === 0) {
-      raw = getDefaultFieldsForCategory(activeCategory);
+      return [];
     }
     return raw.map((f: any, idx: number) => {
       const key = String(f.field_name || f.field_key || f.name || f.key || `field_${idx + 1}`).toLowerCase();
-      let extVal = String(f.extracted_value ?? f.value ?? '');
-      if (!extVal.trim()) {
-        extVal = getFallbackValue(key);
-      }
+      const extVal = String(f.extracted_value ?? f.value ?? '');
       const normVal = String(f.normalized_value ?? extVal);
-      const rawConf = typeof f.confidence === 'number' ? f.confidence : (typeof f.confidence_pct === 'number' ? f.confidence_pct / 100 : (extVal ? 0.95 : 0.90));
+      const rawConf = typeof f.confidence === 'number' ? f.confidence : (typeof f.confidence_pct === 'number' ? f.confidence_pct / 100 : (extVal ? 0.90 : 0));
 
       return {
         id: f.id || `f-${idx}`,
@@ -161,13 +90,13 @@ export const OCRReviewForm: React.FC<OCRReviewFormProps> = ({
         field_label: f.field_label || f.label || (f.field_name ? f.field_name.replace(/_/g, ' ') : `Field ${idx + 1}`),
         extracted_value: extVal,
         normalized_value: normVal,
-        confidence: rawConf || 0.95,
+        confidence: rawConf,
         human_verified: Boolean(f.human_verified || f.verified),
         validation_errors: Array.isArray(f.validation_errors) ? f.validation_errors : (f.validation_error ? [f.validation_error] : []),
         is_sensitive_pii: Boolean(f.is_sensitive_pii || (key.includes('id') || key.includes('pin'))),
       };
     });
-  }, [extractedFields, job, activeCategory]);
+  }, [extractedFields, job]);
 
   // Field values state for manual corrections
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
@@ -350,6 +279,40 @@ export const OCRReviewForm: React.FC<OCRReviewFormProps> = ({
           <strong>Financial & Legal Protection Rule:</strong> OCR extracted fields remain pending drafts until an authorized administrator verifies them. Approving updates the OCR record but does NOT automatically mutate active leases, bank ledgers, or invoices without explicit submission.
         </div>
       </div>
+
+      {/* Failure Banner if job failed or error reported */}
+      {(activeStatus === 'FAILED' || job?.error_message) && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '10px',
+            padding: '12px 20px',
+            background: '#fef2f2',
+            borderBottom: '1px solid #fecaca',
+            color: '#b91c1c',
+            fontSize: '0.82rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <AlertTriangle size={18} color="#dc2626" style={{ flexShrink: 0 }} />
+            <div>
+              <strong>Extraction Error:</strong> {job?.error_message || 'OCR engine could not recognize text or validate document structure. No mock data was generated.'}
+            </div>
+          </div>
+          {onRetry && (
+            <button
+              type="button"
+              className="btn-outline"
+              onClick={() => onRetry(activeJobId)}
+              style={{ fontSize: '0.74rem', padding: '4px 10px', borderColor: '#fca5a5', color: '#b91c1c' }}
+            >
+              Retry OCR
+            </button>
+          )}
+        </div>
+      )}
 
       {/* 3-Panel Grid Workspace */}
       <div
