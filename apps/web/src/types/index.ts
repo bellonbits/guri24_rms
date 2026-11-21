@@ -1067,3 +1067,40 @@ export interface ReconciliationRule {
   is_active: boolean;
 }
 
+export interface RentSchedule {
+  id: string;
+  organization_id: string;
+  property_id: string;
+  property_name?: string;
+  unit_id: string;
+  unit_number?: string;
+  tenant_id: string;
+  tenant_name?: string;
+  lease_id: string;
+  rent_amount_kes: number;
+  currency: string;
+  billing_frequency: 'MONTHLY' | 'WEEKLY' | 'QUARTERLY' | 'ANNUAL';
+  billing_start_date: string;
+  due_day_of_month: number;
+  grace_period_days: number;
+  collection_account_id?: string | null;
+  collection_account_name?: string | null;
+  reminder_policy_enabled: boolean;
+  status: 'ACTIVE' | 'PAUSED' | 'EXPIRED';
+  created_at: string;
+}
+
+export interface LateFeePolicy {
+  id: string;
+  organization_id: string;
+  property_id?: string | null;
+  policy_name: string;
+  fee_type: 'FIXED' | 'PERCENTAGE' | 'DAILY';
+  fee_value: number;
+  grace_period_days: number;
+  max_fee_cap_kes?: number | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+

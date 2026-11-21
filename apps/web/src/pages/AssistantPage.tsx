@@ -103,8 +103,20 @@ export const AssistantPage: React.FC = () => {
           // 1. Try live backend assistant chat API first
           try {
             const liveRes = await apiClient.askAssistant(query, targetConvId);
-            const liveReply = liveRes?.reply || liveRes?.content;
-            if (liveReply) {
+            const rawLiveReply = liveRes?.reply || liveRes?.content;
+            if (rawLiveReply) {
+              const liveReply = rawLiveReply
+                .replace(/(^|\n|\r)#{1,6}\s*/g, '$1')
+                .replace(/#{1,6}\s*/g, '')
+                .replace(/\*\*\*(.*?)\*\*\*/g, '$1')
+                .replace(/\*\*(.*?)\*\*/g, '$1')
+                .replace(/__(.*?)__/g, '$1')
+                .replace(/\*(.*?)\*/g, '$1')
+                .replace(/_(.*?)_/g, '$1')
+                .replace(/`{1,3}(.*?)`{1,3}/gs, '$1')
+                .replace(/\s+-\s+([A-Z])/g, '\n• $1')
+                .replace(/(^|\n)[-*+]\s+/g, '$1• ');
+
               const astMsg: AssistantMessage = {
                 id: `msg-${Date.now()}-ast`,
                 role: 'ASSISTANT',

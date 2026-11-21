@@ -526,10 +526,12 @@ impl AssistantServiceTrait for GroundedAssistantService {
             }
         }
 
+        let clean_response_text = crate::integrations::groq::GroqLlmAdapter::sanitize_plain_text(&response_text);
+
         let assistant_msg = AssistantMessage {
             id: Uuid::new_v4(),
             sender_role: "ASSISTANT".to_string(),
-            content: response_text,
+            content: clean_response_text,
             tool_calls,
             citations,
             pending_confirmation,

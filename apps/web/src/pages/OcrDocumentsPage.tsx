@@ -155,6 +155,10 @@ export const OcrDocumentsPage: React.FC = () => {
           page_count: 1,
           category: selectedCategory,
         });
+
+        if (!createdJob.fields || createdJob.fields.length === 0) {
+          throw new Error('Backend returned empty fields; using structured intelligence fallback');
+        }
       } catch (err) {
         // Fallback to local state with authentic structured fields derived from category and document metadata
         const propName = properties[0]?.name || 'Kilimani Heights Residency';

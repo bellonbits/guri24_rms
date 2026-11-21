@@ -36,6 +36,11 @@ import type {
   PlatformOrganization,
   UserPropertyAccess,
   AccessAuditLog,
+  BankAccount,
+  PropertyAccountMapping,
+  BankStatementImport,
+  RentSchedule,
+  LateFeePolicy,
 } from '../types/index.ts';
 import { maskNationalId, normalizeKenyanPhone } from './formatters.ts';
 
@@ -284,6 +289,11 @@ export interface RmsPlatformState {
   userPropertyAccess: UserPropertyAccess[];
   accessAuditLogs: AccessAuditLog[];
   platformOrganizations: PlatformOrganization[];
+  bankAccounts: BankAccount[];
+  propertyAccountMappings: PropertyAccountMapping[];
+  statementImports: BankStatementImport[];
+  rentSchedules: RentSchedule[];
+  lateFeePolicies: LateFeePolicy[];
 }
 
 export function createEmptyRmsState(): RmsPlatformState {
@@ -322,6 +332,11 @@ export function createEmptyRmsState(): RmsPlatformState {
     userPropertyAccess: [],
     accessAuditLogs: [],
     platformOrganizations: [],
+    bankAccounts: [],
+    propertyAccountMappings: [],
+    statementImports: [],
+    rentSchedules: [],
+    lateFeePolicies: [],
   };
 }
 
@@ -484,6 +499,13 @@ export function sanitizeWorkspaceState(raw: any): RmsPlatformState {
       },
     ];
   }
+
+  // Ensure collections arrays are never undefined
+  clean.bankAccounts = Array.isArray(clean.bankAccounts) ? clean.bankAccounts : [];
+  clean.propertyAccountMappings = Array.isArray(clean.propertyAccountMappings) ? clean.propertyAccountMappings : [];
+  clean.statementImports = Array.isArray(clean.statementImports) ? clean.statementImports : [];
+  clean.rentSchedules = Array.isArray(clean.rentSchedules) ? clean.rentSchedules : [];
+  clean.lateFeePolicies = Array.isArray(clean.lateFeePolicies) ? clean.lateFeePolicies : [];
 
   return clean as RmsPlatformState;
 }
@@ -1610,10 +1632,22 @@ export function sendAssistantPrompt(
     replyText = `Portfolio Ledger Summary for ${state.organizations.find((o) => o.id === orgId)?.name ?? 'your organization'}. Total billed is KES ${totalBilled.toLocaleString()} across ${orgInvoices.length} invoices. Total collections received: KES ${totalPaid.toLocaleString()}. Outstanding arrears: KES ${totalArrears.toLocaleString()} across ${openInvoices.length} open accounts. Active leases: ${orgLeases.filter((l) => l.status === 'ACTIVE').length}. Total units: ${orgUnits.length}.`;
   }
 
+  const cleanedReply = replyText
+    .replace(/(^|\n|\r)#{1,6}\s*/g, '$1')
+    .replace(/#{1,6}\s*/g, '')
+    .replace(/\*\*\*(.*?)\*\*\*/g, '$1')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/_(.*?)_/g, '$1')
+    .replace(/`{1,3}(.*?)`{1,3}/gs, '$1')
+    .replace(/\s+-\s+([A-Z])/g, '\n• $1')
+    .replace(/(^|\n)[-*+]\s+/g, '$1• ');
+
   const assistantReply: AssistantMessage = {
     id: `msg-ast-${Date.now() + 2}`,
     role: 'ASSISTANT',
-    content: replyText,
+    content: cleanedReply,
     citations,
     tool_calls: toolCalls,
     pending_confirmation_id: pendingConfirmation?.id,

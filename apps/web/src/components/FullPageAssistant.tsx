@@ -81,16 +81,24 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Clean Markdown & format response text
+  // Clean Markdown & format response text cleanly without any markdown characters
   const renderCleanContent = (text: string) => {
     if (!text) return null;
     const cleaned = text
-      .replace(/^#{1,6}\s+/gm, '')
+      // Strip headers anywhere in string
+      .replace(/(^|\n|\r)#{1,6}\s*/g, '$1')
+      .replace(/#{1,6}\s*/g, '')
+      // Bold, italics, backticks, strikethrough
+      .replace(/\*\*\*(.*?)\*\*\*/g, '$1')
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/__(.*?)__/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
       .replace(/_(.*?)_/g, '$1')
-      .replace(/^[-*]\s+/gm, '• ');
+      .replace(/`{1,3}(.*?)`{1,3}/gs, '$1')
+      .replace(/~~(.*?)~~/g, '$1')
+      // Break inline joined bullet dashes into clean vertical bullet points
+      .replace(/\s+-\s+([A-Z])/g, '\n• $1')
+      .replace(/(^|\n)[-*+]\s+/g, '$1• ');
 
     const paragraphs = cleaned.split(/\n\s*\n/);
     return (
@@ -99,11 +107,14 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
           const lines = para.split('\n');
           return (
             <div key={pIdx} style={{ lineHeight: 1.55 }}>
-              {lines.map((line, lIdx) => (
-                <div key={lIdx} style={{ margin: line.startsWith('• ') ? '3px 0 3px 8px' : '0' }}>
-                  {line}
-                </div>
-              ))}
+              {lines.map((line, lIdx) => {
+                const isBullet = line.trim().startsWith('• ');
+                return (
+                  <div key={lIdx} style={{ margin: isBullet ? '3px 0 3px 6px' : '0' }}>
+                    {line}
+                  </div>
+                );
+              })}
             </div>
           );
         })}

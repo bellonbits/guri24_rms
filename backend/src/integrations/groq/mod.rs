@@ -147,13 +147,7 @@ impl GroqLlmAdapter {
                     if let Some(text) = choice.message.content {
                         let trimmed = text.trim();
                         if !trimmed.is_empty() {
-                            // Strip any residual markdown syntax to ensure clean plain text
-                            let clean_text = trimmed
-                                .replace("### ", "")
-                                .replace("## ", "")
-                                .replace("# ", "")
-                                .replace("**", "")
-                                .replace("*", "");
+                            let clean_text = Self::sanitize_plain_text(trimmed);
                             return Ok(Some(clean_text));
                         }
                     }
@@ -161,5 +155,34 @@ impl GroqLlmAdapter {
             }
             Ok(None)
         })
+    }
+
+    pub fn sanitize_plain_text(input: &str) -> String {
+        let mut lines = Vec::new();
+        for raw_line in input.lines() {
+            let trimmed = raw_line.trim();
+            if trimmed.is_empty() {
+                lines.push(String::new());
+                continue;
+            }
+            // Strip header markers (#, ##, ###, ####, etc.)
+            let no_header = trimmed.trim_start_matches('#').trim();
+            // Replace raw markdown bullets with clean readable bullets
+            let bulleted = if no_header.starts_with("- ") || no_header.starts_with("* ") || no_header.starts_with("+ ") {
+                format!("• {}", &no_header[2..])
+            } else {
+                no_header.to_string()
+            };
+            // Remove bold, italics, backticks, strikethrough
+            let cleaned = bulleted
+                .replace("***", "")
+                .replace("**", "")
+                .replace("__", "")
+                .replace('*', "")
+                .replace('`', "")
+                .replace("~~", "");
+            lines.push(cleaned);
+        }
+        lines.join("\n").trim().to_string()
     }
 }
