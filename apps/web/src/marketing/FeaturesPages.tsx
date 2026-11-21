@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   ShieldCheck,
   Zap,
+  ArrowUpRight,
 } from 'lucide-react';
 import { BRAND_TOKENS } from './BrandTokens';
 

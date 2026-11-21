@@ -579,15 +579,55 @@ export const HomePage: React.FC = () => {
 
             <p
               style={{
-                fontSize: '1.14rem',
-                lineHeight: 1.65,
-                color: '#334155',
+                fontSize: 'clamp(1.15rem, 1.8vw, 1.55rem)',
+                fontWeight: 700,
+                lineHeight: 1.5,
+                letterSpacing: '-0.02em',
+                color: '#021429',
                 marginBottom: '32px',
-                maxWidth: '520px',
+                maxWidth: '640px',
+                textTransform: 'uppercase',
               }}
             >
-              We are a forward-thinking team creating unique living spaces that blend modern design,
-              comfort, innovation, and sustainability together.
+              We create contemporary property ecosystems where architecture, financial ledger{' '}
+              <span
+                style={{
+                  display: 'inline-block',
+                  verticalAlign: 'middle',
+                  width: '44px',
+                  height: '24px',
+                  borderRadius: '999px',
+                  overflow: 'hidden',
+                  margin: '0 4px',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                }}
+              >
+                <img
+                  src="/luxury-pool-villa.jpg"
+                  alt="Detail"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </span>{' '}
+              and tenant living exist in perfect{' '}
+              <span
+                style={{
+                  display: 'inline-block',
+                  verticalAlign: 'middle',
+                  width: '44px',
+                  height: '24px',
+                  borderRadius: '999px',
+                  overflow: 'hidden',
+                  margin: '0 4px',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                }}
+              >
+                <img
+                  src="/modern-organic-balconies.jpg"
+                  alt="Detail"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </span>{' '}
+              <span style={{ color: '#D97706' }}>harmony</span> &mdash; elevating asset values across Kenya.
             </p>
 
             <button
