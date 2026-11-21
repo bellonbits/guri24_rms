@@ -71,28 +71,16 @@ export const MarketingFooter: React.FC = () => {
         >
           {/* Column 1: Brand & Operational Identity */}
           <div>
-            <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', textDecoration: 'none', marginBottom: '18px' }}>
-              <div
-                style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '10px',
-                  backgroundColor: '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+            <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', textDecoration: 'none', marginBottom: '18px' }}>
+              <img
+                src="/logo.png"
+                alt="Guri24"
+                style={{ width: '32px', height: '32px', objectFit: 'contain' }}
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
                 }}
-              >
-                <img
-                  src="/logo.png"
-                  alt="Guri24"
-                  style={{ width: '22px', height: '22px', objectFit: 'contain' }}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
-              <span style={{ fontSize: '1.3rem', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
+              />
+              <span style={{ fontSize: '1.35rem', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
                 Guri<span style={{ color: '#03D8BF' }}>24</span> RMS
               </span>
             </Link>

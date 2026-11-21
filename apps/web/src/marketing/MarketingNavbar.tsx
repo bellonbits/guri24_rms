@@ -29,6 +29,7 @@ export const MarketingNavbar: React.FC = () => {
   }, [location.pathname]);
 
   const navLinks = [
+    { to: '/', label: 'Home' },
     { to: '/about', label: 'About Us' },
     { to: '/features', label: 'Features' },
     { to: '/solutions', label: 'Solutions' },
@@ -53,13 +54,13 @@ export const MarketingNavbar: React.FC = () => {
         borderBottom: scrolled ? '1px solid #E2E8F0' : '1px solid transparent',
         transition: 'all 200ms ease',
         fontFamily: BRAND_TOKENS.fonts.sans,
-        padding: '18px 32px',
+        padding: '16px 36px',
         boxSizing: 'border-box',
       }}
     >
       <div
         style={{
-          maxWidth: '1360px',
+          maxWidth: '1440px',
           margin: '0 auto',
           display: 'flex',
           alignItems: 'center',
@@ -68,38 +69,24 @@ export const MarketingNavbar: React.FC = () => {
           width: '100%',
         }}
       >
-        {/* Left: Brand Wordmark (matches Apex Arc reference) */}
+        {/* Left: Brand Wordmark (Direct logo without card wrapper) */}
         <Link
           to="/"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
+            gap: '12px',
             textDecoration: 'none',
-            color: '#021429',
           }}
         >
-          <div
-            style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '9px',
-              backgroundColor: '#021429',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 10px rgba(2, 20, 41, 0.15)',
+          <img
+            src="/logo.png"
+            alt="Guri24"
+            style={{ width: '34px', height: '34px', objectFit: 'contain' }}
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
             }}
-          >
-            <img
-              src="/logo.png"
-              alt="Guri24"
-              style={{ width: '20px', height: '20px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          </div>
+          />
           <span
             style={{
               fontSize: '1.35rem',
@@ -112,18 +99,21 @@ export const MarketingNavbar: React.FC = () => {
           </span>
         </Link>
 
-        {/* Right: Clean Minimal Navigation Links (matches reference) */}
+        {/* Right: Clean Minimal Navigation Links */}
         <nav
           aria-label="Desktop Navigation"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '32px',
+            gap: '26px',
           }}
           className="desktop-clean-nav"
         >
           {navLinks.map((item, idx) => {
-            const isActive = location.pathname.startsWith(item.to);
+            const isActive =
+              item.to === '/'
+                ? location.pathname === '/' || location.pathname === '/home'
+                : location.pathname.startsWith(item.to);
 
             return (
               <Link
@@ -150,33 +140,62 @@ export const MarketingNavbar: React.FC = () => {
             );
           })}
 
-          {/* Action CTA Pill */}
-          <Link
-            to="/contact?type=consultation"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              backgroundColor: '#021429',
-              color: '#FFFFFF',
-              padding: '9px 20px',
-              borderRadius: '999px',
-              fontSize: '0.86rem',
-              fontWeight: 700,
-              textDecoration: 'none',
-              boxShadow: '0 4px 14px rgba(2, 20, 41, 0.18)',
-              transition: 'transform 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-          >
-            <span>Consultation</span>
-            <ArrowUpRight size={14} />
-          </Link>
+          {/* Action Buttons: Consultation + Create Account */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '6px' }}>
+            <Link
+              to="/contact?type=consultation"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                backgroundColor: 'transparent',
+                color: '#021429',
+                padding: '8px 16px',
+                borderRadius: '999px',
+                border: '1px solid #CBD5E1',
+                fontSize: '0.84rem',
+                fontWeight: 600,
+                textDecoration: 'none',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#021429';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '#CBD5E1';
+              }}
+            >
+              <span>Consultation</span>
+              <ArrowUpRight size={13} />
+            </Link>
+
+            <Link
+              to="/register"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                backgroundColor: '#021429',
+                color: '#FFFFFF',
+                padding: '9px 20px',
+                borderRadius: '999px',
+                fontSize: '0.84rem',
+                fontWeight: 700,
+                textDecoration: 'none',
+                boxShadow: '0 4px 14px rgba(2, 20, 41, 0.18)',
+                transition: 'transform 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              <span>Create Account</span>
+              <ArrowUpRight size={13} />
+            </Link>
+          </div>
         </nav>
 
         {/* Mobile Hamburger Button */}
@@ -231,7 +250,7 @@ export const MarketingNavbar: React.FC = () => {
           ))}
           <div style={{ height: '1px', backgroundColor: '#E2E8F0', margin: '4px 0' }} />
           <Link
-            to="/contact?type=consultation"
+            to="/register"
             style={{
               backgroundColor: '#021429',
               color: '#FFFFFF',
@@ -243,12 +262,28 @@ export const MarketingNavbar: React.FC = () => {
               textDecoration: 'none',
             }}
           >
+            Create Account
+          </Link>
+          <Link
+            to="/contact?type=consultation"
+            style={{
+              backgroundColor: '#F1F5F9',
+              color: '#021429',
+              textAlign: 'center',
+              padding: '12px',
+              borderRadius: '999px',
+              fontWeight: 600,
+              fontSize: '0.90rem',
+              textDecoration: 'none',
+            }}
+          >
             Schedule a Free Consultation
           </Link>
           <Link
             to="/login"
             style={{
-              backgroundColor: '#F1F5F9',
+              backgroundColor: '#FFFFFF',
+              border: '1px solid #CBD5E1',
               color: '#021429',
               textAlign: 'center',
               padding: '12px',

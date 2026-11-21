@@ -75,416 +75,536 @@ export const HomePage: React.FC = () => {
   return (
     <div
       style={{
-        backgroundColor: '#EAEFF5', // Soft luxury architectural backdrop matching reference canvas
+        backgroundColor: '#FFFFFF',
         minHeight: '100vh',
-        padding: '24px 16px 80px',
+        width: '100%',
+        margin: 0,
+        padding: 0,
         fontFamily: BRAND_TOKENS.fonts.sans,
         color: '#0F172A',
         boxSizing: 'border-box',
+        overflowX: 'hidden',
       }}
     >
       {/* =========================================================================
-          ELEVATED MASTER EDITORIAL CONTAINER
+          SECTION 1: TRUE FULL-PAGE EDGE-TO-EDGE HERO ("AXIOMA / GURI24")
           ========================================================================= */}
-      <div
+      <section
         style={{
-          maxWidth: '1360px',
-          margin: '0 auto',
-          backgroundColor: '#FFFFFF',
-          borderRadius: '32px',
-          boxShadow: '0 30px 80px -20px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.04)',
+          position: 'relative',
+          width: '100%',
           overflow: 'hidden',
+          minHeight: '100vh',
+          backgroundImage: 'url(/hero-luxury-architecture.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 48%',
           display: 'flex',
           flexDirection: 'column',
-          position: 'relative',
+          justifyContent: 'space-between',
+          padding: '36px 48px 48px',
+          boxSizing: 'border-box',
         }}
       >
-        {/* =========================================================================
-            SECTION 1: HERO SECTION ("AXIOMA / GURI24" LUXURY ARCHITECTURE)
-            ========================================================================= */}
-        <section
+        {/* Subtle Atmospheric Dark Vignette Overlay for Crisp Readability */}
+        <div
           style={{
-            position: 'relative',
-            margin: '16px',
-            borderRadius: '24px',
-            overflow: 'hidden',
-            minHeight: '720px',
-            backgroundImage: 'url(/hero-luxury-architecture.jpg)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center 48%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            padding: '28px 32px 36px',
-            boxSizing: 'border-box',
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(180deg, rgba(2, 20, 41, 0.55) 0%, rgba(2, 20, 41, 0.15) 35%, rgba(2, 20, 41, 0.25) 70%, rgba(2, 20, 41, 0.78) 100%)',
+            zIndex: 1,
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Giant Typographic Watermark in Background Sky ("GURI24") */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '12%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontSize: 'clamp(72px, 15vw, 210px)',
+            fontWeight: 800,
+            letterSpacing: '0.14em',
+            color: 'rgba(255, 255, 255, 0.26)',
+            textTransform: 'uppercase',
+            pointerEvents: 'none',
+            zIndex: 1,
+            userSelect: 'none',
+            whiteSpace: 'nowrap',
+            lineHeight: 1,
           }}
         >
-          {/* Subtle Atmospheric Dark Vignette Overlay for Crisp Readability */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background:
-                'linear-gradient(180deg, rgba(2, 20, 41, 0.55) 0%, rgba(2, 20, 41, 0.15) 35%, rgba(2, 20, 41, 0.25) 70%, rgba(2, 20, 41, 0.75) 100%)',
-              zIndex: 1,
-              pointerEvents: 'none',
-            }}
-          />
+          GURI24
+        </div>
 
-          {/* Giant Typographic Watermark in Background Sky ("GURI24") */}
-          <div
+        {/* --- HERO TOP NAVIGATION BAR --- */}
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '20px',
+            maxWidth: '1440px',
+            margin: '0 auto',
+            width: '100%',
+            flexWrap: 'wrap',
+          }}
+        >
+          {/* Brand Logo Mark (Direct Logo without card wrapper) */}
+          <Link
+            to="/"
             style={{
-              position: 'absolute',
-              top: '11%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              fontSize: 'clamp(68px, 14vw, 185px)',
-              fontWeight: 800,
-              letterSpacing: '0.14em',
-              color: 'rgba(255, 255, 255, 0.28)',
-              textTransform: 'uppercase',
-              pointerEvents: 'none',
-              zIndex: 1,
-              userSelect: 'none',
-              whiteSpace: 'nowrap',
-              lineHeight: 1,
-            }}
-          >
-            GURI24
-          </div>
-
-          {/* --- HERO TOP NAVIGATION BAR --- */}
-          <div
-            style={{
-              position: 'relative',
-              zIndex: 10,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '16px',
-              width: '100%',
-              flexWrap: 'wrap',
+              gap: '12px',
+              textDecoration: 'none',
             }}
           >
-            {/* Brand Logo Mark */}
+            <img
+              src="/logo.png"
+              alt="Guri24"
+              style={{ width: '38px', height: '38px', objectFit: 'contain' }}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            <span style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#FFFFFF' }}>
+              Guri<span style={{ color: '#03D8BF' }}>24</span>
+            </span>
+          </Link>
+
+          {/* Center Pill Navigation Capsule */}
+          <nav
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: 'rgba(255, 255, 255, 0.16)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              padding: '6px 10px',
+              borderRadius: '999px',
+              border: '1px solid rgba(255, 255, 255, 0.24)',
+            }}
+            className="desktop-hero-nav"
+          >
             <Link
               to="/"
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
+                padding: '7px 18px',
+                borderRadius: '999px',
+                backgroundColor: '#FFFFFF',
+                color: '#021429',
+                fontSize: '0.84rem',
+                fontWeight: 700,
                 textDecoration: 'none',
-                color: '#FFFFFF',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
               }}
             >
-              <div
+              Home
+            </Link>
+            <Link
+              to="/about"
+              style={{
+                padding: '7px 16px',
+                borderRadius: '999px',
+                color: '#FFFFFF',
+                fontSize: '0.84rem',
+                fontWeight: 500,
+                textDecoration: 'none',
+              }}
+            >
+              About us
+            </Link>
+            <Link
+              to="/features"
+              style={{
+                padding: '7px 16px',
+                borderRadius: '999px',
+                color: '#FFFFFF',
+                fontSize: '0.84rem',
+                fontWeight: 500,
+                textDecoration: 'none',
+              }}
+            >
+              Features
+            </Link>
+            <Link
+              to="/solutions"
+              style={{
+                padding: '7px 16px',
+                borderRadius: '999px',
+                color: '#FFFFFF',
+                fontSize: '0.84rem',
+                fontWeight: 500,
+                textDecoration: 'none',
+              }}
+            >
+              Solutions
+            </Link>
+            <Link
+              to="/how-it-works"
+              style={{
+                padding: '7px 16px',
+                borderRadius: '999px',
+                color: '#FFFFFF',
+                fontSize: '0.84rem',
+                fontWeight: 500,
+                textDecoration: 'none',
+              }}
+            >
+              How it works
+            </Link>
+            <Link
+              to="/pricing"
+              style={{
+                padding: '7px 16px',
+                borderRadius: '999px',
+                color: '#FFFFFF',
+                fontSize: '0.84rem',
+                fontWeight: 500,
+                textDecoration: 'none',
+              }}
+            >
+              Pricing
+            </Link>
+            <Link
+              to="/contact"
+              style={{
+                padding: '7px 16px',
+                borderRadius: '999px',
+                color: '#FFFFFF',
+                fontSize: '0.84rem',
+                fontWeight: 500,
+                textDecoration: 'none',
+              }}
+            >
+              Contacts
+            </Link>
+          </nav>
+
+          {/* Socials & Action CTAs: Consultation + Create Account */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', gap: '6px' }} className="hero-social-links">
+              <span
                 style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '10px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.22)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  color: '#FFFFFF',
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
                 }}
               >
-                <img
-                  src="/logo.png"
-                  alt="Guri24"
-                  style={{ width: '24px', height: '24px', objectFit: 'contain' }}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
-              <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#FFFFFF' }}>
-                Guri<span style={{ color: '#03D8BF' }}>24</span>
+                F
               </span>
-            </Link>
-
-            {/* Pill Navigation Capsule */}
-            <nav
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                backgroundColor: 'rgba(255, 255, 255, 0.18)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                padding: '6px 10px',
-                borderRadius: '999px',
-                border: '1px solid rgba(255, 255, 255, 0.25)',
-              }}
-              className="desktop-hero-nav"
-            >
-              <Link
-                to="/"
+              <span
                 style={{
-                  padding: '7px 18px',
-                  borderRadius: '999px',
-                  backgroundColor: '#FFFFFF',
-                  color: '#021429',
-                  fontSize: '0.84rem',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                }}
-              >
-                Home
-              </Link>
-              <Link
-                to="/about"
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: '999px',
-                  color: '#FFFFFF',
-                  fontSize: '0.84rem',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                }}
-              >
-                About us
-              </Link>
-              <Link
-                to="/features"
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: '999px',
-                  color: '#FFFFFF',
-                  fontSize: '0.84rem',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                }}
-              >
-                Features
-              </Link>
-              <Link
-                to="/solutions"
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: '999px',
-                  color: '#FFFFFF',
-                  fontSize: '0.84rem',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                }}
-              >
-                Solutions
-              </Link>
-              <Link
-                to="/pricing"
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: '999px',
-                  color: '#FFFFFF',
-                  fontSize: '0.84rem',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                }}
-              >
-                Pricing
-              </Link>
-              <Link
-                to="/contact"
-                style={{
-                  padding: '7px 16px',
-                  borderRadius: '999px',
-                  color: '#FFFFFF',
-                  fontSize: '0.84rem',
-                  fontWeight: 500,
-                  textDecoration: 'none',
-                }}
-              >
-                Contacts
-              </Link>
-            </nav>
-
-            {/* Social & Consultation Actions */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ display: 'flex', gap: '6px' }} className="hero-social-links">
-                <span
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(255, 255, 255, 0.22)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#FFFFFF',
-                    fontSize: '0.74rem',
-                    fontWeight: 700,
-                  }}
-                >
-                  F
-                </span>
-                <span
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(255, 255, 255, 0.22)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#FFFFFF',
-                    fontSize: '0.74rem',
-                    fontWeight: 700,
-                  }}
-                >
-                  IG
-                </span>
-                <span
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(255, 255, 255, 0.22)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#FFFFFF',
-                    fontSize: '0.74rem',
-                    fontWeight: 700,
-                  }}
-                >
-                  X
-                </span>
-              </div>
-
-              <button
-                onClick={() => setIsConsultationOpen(true)}
-                style={{
-                  padding: '8px 20px',
-                  borderRadius: '999px',
-                  backgroundColor: '#FFFFFF',
-                  color: '#021429',
-                  border: 'none',
-                  fontSize: '0.84rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.22)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.2)',
-                  transition: 'transform 0.2s ease',
+                  justifyContent: 'center',
+                  color: '#FFFFFF',
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
                 }}
               >
-                <span>Consultation</span>
-                <span
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    borderRadius: '50%',
-                    backgroundColor: '#021429',
-                    color: '#FFFFFF',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.68rem',
-                  }}
-                >
-                  ↗
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* --- HERO FLOATING STATS CARDS (RIGHT SIDE) --- */}
-          <div
-            style={{
-              position: 'absolute',
-              right: '36px',
-              top: '46%',
-              transform: 'translateY(-50%)',
-              zIndex: 10,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
-              maxWidth: '240px',
-            }}
-            className="hero-floating-badges"
-          >
-            <div
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.28)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                borderRadius: '18px',
-                padding: '16px 20px',
-                border: '1px solid rgba(255, 255, 255, 0.4)',
-                color: '#FFFFFF',
-                boxShadow: '0 12px 30px rgba(0, 0, 0, 0.2)',
-              }}
-            >
-              <div style={{ fontSize: '1.9rem', fontWeight: 800, lineHeight: 1 }}>15+</div>
-              <div style={{ fontSize: '0.74rem', marginTop: '4px', opacity: 0.92, lineHeight: 1.3 }}>
-                Years of architectural excellence & innovation
-              </div>
+                IG
+              </span>
+              <span
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.22)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#FFFFFF',
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
+                }}
+              >
+                X
+              </span>
             </div>
 
-            <div
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.28)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                borderRadius: '18px',
-                padding: '16px 20px',
-                border: '1px solid rgba(255, 255, 255, 0.4)',
-                color: '#FFFFFF',
-                boxShadow: '0 12px 30px rgba(0, 0, 0, 0.2)',
-              }}
-            >
-              <div style={{ fontSize: '1.9rem', fontWeight: 800, lineHeight: 1 }}>549+</div>
-              <div style={{ fontSize: '0.74rem', marginTop: '4px', opacity: 0.92, lineHeight: 1.3 }}>
-                Active residential & commercial estates managed with excellence
-              </div>
-            </div>
-          </div>
-
-          {/* --- HERO BOTTOM FOOTER CALLOUTS --- */}
-          <div
-            style={{
-              position: 'relative',
-              zIndex: 10,
-              display: 'flex',
-              alignItems: 'flex-end',
-              justifyContent: 'space-between',
-              width: '100%',
-              flexWrap: 'wrap',
-              gap: '24px',
-            }}
-          >
-            {/* Bottom Left Narrative */}
-            <div style={{ maxWidth: '340px' }}>
-              <div style={{ fontSize: '0.84rem', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.5, marginBottom: '6px' }}>
-                We design property ecosystems that combine aesthetics, intelligence, and financial authority.
-              </div>
-              <div style={{ fontSize: '0.96rem', fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
-                Closer to design,
-                <br />
-                closer to yourself.
-              </div>
-            </div>
-
-            {/* Bottom Center Pill Consultation Button */}
             <button
               onClick={() => setIsConsultationOpen(true)}
               style={{
-                padding: '10px 24px',
+                padding: '8px 18px',
+                borderRadius: '999px',
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(12px)',
+                color: '#FFFFFF',
+                border: '1px solid rgba(255, 255, 255, 0.35)',
+                fontSize: '0.84rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <span>Consultation</span>
+              <ArrowUpRight size={13} />
+            </button>
+
+            <Link
+              to="/register"
+              style={{
+                padding: '9px 22px',
                 borderRadius: '999px',
                 backgroundColor: '#FFFFFF',
                 color: '#021429',
                 border: 'none',
-                fontSize: '0.9rem',
+                fontSize: '0.84rem',
                 fontWeight: 700,
-                cursor: 'pointer',
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.2)',
+                transition: 'transform 0.2s ease',
+              }}
+            >
+              <span>Create Account</span>
+              <span
+                style={{
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  backgroundColor: '#021429',
+                  color: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.68rem',
+                }}
+              >
+                ↗
+              </span>
+            </Link>
+          </div>
+        </div>
+
+        {/* --- HERO FLOATING STATS CARDS (RIGHT SIDE) --- */}
+        <div
+          style={{
+            position: 'absolute',
+            right: '48px',
+            top: '46%',
+            transform: 'translateY(-50%)',
+            zIndex: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+            maxWidth: '250px',
+          }}
+          className="hero-floating-badges"
+        >
+          <div
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.28)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              borderRadius: '20px',
+              padding: '18px 22px',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
+              color: '#FFFFFF',
+              boxShadow: '0 12px 30px rgba(0, 0, 0, 0.2)',
+            }}
+          >
+            <div style={{ fontSize: '2.1rem', fontWeight: 800, lineHeight: 1 }}>15+</div>
+            <div style={{ fontSize: '0.76rem', marginTop: '4px', opacity: 0.94, lineHeight: 1.35 }}>
+              Years of architectural excellence &amp; innovation
+            </div>
+          </div>
+
+          <div
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.28)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              borderRadius: '20px',
+              padding: '18px 22px',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
+              color: '#FFFFFF',
+              boxShadow: '0 12px 30px rgba(0, 0, 0, 0.2)',
+            }}
+          >
+            <div style={{ fontSize: '2.1rem', fontWeight: 800, lineHeight: 1 }}>549+</div>
+            <div style={{ fontSize: '0.76rem', marginTop: '4px', opacity: 0.94, lineHeight: 1.35 }}>
+              Active residential &amp; commercial estates managed with excellence
+            </div>
+          </div>
+        </div>
+
+        {/* --- HERO BOTTOM FOOTER CALLOUTS --- */}
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+            maxWidth: '1440px',
+            margin: '0 auto',
+            width: '100%',
+            flexWrap: 'wrap',
+            gap: '24px',
+          }}
+        >
+          {/* Bottom Left Narrative */}
+          <div style={{ maxWidth: '360px' }}>
+            <div style={{ fontSize: '0.86rem', color: 'rgba(255, 255, 255, 0.88)', lineHeight: 1.5, marginBottom: '6px' }}>
+              We design property ecosystems that combine aesthetics, intelligence, and financial authority.
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
+              Closer to design,
+              <br />
+              closer to yourself.
+            </div>
+          </div>
+
+          {/* Bottom Center Pill Consultation Button */}
+          <button
+            onClick={() => setIsConsultationOpen(true)}
+            style={{
+              padding: '11px 26px',
+              borderRadius: '999px',
+              backgroundColor: '#FFFFFF',
+              color: '#021429',
+              border: 'none',
+              fontSize: '0.92rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25)',
+              margin: '0 auto',
+            }}
+          >
+            <span>Consultation</span>
+            <span
+              style={{
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                backgroundColor: '#021429',
+                color: '#FFFFFF',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.72rem',
+              }}
+            >
+              ↗
+            </span>
+          </button>
+
+          {/* Bottom Right Attribution */}
+          <div style={{ textAlign: 'right', color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.84rem', fontWeight: 500 }}>
+            Guri24 RMS • Nairobi • KES
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 2: "01 - about us" & "WHO WE ARE" (TRUE FULL-PAGE EDITORIAL GRID)
+          ========================================================================= */}
+      <section
+        style={{
+          width: '100%',
+          padding: '100px 48px',
+          backgroundColor: '#FFFFFF',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: '1360px',
+            margin: '0 auto',
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 1fr)',
+            gap: '72px',
+            alignItems: 'center',
+          }}
+          className="editorial-about-grid"
+        >
+          {/* Left Content Column */}
+          <div>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '5px 14px',
+                borderRadius: '999px',
+                backgroundColor: '#F1F5F9',
+                color: '#475569',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                marginBottom: '20px',
+              }}
+            >
+              01 - about us
+            </div>
+
+            <h2
+              style={{
+                fontSize: 'clamp(2.4rem, 4.4vw, 3.6rem)',
+                fontWeight: 900,
+                letterSpacing: '-0.03em',
+                lineHeight: 1.08,
+                color: '#021429',
+                marginBottom: '24px',
+              }}
+            >
+              WHO <span style={{ color: '#D97706' }}>WE ARE</span>
+            </h2>
+
+            <p
+              style={{
+                fontSize: '1.14rem',
+                lineHeight: 1.65,
+                color: '#334155',
+                marginBottom: '32px',
+                maxWidth: '520px',
+              }}
+            >
+              We are a forward-thinking team creating unique living spaces that blend modern design,
+              comfort, innovation, and sustainability together.
+            </p>
+
+            <button
+              onClick={() => setIsConsultationOpen(true)}
+              style={{
+                padding: '11px 26px',
+                borderRadius: '999px',
+                backgroundColor: '#FFFFFF',
+                color: '#021429',
+                border: '1.5px solid #021429',
+                fontSize: '0.88rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
                 gap: '8px',
-                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25)',
-                margin: '0 auto',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
               }}
             >
               <span>Consultation</span>
@@ -498,155 +618,52 @@ export const HomePage: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '0.72rem',
+                  fontSize: '0.7rem',
                 }}
               >
                 ↗
               </span>
             </button>
-
-            {/* Bottom Right Attribution */}
-            <div style={{ textAlign: 'right', color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.8rem', fontWeight: 500 }}>
-              Guri24 RMS • Nairobi • KES
-            </div>
           </div>
-        </section>
 
-        {/* =========================================================================
-            SECTION 2: "01 - about us" & "WHO WE ARE" (EDITORIAL ASYMMETRIC GRID)
-            ========================================================================= */}
-        <section
-          style={{
-            padding: '72px 48px',
-            backgroundColor: '#FFFFFF',
-            position: 'relative',
-          }}
-        >
+          {/* Right Image: Curved Balcony Architecture */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 1fr)',
-              gap: '64px',
-              alignItems: 'center',
+              borderRadius: '28px',
+              overflow: 'hidden',
+              boxShadow: '0 20px 50px -10px rgba(15, 23, 42, 0.15)',
+              position: 'relative',
+              maxHeight: '480px',
             }}
-            className="editorial-about-grid"
           >
-            {/* Left Content Column */}
-            <div>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  padding: '5px 14px',
-                  borderRadius: '999px',
-                  backgroundColor: '#F1F5F9',
-                  color: '#475569',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  letterSpacing: '0.04em',
-                  marginBottom: '20px',
-                }}
-              >
-                01 - about us
-              </div>
-
-              <h2
-                style={{
-                  fontSize: 'clamp(2.4rem, 4.4vw, 3.6rem)',
-                  fontWeight: 900,
-                  letterSpacing: '-0.03em',
-                  lineHeight: 1.08,
-                  color: '#021429',
-                  marginBottom: '24px',
-                }}
-              >
-                WHO <span style={{ color: '#D97706' }}>WE ARE</span>
-              </h2>
-
-              <p
-                style={{
-                  fontSize: '1.14rem',
-                  lineHeight: 1.65,
-                  color: '#334155',
-                  marginBottom: '32px',
-                  maxWidth: '520px',
-                }}
-              >
-                We are a forward-thinking team creating unique living spaces that blend modern design,
-                comfort, innovation, and sustainability together.
-              </p>
-
-              <button
-                onClick={() => setIsConsultationOpen(true)}
-                style={{
-                  padding: '11px 26px',
-                  borderRadius: '999px',
-                  backgroundColor: '#FFFFFF',
-                  color: '#021429',
-                  border: '1.5px solid #021429',
-                  fontSize: '0.88rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-                }}
-              >
-                <span>Consultation</span>
-                <span
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    backgroundColor: '#021429',
-                    color: '#FFFFFF',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.7rem',
-                  }}
-                >
-                  ↗
-                </span>
-              </button>
-            </div>
-
-            {/* Right Image: Curved Balcony Architecture */}
-            <div
+            <img
+              src="/modern-organic-balconies.jpg"
+              alt="Organic Curved Architectural Balconies"
               style={{
-                borderRadius: '28px',
-                overflow: 'hidden',
-                boxShadow: '0 20px 50px -10px rgba(15, 23, 42, 0.15)',
-                position: 'relative',
-                maxHeight: '460px',
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
               }}
-            >
-              <img
-                src="/modern-organic-balconies.jpg"
-                alt="Organic Curved Architectural Balconies"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
-              />
-            </div>
+            />
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 3: "SERVICES WE PROVIDE" (APEX ARC CAROUSEL CARDS)
-            ========================================================================= */}
-        <section
-          style={{
-            padding: '72px 48px',
-            backgroundColor: '#FAFCFE',
-            borderTop: '1px solid #EDF2F7',
-            borderBottom: '1px solid #EDF2F7',
-          }}
-        >
+      {/* =========================================================================
+          SECTION 3: "SERVICES WE PROVIDE" (APEX ARC CAROUSEL CARDS)
+          ========================================================================= */}
+      <section
+        style={{
+          width: '100%',
+          padding: '100px 48px',
+          backgroundColor: '#FAFCFE',
+          borderTop: '1px solid #EDF2F7',
+          borderBottom: '1px solid #EDF2F7',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div style={{ maxWidth: '1360px', margin: '0 auto' }}>
           <div
             style={{
               display: 'flex',
@@ -750,7 +767,7 @@ export const HomePage: React.FC = () => {
                 <div
                   style={{
                     position: 'relative',
-                    height: '230px',
+                    height: '240px',
                     overflow: 'hidden',
                     backgroundColor: '#021429',
                   }}
@@ -799,10 +816,10 @@ export const HomePage: React.FC = () => {
                 </div>
 
                 {/* Text Info */}
-                <div style={{ padding: '20px 22px' }}>
+                <div style={{ padding: '22px 24px' }}>
                   <h3
                     style={{
-                      fontSize: '1.14rem',
+                      fontSize: '1.15rem',
                       fontWeight: 800,
                       color: '#021429',
                       marginBottom: '8px',
@@ -824,38 +841,152 @@ export const HomePage: React.FC = () => {
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 4: VISUAL SHOWCASE / ARCHITECTURAL GALLERY (ASYMMETRIC GRID)
-            ========================================================================= */}
-        <section
+      {/* =========================================================================
+          SECTION 4: VISUAL SHOWCASE / ARCHITECTURAL GALLERY (ASYMMETRIC GRID)
+          ========================================================================= */}
+      <section
+        style={{
+          width: '100%',
+          padding: '90px 48px',
+          backgroundColor: '#FFFFFF',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
           style={{
-            padding: '64px 48px',
-            backgroundColor: '#FFFFFF',
+            maxWidth: '1360px',
+            margin: '0 auto',
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1fr)',
+            gap: '24px',
           }}
+          className="gallery-asymmetric-grid"
         >
+          {/* Large Wide Building with Floating Tags & Hover Badge */}
+          <div
+            style={{
+              position: 'relative',
+              borderRadius: '24px',
+              overflow: 'hidden',
+              minHeight: '460px',
+              boxShadow: '0 16px 40px -10px rgba(15, 23, 42, 0.12)',
+            }}
+          >
+            <img
+              src="/hero-apex-architecture.jpg"
+              alt="Architectural Glass Living Pavilion"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+
+            {/* Floating "Detail" Glass Circle Badge */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '36%',
+                right: '18%',
+                width: '84px',
+                height: '84px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.28)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.45)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#FFFFFF',
+                fontSize: '0.88rem',
+                fontWeight: 700,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+                cursor: 'pointer',
+              }}
+            >
+              Detail ↗
+            </div>
+
+            {/* Bottom Left Trust Pills */}
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '24px',
+                left: '24px',
+                display: 'flex',
+                gap: '10px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <span
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                  backdropFilter: 'blur(8px)',
+                  color: '#021429',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                }}
+              >
+                Best of Best
+              </span>
+              <span
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                  backdropFilter: 'blur(8px)',
+                  color: '#021429',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                }}
+              >
+                Quality Guarantee
+              </span>
+              <span
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                  backdropFilter: 'blur(8px)',
+                  color: '#021429',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                }}
+              >
+                Good to buy
+              </span>
+            </div>
+          </div>
+
+          {/* Right Column: Two Vertical Cards */}
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1fr)',
+              gridTemplateRows: '1fr 1fr',
               gap: '24px',
             }}
-            className="gallery-asymmetric-grid"
           >
-            {/* Large Wide Building with Floating Tags & Hover Badge */}
             <div
               style={{
-                position: 'relative',
                 borderRadius: '24px',
                 overflow: 'hidden',
-                minHeight: '440px',
-                boxShadow: '0 16px 40px -10px rgba(15, 23, 42, 0.12)',
+                minHeight: '218px',
+                boxShadow: '0 12px 30px -8px rgba(15, 23, 42, 0.1)',
               }}
             >
               <img
-                src="/hero-apex-architecture.jpg"
-                alt="Architectural Glass Living Pavilion"
+                src="/luxury-pool-villa.jpg"
+                alt="Coastal Villa with Ocean Horizon"
                 style={{
                   width: '100%',
                   height: '100%',
@@ -863,150 +994,44 @@ export const HomePage: React.FC = () => {
                   display: 'block',
                 }}
               />
-
-              {/* Floating "Detail" Glass Circle Badge */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '36%',
-                  right: '18%',
-                  width: '84px',
-                  height: '84px',
-                  borderRadius: '50%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.28)',
-                  backdropFilter: 'blur(12px)',
-                  WebkitBackdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(255, 255, 255, 0.45)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#FFFFFF',
-                  fontSize: '0.88rem',
-                  fontWeight: 700,
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
-                  cursor: 'pointer',
-                }}
-              >
-                Detail ↗
-              </div>
-
-              {/* Bottom Left Trust Pills: Best of Best, Quality Guarantee, Good to buy */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '24px',
-                  left: '24px',
-                  display: 'flex',
-                  gap: '10px',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <span
-                  style={{
-                    padding: '6px 14px',
-                    borderRadius: '999px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.92)',
-                    backdropFilter: 'blur(8px)',
-                    color: '#021429',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
-                  }}
-                >
-                  Best of Best
-                </span>
-                <span
-                  style={{
-                    padding: '6px 14px',
-                    borderRadius: '999px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.92)',
-                    backdropFilter: 'blur(8px)',
-                    color: '#021429',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
-                  }}
-                >
-                  Quality Guarantee
-                </span>
-                <span
-                  style={{
-                    padding: '6px 14px',
-                    borderRadius: '999px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.92)',
-                    backdropFilter: 'blur(8px)',
-                    color: '#021429',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
-                  }}
-                >
-                  Good to buy
-                </span>
-              </div>
             </div>
 
-            {/* Right Column: Two Vertical Cards */}
             <div
               style={{
-                display: 'grid',
-                gridTemplateRows: '1fr 1fr',
-                gap: '24px',
+                borderRadius: '24px',
+                overflow: 'hidden',
+                minHeight: '218px',
+                boxShadow: '0 12px 30px -8px rgba(15, 23, 42, 0.1)',
               }}
             >
-              <div
+              <img
+                src="/luxury-minimalist-living.jpg"
+                alt="Minimalist Ocean Living Room"
                 style={{
-                  borderRadius: '24px',
-                  overflow: 'hidden',
-                  minHeight: '208px',
-                  boxShadow: '0 12px 30px -8px rgba(15, 23, 42, 0.1)',
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
                 }}
-              >
-                <img
-                  src="/luxury-pool-villa.jpg"
-                  alt="Coastal Villa with Ocean Horizon"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    display: 'block',
-                  }}
-                />
-              </div>
-
-              <div
-                style={{
-                  borderRadius: '24px',
-                  overflow: 'hidden',
-                  minHeight: '208px',
-                  boxShadow: '0 12px 30px -8px rgba(15, 23, 42, 0.1)',
-                }}
-              >
-                <img
-                  src="/luxury-minimalist-living.jpg"
-                  alt="Minimalist Ocean Living Room"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    display: 'block',
-                  }}
-                />
-              </div>
+              />
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 5: "OUR PORTFOLIO OF PIONEERING DESIGN" (MASONRY GRID)
-            ========================================================================= */}
-        <section
-          style={{
-            padding: '72px 48px',
-            backgroundColor: '#FAFCFE',
-            borderTop: '1px solid #EDF2F7',
-          }}
-        >
+      {/* =========================================================================
+          SECTION 5: "OUR PORTFOLIO OF PIONEERING DESIGN" (MASONRY GRID)
+          ========================================================================= */}
+      <section
+        style={{
+          width: '100%',
+          padding: '100px 48px',
+          backgroundColor: '#FAFCFE',
+          borderTop: '1px solid #EDF2F7',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div style={{ maxWidth: '1360px', margin: '0 auto' }}>
           <div
             style={{
               display: 'grid',
@@ -1080,7 +1105,7 @@ export const HomePage: React.FC = () => {
                   position: 'relative',
                   borderRadius: '24px',
                   overflow: 'hidden',
-                  height: '190px',
+                  height: '200px',
                   backgroundColor: '#021429',
                 }}
               >
@@ -1114,7 +1139,7 @@ export const HomePage: React.FC = () => {
                   borderRadius: '24px',
                   overflow: 'hidden',
                   gridRow: 'span 2',
-                  minHeight: '390px',
+                  minHeight: '420px',
                   backgroundColor: '#021429',
                 }}
               >
@@ -1147,7 +1172,7 @@ export const HomePage: React.FC = () => {
                   position: 'relative',
                   borderRadius: '24px',
                   overflow: 'hidden',
-                  height: '190px',
+                  height: '200px',
                   backgroundColor: '#021429',
                 }}
               >
@@ -1175,182 +1200,194 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 6: "ABOUT COMPANY" & PARTNER TRUST STRIP
-            ========================================================================= */}
-        <section
+      {/* =========================================================================
+          SECTION 6: "ABOUT COMPANY" & PARTNER TRUST STRIP
+          ========================================================================= */}
+      <section
+        style={{
+          width: '100%',
+          padding: '64px 48px',
+          backgroundColor: '#FFFFFF',
+          borderTop: '1px solid #EDF2F7',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
           style={{
-            padding: '54px 48px',
-            backgroundColor: '#FFFFFF',
-            borderTop: '1px solid #EDF2F7',
+            maxWidth: '1360px',
+            margin: '0 auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '32px',
           }}
         >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '32px',
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: '0.76rem',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  color: '#64748B',
-                  marginBottom: '10px',
-                }}
-              >
-                Kenyan Banking &amp; Regulatory Partners
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '28px',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#021429', letterSpacing: '-0.02em' }}>
-                  SAFARICOM M-PESA
-                </span>
-                <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#021429', letterSpacing: '-0.02em' }}>
-                  CO-OP BANK
-                </span>
-                <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#021429', letterSpacing: '-0.02em' }}>
-                  EQUITY BANK
-                </span>
-                <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#021429', letterSpacing: '-0.02em' }}>
-                  STANBIC BANK
-                </span>
-                <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#021429', letterSpacing: '-0.02em' }}>
-                  KDPA 2019
-                </span>
-              </div>
+          <div>
+            <div
+              style={{
+                fontSize: '0.76rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                color: '#64748B',
+                marginBottom: '10px',
+              }}
+            >
+              Kenyan Banking &amp; Regulatory Partners
             </div>
-
-            <div style={{ display: 'flex', gap: '32px' }}>
-              <div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#021429', lineHeight: 1 }}>98%</div>
-                <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '4px' }}>Client Retention</div>
-              </div>
-              <div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#021429', lineHeight: 1 }}>15+</div>
-                <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '4px' }}>Counties Covered</div>
-              </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '28px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#021429', letterSpacing: '-0.02em' }}>
+                SAFARICOM M-PESA
+              </span>
+              <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#021429', letterSpacing: '-0.02em' }}>
+                CO-OP BANK
+              </span>
+              <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#021429', letterSpacing: '-0.02em' }}>
+                EQUITY BANK
+              </span>
+              <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#021429', letterSpacing: '-0.02em' }}>
+                STANBIC BANK
+              </span>
+              <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#021429', letterSpacing: '-0.02em' }}>
+                KDPA 2019
+              </span>
             </div>
           </div>
-        </section>
 
-        {/* =========================================================================
-            SECTION 7: KEY METRICS BAR (HIGH-IMPACT NUMERALS MATCHING REFERENCE)
-            ========================================================================= */}
-        <section
-          style={{
-            padding: '54px 48px',
-            backgroundColor: '#FAFCFE',
-            borderTop: '1px solid #EDF2F7',
-          }}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: '32px',
-              textAlign: 'left',
-            }}
-            className="metrics-row-grid"
-          >
+          <div style={{ display: 'flex', gap: '32px' }}>
             <div>
-              <div
-                style={{
-                  fontSize: 'clamp(2.4rem, 4vw, 3.2rem)',
-                  fontWeight: 900,
-                  color: '#021429',
-                  letterSpacing: '-0.03em',
-                  lineHeight: 1,
-                  marginBottom: '8px',
-                }}
-              >
-                300+
-              </div>
-              <div style={{ fontSize: '0.88rem', color: '#64748B', fontWeight: 500 }}>
-                Satisfied Client's
-              </div>
+              <div style={{ fontSize: '1.7rem', fontWeight: 900, color: '#021429', lineHeight: 1 }}>98%</div>
+              <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '4px' }}>Client Retention</div>
             </div>
-
             <div>
-              <div
-                style={{
-                  fontSize: 'clamp(2.4rem, 4vw, 3.2rem)',
-                  fontWeight: 900,
-                  color: '#021429',
-                  letterSpacing: '-0.03em',
-                  lineHeight: 1,
-                  marginBottom: '8px',
-                }}
-              >
-                620+
-              </div>
-              <div style={{ fontSize: '0.88rem', color: '#64748B', fontWeight: 500 }}>
-                Projects Completed
-              </div>
-            </div>
-
-            <div>
-              <div
-                style={{
-                  fontSize: 'clamp(2.4rem, 4vw, 3.2rem)',
-                  fontWeight: 900,
-                  color: '#021429',
-                  letterSpacing: '-0.03em',
-                  lineHeight: 1,
-                  marginBottom: '8px',
-                }}
-              >
-                60+
-              </div>
-              <div style={{ fontSize: '0.88rem', color: '#64748B', fontWeight: 500 }}>
-                Expert team member
-              </div>
-            </div>
-
-            <div>
-              <div
-                style={{
-                  fontSize: 'clamp(2.4rem, 4vw, 3.2rem)',
-                  fontWeight: 900,
-                  color: '#021429',
-                  letterSpacing: '-0.03em',
-                  lineHeight: 1,
-                  marginBottom: '8px',
-                }}
-              >
-                4.8%
-              </div>
-              <div style={{ fontSize: '0.88rem', color: '#64748B', fontWeight: 500 }}>
-                Reviews Ratings
-              </div>
+              <div style={{ fontSize: '1.7rem', fontWeight: 900, color: '#021429', lineHeight: 1 }}>15+</div>
+              <div style={{ fontSize: '0.78rem', color: '#64748B', marginTop: '4px' }}>Counties Covered</div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 8: "Read our latest Resources" (EDITORIAL MAGAZINE CARDS)
-            ========================================================================= */}
-        <section
+      {/* =========================================================================
+          SECTION 7: KEY METRICS BAR (HIGH-IMPACT NUMERALS MATCHING REFERENCE)
+          ========================================================================= */}
+      <section
+        style={{
+          width: '100%',
+          padding: '64px 48px',
+          backgroundColor: '#FAFCFE',
+          borderTop: '1px solid #EDF2F7',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
           style={{
-            padding: '72px 48px',
-            backgroundColor: '#FFFFFF',
-            borderTop: '1px solid #EDF2F7',
+            maxWidth: '1360px',
+            margin: '0 auto',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '32px',
+            textAlign: 'left',
           }}
+          className="metrics-row-grid"
         >
+          <div>
+            <div
+              style={{
+                fontSize: 'clamp(2.4rem, 4vw, 3.2rem)',
+                fontWeight: 900,
+                color: '#021429',
+                letterSpacing: '-0.03em',
+                lineHeight: 1,
+                marginBottom: '8px',
+              }}
+            >
+              300+
+            </div>
+            <div style={{ fontSize: '0.88rem', color: '#64748B', fontWeight: 500 }}>
+              Satisfied Client's
+            </div>
+          </div>
+
+          <div>
+            <div
+              style={{
+                fontSize: 'clamp(2.4rem, 4vw, 3.2rem)',
+                fontWeight: 900,
+                color: '#021429',
+                letterSpacing: '-0.03em',
+                lineHeight: 1,
+                marginBottom: '8px',
+              }}
+            >
+              620+
+            </div>
+            <div style={{ fontSize: '0.88rem', color: '#64748B', fontWeight: 500 }}>
+              Projects Completed
+            </div>
+          </div>
+
+          <div>
+            <div
+              style={{
+                fontSize: 'clamp(2.4rem, 4vw, 3.2rem)',
+                fontWeight: 900,
+                color: '#021429',
+                letterSpacing: '-0.03em',
+                lineHeight: 1,
+                marginBottom: '8px',
+              }}
+            >
+              60+
+            </div>
+            <div style={{ fontSize: '0.88rem', color: '#64748B', fontWeight: 500 }}>
+              Expert team member
+            </div>
+          </div>
+
+          <div>
+            <div
+              style={{
+                fontSize: 'clamp(2.4rem, 4vw, 3.2rem)',
+                fontWeight: 900,
+                color: '#021429',
+                letterSpacing: '-0.03em',
+                lineHeight: 1,
+                marginBottom: '8px',
+              }}
+            >
+              4.8%
+            </div>
+            <div style={{ fontSize: '0.88rem', color: '#64748B', fontWeight: 500 }}>
+              Reviews Ratings
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 8: "Read our latest Resources" (EDITORIAL MAGAZINE CARDS)
+          ========================================================================= */}
+      <section
+        style={{
+          width: '100%',
+          padding: '100px 48px',
+          backgroundColor: '#FFFFFF',
+          borderTop: '1px solid #EDF2F7',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div style={{ maxWidth: '1360px', margin: '0 auto' }}>
           <div
             style={{
               display: 'flex',
@@ -1403,7 +1440,7 @@ export const HomePage: React.FC = () => {
                 flexDirection: 'column',
               }}
             >
-              <div style={{ height: '260px', overflow: 'hidden' }}>
+              <div style={{ height: '270px', overflow: 'hidden' }}>
                 <img
                   src="/hero-luxury-architecture.jpg"
                   alt="Modern Residence"
@@ -1465,7 +1502,7 @@ export const HomePage: React.FC = () => {
                 flexDirection: 'column',
               }}
             >
-              <div style={{ height: '260px', overflow: 'hidden' }}>
+              <div style={{ height: '270px', overflow: 'hidden' }}>
                 <img
                   src="/luxury-pool-villa.jpg"
                   alt="Coastal Infinity Pool"
@@ -1516,144 +1553,148 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 9: TAGLINE REVEAL
-            ========================================================================= */}
-        <TaglineReveal
-          eyebrow="Architectural Integrity"
-          text="Modern Living, Engineered with Precision."
-          description="Guri24 unites double-entry financial governance with automated leasing operations for premier residential and commercial portfolios across Kenya."
-        />
+      {/* =========================================================================
+          SECTION 9: TAGLINE REVEAL (EDGE-TO-EDGE)
+          ========================================================================= */}
+      <TaglineReveal
+        eyebrow="Architectural Integrity"
+        text="Modern Living, Engineered with Precision."
+        description="Guri24 unites double-entry financial governance with automated leasing operations for premier residential and commercial portfolios across Kenya."
+      />
 
-        {/* =========================================================================
-            SECTION 10: CUSTOMER SAYING (TESTIMONIALS MATCHING REFERENCE)
-            ========================================================================= */}
-        <section
+      {/* =========================================================================
+          SECTION 10: CUSTOMER SAYING (TESTIMONIALS MATCHING REFERENCE)
+          ========================================================================= */}
+      <section
+        style={{
+          width: '100%',
+          padding: '100px 48px',
+          backgroundColor: '#FAFCFE',
+          borderTop: '1px solid #EDF2F7',
+          boxSizing: 'border-box',
+        }}
+      >
+        <div
           style={{
-            padding: '72px 48px',
-            backgroundColor: '#FAFCFE',
-            borderTop: '1px solid #EDF2F7',
+            maxWidth: '1360px',
+            margin: '0 auto',
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)',
+            gap: '48px',
+            alignItems: 'center',
           }}
+          className="editorial-about-grid"
         >
+          {/* Left Image: Luxury Living Interior */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)',
-              gap: '48px',
-              alignItems: 'center',
+              borderRadius: '28px',
+              overflow: 'hidden',
+              position: 'relative',
+              maxHeight: '400px',
+              boxShadow: '0 16px 40px -10px rgba(15, 23, 42, 0.1)',
             }}
-            className="editorial-about-grid"
           >
-            {/* Left Image: Luxury Living Interior */}
+            <img
+              src="/luxury-minimalist-living.jpg"
+              alt="Luxury Modern Interior"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+
+            {/* Circular "View All" Button Badge Overlay */}
             <div
               style={{
-                borderRadius: '28px',
-                overflow: 'hidden',
-                position: 'relative',
-                maxHeight: '380px',
-                boxShadow: '0 16px 40px -10px rgba(15, 23, 42, 0.1)',
+                position: 'absolute',
+                top: '28px',
+                right: '28px',
+                width: '76px',
+                height: '76px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.82)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#021429',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
               }}
             >
-              <img
-                src="/luxury-minimalist-living.jpg"
-                alt="Luxury Modern Interior"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
-              />
+              <span>↗</span>
+              <span>View All</span>
+            </div>
+          </div>
 
-              {/* Circular "View All" Button Badge Overlay */}
+          {/* Right Quote & Details */}
+          <div>
+            <h2
+              style={{
+                fontSize: 'clamp(2rem, 3.4vw, 2.8rem)',
+                fontWeight: 900,
+                color: '#021429',
+                letterSpacing: '-0.03em',
+                lineHeight: 1.15,
+                marginBottom: '20px',
+              }}
+            >
+              Customer Saying
+            </h2>
+
+            <p
+              style={{
+                fontSize: '1.08rem',
+                lineHeight: 1.65,
+                color: '#475569',
+                fontStyle: 'italic',
+                marginBottom: '28px',
+              }}
+            >
+              "Switching our 480-unit portfolio in Westlands and Kilimani to Guri24 reduced rent
+              reconciliation from 5 days to real-time M-Pesa automated allocation. The architectural
+              clarity of the financial ledger is unparalleled."
+            </p>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
               <div
                 style={{
-                  position: 'absolute',
-                  top: '28px',
-                  right: '28px',
-                  width: '76px',
-                  height: '76px',
+                  width: '46px',
+                  height: '46px',
                   borderRadius: '50%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.78)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
+                  backgroundColor: '#021429',
+                  color: '#03D8BF',
                   display: 'flex',
-                  flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#021429',
-                  fontSize: '0.74rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                  fontWeight: 800,
+                  fontSize: '1.05rem',
                 }}
               >
-                <span>↗</span>
-                <span>View All</span>
+                WK
               </div>
-            </div>
-
-            {/* Right Quote & Details */}
-            <div>
-              <h2
-                style={{
-                  fontSize: 'clamp(2rem, 3.4vw, 2.8rem)',
-                  fontWeight: 900,
-                  color: '#021429',
-                  letterSpacing: '-0.03em',
-                  lineHeight: 1.15,
-                  marginBottom: '20px',
-                }}
-              >
-                Customer Saying
-              </h2>
-
-              <p
-                style={{
-                  fontSize: '1.08rem',
-                  lineHeight: 1.65,
-                  color: '#475569',
-                  fontStyle: 'italic',
-                  marginBottom: '28px',
-                }}
-              >
-                "Switching our 480-unit portfolio in Westlands and Kilimani to Guri24 reduced rent
-                reconciliation from 5 days to real-time M-Pesa automated allocation. The architectural
-                clarity of the financial ledger is unparalleled."
-              </p>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div
-                  style={{
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '50%',
-                    backgroundColor: '#021429',
-                    color: '#03D8BF',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 800,
-                    fontSize: '1.05rem',
-                  }}
-                >
-                  WK
+              <div>
+                <div style={{ fontWeight: 800, color: '#021429', fontSize: '0.98rem' }}>
+                  Wanjiku Kamau
                 </div>
-                <div>
-                  <div style={{ fontWeight: 800, color: '#021429', fontSize: '0.98rem' }}>
-                    Wanjiku Kamau
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: '#64748B' }}>
-                    Managing Director, Prime Capital Properties Nairobi
-                  </div>
+                <div style={{ fontSize: '0.8rem', color: '#64748B' }}>
+                  Managing Director, Prime Capital Properties Nairobi
                 </div>
               </div>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       {/* =========================================================================
           CONSULTATION POPUP MODAL
