@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 import {
   BuildingOffice2Icon,
   BuildingOfficeIcon,
@@ -24,6 +25,10 @@ import {
   DevicePhoneMobileIcon,
   ArrowUpRightIcon,
   ChevronDownIcon,
+  Squares2X2Icon,
+  Cog6ToothIcon,
+  ArrowRightOnRectangleIcon,
+  UserCircleIcon,
 } from '@heroicons/react/24/outline';
 
 const PARTNER_LOGOS = [
@@ -36,6 +41,9 @@ const PARTNER_LOGOS = [
 ];
 
 export const HomePage: React.FC = () => {
+  const { isAuthenticated, currentUserSession, currentUserRole, logout } = useAuth();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
   const [demoModalOpen, setDemoModalOpen] = useState(false);
@@ -47,6 +55,36 @@ export const HomePage: React.FC = () => {
     phone: '',
     units: '25-100 units',
   });
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const userDisplayName = currentUserSession?.fullName?.trim() || currentUserSession?.email?.split('@')[0] || 'User';
+  const userFirstName = userDisplayName.split(' ')[0] || 'User';
+  const userInitials = (
+    userDisplayName
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((n) => n[0].toUpperCase())
+      .join('') || 'U'
+  );
+
+  const formatRole = (role?: string | null) => {
+    if (!role) return 'Member';
+    return role
+      .split('_')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(' ');
+  };
 
   const handleDemoSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,15 +262,349 @@ export const HomePage: React.FC = () => {
               <a href="#pricing" className="tt-nav-link">Pricing</a>
             </nav>
 
-            {/* Right Action Button */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <button
-                onClick={() => setDemoModalOpen(true)}
-                className="tt-btn-blue"
-                style={{ fontSize: '13px', padding: '9px 20px' }}
-              >
-                Book the demo
-              </button>
+            {/* Right Action / Auth Area */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }}>
+              {isAuthenticated && currentUserSession ? (
+                <>
+                  {/* Direct Dashboard Link */}
+                  <Link
+                    to="/app/dashboard"
+                    className="tt-desktop-nav"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      backgroundColor: '#2563EB',
+                      color: '#FFFFFF',
+                      padding: '8px 16px',
+                      borderRadius: '9999px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                      boxShadow: '0 4px 12px rgba(37,99,235,0.22)',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <Squares2X2Icon style={{ width: '15px', height: '15px' }} />
+                    <span>Dashboard</span>
+                  </Link>
+
+                  {/* Profile Avatar Trigger Button */}
+                  <div ref={userMenuRef} style={{ position: 'relative' }}>
+                    <button
+                      type="button"
+                      onClick={() => setUserMenuOpen(!userMenuOpen)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '4px 12px 4px 4px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                        backdropFilter: 'blur(12px)',
+                        border: '1px solid rgba(226, 232, 240, 0.9)',
+                        borderRadius: '9999px',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                        transition: 'all 0.15s ease',
+                      }}
+                      aria-expanded={userMenuOpen}
+                      aria-haspopup="true"
+                      title="View account profile"
+                    >
+                      <div
+                        style={{
+                          width: '34px',
+                          height: '34px',
+                          borderRadius: '9999px',
+                          background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                          color: '#FFFFFF',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          letterSpacing: '0.02em',
+                          border: '2px solid #FFFFFF',
+                          boxShadow: '0 2px 6px rgba(37,99,235,0.28)',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {userInitials}
+                      </div>
+                      <span
+                        className="tt-desktop-nav"
+                        style={{
+                          fontSize: '13px',
+                          fontWeight: 700,
+                          color: '#0F172A',
+                          maxWidth: '120px',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {userFirstName}
+                      </span>
+                      <ChevronDownIcon
+                        style={{
+                          width: '14px',
+                          height: '14px',
+                          color: '#64748B',
+                          transform: userMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                          transition: 'transform 0.2s ease',
+                        }}
+                      />
+                    </button>
+
+                    {/* Floating Profile Dropdown Card */}
+                    {userMenuOpen && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 'calc(100% + 10px)',
+                          right: 0,
+                          width: '260px',
+                          backgroundColor: '#FFFFFF',
+                          borderRadius: '16px',
+                          boxShadow: '0 20px 40px -10px rgba(15,23,42,0.18), 0 0 0 1px rgba(15,23,42,0.06)',
+                          padding: '16px',
+                          zIndex: 1000,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '12px',
+                          textAlign: 'left',
+                        }}
+                      >
+                        {/* User Info Header */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div
+                            style={{
+                              width: '42px',
+                              height: '42px',
+                              borderRadius: '9999px',
+                              background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                              color: '#FFFFFF',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '15px',
+                              fontWeight: 800,
+                              flexShrink: 0,
+                              border: '2px solid #DBEAFE',
+                            }}
+                          >
+                            {userInitials}
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div
+                              style={{
+                                fontSize: '14px',
+                                fontWeight: 700,
+                                color: '#0F172A',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                            >
+                              {currentUserSession.fullName || userDisplayName}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '11px',
+                                color: '#64748B',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                            >
+                              {currentUserSession.email}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignSelf: 'flex-start',
+                            padding: '3px 8px',
+                            backgroundColor: '#EFF6FF',
+                            borderRadius: '9999px',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            color: '#1D4ED8',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                          }}
+                        >
+                          {formatRole(currentUserRole || currentUserSession.role)}
+                        </div>
+
+                        <div style={{ height: '1px', backgroundColor: '#F1F5F9', margin: '2px 0' }} />
+
+                        {/* Navigation Items */}
+                        <Link
+                          to="/app/dashboard"
+                          onClick={() => setUserMenuOpen(false)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '8px 10px',
+                            borderRadius: '8px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            color: '#1E293B',
+                            textDecoration: 'none',
+                            transition: 'background-color 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
+                          <Squares2X2Icon style={{ width: '16px', height: '16px', color: '#2563EB' }} />
+                          <span>Open Dashboard</span>
+                        </Link>
+
+                        <Link
+                          to="/app/properties-units"
+                          onClick={() => setUserMenuOpen(false)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '8px 10px',
+                            borderRadius: '8px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            color: '#1E293B',
+                            textDecoration: 'none',
+                            transition: 'background-color 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
+                          <BuildingOffice2Icon style={{ width: '16px', height: '16px', color: '#64748B' }} />
+                          <span>Properties & Units</span>
+                        </Link>
+
+                        <Link
+                          to="/app/settings"
+                          onClick={() => setUserMenuOpen(false)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '8px 10px',
+                            borderRadius: '8px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            color: '#1E293B',
+                            textDecoration: 'none',
+                            transition: 'background-color 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
+                          <Cog6ToothIcon style={{ width: '16px', height: '16px', color: '#64748B' }} />
+                          <span>Account Settings</span>
+                        </Link>
+
+                        <div style={{ height: '1px', backgroundColor: '#F1F5F9', margin: '2px 0' }} />
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUserMenuOpen(false);
+                            logout();
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            padding: '8px 10px',
+                            borderRadius: '8px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            color: '#EF4444',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            width: '100%',
+                            transition: 'background-color 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FEF2F2')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
+                          <ArrowRightOnRectangleIcon style={{ width: '16px', height: '16px', color: '#EF4444' }} />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setDemoModalOpen(true)}
+                    style={{
+                      background: 'transparent',
+                      border: '1px solid rgba(203, 213, 225, 0.9)',
+                      color: '#334155',
+                      borderRadius: '9999px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      padding: '8px 16px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                    className="tt-desktop-nav"
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#94A3B8';
+                      e.currentTarget.style.color = '#0F172A';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(203, 213, 225, 0.9)';
+                      e.currentTarget.style.color = '#334155';
+                    }}
+                  >
+                    Book demo
+                  </button>
+
+                  <Link
+                    to="/login"
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      color: '#0F172A',
+                      textDecoration: 'none',
+                      padding: '8px 14px',
+                      borderRadius: '9999px',
+                      transition: 'color 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = '#2563EB')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = '#0F172A')}
+                  >
+                    Log in
+                  </Link>
+
+                  <Link
+                    to="/signup"
+                    className="tt-btn-blue"
+                    style={{
+                      fontSize: '13px',
+                      padding: '9px 20px',
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    Sign up
+                  </Link>
+                </>
+              )}
+
+              {/* Mobile Menu Toggle Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="tt-mobile-toggle"
@@ -246,11 +618,145 @@ export const HomePage: React.FC = () => {
 
           {/* Mobile Menu Dropdown */}
           {mobileMenuOpen && (
-            <div style={{ padding: '16px', backgroundColor: '#FFFFFF', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#0F172A', fontWeight: 600 }}>How it works</a>
-              <a href="#about" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#0F172A', fontWeight: 600 }}>About Us</a>
-              <a href="#features" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#0F172A', fontWeight: 600 }}>Features</a>
-              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#0F172A', fontWeight: 600 }}>Pricing</a>
+            <div
+              style={{
+                padding: '20px',
+                backgroundColor: '#FFFFFF',
+                borderRadius: '16px',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                marginBottom: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}
+            >
+              {isAuthenticated && currentUserSession ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    paddingBottom: '14px',
+                    borderBottom: '1px solid #E2E8F0',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div
+                      style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '9999px',
+                        background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                        color: '#FFFFFF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                      }}
+                    >
+                      {userInitials}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>
+                        {currentUserSession.fullName || userDisplayName}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#64748B' }}>{currentUserSession.email}</div>
+                    </div>
+                  </div>
+                  <Link
+                    to="/app/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="tt-btn-blue"
+                    style={{
+                      fontSize: '13px',
+                      padding: '10px',
+                      textAlign: 'center',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <Squares2X2Icon style={{ width: '16px', height: '16px' }} />
+                    <span>Open Dashboard</span>
+                  </Link>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '10px',
+                    paddingBottom: '14px',
+                    borderBottom: '1px solid #E2E8F0',
+                  }}
+                >
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    style={{
+                      flex: 1,
+                      textAlign: 'center',
+                      padding: '10px',
+                      border: '1px solid #CBD5E1',
+                      borderRadius: '8px',
+                      textDecoration: 'none',
+                      color: '#0F172A',
+                      fontWeight: 600,
+                      fontSize: '13px',
+                    }}
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="tt-btn-blue"
+                    style={{
+                      flex: 1,
+                      textAlign: 'center',
+                      padding: '10px',
+                      textDecoration: 'none',
+                      fontSize: '13px',
+                    }}
+                  >
+                    Sign up
+                  </Link>
+                </div>
+              )}
+
+              <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#0F172A', fontWeight: 600, padding: '6px 0' }}>How it works</a>
+              <a href="#about" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#0F172A', fontWeight: 600, padding: '6px 0' }}>About Us</a>
+              <a href="#features" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#0F172A', fontWeight: 600, padding: '6px 0' }}>Features</a>
+              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#0F172A', fontWeight: 600, padding: '6px 0' }}>Pricing</a>
+
+              {isAuthenticated && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    logout();
+                  }}
+                  style={{
+                    marginTop: '6px',
+                    padding: '8px 0',
+                    border: 'none',
+                    background: 'none',
+                    color: '#EF4444',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <ArrowRightOnRectangleIcon style={{ width: '16px', height: '16px' }} />
+                  <span>Sign Out</span>
+                </button>
+              )}
             </div>
           )}
 

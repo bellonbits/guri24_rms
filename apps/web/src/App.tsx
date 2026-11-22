@@ -148,6 +148,7 @@ export const App: React.FC = () => {
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
             <Route path="/accept-invitation/:token" element={<AcceptInvitationPage />} />
+            <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
 
             {/* Authenticated Application Shell */}
             <Route

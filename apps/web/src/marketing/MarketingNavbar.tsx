@@ -7,13 +7,28 @@ import {
   ShieldCheck,
   Building2,
   Sparkles,
+  LayoutDashboard,
+  LogOut,
+  User,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { BRAND_TOKENS } from './BrandTokens';
 
 export const MarketingNavbar: React.FC = () => {
   const location = useLocation();
+  const { isAuthenticated, currentUserSession, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const userDisplayName = currentUserSession?.fullName?.trim() || currentUserSession?.email?.split('@')[0] || 'User';
+  const userInitials = (
+    userDisplayName
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((n) => n[0].toUpperCase())
+      .join('') || 'U'
+  );
 
   useEffect(() => {
     const handleScroll = () => {
@@ -81,7 +96,7 @@ export const MarketingNavbar: React.FC = () => {
         >
           <img
             src="/logo.png"
-            alt="Guri24"
+            alt="UnitFlow"
             style={{ width: '34px', height: '34px', objectFit: 'contain' }}
             onError={(e) => {
               e.currentTarget.style.display = 'none';
@@ -95,7 +110,7 @@ export const MarketingNavbar: React.FC = () => {
               color: '#021429',
             }}
           >
-            Guri<span style={{ color: '#0057FC' }}>24</span>
+            Unit<span style={{ color: '#2563EB' }}>Flow</span>
           </span>
         </Link>
 
@@ -140,61 +155,102 @@ export const MarketingNavbar: React.FC = () => {
             );
           })}
 
-          {/* Action Buttons: Consultation + Create Account */}
+          {/* Action Buttons: Consultation + Profile Avatar / Auth */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '6px' }}>
-            <Link
-              to="/contact?type=consultation"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                backgroundColor: 'transparent',
-                color: '#021429',
-                padding: '8px 16px',
-                borderRadius: '999px',
-                border: '1px solid #CBD5E1',
-                fontSize: '0.84rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#021429';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#CBD5E1';
-              }}
-            >
-              <span>Consultation</span>
-              <ArrowUpRight size={13} />
-            </Link>
+            {isAuthenticated && currentUserSession ? (
+              <>
+                <Link
+                  to="/app/dashboard"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    backgroundColor: '#2563EB',
+                    color: '#FFFFFF',
+                    padding: '8px 16px',
+                    borderRadius: '999px',
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.22)',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <LayoutDashboard size={14} />
+                  <span>Dashboard</span>
+                </Link>
 
-            <Link
-              to="/register"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                backgroundColor: '#021429',
-                color: '#FFFFFF',
-                padding: '9px 20px',
-                borderRadius: '999px',
-                fontSize: '0.84rem',
-                fontWeight: 700,
-                textDecoration: 'none',
-                boxShadow: '0 4px 14px rgba(2, 20, 41, 0.18)',
-                transition: 'transform 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            >
-              <span>Create Account</span>
-              <ArrowUpRight size={13} />
-            </Link>
+                <Link
+                  to="/app/settings"
+                  title={`${userDisplayName} (Profile)`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '9999px',
+                    background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                    color: '#FFFFFF',
+                    fontSize: '0.80rem',
+                    fontWeight: 800,
+                    textDecoration: 'none',
+                    border: '2px solid #FFFFFF',
+                    boxShadow: '0 2px 8px rgba(37,99,235,0.25)',
+                    flexShrink: 0,
+                  }}
+                >
+                  {userInitials}
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    padding: '8px 14px',
+                    fontSize: '0.86rem',
+                    fontWeight: 600,
+                    color: '#021429',
+                    textDecoration: 'none',
+                    transition: 'color 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#2563EB')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = '#021429')}
+                >
+                  Log in
+                </Link>
+
+                <Link
+                  to="/signup"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    backgroundColor: '#2563EB',
+                    color: '#FFFFFF',
+                    padding: '9px 20px',
+                    borderRadius: '999px',
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.2)',
+                    transition: 'transform 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <span>Sign up</span>
+                  <ArrowUpRight size={13} />
+                </Link>
+              </>
+            )}
           </div>
         </nav>
 
@@ -233,6 +289,88 @@ export const MarketingNavbar: React.FC = () => {
             boxShadow: '0 20px 30px rgba(0,0,0,0.08)',
           }}
         >
+          {isAuthenticated && currentUserSession ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingBottom: '12px', borderBottom: '1px solid #E2E8F0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '9999px',
+                    background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                    color: '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                  }}
+                >
+                  {userInitials}
+                </div>
+                <div>
+                  <div style={{ fontSize: '14px', fontWeight: 700, color: '#0F172A' }}>{userDisplayName}</div>
+                  <div style={{ fontSize: '11px', color: '#64748B' }}>{currentUserSession.email}</div>
+                </div>
+              </div>
+              <Link
+                to="/app/dashboard"
+                style={{
+                  backgroundColor: '#2563EB',
+                  color: '#FFFFFF',
+                  textAlign: 'center',
+                  padding: '10px',
+                  borderRadius: '999px',
+                  fontWeight: 700,
+                  fontSize: '0.88rem',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                <LayoutDashboard size={15} />
+                <span>Open Dashboard</span>
+              </Link>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: '10px', paddingBottom: '12px', borderBottom: '1px solid #E2E8F0' }}>
+              <Link
+                to="/login"
+                style={{
+                  flex: 1,
+                  textAlign: 'center',
+                  padding: '10px',
+                  borderRadius: '999px',
+                  border: '1px solid #CBD5E1',
+                  color: '#021429',
+                  fontWeight: 600,
+                  fontSize: '0.88rem',
+                  textDecoration: 'none',
+                }}
+              >
+                Log in
+              </Link>
+              <Link
+                to="/signup"
+                style={{
+                  flex: 1,
+                  textAlign: 'center',
+                  padding: '10px',
+                  borderRadius: '999px',
+                  backgroundColor: '#2563EB',
+                  color: '#FFFFFF',
+                  fontWeight: 700,
+                  fontSize: '0.88rem',
+                  textDecoration: 'none',
+                }}
+              >
+                Sign up
+              </Link>
+            </div>
+          )}
+
           {navLinks.map((item, idx) => (
             <Link
               key={idx}
@@ -248,53 +386,30 @@ export const MarketingNavbar: React.FC = () => {
               {item.label}
             </Link>
           ))}
-          <div style={{ height: '1px', backgroundColor: '#E2E8F0', margin: '4px 0' }} />
-          <Link
-            to="/register"
-            style={{
-              backgroundColor: '#021429',
-              color: '#FFFFFF',
-              textAlign: 'center',
-              padding: '12px',
-              borderRadius: '999px',
-              fontWeight: 700,
-              fontSize: '0.90rem',
-              textDecoration: 'none',
-            }}
-          >
-            Create Account
-          </Link>
-          <Link
-            to="/contact?type=consultation"
-            style={{
-              backgroundColor: '#F1F5F9',
-              color: '#021429',
-              textAlign: 'center',
-              padding: '12px',
-              borderRadius: '999px',
-              fontWeight: 600,
-              fontSize: '0.90rem',
-              textDecoration: 'none',
-            }}
-          >
-            Schedule a Free Consultation
-          </Link>
-          <Link
-            to="/login"
-            style={{
-              backgroundColor: '#FFFFFF',
-              border: '1px solid #CBD5E1',
-              color: '#021429',
-              textAlign: 'center',
-              padding: '12px',
-              borderRadius: '999px',
-              fontWeight: 600,
-              fontSize: '0.90rem',
-              textDecoration: 'none',
-            }}
-          >
-            Staff Login
-          </Link>
+
+          {isAuthenticated && (
+            <button
+              type="button"
+              onClick={logout}
+              style={{
+                marginTop: '6px',
+                border: 'none',
+                background: 'none',
+                color: '#EF4444',
+                fontWeight: 600,
+                fontSize: '0.90rem',
+                textAlign: 'left',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 0',
+              }}
+            >
+              <LogOut size={16} />
+              <span>Sign Out</span>
+            </button>
+          )}
         </div>
       )}
 
