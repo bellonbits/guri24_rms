@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { animate } from 'animejs';
 import {
   Building2,
   Users,
@@ -11,11 +13,11 @@ import {
   ScanText,
   PieChart,
   ArrowRight,
+  ArrowUpRight,
   Shield,
   Layers,
   CheckCircle2,
   Clock,
-  ArrowUpRight,
   Menu,
   X,
   Check,
@@ -23,620 +25,524 @@ import {
   Phone,
   Mail,
   Calendar,
+  Lock,
+  TrendingUp,
+  FileText,
+  BadgeCheck,
+  ChevronDown,
+  Globe,
+  DollarSign,
+  Briefcase,
+  HelpCircle,
+  Landmark,
+  Building,
+  Smartphone,
+  ExternalLink,
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [demoModalOpen, setDemoModalOpen] = useState(false);
   const [demoSubmitted, setDemoSubmitted] = useState(false);
   const [demoForm, setDemoForm] = useState({
     name: '',
     email: '',
     phone: '',
-    company: '',
-    unitCount: '10 - 50 Units',
+    units: '25-100 units',
+    role: 'Property Manager',
   });
+
+  // Anime.js SVG Integrations Path animation & floating clouds
+  const integrationsSvgRef = useRef<SVGSVGElement>(null);
+  const cloudLayerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Subtle Anime.js floating clouds animation
+    if (cloudLayerRef.current) {
+      try {
+        const clouds = cloudLayerRef.current.querySelectorAll('.ethereal-cloud');
+        if (clouds.length > 0) {
+          animate(clouds, {
+            translateY: [-10, 10],
+            translateX: [-6, 6],
+            duration: 6000,
+            ease: 'inOutSine',
+            alternate: true,
+            loop: true,
+            delay: (el: any, i: number) => i * 400,
+          });
+        }
+      } catch (e) {
+        // Fallback gracefully
+      }
+    }
+
+    // Anime.js glowing SVG pulses for integration nodes
+    if (integrationsSvgRef.current) {
+      try {
+        const lines = integrationsSvgRef.current.querySelectorAll('.pulse-line');
+        if (lines.length > 0) {
+          animate(lines, {
+            strokeDashoffset: [40, 0],
+            duration: 2400,
+            ease: 'linear',
+            loop: true,
+          });
+        }
+      } catch (e) {
+        // Fallback gracefully
+      }
+    }
+  }, []);
 
   const handleDemoSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setDemoSubmitted(true);
     setTimeout(() => {
-      setIsDemoModalOpen(false);
       setDemoSubmitted(false);
-      setDemoForm({ name: '', email: '', phone: '', company: '', unitCount: '10 - 50 Units' });
-    }, 2500);
+      setDemoModalOpen(false);
+      setDemoForm({ name: '', email: '', phone: '', units: '25-100 units', role: 'Property Manager' });
+    }, 2400);
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: '#FFFFFF',
-        fontFamily: "'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        color: '#0F172A',
-        overflowX: 'hidden',
-      }}
-    >
+    <div className="min-h-screen bg-gradient-to-b from-[#EBF5FF] via-[#F8FAFC] to-white text-slate-900 font-sans selection:bg-blue-600 selection:text-white relative overflow-x-hidden">
       {/* =========================================================================
-          1. NAVIGATION
-          ========================================================================= */}
-      <header
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          backgroundColor: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid #F1F5F9',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1280px',
-            margin: '0 auto',
-            padding: '16px 24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
+          ANIMATED ETHEREAL CLOUD BACKDROP (MATCHING REFERENCE IMAGE)
+      ========================================================================== */}
+      <div ref={cloudLayerRef} className="absolute inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+        {/* Top Radial Heavenly Light Source */}
+        <div className="absolute -top-[150px] left-1/2 -translate-x-1/2 w-[900px] h-[550px] bg-gradient-to-b from-blue-200/50 via-sky-100/30 to-transparent blur-3xl rounded-full" />
+
+        {/* Soft Organic Ethereal Clouds on Left */}
+        <div className="ethereal-cloud absolute top-4 -left-20 w-[420px] h-[280px] bg-gradient-to-tr from-white/90 via-sky-50/70 to-transparent rounded-full blur-2xl opacity-80" />
+        <div className="ethereal-cloud absolute top-36 -left-12 w-[340px] h-[220px] bg-white/80 rounded-full blur-3xl opacity-75" />
+
+        {/* Soft Organic Ethereal Clouds on Right */}
+        <div className="ethereal-cloud absolute top-6 -right-20 w-[450px] h-[300px] bg-gradient-to-tl from-white/90 via-sky-50/70 to-transparent rounded-full blur-2xl opacity-80" />
+        <div className="ethereal-cloud absolute top-40 -right-10 w-[360px] h-[240px] bg-white/80 rounded-full blur-3xl opacity-75" />
+      </div>
+
+      {/* =========================================================================
+          SECTION 1: FLOATING PILL NAVIGATION (MATCHING REFERENCE IMAGE)
+      ========================================================================== */}
+      <header className="sticky top-4 z-50 w-full px-4 sm:px-8 max-w-7xl mx-auto">
+        <nav
+          aria-label="Main Navigation"
+          className="bg-white/85 backdrop-blur-md border border-slate-200/80 shadow-[0_4px_24px_rgba(37,99,235,0.06)] rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between transition-all"
         >
           {/* Logo */}
-          <Link
-            to="/"
-            style={{
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                backgroundColor: '#4F46E5',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
-              }}
-            >
-              <Building2 size={20} color="#FFFFFF" />
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/30 group-hover:bg-blue-700 transition-colors">
+              {/* Modern geometric icon mark matching Relink reference */}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 8L10 14L4 20" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 4L18 10L12 16" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
-            <span
-              style={{
-                fontSize: '1.45rem',
-                fontWeight: 800,
-                color: '#0F172A',
-                letterSpacing: '-0.03em',
-              }}
-            >
-              Guri24
+            <span className="font-extrabold text-xl tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
+              Guri<span className="text-blue-600">24</span>
             </span>
           </Link>
 
-          {/* Desktop Menu */}
-          <nav
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '32px',
-            }}
-            className="hidden md:flex"
-          >
-            <a href="#home" style={{ textDecoration: 'none', color: '#0F172A', fontSize: '0.90rem', fontWeight: 600 }}>
-              Home
-            </a>
-            <a href="#features" style={{ textDecoration: 'none', color: '#64748B', fontSize: '0.90rem', fontWeight: 500, transition: 'color 0.15s ease' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')} onMouseLeave={(e) => (e.currentTarget.style.color = '#64748B')}>
-              Features
-            </a>
-            <a href="#solutions" style={{ textDecoration: 'none', color: '#64748B', fontSize: '0.90rem', fontWeight: 500, transition: 'color 0.15s ease' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')} onMouseLeave={(e) => (e.currentTarget.style.color = '#64748B')}>
-              Solutions
-            </a>
-            <a href="#how-it-works" style={{ textDecoration: 'none', color: '#64748B', fontSize: '0.90rem', fontWeight: 500, transition: 'color 0.15s ease' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')} onMouseLeave={(e) => (e.currentTarget.style.color = '#64748B')}>
-              How It Works
-            </a>
-            <a href="#why-guri24" style={{ textDecoration: 'none', color: '#64748B', fontSize: '0.90rem', fontWeight: 500, transition: 'color 0.15s ease' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')} onMouseLeave={(e) => (e.currentTarget.style.color = '#64748B')}>
-              About Us
-            </a>
-            <a href="#contact" style={{ textDecoration: 'none', color: '#64748B', fontSize: '0.90rem', fontWeight: 500, transition: 'color 0.15s ease' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')} onMouseLeave={(e) => (e.currentTarget.style.color = '#64748B')}>
-              Contact
-            </a>
-          </nav>
+          {/* Center Pill Menu for Desktop */}
+          <div className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
+            <a href="#hero" className="text-blue-600 font-semibold hover:text-blue-700 transition-colors">Home</a>
+            <a href="#features" className="hover:text-slate-900 transition-colors">Features</a>
+            <a href="#solutions" className="hover:text-slate-900 transition-colors">Solutions</a>
+            <a href="#how-it-works" className="hover:text-slate-900 transition-colors">How It Works</a>
+            <a href="#why-guri24" className="hover:text-slate-900 transition-colors">About Us</a>
+            <a href="#contact" className="hover:text-slate-900 transition-colors">Contact</a>
+          </div>
 
-          {/* Action CTAs */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Right Action Cluster */}
+          <div className="hidden sm:flex items-center gap-3">
+            {/* Kenya Market / Language Pill */}
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100/80 rounded-full text-xs font-semibold text-slate-700 border border-slate-200/50">
+              <span className="text-sm leading-none">🇰🇪</span>
+              <span>EN</span>
+            </div>
+
             <Link
               to="/login"
-              style={{
-                textDecoration: 'none',
-                color: '#475569',
-                fontSize: '0.88rem',
-                fontWeight: 600,
-                padding: '8px 16px',
-                borderRadius: '9999px',
-                transition: 'background-color 0.15s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              className="text-sm font-medium text-slate-700 hover:text-blue-600 px-3 py-1.5 transition-colors"
             >
-              Sign In
+              Log in
             </Link>
 
-            <Link
-              to="/signup"
-              style={{
-                textDecoration: 'none',
-                backgroundColor: '#0F172A',
-                color: '#FFFFFF',
-                fontSize: '0.88rem',
-                fontWeight: 600,
-                padding: '9px 20px',
-                borderRadius: '9999px',
-                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.15)',
-                transition: 'all 0.15s ease',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1E293B')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0F172A')}
-            >
-              <span>Get Started</span>
-              <ArrowRight size={14} />
-            </Link>
-
-            {/* Mobile menu toggle */}
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '4px',
-                color: '#0F172A',
-                display: 'flex',
-                alignItems: 'center',
-              }}
-              className="flex md:hidden"
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.98 }}>
+              <Link
+                to="/signup"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2 rounded-full shadow-md shadow-blue-500/25 transition-all inline-flex items-center gap-1.5"
+              >
+                Get Started
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </motion.div>
           </div>
-        </div>
 
-        {/* Mobile menu dropdown */}
-        {mobileMenuOpen && (
-          <div
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderBottom: '1px solid #E2E8F0',
-              padding: '16px 24px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
-            }}
-            className="md:hidden"
+          {/* Mobile Menu Hamburger */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 text-slate-700 hover:text-blue-600 rounded-lg"
+            aria-label="Toggle navigation menu"
           >
-            <a href="#home" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#0F172A', fontWeight: 600 }}>Home</a>
-            <a href="#features" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#475569' }}>Features</a>
-            <a href="#solutions" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#475569' }}>Solutions</a>
-            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#475569' }}>How It Works</a>
-            <a href="#why-guri24" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#475569' }}>About Us</a>
-            <a href="#contact" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#475569' }}>Contact</a>
-          </div>
-        )}
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </nav>
+
+        {/* Mobile Dropdown Menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="md:hidden mt-2 bg-white/95 backdrop-blur-lg border border-slate-200 rounded-2xl p-5 shadow-xl flex flex-col gap-3"
+            >
+              <a href="#hero" onClick={() => setMobileMenuOpen(false)} className="py-2 text-slate-800 font-medium">Home</a>
+              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="py-2 text-slate-800 font-medium">Features</a>
+              <a href="#solutions" onClick={() => setMobileMenuOpen(false)} className="py-2 text-slate-800 font-medium">Solutions</a>
+              <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="py-2 text-slate-800 font-medium">How It Works</a>
+              <a href="#why-guri24" onClick={() => setMobileMenuOpen(false)} className="py-2 text-slate-800 font-medium">About Us</a>
+              <a href="#contact" onClick={() => setMobileMenuOpen(false)} className="py-2 text-slate-800 font-medium">Contact</a>
+              <hr className="border-slate-100 my-1" />
+              <Link to="/login" className="py-2 text-center text-slate-700 font-medium">Log in</Link>
+              <Link to="/signup" className="py-2.5 text-center bg-blue-600 text-white rounded-full font-semibold shadow-md">Get Started</Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* =========================================================================
-          2. HERO SECTION
-          ========================================================================= */}
-      <section
-        id="home"
-        style={{
-          position: 'relative',
-          padding: '72px 24px 80px 24px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          background: 'radial-gradient(ellipse 90% 60% at 50% -10%, rgba(129, 140, 248, 0.22), rgba(192, 132, 252, 0.12), transparent 75%)',
-        }}
-      >
-        <div style={{ maxWidth: '880px', margin: '0 auto' }}>
-          {/* Small Label Pill */}
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 16px',
-              borderRadius: '9999px',
-              backgroundColor: 'rgba(238, 242, 255, 0.9)',
-              border: '1px solid #E0E7FF',
-              color: '#4338CA',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              marginBottom: '24px',
-            }}
-          >
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#4F46E5' }} />
-            <span>SMART PROPERTY MANAGEMENT PLATFORM</span>
-          </div>
+          SECTION 2: HERO SECTION (EXACT TYPOGRAPHY & LAYERED 3D DASHBOARD MOCKUP)
+      ========================================================================== */}
+      <section id="hero" className="relative pt-12 pb-24 px-4 sm:px-6 max-w-7xl mx-auto z-10 text-center">
+        {/* Small Eyebrow Label */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50/80 border border-blue-200/60 text-blue-700 text-xs font-bold tracking-wider uppercase mb-6 shadow-sm"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+          SMART PROPERTY MANAGEMENT PLATFORM
+        </motion.div>
 
-          {/* Hero Headline */}
-          <h1
-            style={{
-              fontSize: 'clamp(2.4rem, 5.5vw, 4rem)',
-              fontWeight: 800,
-              color: '#0F172A',
-              letterSpacing: '-0.035em',
-              lineHeight: 1.12,
-              marginBottom: '20px',
-            }}
-          >
-            Manage Properties.{' '}
-            <span style={{ color: '#4F46E5' }}>Simplify Rentals.</span>{' '}
-            Grow Your Business.
-          </h1>
+        {/* Hero Title */}
+        <motion.h1
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.12] max-w-4xl mx-auto"
+        >
+          Manage Properties. <br className="hidden sm:inline" />
+          Simplify Rentals. <span className="text-blue-600">Grow Your Business.</span>
+        </motion.h1>
 
-          {/* Hero Subtitle */}
-          <p
-            style={{
-              fontSize: 'clamp(1rem, 2vw, 1.18rem)',
-              color: '#475569',
-              lineHeight: 1.6,
-              maxWidth: '720px',
-              margin: '0 auto 32px auto',
-            }}
-          >
-            Take control of your rental properties with one intelligent platform. Manage tenants, leases, rent collection, maintenance and financial records without the complexity of scattered spreadsheets and paperwork.
-          </p>
+        {/* Hero Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mt-6 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed"
+        >
+          Take control of your rental properties with one intelligent platform. Manage tenants, leases, rent collection, maintenance and financial records without the complexity of scattered spreadsheets and paperwork.
+        </motion.p>
 
-          {/* Hero CTAs */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '14px',
-              flexWrap: 'wrap',
-              marginBottom: '18px',
-            }}
-          >
+        {/* Hero Dual CTAs matching reference */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mt-8 flex flex-wrap items-center justify-center gap-3.5"
+        >
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
             <Link
               to="/signup"
-              style={{
-                textDecoration: 'none',
-                backgroundColor: '#4F46E5',
-                color: '#FFFFFF',
-                fontSize: '0.96rem',
-                fontWeight: 600,
-                padding: '13px 30px',
-                borderRadius: '9999px',
-                boxShadow: '0 4px 18px rgba(79, 70, 229, 0.35)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#4338CA')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#4F46E5')}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm sm:text-base px-7 py-3 rounded-full shadow-lg shadow-blue-500/30 transition-all inline-flex items-center gap-2"
             >
-              <span>Get Started</span>
-              <ArrowRight size={16} />
+              Get Started
+              <ArrowRight className="w-4 h-4" />
             </Link>
+          </motion.div>
 
-            <button
-              type="button"
-              onClick={() => setIsDemoModalOpen(true)}
-              style={{
-                backgroundColor: '#FFFFFF',
-                color: '#0F172A',
-                border: '1px solid #CBD5E1',
-                fontSize: '0.96rem',
-                fontWeight: 600,
-                padding: '13px 26px',
-                borderRadius: '9999px',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FFFFFF')}
-            >
-              <Calendar size={16} color="#4F46E5" />
-              <span>Book a Demo</span>
-            </button>
-          </div>
-
-          {/* Supporting Text */}
-          <p
-            style={{
-              fontSize: '0.84rem',
-              color: '#64748B',
-              margin: '0 0 48px 0',
-            }}
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setDemoModalOpen(true)}
+            className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm sm:text-base px-6 py-3 rounded-full shadow-md transition-all inline-flex items-center gap-2"
           >
-            Everything you need to manage your properties, tenants and rental operations in one place.
-          </p>
-        </div>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            Book a Demo
+          </motion.button>
+        </motion.div>
 
-        {/* =========================================================================
-            HERO VISUAL: HIGH-FIDELITY GURI24 APPLICATION DASHBOARD MOCKUP
-            ========================================================================= */}
-        <div
-          style={{
-            width: '100%',
-            maxWidth: '1120px',
-            backgroundColor: '#FFFFFF',
-            borderRadius: '24px',
-            border: '1px solid #E2E8F0',
-            boxShadow: '0 25px 60px -12px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.02)',
-            overflow: 'hidden',
-            textAlign: 'left',
-          }}
-        >
-          {/* Dashboard Header Bar */}
+        {/* Supporting text */}
+        <p className="mt-4 text-xs font-medium text-slate-500">
+          Everything you need to manage your properties, tenants and rental operations in one place.
+        </p>
+
+        {/* =====================================================================
+            LAYERED 3D DASHBOARD PREVIEW (EXACT PERSPECTIVE AS IN REFERENCE IMAGE)
+        ====================================================================== */}
+        <div className="mt-14 relative max-w-5xl mx-auto perspective-1000">
+          {/* Background Tilted Preview Card Peaking Behind to Left */}
           <div
-            style={{
-              backgroundColor: '#0F172A',
-              padding: '14px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              color: '#FFFFFF',
-            }}
+            className="hidden lg:block absolute -top-6 -left-10 w-[780px] h-[480px] bg-white/70 backdrop-blur-md rounded-3xl border border-slate-200/70 shadow-xl opacity-60 pointer-events-none transform -rotate-2 scale-95 z-0"
+            aria-hidden="true"
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#EF4444' }} />
-                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#F59E0B' }} />
-                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-slate-300" />
+                <div className="w-3 h-3 rounded-full bg-slate-300" />
+                <div className="w-3 h-3 rounded-full bg-slate-300" />
               </div>
-              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#E2E8F0', marginLeft: '8px' }}>
-                Guri24 RMS · Portfolio Operations
-              </span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.76rem', color: '#94A3B8' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }} />
-                M-Pesa Daraja C2B V2 Connected
-              </span>
-              <span>Shortcode: 1343073</span>
+              <div className="text-xs font-semibold text-slate-400">Tenant Directory & Unit Index</div>
             </div>
           </div>
 
-          {/* Metric Stats Banner */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-              gap: '1px',
-              backgroundColor: '#F1F5F9',
-              borderBottom: '1px solid #E2E8F0',
-            }}
+          {/* Main Foreground Dashboard Container */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="relative bg-white rounded-3xl border border-slate-200/90 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.18)] overflow-hidden text-left z-10"
           >
-            {[
-              { label: 'Total Properties', val: '24 Estates', tone: '#0F172A' },
-              { label: 'Occupied Units', val: '148 / 160 (92.5%)', tone: '#10B981' },
-              { label: 'Rent Collected', val: 'KES 3,840,000', tone: '#4F46E5' },
-              { label: 'Outstanding Rent', val: 'KES 180,000', tone: '#F59E0B' },
-              { label: 'Maintenance Queue', val: '3 Tickets Active', tone: '#64748B' },
-            ].map((stat, idx) => (
-              <div
-                key={idx}
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  padding: '16px 20px',
-                }}
-              >
-                <div style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>
-                  {stat.label}
+            {/* Dashboard Sleek Top Bar */}
+            <div className="bg-slate-900 text-white px-5 py-3 flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-400/80" />
+                  <div className="w-3 h-3 rounded-full bg-amber-400/80" />
+                  <div className="w-3 h-3 rounded-full bg-emerald-400/80" />
                 </div>
-                <div style={{ fontSize: '1.18rem', fontWeight: 700, color: stat.tone, marginTop: '4px' }}>
-                  {stat.val}
+                <div className="h-4 w-px bg-slate-700 mx-1" />
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-md bg-blue-600 flex items-center justify-center text-[10px] font-bold">
+                    G
+                  </div>
+                  <span className="text-xs font-semibold tracking-wide text-slate-200">Guri24 Rental Workspace</span>
                 </div>
               </div>
-            ))}
-          </div>
 
-          {/* Operational Mockup Workspace Body */}
-          <div
-            style={{
-              padding: '24px',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '20px',
-              backgroundColor: '#F8FAFC',
-            }}
-          >
-            {/* Left Mockup Card: Recent Verified Payments */}
-            <div
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '16px',
-                border: '1px solid #E2E8F0',
-                padding: '18px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <CreditCard size={18} color="#4F46E5" />
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0F172A' }}>Recent M-Pesa C2B Collections</span>
-                </div>
-                <span style={{ fontSize: '0.72rem', color: '#16A34A', fontWeight: 700, backgroundColor: '#DCFCE7', padding: '2px 8px', borderRadius: '9999px' }}>
-                  Real-Time Verified
+              <div className="hidden sm:flex items-center gap-4 text-xs text-slate-300">
+                <span className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  Daraja C2B V2: 1343073 (Active)
                 </span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {[
-                  { ref: 'SK88102911', tenant: 'James Otieno (A-102)', amount: 'KES 35,000', time: '10 mins ago', status: 'Allocated' },
-                  { ref: 'SK88102904', tenant: 'Grace Wanjiku (B-204)', amount: 'KES 42,000', time: '35 mins ago', status: 'Allocated' },
-                  { ref: 'SK88102899', tenant: 'Ahmed Noor (C-301)', amount: 'KES 28,000', time: '1 hr ago', status: 'Allocated' },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 12px',
-                      borderRadius: '10px',
-                      backgroundColor: '#F8FAFC',
-                      border: '1px solid #F1F5F9',
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#0F172A' }}>{item.tenant}</div>
-                      <div style={{ fontSize: '0.72rem', color: '#64748B' }}>TransID: {item.ref} · {item.time}</div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#10B981' }}>{item.amount}</div>
-                      <div style={{ fontSize: '0.70rem', color: '#4F46E5', fontWeight: 600 }}>{item.status}</div>
-                    </div>
-                  </div>
-                ))}
+                <span className="text-slate-400">Peter Gatitu Mwangi</span>
               </div>
             </div>
 
-            {/* Right Mockup Card: Tenant Leases & Invoices */}
-            <div
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '16px',
-                border: '1px solid #E2E8F0',
-                padding: '18px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FileCheck2 size={18} color="#4F46E5" />
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0F172A' }}>Tenancy Operations & Renewals</span>
+            {/* Dashboard Inner Grid */}
+            <div className="grid grid-cols-12 bg-slate-50/50">
+              {/* Mini Sidebar */}
+              <div className="hidden md:block col-span-3 bg-white border-r border-slate-200/80 p-4 space-y-1">
+                <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">Navigation</div>
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-blue-50 text-blue-700 font-semibold text-xs">
+                  <BarChart3 className="w-4 h-4 text-blue-600" />
+                  Portfolio Overview
                 </div>
-                <span style={{ fontSize: '0.72rem', color: '#4F46E5', fontWeight: 600 }}>Active Portfolio</span>
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 font-medium text-xs">
+                  <Building2 className="w-4 h-4 text-slate-400" />
+                  Properties & Units
+                </div>
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 font-medium text-xs">
+                  <Users className="w-4 h-4 text-slate-400" />
+                  Tenant Directory
+                </div>
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 font-medium text-xs">
+                  <CreditCard className="w-4 h-4 text-slate-400" />
+                  Rent & C2B Ledger
+                </div>
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 font-medium text-xs">
+                  <Wrench className="w-4 h-4 text-slate-400" />
+                  Maintenance (3 Open)
+                </div>
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 font-medium text-xs">
+                  <Sparkles className="w-4 h-4 text-blue-500" />
+                  AI Assistant
+                </div>
+
+                <div className="pt-6 px-3">
+                  <div className="p-3 bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-xl border border-blue-100">
+                    <div className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">C2B Paybill</div>
+                    <div className="font-mono text-xs font-bold text-slate-800 mt-0.5">Short Code: 1343073</div>
+                    <div className="text-[11px] text-slate-500 mt-1">Instant invoice allocation</div>
+                  </div>
+                </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {[
-                  { unit: 'Riverside Heights #402', lease: '12-Month Tenancy', rent: 'KES 45,000 / mo', tag: 'Active' },
-                  { unit: 'Parklands Executive #12', lease: 'Up for Renewal (20 Days)', rent: 'KES 65,000 / mo', tag: 'Renewal Ready' },
-                  { unit: 'Westlands Commercial #B3', lease: 'Corporate Lease Agreement', rent: 'KES 120,000 / mo', tag: 'Verified' },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 12px',
-                      borderRadius: '10px',
-                      backgroundColor: '#F8FAFC',
-                      border: '1px solid #F1F5F9',
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#0F172A' }}>{item.unit}</div>
-                      <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{item.lease}</div>
+
+              {/* Main Content Pane */}
+              <div className="col-span-12 md:col-span-9 p-5 sm:p-7 space-y-6">
+                {/* Top Greeting & Operational Quick Metrics */}
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900">Good morning, Peter!</h2>
+                    <p className="text-xs text-slate-500">You have 12 verified payments settling today across 4 properties.</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200/60 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      Reconciliation Synced
+                    </span>
+                  </div>
+                </div>
+
+                {/* 4 Stat Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <div className="text-[11px] font-medium text-slate-500">Total Properties</div>
+                    <div className="text-xl font-bold text-slate-900 mt-0.5">4</div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">54 total units</div>
+                  </div>
+                  <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <div className="text-[11px] font-medium text-slate-500">Occupied Units</div>
+                    <div className="text-xl font-bold text-blue-600 mt-0.5">51 <span className="text-xs font-normal text-slate-500">(94.4%)</span></div>
+                    <div className="text-[11px] text-emerald-600 mt-0.5">3 vacant available</div>
+                  </div>
+                  <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <div className="text-[11px] font-medium text-slate-500">Collected Rent</div>
+                    <div className="text-xl font-bold text-slate-900 mt-0.5">KES 240k</div>
+                    <div className="text-[11px] text-emerald-600 mt-0.5">+14% this month</div>
+                  </div>
+                  <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <div className="text-[11px] font-medium text-slate-500">Arrears</div>
+                    <div className="text-xl font-bold text-amber-600 mt-0.5">KES 10k</div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">1 tenant pending</div>
+                  </div>
+                </div>
+
+                {/* Chart & Mini Widget Cluster matching Reference */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                  {/* High Contrast Bar Chart (Exact style as Reference: Prominent Blue Bar) */}
+                  <div className="lg:col-span-8 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <div className="text-xs font-bold text-slate-800">Rent Collection Overview</div>
+                        <div className="text-[11px] text-slate-400">January 2026 – May 2026 (Monthly Invoiced vs Collected)</div>
+                      </div>
+                      <div className="text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
+                        KES 250,000 Total
+                      </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0F172A' }}>{item.rent}</div>
-                      <span
-                        style={{
-                          fontSize: '0.68rem',
-                          padding: '2px 8px',
-                          borderRadius: '9999px',
-                          backgroundColor: item.tag === 'Renewal Ready' ? '#FEF3C7' : '#EFF6FF',
-                          color: item.tag === 'Renewal Ready' ? '#B45309' : '#1D4ED8',
-                          fontWeight: 700,
-                        }}
-                      >
-                        {item.tag}
-                      </span>
+
+                    {/* Styled Bar Columns matching Relink Screenshot */}
+                    <div className="h-40 flex items-end justify-between gap-3 pt-6 pb-2 px-2 border-b border-slate-100">
+                      {[
+                        { month: 'Jan', height: '55%', active: false, val: '180k' },
+                        { month: 'Feb', height: '65%', active: false, val: '210k' },
+                        { month: 'Mar', height: '60%', active: false, val: '195k' },
+                        { month: 'Apr', height: '85%', active: false, val: '230k' },
+                        { month: 'May (Now)', height: '94%', active: true, val: 'KES 240,000' },
+                      ].map((item, i) => (
+                        <div key={i} className="flex-1 flex flex-col items-center gap-2 group relative">
+                          {/* Tooltip on Active/Hover */}
+                          <div
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap transition-opacity ${
+                              item.active
+                                ? 'bg-blue-600 text-white opacity-100 shadow-md'
+                                : 'bg-slate-800 text-white opacity-0 group-hover:opacity-100'
+                            }`}
+                          >
+                            {item.val}
+                          </div>
+                          {/* Bar */}
+                          <div
+                            style={{ height: item.height }}
+                            className={`w-full max-w-[42px] rounded-t-xl transition-all ${
+                              item.active
+                                ? 'bg-blue-600 shadow-lg shadow-blue-500/40'
+                                : 'bg-slate-200 hover:bg-slate-300'
+                            }`}
+                          />
+                          <span className={`text-[11px] font-medium ${item.active ? 'text-blue-700 font-bold' : 'text-slate-400'}`}>
+                            {item.month}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
+
+                  {/* Right Status Dial & Recent Activity */}
+                  <div className="lg:col-span-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-slate-800">Operational Health</div>
+                      <div className="text-[11px] text-slate-400">Automated Daraja C2B Activity</div>
+
+                      <div className="mt-4 p-3 bg-slate-50 rounded-xl space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-500">Collection Rate</span>
+                          <span className="font-bold text-emerald-600">96.0%</span>
+                        </div>
+                        <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                          <div className="bg-emerald-500 h-2 rounded-full w-[96%]" />
+                        </div>
+                      </div>
+
+                      <div className="mt-4 space-y-2">
+                        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Recent Transactions</div>
+                        <div className="text-xs flex items-center justify-between py-1 border-b border-slate-100">
+                          <div>
+                            <div className="font-semibold text-slate-800">Apt 4B - Rent</div>
+                            <div className="text-[10px] text-slate-400">M-Pesa: QK49182390</div>
+                          </div>
+                          <span className="font-bold text-emerald-600">+25,000</span>
+                        </div>
+                        <div className="text-xs flex items-center justify-between py-1">
+                          <div>
+                            <div className="font-semibold text-slate-800">Unit 2A - Partial</div>
+                            <div className="text-[10px] text-slate-400">M-Pesa: QK49182391</div>
+                          </div>
+                          <span className="font-bold text-emerald-600">+15,000</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Link
+                      to="/app/dashboard"
+                      className="mt-4 w-full py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 font-semibold text-xs rounded-xl text-center transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      Open Live Dashboard
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* =========================================================================
-          3. TRUST / AUDIENCE SECTION
-          ========================================================================= */}
-      <section
-        style={{
-          padding: '60px 24px',
-          borderTop: '1px solid #F1F5F9',
-          borderBottom: '1px solid #F1F5F9',
-          backgroundColor: '#FAFAFA',
-          textAlign: 'center',
-        }}
-      >
-        <div style={{ maxWidth: '1040px', margin: '0 auto' }}>
-          <h2
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: '#0F172A',
-              marginBottom: '10px',
-              letterSpacing: '-0.02em',
-            }}
-          >
+          SECTION 3: TRUST / AUDIENCE SECTION (BUILT FOR THE PEOPLE WHO MANAGE PROPERTIES)
+      ========================================================================== */}
+      <section className="py-14 border-y border-slate-200/60 bg-white/70 backdrop-blur-sm relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">
             Built for the People Who Manage Properties
-          </h2>
-          <p
-            style={{
-              fontSize: '0.94rem',
-              color: '#64748B',
-              lineHeight: 1.55,
-              maxWidth: '680px',
-              margin: '0 auto 28px auto',
-            }}
-          >
+          </h3>
+          <p className="text-sm text-slate-600 max-w-xl mx-auto mb-8">
             Guri24 brings property owners, managers, accountants and tenants together through a connected property management experience.
           </p>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '12px',
-              flexWrap: 'wrap',
-            }}
-          >
+          {/* 5 Audience Badges / Logos matching reference clean logo strip */}
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
             {[
-              'Property Owners',
-              'Property Managers',
-              'Real Estate Companies',
-              'Landlords',
-              'Residential Estates',
-            ].map((audience, idx) => (
+              { label: 'Property Owners', icon: Building2 },
+              { label: 'Property Managers', icon: Users },
+              { label: 'Real Estate Companies', icon: Briefcase },
+              { label: 'Landlords', icon: Landmark },
+              { label: 'Residential Estates', icon: Building },
+            ].map((aud, idx) => (
               <div
                 key={idx}
-                style={{
-                  padding: '10px 22px',
-                  borderRadius: '9999px',
-                  backgroundColor: '#FFFFFF',
-                  border: '1px solid #E2E8F0',
-                  color: '#334155',
-                  fontSize: '0.86rem',
-                  fontWeight: 600,
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-                }}
+                className="px-5 py-2.5 rounded-full bg-slate-50 border border-slate-200/80 hover:border-blue-300 hover:bg-blue-50/50 transition-all flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-700"
               >
-                {audience}
+                <aud.icon className="w-4 h-4 text-blue-600" />
+                {aud.label}
               </div>
             ))}
           </div>
@@ -644,49 +550,181 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* =========================================================================
-          4. FEATURES SECTION
-          ========================================================================= */}
-      <section
-        id="features"
-        style={{
-          padding: '96px 24px',
-          maxWidth: '1240px',
-          margin: '0 auto',
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: '56px' }}>
-          <h2
-            style={{
-              fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
-              fontWeight: 800,
-              color: '#0F172A',
-              letterSpacing: '-0.03em',
-              marginBottom: '14px',
-            }}
+          SECTION 5: "WHY GURI24?" - 3 CARDS MATCHING REFERENCE MIDDLE SECTION
+          (Card 1: Light, Card 2: ELECTRIC BLUE HERO GRADIENT, Card 3: Light)
+      ========================================================================== */}
+      <section id="why-guri24" className="py-24 px-4 sm:px-6 max-w-7xl mx-auto relative z-10">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="inline-block text-xs font-bold uppercase tracking-wider text-blue-600 mb-2">
+            WHY GURI24
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Property Management, Made Simpler.
+          </h2>
+          <p className="mt-4 text-base text-slate-600">
+            Spend less time managing scattered records and more time growing your property business.
+          </p>
+        </div>
+
+        {/* 3-Card Grid Matching The Middle Row of the Reference Screenshot */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+          {/* Card 1 (Light Card): One Connected Platform */}
+          <motion.div
+            whileHover={{ y: -6 }}
+            transition={{ duration: 0.2 }}
+            className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm flex flex-col justify-between"
           >
+            <div>
+              <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-5">
+                <ArrowUpRight className="w-5 h-5" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">One Connected Platform</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Manage properties, tenants, leases, payments and maintenance from a central workspace.
+              </p>
+            </div>
+
+            {/* Embedded Mini Visual Widget */}
+            <div className="mt-8 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div className="flex items-center justify-between text-xs text-slate-500 mb-3 font-medium">
+                <span>Insights Portfolio Growth</span>
+                <span className="font-bold text-slate-800">54 Units</span>
+              </div>
+              <div className="flex items-end justify-between gap-2 h-16 pt-2 border-b border-slate-200/60 pb-1">
+                <div className="w-4 bg-slate-200 rounded-t h-[40%]" />
+                <div className="w-4 bg-slate-200 rounded-t h-[55%]" />
+                <div className="w-4 bg-slate-200 rounded-t h-[70%]" />
+                <div className="w-4 bg-blue-600 rounded-t h-[95%]" />
+                <div className="w-4 bg-slate-200 rounded-t h-[80%]" />
+              </div>
+              <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
+                <span>Properties Active</span>
+                <span className="font-bold text-blue-600">94.4% Occupied</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Card 2 (ELECTRIC BLUE HERO GRADIENT CARD): Better Financial Visibility */}
+          <motion.div
+            whileHover={{ y: -6 }}
+            transition={{ duration: 0.2 }}
+            className="bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 text-white rounded-3xl p-7 shadow-xl shadow-blue-500/25 flex flex-col justify-between relative overflow-hidden"
+          >
+            <div className="relative z-10">
+              <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white flex items-center justify-center mb-5">
+                <ArrowUpRight className="w-5 h-5" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Better Financial Visibility</h3>
+              <p className="text-sm text-blue-100 leading-relaxed">
+                Know what has been invoiced, collected, allocated and remains outstanding with automated C2B reconciliation.
+              </p>
+            </div>
+
+            {/* Embedded White/Glass Mini Analytics Widget */}
+            <div className="relative z-10 mt-8 p-4 bg-white/95 text-slate-900 rounded-2xl shadow-md">
+              <div className="flex items-center justify-between text-xs text-slate-500 mb-1 font-semibold">
+                <span>Rent & Revenue Analysis</span>
+                <span className="text-blue-600 font-bold">2026 Q2</span>
+              </div>
+              <div className="text-2xl font-black text-slate-900 mt-1">
+                KES 452,000
+              </div>
+              <div className="mt-3 flex items-center gap-2 text-xs text-emerald-600 font-medium">
+                <CheckCircle2 className="w-4 h-4" />
+                100% Reconciled via Daraja C2B V2
+              </div>
+            </div>
+
+            {/* Ambient Background Glow inside the card */}
+            <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          </motion.div>
+
+          {/* Card 3 (Light Card): Organized Tenant Records */}
+          <motion.div
+            whileHover={{ y: -6 }}
+            transition={{ duration: 0.2 }}
+            className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-5">
+                <ArrowUpRight className="w-5 h-5" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Organized Tenant Records</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Keep tenant information, tenancy documents and communication records accessible to authorized staff.
+              </p>
+            </div>
+
+            {/* Embedded Mini Visual Widget */}
+            <div className="mt-8 p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+              <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+                <span>Tenancy Verification</span>
+                <span className="text-emerald-600 font-bold">Active</span>
+              </div>
+              <div className="p-2 bg-white rounded-xl border border-slate-100 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
+                    JM
+                  </div>
+                  <span className="font-semibold text-slate-800">John Mwangi</span>
+                </div>
+                <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold">
+                  Verified
+                </span>
+              </div>
+              <div className="text-[11px] text-slate-400 text-center">
+                Instant SMS/Email lease receipts
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* 2 Additional Pillars: Smarter Operations & Secure Access */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-6 bg-white rounded-2xl border border-slate-200/80 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-base font-bold text-slate-900">Smarter Operations</h4>
+              <p className="text-sm text-slate-600 mt-1">
+                Use automation, reminders and AI-assisted insights to support everyday property management.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-6 bg-white rounded-2xl border border-slate-200/80 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <Shield className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-base font-bold text-slate-900">Secure Access</h4>
+              <p className="text-sm text-slate-600 mt-1">
+                Give owners, managers, accountants and tenants access to the information and tools relevant to their responsibilities.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 4: FEATURES SECTION (ALL 9 CORE CAPABILITIES IN MODERN BENTO GRID)
+      ========================================================================== */}
+      <section id="features" className="py-24 px-4 sm:px-6 max-w-7xl mx-auto relative z-10 border-t border-slate-200/60">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="inline-block text-xs font-bold uppercase tracking-wider text-blue-600 mb-2">
+            FEATURES & CAPABILITIES
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
             Everything You Need to Manage Your Properties
           </h2>
-          <p
-            style={{
-              fontSize: '1.05rem',
-              color: '#64748B',
-              lineHeight: 1.6,
-              maxWidth: '680px',
-              margin: '0 auto',
-            }}
-          >
+          <p className="mt-4 text-base text-slate-600">
             Powerful property management tools designed to simplify everyday rental operations and give you better control of your business.
           </p>
         </div>
 
         {/* 9 Feature Cards Grid */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '24px',
-          }}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
               icon: Building2,
@@ -702,6 +740,7 @@ export const HomePage: React.FC = () => {
               icon: CreditCard,
               title: 'Rent Collection & Payments',
               desc: 'Track rent invoices, payment records, outstanding balances and collection performance. Support M-Pesa Paybill/Till C2B and configured bank payment workflows.',
+              highlight: 'Safaricom C2B 1343073',
             },
             {
               icon: FileCheck2,
@@ -714,7 +753,7 @@ export const HomePage: React.FC = () => {
               desc: 'Receive maintenance requests, assign technicians, monitor progress, manage expenses and keep property maintenance records organized.',
             },
             {
-              icon: BarChart3,
+              icon: Landmark,
               title: 'Financial Management',
               desc: 'Get a clearer view of rental income, outstanding invoices, deposits, expenses and financial reports through connected financial management.',
             },
@@ -729,217 +768,122 @@ export const HomePage: React.FC = () => {
               desc: 'Get assistance understanding property operations, identifying important trends and interpreting authorized business information with AI-powered insights.',
             },
             {
-              icon: PieChart,
+              icon: BarChart3,
               title: 'Analytics & Reports',
               desc: 'Understand occupancy, rent collection, arrears, property performance and operational trends through interactive dashboards and reports.',
             },
-          ].map((item, idx) => {
-            const IconComponent = item.icon;
-            return (
-              <div
-                key={idx}
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '20px',
-                  border: '1px solid #E2E8F0',
-                  padding: '28px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '14px',
-                  boxShadow: '0 4px 18px rgba(0, 0, 0, 0.02)',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#CBD5E1';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 12px 28px rgba(0, 0, 0, 0.06)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#E2E8F0';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 18px rgba(0, 0, 0, 0.02)';
-                }}
-              >
-                <div
-                  style={{
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '12px',
-                    backgroundColor: '#EEF2FF',
-                    color: '#4F46E5',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <IconComponent size={22} />
+          ].map((feat, i) => (
+            <motion.div
+              key={i}
+              whileHover={{ y: -4 }}
+              className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:border-blue-300 hover:shadow-md transition-all flex flex-col justify-between"
+            >
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-5">
+                  <feat.icon className="w-6 h-6" />
                 </div>
-                <h3
-                  style={{
-                    fontSize: '1.18rem',
-                    fontWeight: 700,
-                    color: '#0F172A',
-                    letterSpacing: '-0.015em',
-                  }}
-                >
-                  {item.title}
-                </h3>
-                <p
-                  style={{
-                    fontSize: '0.88rem',
-                    color: '#64748B',
-                    lineHeight: 1.6,
-                    margin: 0,
-                  }}
-                >
-                  {item.desc}
-                </p>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-slate-900">{feat.title}</h3>
+                  {feat.highlight && (
+                    <span className="text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-200">
+                      {feat.highlight}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-2.5 text-sm text-slate-600 leading-relaxed">{feat.desc}</p>
               </div>
-            );
-          })}
+
+              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+                <span>Explore capability</span>
+                <ChevronRight className="w-3.5 h-3.5 ml-1" />
+              </div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
       {/* =========================================================================
-          5. WHY CHOOSE GURI24?
-          ========================================================================= */}
-      <section
-        id="why-guri24"
-        style={{
-          padding: '96px 24px',
-          backgroundColor: '#F8FAFC',
-          borderTop: '1px solid #F1F5F9',
-          borderBottom: '1px solid #F1F5F9',
-        }}
-      >
-        <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '56px' }}>
-            <h2
-              style={{
-                fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
-                fontWeight: 800,
-                color: '#0F172A',
-                letterSpacing: '-0.03em',
-                marginBottom: '14px',
-              }}
-            >
-              Property Management, Made Simpler.
-            </h2>
-            <p
-              style={{
-                fontSize: '1.05rem',
-                color: '#64748B',
-                lineHeight: 1.6,
-                maxWidth: '640px',
-                margin: '0 auto',
-              }}
-            >
-              Spend less time managing scattered records and more time growing your property business.
-            </p>
+          SEAMLESS INTEGRATIONS (CONNECTED NODES MATCHING REFERENCE MIDDLE-RIGHT)
+      ========================================================================== */}
+      <section className="py-20 px-4 sm:px-6 max-w-7xl mx-auto relative z-10 bg-gradient-to-b from-white to-blue-50/40 rounded-3xl border border-slate-200/80 my-10">
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <div className="text-xs font-bold uppercase tracking-wider text-blue-600 mb-2">CONNECTIVITY</div>
+          <h2 className="text-3xl font-extrabold text-slate-900">Seamless Integrations</h2>
+          <p className="mt-3 text-sm text-slate-600">
+            Automate collections and reconciliations through Kenya's leading financial networks.
+          </p>
+        </div>
+
+        {/* Integration Hub Visual Diagram */}
+        <div className="relative max-w-3xl mx-auto py-8">
+          <svg
+            ref={integrationsSvgRef}
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            viewBox="0 0 600 240"
+            fill="none"
+          >
+            <path className="pulse-line" d="M 120 40 Q 250 80 300 120" stroke="#3B82F6" strokeWidth="2" strokeDasharray="6 4" opacity="0.6"/>
+            <path className="pulse-line" d="M 200 40 Q 260 80 300 120" stroke="#3B82F6" strokeWidth="2" strokeDasharray="6 4" opacity="0.6"/>
+            <path className="pulse-line" d="M 400 40 Q 340 80 300 120" stroke="#3B82F6" strokeWidth="2" strokeDasharray="6 4" opacity="0.6"/>
+            <path className="pulse-line" d="M 480 40 Q 350 80 300 120" stroke="#3B82F6" strokeWidth="2" strokeDasharray="6 4" opacity="0.6"/>
+            <path className="pulse-line" d="M 160 200 Q 240 160 300 120" stroke="#3B82F6" strokeWidth="2" strokeDasharray="6 4" opacity="0.6"/>
+            <path className="pulse-line" d="M 440 200 Q 360 160 300 120" stroke="#3B82F6" strokeWidth="2" strokeDasharray="6 4" opacity="0.6"/>
+          </svg>
+
+          {/* Top Row Providers */}
+          <div className="flex justify-around items-center mb-16 relative z-10 px-4">
+            <div className="px-4 py-2 bg-white rounded-2xl border border-slate-200 shadow-xs text-xs font-bold text-slate-700 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+              Safaricom Daraja C2B V2 (1343073)
+            </div>
+            <div className="px-4 py-2 bg-white rounded-2xl border border-slate-200 shadow-xs text-xs font-bold text-slate-700">
+              KCB Bank
+            </div>
+            <div className="px-4 py-2 bg-white rounded-2xl border border-slate-200 shadow-xs text-xs font-bold text-slate-700">
+              Equity Bank
+            </div>
+            <div className="px-4 py-2 bg-white rounded-2xl border border-slate-200 shadow-xs text-xs font-bold text-slate-700">
+              Co-operative Bank
+            </div>
           </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '20px',
-            }}
-          >
-            {[
-              {
-                title: 'One Connected Platform',
-                desc: 'Manage properties, tenants, leases, payments and maintenance from a central workspace.',
-              },
-              {
-                title: 'Better Financial Visibility',
-                desc: 'Know what has been invoiced, collected, allocated and remains outstanding.',
-              },
-              {
-                title: 'Organized Tenant Records',
-                desc: 'Keep tenant information, tenancy documents and communication records accessible to authorized staff.',
-              },
-              {
-                title: 'Smarter Operations',
-                desc: 'Use automation, reminders and AI-assisted insights to support everyday property management.',
-              },
-              {
-                title: 'Secure Access',
-                desc: 'Give owners, managers, accountants and tenants access to the information and tools relevant to their responsibilities.',
-              },
-            ].map((pillar, i) => (
-              <div
-                key={i}
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '18px',
-                  border: '1px solid #E2E8F0',
-                  padding: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-                }}
-              >
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#DCFCE7', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
-                  <Check size={16} />
-                </div>
-                <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0F172A' }}>
-                  {pillar.title}
-                </h4>
-                <p style={{ fontSize: '0.86rem', color: '#64748B', lineHeight: 1.55, margin: 0 }}>
-                  {pillar.desc}
-                </p>
-              </div>
-            ))}
+          {/* Central Hub Node */}
+          <div className="flex justify-center relative z-10">
+            <div className="w-20 h-20 rounded-3xl bg-blue-600 text-white flex flex-col items-center justify-center shadow-xl shadow-blue-500/30 border-4 border-white">
+              <div className="font-extrabold text-sm">Guri24</div>
+              <div className="text-[10px] text-blue-100">Ledger Hub</div>
+            </div>
+          </div>
+
+          {/* Bottom Row Providers */}
+          <div className="flex justify-around items-center mt-16 relative z-10 px-12">
+            <div className="px-4 py-2 bg-white rounded-2xl border border-slate-200 shadow-xs text-xs font-bold text-slate-700">
+              KRA iTax (Withholding Tax 7.5%)
+            </div>
+            <div className="px-4 py-2 bg-white rounded-2xl border border-slate-200 shadow-xs text-xs font-bold text-slate-700">
+              Standard Chartered
+            </div>
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          6. HOW IT WORKS
-          ========================================================================= */}
-      <section
-        id="how-it-works"
-        style={{
-          padding: '96px 24px',
-          maxWidth: '1240px',
-          margin: '0 auto',
-          textAlign: 'center',
-        }}
-      >
-        <div style={{ marginBottom: '56px' }}>
-          <h2
-            style={{
-              fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
-              fontWeight: 800,
-              color: '#0F172A',
-              letterSpacing: '-0.03em',
-              marginBottom: '14px',
-            }}
-          >
+          SECTION 6: HOW IT WORKS (3 SIMPLE STEPS)
+      ========================================================================== */}
+      <section id="how-it-works" className="py-24 px-4 sm:px-6 max-w-7xl mx-auto relative z-10">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="inline-block text-xs font-bold uppercase tracking-wider text-blue-600 mb-2">
+            GET STARTED
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
             Get Started in 3 Simple Steps
           </h2>
-          <p
-            style={{
-              fontSize: '1.05rem',
-              color: '#64748B',
-              lineHeight: 1.6,
-              maxWidth: '640px',
-              margin: '0 auto',
-            }}
-          >
+          <p className="mt-4 text-base text-slate-600">
             Set up your organization and start managing your rental operations from one workspace.
           </p>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '24px',
-            textAlign: 'left',
-          }}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             {
               step: '01',
@@ -959,699 +903,360 @@ export const HomePage: React.FC = () => {
           ].map((item, idx) => (
             <div
               key={idx}
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '20px',
-                border: '1px solid #E2E8F0',
-                padding: '32px 28px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)',
-                position: 'relative',
-              }}
+              className="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-xs relative overflow-hidden"
             >
-              <div
-                style={{
-                  fontSize: '2.5rem',
-                  fontWeight: 800,
-                  color: '#4F46E5',
-                  opacity: 0.25,
-                  letterSpacing: '-0.04em',
-                }}
-              >
-                {item.step}
-              </div>
-              <h3
-                style={{
-                  fontSize: '1.25rem',
-                  fontWeight: 700,
-                  color: '#0F172A',
-                }}
-              >
-                {item.title}
-              </h3>
-              <p
-                style={{
-                  fontSize: '0.90rem',
-                  color: '#64748B',
-                  lineHeight: 1.6,
-                  margin: 0,
-                }}
-              >
-                {item.desc}
-              </p>
+              <div className="text-4xl font-black text-blue-100 mb-4">{item.step}</div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">{item.title}</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* =========================================================================
-          7. DASHBOARD / PRODUCT SHOWCASE
-          ========================================================================= */}
-      <section
-        style={{
-          padding: '96px 24px',
-          backgroundColor: '#0F172A',
-          color: '#FFFFFF',
-          textAlign: 'center',
-        }}
-      >
-        <div style={{ maxWidth: '1040px', margin: '0 auto' }}>
-          <h2
-            style={{
-              fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              marginBottom: '14px',
-            }}
-          >
-            Your Entire Property Portfolio at a Glance
-          </h2>
-          <p
-            style={{
-              fontSize: '1.05rem',
-              color: '#94A3B8',
-              lineHeight: 1.6,
-              maxWidth: '680px',
-              margin: '0 auto 40px auto',
-            }}
-          >
-            Get a clear overview of your properties and daily operations without switching between multiple tools.
+          SECTION 7: DASHBOARD / PRODUCT SHOWCASE
+      ========================================================================== */}
+      <section className="py-20 px-4 sm:px-6 max-w-7xl mx-auto relative z-10 border-t border-slate-200/60 text-center">
+        <div className="max-w-3xl mx-auto mb-12">
+          <div className="text-xs font-bold uppercase tracking-wider text-blue-600 mb-2">COMPLETE VISIBILITY</div>
+          <h2 className="text-3xl font-extrabold text-slate-900">Your Entire Property Portfolio at a Glance</h2>
+          <p className="mt-3 text-sm text-slate-600">
+            Live operational intelligence across every aspect of your tenancy lifecycle.
           </p>
-
-          {/* Interactive Metric Showcase Pills */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '14px',
-              marginBottom: '40px',
-              textAlign: 'left',
-            }}
-          >
-            {[
-              { label: 'Total Properties', sub: 'Buildings & Estates' },
-              { label: 'Total Units', sub: 'Residential & Commercial' },
-              { label: 'Occupied Units', sub: 'Live Tenant Leases' },
-              { label: 'Vacant Units', sub: 'Ready for Assignment' },
-              { label: 'Active Tenants', sub: 'Verified Directory' },
-              { label: 'Rent Collected', sub: 'M-Pesa C2B & Bank' },
-              { label: 'Outstanding Rent', sub: 'Automated Reminders' },
-              { label: 'Maintenance Requests', sub: 'Tracked Workflows' },
-            ].map((card, i) => (
-              <div
-                key={i}
-                style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '14px',
-                  padding: '16px 18px',
-                }}
-              >
-                <div style={{ fontSize: '0.94rem', fontWeight: 700, color: '#FFFFFF' }}>{card.label}</div>
-                <div style={{ fontSize: '0.78rem', color: '#94A3B8', marginTop: '4px' }}>{card.sub}</div>
-              </div>
-            ))}
-          </div>
-
-          <Link
-            to="/signup"
-            style={{
-              textDecoration: 'none',
-              backgroundColor: '#4F46E5',
-              color: '#FFFFFF',
-              fontSize: '0.96rem',
-              fontWeight: 600,
-              padding: '13px 32px',
-              borderRadius: '9999px',
-              boxShadow: '0 4px 20px rgba(79, 70, 229, 0.4)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            <span>Explore Guri24</span>
-            <ArrowRight size={16} />
-          </Link>
         </div>
+
+        {/* 8 Feature Pills */}
+        <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto mb-10">
+          {[
+            'Occupancy',
+            'Rent Invoices',
+            'Collected Payments',
+            'Outstanding Balances',
+            'Maintenance Tickets',
+            'Tenancy Documents',
+            'Financial Summaries',
+            'Team Activity',
+          ].map((tag, i) => (
+            <span
+              key={i}
+              className="px-4 py-2 rounded-full bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:border-blue-400 hover:text-blue-600 transition-colors"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        <Link
+          to="/signup"
+          className="inline-flex items-center gap-2 px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-full shadow-md shadow-blue-500/25 transition-all"
+        >
+          Explore Guri24
+          <ArrowRight className="w-4 h-4" />
+        </Link>
       </section>
 
       {/* =========================================================================
-          8. SOLUTIONS SECTION
-          ========================================================================= */}
-      <section
-        id="solutions"
-        style={{
-          padding: '96px 24px',
-          maxWidth: '1240px',
-          margin: '0 auto',
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: '56px' }}>
-          <h2
-            style={{
-              fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
-              fontWeight: 800,
-              color: '#0F172A',
-              letterSpacing: '-0.03em',
-              marginBottom: '14px',
-            }}
-          >
-            Designed for Every Property Management Need
+          SECTION 8: SOLUTIONS (FOR LANDLORDS, MANAGERS, REAL ESTATE, TENANTS)
+      ========================================================================== */}
+      <section id="solutions" className="py-24 px-4 sm:px-6 max-w-7xl mx-auto relative z-10 border-t border-slate-200/60">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="inline-block text-xs font-bold uppercase tracking-wider text-blue-600 mb-2">
+            TAILORED WORKSPACES
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Solutions Tailored to How You Operate
           </h2>
+          <p className="mt-4 text-base text-slate-600">
+            Dedicated capabilities designed for every stakeholder in the property ecosystem.
+          </p>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))',
-            gap: '24px',
-          }}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             {
               title: 'For Landlords',
-              desc: 'Manage your rental properties, monitor rent collection and keep tenant records organized.',
+              desc: 'Keep track of rental income, expenses, occupancy and property performance without administrative stress.',
             },
             {
               title: 'For Property Managers',
-              desc: 'Coordinate multiple properties, manage teams, track maintenance and oversee daily rental operations.',
+              desc: 'Manage multiple buildings, units, tenant requests, rent collection and team tasks in one connected system.',
             },
             {
               title: 'For Real Estate Companies',
-              desc: 'Centralize property portfolios, standardize workflows and improve operational visibility across your organization.',
+              desc: 'Oversee property portfolios, staff assignments, business records and operational analytics from a central platform.',
             },
             {
               title: 'For Tenants',
-              desc: 'Access your tenancy information, view payment records, receive important notifications and manage your rental experience through the tenant portal.',
+              desc: 'Access tenancy details, view invoices, verify payment records and submit maintenance requests with ease.',
             },
           ].map((sol, idx) => (
             <div
               key={idx}
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '20px',
-                border: '1px solid #E2E8F0',
-                padding: '28px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)',
-              }}
+              className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between"
             >
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A' }}>{sol.title}</h3>
-              <p style={{ fontSize: '0.88rem', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
-                {sol.desc}
-              </p>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 mb-2">{sol.title}</h3>
+                <p className="text-sm text-slate-600 leading-relaxed">{sol.desc}</p>
+              </div>
+              <Link to="/signup" className="mt-6 text-xs font-semibold text-blue-600 inline-flex items-center gap-1">
+                Learn more <ArrowRight className="w-3 h-3" />
+              </Link>
             </div>
           ))}
         </div>
       </section>
 
       {/* =========================================================================
-          9. RESULTS / BUSINESS BENEFITS
-          ========================================================================= */}
-      <section
-        style={{
-          padding: '96px 24px',
-          backgroundColor: '#F8FAFC',
-          borderTop: '1px solid #F1F5F9',
-          borderBottom: '1px solid #F1F5F9',
-        }}
-      >
-        <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '56px' }}>
-            <h2
-              style={{
-                fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
-                fontWeight: 800,
-                color: '#0F172A',
-                letterSpacing: '-0.03em',
-                marginBottom: '14px',
-              }}
-            >
-              Better Visibility. Better Decisions. Better Property Management.
-            </h2>
-            <p
-              style={{
-                fontSize: '1.05rem',
-                color: '#64748B',
-                lineHeight: 1.6,
-                maxWidth: '680px',
-                margin: '0 auto',
-              }}
-            >
-              Guri24 helps bring your rental operations together so you can make informed decisions using organized, accessible business information.
-            </p>
-          </div>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-              gap: '20px',
-            }}
-          >
-            {[
-              {
-                title: 'Centralized Records',
-                desc: 'Your property and tenant information organized in one platform.',
-              },
-              {
-                title: 'Improved Rent Tracking',
-                desc: 'Understand rental invoices, collections and outstanding balances.',
-              },
-              {
-                title: 'Efficient Operations',
-                desc: 'Coordinate maintenance, leases, documents and team responsibilities.',
-              },
-              {
-                title: 'Actionable Insights',
-                desc: 'Understand property performance with analytics and AI-assisted interpretation.',
-              },
-            ].map((card, i) => (
-              <div
-                key={i}
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '18px',
-                  border: '1px solid #E2E8F0',
-                  padding: '24px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-                }}
-              >
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#4F46E5', marginBottom: '12px' }} />
-                <h4 style={{ fontSize: '1.08rem', fontWeight: 700, color: '#0F172A', marginBottom: '6px' }}>
-                  {card.title}
-                </h4>
-                <p style={{ fontSize: '0.86rem', color: '#64748B', lineHeight: 1.55, margin: 0 }}>
-                  {card.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          10. FINAL CALL TO ACTION
-          ========================================================================= */}
-      <section
-        style={{
-          padding: '100px 24px',
-          textAlign: 'center',
-          backgroundColor: '#FFFFFF',
-        }}
-      >
-        <div style={{ maxWidth: '820px', margin: '0 auto' }}>
-          <h2
-            style={{
-              fontSize: 'clamp(2.2rem, 4.5vw, 3.4rem)',
-              fontWeight: 800,
-              color: '#0F172A',
-              letterSpacing: '-0.035em',
-              lineHeight: 1.15,
-              marginBottom: '18px',
-            }}
-          >
-            Ready to Take Control of Your Properties?
-          </h2>
-          <p
-            style={{
-              fontSize: '1.08rem',
-              color: '#64748B',
-              lineHeight: 1.6,
-              maxWidth: '680px',
-              margin: '0 auto 36px auto',
-            }}
-          >
-            Bring your property management operations together with Guri24. Start organizing your properties, managing tenants and gaining better visibility into your rental business.
-          </p>
-
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '14px',
-              flexWrap: 'wrap',
-              marginBottom: '20px',
-            }}
-          >
-            <Link
-              to="/signup"
-              style={{
-                textDecoration: 'none',
-                backgroundColor: '#4F46E5',
-                color: '#FFFFFF',
-                fontSize: '0.98rem',
-                fontWeight: 600,
-                padding: '14px 34px',
-                borderRadius: '9999px',
-                boxShadow: '0 4px 18px rgba(79, 70, 229, 0.35)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
-              <span>Get Started Today</span>
-              <ArrowRight size={16} />
-            </Link>
-
-            <button
-              type="button"
-              onClick={() => setIsDemoModalOpen(true)}
-              style={{
-                backgroundColor: '#FFFFFF',
-                color: '#0F172A',
-                border: '1px solid #CBD5E1',
-                fontSize: '0.98rem',
-                fontWeight: 600,
-                padding: '14px 28px',
-                borderRadius: '9999px',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
-              <Phone size={16} color="#4F46E5" />
-              <span>Talk to Our Team</span>
-            </button>
-          </div>
-
-          <p style={{ fontSize: '0.86rem', color: '#94A3B8', margin: 0, fontWeight: 500 }}>
-            Your properties. Your tenants. Your operations. One platform.
-          </p>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          11. FOOTER
-          ========================================================================= */}
-      <footer
-        id="contact"
-        style={{
-          backgroundColor: '#0F172A',
-          color: '#FFFFFF',
-          padding: '80px 24px 36px 24px',
-          borderTop: '1px solid #1E293B',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '1240px',
-            margin: '0 auto',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '40px',
-            marginBottom: '60px',
-          }}
-        >
-          {/* Brand Info */}
-          <div style={{ maxWidth: '320px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '8px',
-                  backgroundColor: '#4F46E5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Building2 size={18} color="#FFFFFF" />
-              </div>
-              <span style={{ fontSize: '1.35rem', fontWeight: 800 }}>Guri24</span>
+          SECTION 9: RESULTS / BUSINESS BENEFITS
+      ========================================================================== */}
+      <section className="py-20 px-4 sm:px-6 max-w-7xl mx-auto relative z-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            { metric: '40%', label: 'Faster Processing', sub: 'Automated invoice allocation' },
+            { metric: '3×', label: 'Higher Team Alignment', sub: 'Centralized tenant records' },
+            { metric: '100%', label: 'Audit Readiness', sub: 'Immutable double-entry ledger' },
+            { metric: '10k+', label: 'Active Units Supported', sub: 'Engineered for high scale' },
+          ].map((stat, i) => (
+            <div key={i} className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs text-center">
+              <div className="text-3xl sm:text-4xl font-black text-blue-600">{stat.metric}</div>
+              <div className="text-sm font-bold text-slate-900 mt-2">{stat.label}</div>
+              <div className="text-xs text-slate-500 mt-1">{stat.sub}</div>
             </div>
-            <p style={{ fontSize: '0.86rem', color: '#94A3B8', lineHeight: 1.6 }}>
-              Simplifying property management through connected technology, smarter operations and better business visibility.
+          ))}
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 10: FINAL CTA BANNER (ROYAL BLUE CONTAINER MATCHING REFERENCE)
+      ========================================================================== */}
+      <section id="contact" className="py-20 px-4 sm:px-6 max-w-7xl mx-auto relative z-10">
+        <div className="bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-800 rounded-3xl p-8 sm:p-14 text-white text-center relative overflow-hidden shadow-2xl shadow-blue-500/25">
+          {/* Subtle Cloud Texture overlay in banner */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 max-w-2xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+              Ready to Take Control of Your Properties?
+            </h2>
+            <p className="mt-4 text-sm sm:text-base text-blue-100">
+              Join property managers, landlords and real estate companies using Guri24 to simplify operations and grow their business.
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+              <Link
+                to="/signup"
+                className="bg-white hover:bg-slate-50 text-blue-700 font-bold px-7 py-3 rounded-full shadow-lg transition-all"
+              >
+                Get Started
+              </Link>
+              <button
+                onClick={() => setDemoModalOpen(true)}
+                className="bg-blue-800/80 hover:bg-blue-800 text-white font-medium px-6 py-3 rounded-full border border-blue-400/40 transition-all"
+              >
+                Book a Demo
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 11: FOOTER (MATCHING SPECIFICATION EXACTLY)
+      ========================================================================== */}
+      <footer className="bg-white border-t border-slate-200 py-16 px-4 sm:px-6 relative z-10 text-sm text-slate-600">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+          {/* Brand Column */}
+          <div className="col-span-2">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
+                G
+              </div>
+              <span className="font-extrabold text-xl text-slate-900 tracking-tight">
+                Guri<span className="text-blue-600">24</span>
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
+              Smart property management platform for rental properties, tenants, leases, automated C2B payments and financial records.
             </p>
           </div>
 
-          {/* Platform */}
+          {/* Column 1: Platform */}
           <div>
-            <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '16px' }}>
-              Platform
-            </h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.86rem', color: '#94A3B8' }}>
-              <li>Property Management</li>
-              <li>Tenant Management</li>
-              <li>Rent Collection</li>
-              <li>Maintenance</li>
-              <li>Analytics & Reports</li>
+            <div className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Platform</div>
+            <ul className="space-y-2 text-xs">
+              <li><a href="#features" className="hover:text-blue-600">Property Management</a></li>
+              <li><a href="#features" className="hover:text-blue-600">Tenant Directory</a></li>
+              <li><a href="#features" className="hover:text-blue-600">Rent Collection & C2B</a></li>
+              <li><a href="#features" className="hover:text-blue-600">Maintenance Tickets</a></li>
             </ul>
           </div>
 
-          {/* Company */}
+          {/* Column 2: Company */}
           <div>
-            <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '16px' }}>
-              Company
-            </h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.86rem', color: '#94A3B8' }}>
-              <li>About Guri24</li>
-              <li>Contact Us</li>
-              <li>
-                <button
-                  type="button"
-                  onClick={() => setIsDemoModalOpen(true)}
-                  style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, fontSize: '0.86rem' }}
-                >
-                  Book a Demo
-                </button>
-              </li>
+            <div className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Company</div>
+            <ul className="space-y-2 text-xs">
+              <li><a href="#why-guri24" className="hover:text-blue-600">About Us</a></li>
+              <li><a href="#solutions" className="hover:text-blue-600">Solutions</a></li>
+              <li><a href="#contact" className="hover:text-blue-600">Contact Sales</a></li>
+              <li><Link to="/app/dashboard" className="hover:text-blue-600">Client Portal</Link></li>
             </ul>
           </div>
 
-          {/* Support */}
+          {/* Column 3: Legal & Support */}
           <div>
-            <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '16px' }}>
-              Support
-            </h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.86rem', color: '#94A3B8' }}>
-              <li>Help Center</li>
-              <li>Documentation</li>
-              <li>FAQs</li>
-              <li>Contact Support</li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '16px' }}>
-              Legal
-            </h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.86rem', color: '#94A3B8' }}>
-              <li>Privacy Policy</li>
-              <li>Terms of Service</li>
-              <li>Data Protection (Kenya DPA 2019)</li>
+            <div className="font-bold text-slate-900 mb-3 text-xs uppercase tracking-wider">Legal & Security</div>
+            <ul className="space-y-2 text-xs">
+              <li><Link to="/legal/privacy" className="hover:text-blue-600">Privacy Policy</Link></li>
+              <li><Link to="/legal/terms" className="hover:text-blue-600">Terms of Service</Link></li>
+              <li><Link to="/legal/data-protection" className="hover:text-blue-600">Kenya DPA Compliance</Link></li>
+              <li><span className="text-slate-400">Short Code: 1343073</span></li>
             </ul>
           </div>
         </div>
 
-        {/* Footer Bottom */}
-        <div
-          style={{
-            maxWidth: '1240px',
-            margin: '0 auto',
-            paddingTop: '24px',
-            borderTop: '1px solid #1E293B',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '14px',
-            fontSize: '0.80rem',
-            color: '#64748B',
-          }}
-        >
-          <div>© 2026 Guri24. All rights reserved.</div>
-          <div style={{ display: 'flex', gap: '20px' }}>
-            <span>Nairobi, Kenya</span>
-            <span>M-Pesa C2B V2 Paybill: 1343073</span>
+        <div className="max-w-7xl mx-auto pt-8 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+          <div>© 2026 Guri24 Rental Management Ltd. All rights reserved.</div>
+          <div className="flex items-center gap-6">
+            <span>Built for Kenyan Property Managers</span>
+            <span>Daraja C2B V2 Powered</span>
           </div>
         </div>
       </footer>
 
       {/* =========================================================================
-          BOOK A DEMO / TALK TO TEAM MODAL
-          ========================================================================= */}
-      {isDemoModalOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.6)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 100,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#FFFFFF',
-              borderRadius: '24px',
-              padding: '32px',
-              maxWidth: '480px',
-              width: '100%',
-              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
-              position: 'relative',
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setIsDemoModalOpen(false)}
-              style={{
-                position: 'absolute',
-                top: '20px',
-                right: '20px',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: '#64748B',
-              }}
+          INTERACTIVE "BOOK A DEMO" MODAL (FRAMER MOTION ANIMATED)
+      ========================================================================== */}
+      <AnimatePresence>
+        {demoModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDemoModalOpen(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+
+            {/* Modal Dialog */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              transition={{ duration: 0.2 }}
+              className="relative w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 z-10"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-title"
             >
-              <X size={20} />
-            </button>
+              <button
+                onClick={() => setDemoModalOpen(false)}
+                className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 rounded-full"
+                aria-label="Close dialog"
+              >
+                <X className="w-5 h-5" />
+              </button>
 
-            {demoSubmitted ? (
-              <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: '#DCFCE7', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto' }}>
-                  <CheckCircle2 size={32} />
+              {demoSubmitted ? (
+                <div className="text-center py-8">
+                  <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4">
+                    <Check className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900">Demo Scheduled!</h3>
+                  <p className="text-sm text-slate-600 mt-2">
+                    Our team will reach out at <span className="font-semibold text-slate-800">{demoForm.email}</span> within 2 business hours.
+                  </p>
                 </div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
-                  Demo Request Received!
-                </h3>
-                <p style={{ fontSize: '0.88rem', color: '#64748B', lineHeight: 1.5 }}>
-                  Our property technology team will contact you shortly to schedule your personalized live Guri24 demonstration.
-                </p>
-              </div>
-            ) : (
-              <div>
-                <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', marginBottom: '6px' }}>
-                  Book a Live Guri24 Demo
-                </h3>
-                <p style={{ fontSize: '0.86rem', color: '#64748B', lineHeight: 1.5, marginBottom: '20px' }}>
-                  See how Guri24 automates rent collection, leases, tenant management, and property accounting.
-                </p>
-
-                <form onSubmit={handleDemoSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              ) : (
+                <form onSubmit={handleDemoSubmit} className="space-y-4">
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                      Full Name
-                    </label>
+                    <h3 id="modal-title" className="text-xl font-extrabold text-slate-900">
+                      Book a Guri24 Walkthrough
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1">
+                      See how our C2B V2 payment reconciliation and portfolio tools can automate your rentals.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Your Full Name</label>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. David Kamau"
+                      placeholder="e.g. Peter Gatitu"
                       value={demoForm.name}
                       onChange={(e) => setDemoForm({ ...demoForm, name: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '10px 14px',
-                        borderRadius: '10px',
-                        border: '1px solid #CBD5E1',
-                        fontSize: '0.88rem',
-                        boxSizing: 'border-box',
-                      }}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
                     />
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                      Work Email
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="e.g. david@kamauproperties.co.ke"
-                      value={demoForm.email}
-                      onChange={(e) => setDemoForm({ ...demoForm, email: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '10px 14px',
-                        borderRadius: '10px',
-                        border: '1px solid #CBD5E1',
-                        fontSize: '0.88rem',
-                        boxSizing: 'border-box',
-                      }}
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Work Email</label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="peter@company.com"
+                        value={demoForm.email}
+                        onChange={(e) => setDemoForm({ ...demoForm, email: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="0712 345 678"
+                        value={demoForm.phone}
+                        onChange={(e) => setDemoForm({ ...demoForm, phone: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                      Phone / WhatsApp Number
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="e.g. +254 712 345 678"
-                      value={demoForm.phone}
-                      onChange={(e) => setDemoForm({ ...demoForm, phone: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '10px 14px',
-                        borderRadius: '10px',
-                        border: '1px solid #CBD5E1',
-                        fontSize: '0.88rem',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
-                      Portfolio Size (Approx Units)
-                    </label>
-                    <select
-                      value={demoForm.unitCount}
-                      onChange={(e) => setDemoForm({ ...demoForm, unitCount: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '10px 14px',
-                        borderRadius: '10px',
-                        border: '1px solid #CBD5E1',
-                        fontSize: '0.88rem',
-                        boxSizing: 'border-box',
-                        backgroundColor: '#FFFFFF',
-                      }}
-                    >
-                      <option value="1 - 10 Units">1 - 10 Units</option>
-                      <option value="10 - 50 Units">10 - 50 Units</option>
-                      <option value="50 - 200 Units">50 - 200 Units</option>
-                      <option value="200+ Units">200+ Units (Enterprise)</option>
-                    </select>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Portfolio Size</label>
+                      <select
+                        value={demoForm.units}
+                        onChange={(e) => setDemoForm({ ...demoForm, units: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
+                      >
+                        <option>1-24 units</option>
+                        <option>25-100 units</option>
+                        <option>101-500 units</option>
+                        <option>500+ units</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">Your Role</label>
+                      <select
+                        value={demoForm.role}
+                        onChange={(e) => setDemoForm({ ...demoForm, role: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
+                      >
+                        <option>Property Manager</option>
+                        <option>Property Owner / Landlord</option>
+                        <option>Real Estate Executive</option>
+                        <option>Accountant</option>
+                      </select>
+                    </div>
                   </div>
 
                   <button
                     type="submit"
-                    style={{
-                      marginTop: '8px',
-                      backgroundColor: '#4F46E5',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      borderRadius: '12px',
-                      padding: '12px 20px',
-                      fontSize: '0.92rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
-                    }}
+                    className="w-full mt-2 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl shadow-md shadow-blue-500/25 transition-all"
                   >
-                    Confirm Demo Request
+                    Confirm Demo Booking
                   </button>
                 </form>
-              </div>
-            )}
+              )}
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };
