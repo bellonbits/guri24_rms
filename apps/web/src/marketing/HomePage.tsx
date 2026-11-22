@@ -58,7 +58,7 @@ export const HomePage: React.FC = () => {
         overflowX: 'hidden',
       }}
     >
-      {/* Scoped CSS for responsive grids, logo cards, and clean typography */}
+      {/* Scoped CSS for responsive grids, borderless logos, and 3D card perspective */}
       <style>{`
         .tt-container {
           width: 100%;
@@ -99,46 +99,42 @@ export const HomePage: React.FC = () => {
         }
         .tt-social-float {
           position: absolute;
-          width: 46px;
-          height: 46px;
+          width: 48px;
+          height: 48px;
           border-radius: 14px;
           background-color: #FFFFFF;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+          box-shadow: 0 12px 28px rgba(0,0,0,0.08);
           display: flex;
           align-items: center;
           justify-content: center;
           border: 1px solid #E2E8F0;
           z-index: 20;
+          transition: transform 0.2s ease;
         }
-        .partner-logo-card {
-          background-color: #FFFFFF;
-          padding: 10px 18px;
-          border-radius: 12px;
-          border: 1px solid #E2E8F0;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        .tt-social-float:hover {
+          transform: scale(1.1) translateY(-2px);
+        }
+        /* BORDERLESS PARTNER LOGO STRIP */
+        .partner-logo-item {
           display: flex;
           align-items: center;
           justify-content: center;
-          height: 48px;
-          box-sizing: border-box;
-          transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+          padding: 8px 12px;
+          transition: transform 0.2s ease, opacity 0.2s ease;
+          cursor: default;
         }
-        .partner-logo-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 18px rgba(37,99,235,0.08);
-          border-color: #93C5FD;
+        .partner-logo-item:hover {
+          transform: translateY(-3px) scale(1.05);
         }
-        .partner-logo-card img {
-          max-height: 28px;
-          max-width: 120px;
+        .partner-logo-item img {
+          max-height: 38px;
+          max-width: 140px;
           object-fit: contain;
+          display: block;
         }
-        .hero-dashboard-frame {
-          border-radius: 24px;
-          overflow: hidden;
-          box-shadow: 0 30px 70px -15px rgba(37, 99, 235, 0.18), 0 0 1px rgba(15, 23, 42, 0.08);
-          border: 1px solid #CBD5E1;
-          background-color: #FFFFFF;
+        /* 3D CARD PERSPECTIVE CONTAINER */
+        .card-3d-perspective {
+          perspective: 1200px;
         }
         @media (max-width: 900px) {
           .tt-desktop-nav { display: none !important; }
@@ -151,11 +147,12 @@ export const HomePage: React.FC = () => {
           .tt-pricing-grid { grid-template-columns: 1fr !important; }
           .tt-footer-content { flex-direction: column !important; gap: 32px !important; }
           .tt-social-float { display: none !important; }
+          .hero-3d-layer-behind { display: none !important; }
         }
       `}</style>
 
       {/* =========================================================================
-          SECTION 1: HERO CONTAINER (TRENDTIDE PALETTE & LAYOUT)
+          SECTION 1: HERO CONTAINER (TRENDTIDE PALETTE & 3D LAYERED MOCKUP)
       ========================================================================== */}
       <section
         style={{
@@ -179,18 +176,18 @@ export const HomePage: React.FC = () => {
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
               <div
                 style={{
-                  width: '34px',
-                  height: '34px',
+                  width: '36px',
+                  height: '36px',
                   borderRadius: '10px',
                   backgroundColor: '#2563EB',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#FFFFFF',
-                  boxShadow: '0 4px 10px rgba(37,99,235,0.3)',
+                  boxShadow: '0 4px 12px rgba(37,99,235,0.35)',
                 }}
               >
-                <BuildingOffice2Icon style={{ width: '20px', height: '20px' }} />
+                <BuildingOffice2Icon style={{ width: '22px', height: '22px' }} />
               </div>
               <span style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
                 Guri<span style={{ color: '#2563EB' }}>24</span>
@@ -297,31 +294,75 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* ----------------- Hero Dashboard Showcase with Floating Heroicons ----------------- */}
-          <div style={{ position: 'relative', maxWidth: '960px', margin: '48px auto 0 auto' }}>
+          {/* ----------------- 3D Layered Perspective Showcase ----------------- */}
+          <div className="card-3d-perspective" style={{ position: 'relative', maxWidth: '980px', margin: '54px auto 0 auto' }}>
             {/* 6 Floating Service Badges with Heroicons (NO EMOJIS) */}
-            <div className="tt-social-float" style={{ top: '-10px', left: '-20px' }} title="M-Pesa C2B Paybill 1343073">
-              <DevicePhoneMobileIcon style={{ width: '22px', height: '22px', color: '#16A34A' }} />
+            <div className="tt-social-float" style={{ top: '-12px', left: '-24px' }} title="M-Pesa C2B Paybill 1343073">
+              <DevicePhoneMobileIcon style={{ width: '24px', height: '24px', color: '#16A34A' }} />
             </div>
-            <div className="tt-social-float" style={{ top: '80px', left: '-40px' }} title="Bank Reconciliation">
-              <BuildingLibraryIcon style={{ width: '22px', height: '22px', color: '#2563EB' }} />
+            <div className="tt-social-float" style={{ top: '80px', left: '-48px' }} title="Bank Reconciliation">
+              <BuildingLibraryIcon style={{ width: '24px', height: '24px', color: '#2563EB' }} />
             </div>
-            <div className="tt-social-float" style={{ bottom: '60px', left: '-20px' }} title="Rent Ledger">
-              <CreditCardIcon style={{ width: '22px', height: '22px', color: '#0284C7' }} />
-            </div>
-
-            <div className="tt-social-float" style={{ top: '-10px', right: '-20px' }} title="AI Assistant">
-              <SparklesIcon style={{ width: '22px', height: '22px', color: '#2563EB' }} />
-            </div>
-            <div className="tt-social-float" style={{ top: '90px', right: '-40px' }} title="KRA Tax Compliance">
-              <ShieldCheckIcon style={{ width: '22px', height: '22px', color: '#DC2626' }} />
-            </div>
-            <div className="tt-social-float" style={{ bottom: '50px', right: '-20px' }} title="Automated Receipts">
-              <DocumentTextIcon style={{ width: '22px', height: '22px', color: '#F59E0B' }} />
+            <div className="tt-social-float" style={{ bottom: '60px', left: '-24px' }} title="Rent Ledger">
+              <CreditCardIcon style={{ width: '24px', height: '24px', color: '#0284C7' }} />
             </div>
 
-            {/* High-Fidelity Luxury Property Dashboard Image Frame */}
-            <div className="hero-dashboard-frame">
+            <div className="tt-social-float" style={{ top: '-12px', right: '-24px' }} title="AI Property Assistant">
+              <SparklesIcon style={{ width: '24px', height: '24px', color: '#2563EB' }} />
+            </div>
+            <div className="tt-social-float" style={{ top: '80px', right: '-48px' }} title="KRA Tax Compliance">
+              <ShieldCheckIcon style={{ width: '24px', height: '24px', color: '#DC2626' }} />
+            </div>
+            <div className="tt-social-float" style={{ bottom: '60px', right: '-24px' }} title="Automated Receipts">
+              <DocumentTextIcon style={{ width: '24px', height: '24px', color: '#F59E0B' }} />
+            </div>
+
+            {/* Tilted 3D Background Card Layer peaking from behind */}
+            <div
+              className="hero-3d-layer-behind"
+              style={{
+                position: 'absolute',
+                top: '-24px',
+                left: '20px',
+                right: '20px',
+                height: '520px',
+                borderRadius: '28px',
+                overflow: 'hidden',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.06)',
+                transform: 'rotate(-2.5deg) scale(0.96)',
+                opacity: 0.5,
+                zIndex: 0,
+                border: '1px solid #CBD5E1',
+                pointerEvents: 'none',
+              }}
+            >
+              <img
+                src="/layered-3d-compliance.jpg"
+                alt="3D Multi-Layered Overview"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
+
+            {/* Foreground 3D Interactive Framer Motion Dashboard Card */}
+            <motion.div
+              whileHover={{
+                rotateX: -2,
+                rotateY: 2,
+                scale: 1.01,
+                boxShadow: '0 35px 80px -15px rgba(37, 99, 235, 0.22)',
+              }}
+              transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+              style={{
+                position: 'relative',
+                borderRadius: '24px',
+                overflow: 'hidden',
+                boxShadow: '0 30px 70px -15px rgba(37, 99, 235, 0.18), 0 0 1px rgba(15, 23, 42, 0.08)',
+                border: '1px solid #CBD5E1',
+                backgroundColor: '#FFFFFF',
+                zIndex: 10,
+                transformStyle: 'preserve-3d',
+              }}
+            >
               <img
                 src="/dashboard-preview.jpg"
                 alt="Guri24 Rental Management Dashboard Preview"
@@ -332,51 +373,52 @@ export const HomePage: React.FC = () => {
                   objectFit: 'cover',
                 }}
               />
-            </div>
+            </motion.div>
           </div>
 
-          {/* ----------------- Official Partners Logo Strip ----------------- */}
+          {/* ----------------- BORDERLESS PARTNER LOGO STRIP (ZERO BORDERS) ----------------- */}
           <div style={{ marginTop: '56px', textAlign: 'center' }}>
-            <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94A3B8', marginBottom: '20px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94A3B8', marginBottom: '22px' }}>
               Trusted by Kenya's Leading Property & Financial Networks
             </div>
 
+            {/* BORDERLESS, CLEAN LOGOS FLOATING ON CANVAS */}
             <div
               style={{
                 display: 'flex',
                 flexWrap: 'wrap',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '16px',
+                gap: '40px',
               }}
             >
               {/* Safaricom M-Pesa C2B */}
-              <div className="partner-logo-card" title="Safaricom Lipa Na M-Pesa C2B">
+              <div className="partner-logo-item" title="Safaricom Lipa Na M-Pesa C2B">
                 <img src="/logos/mpesa-c2b.png" alt="Safaricom M-Pesa C2B" />
               </div>
 
               {/* KCB Bank */}
-              <div className="partner-logo-card" title="KCB Bank">
+              <div className="partner-logo-item" title="KCB Bank">
                 <img src="/logos/kcb-bank.png" alt="KCB Bank" />
               </div>
 
               {/* Equity Group */}
-              <div className="partner-logo-card" title="Equity Group">
+              <div className="partner-logo-item" title="Equity Group">
                 <img src="/logos/equity-bank.png" alt="Equity Group" />
               </div>
 
-              {/* Co-operative Bank */}
-              <div className="partner-logo-card" title="Co-operative Bank">
+              {/* Co-operative Bank (WHITE LETTERS PROCESSED TO BLACK FOR PERFECT CONTRAST) */}
+              <div className="partner-logo-item" title="Co-operative Bank">
                 <img src="/logos/coop-bank.png" alt="Co-operative Bank" />
               </div>
 
               {/* KRA iTax */}
-              <div className="partner-logo-card" title="Kenya Revenue Authority iTax">
+              <div className="partner-logo-item" title="Kenya Revenue Authority iTax">
                 <img src="/logos/kra-itax.png" alt="KRA iTax" />
               </div>
 
               {/* HassConsult */}
-              <div className="partner-logo-card" title="HassConsult Real Estate">
+              <div className="partner-logo-item" title="HassConsult Real Estate">
                 <img src="/logos/hassconsult.png" alt="HassConsult" />
               </div>
             </div>
@@ -385,7 +427,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* =========================================================================
-          SECTION 2: NARRATIVE STATEMENT WITH HEROICONS (STRICTLY NO EMOJIS)
+          SECTION 2: NARRATIVE STATEMENT WITH HEROICONS (STRICTLY ZERO EMOJIS)
       ========================================================================== */}
       <section style={{ padding: '72px 24px', textAlign: 'center' }}>
         <div style={{ maxWidth: '820px', margin: '0 auto' }}>
@@ -441,12 +483,14 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* =========================================================================
-          SECTION 3: 3 ALTERNATING PASTEL FEATURE CARDS WITH HIGH-RES IMAGERY
+          SECTION 3: 3 ALTERNATING PASTEL FEATURE CARDS WITH FRAMER 3D DEPTH
       ========================================================================== */}
       <section id="features" style={{ padding: '0 24px 80px 24px' }}>
         <div className="tt-container" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {/* ---------------- CARD 1: SOFT BLUE BANNER (OCCUPANCY GROWTH + NAIROBI BALCONIES) ---------------- */}
-          <div
+          {/* ---------------- CARD 1: SOFT BLUE BANNER (SARAH'S PROPERTY DASHBOARD) ---------------- */}
+          <motion.div
+            whileHover={{ y: -5, scale: 1.01 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 20 }}
             className="tt-feature-banner"
             style={{
               backgroundColor: '#EFF6FF',
@@ -456,6 +500,7 @@ export const HomePage: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: '40px',
+              boxShadow: '0 4px 20px rgba(37,99,235,0.04)',
             }}
           >
             {/* Left Content */}
@@ -489,46 +534,32 @@ export const HomePage: React.FC = () => {
               </button>
             </div>
 
-            {/* Right Embedded Card with Real Architecture Image & Clean Chart */}
-            <div
+            {/* Right Embedded 3D Card with Property Manager Dashboard Image */}
+            <motion.div
+              whileHover={{ rotateY: -3, scale: 1.02 }}
               className="tt-feature-banner-right"
               style={{
-                width: '440px',
-                backgroundColor: '#FFFFFF',
+                width: '460px',
                 borderRadius: '20px',
-                padding: '20px',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
-                boxSizing: 'border-box',
-                border: '1px solid #E2E8F0',
+                overflow: 'hidden',
+                boxShadow: '0 16px 36px rgba(0,0,0,0.08)',
+                border: '1px solid #CBD5E1',
+                backgroundColor: '#FFFFFF',
+                transformStyle: 'preserve-3d',
               }}
             >
-              <div style={{ height: '120px', borderRadius: '12px', overflow: 'hidden', position: 'relative', marginBottom: '14px' }}>
-                <img
-                  src="/modern-organic-balconies.jpg"
-                  alt="Modern Residences"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-                <div style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(6px)', color: '#FFFFFF', fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '9999px' }}>
-                  94.4% Occupied
-                </div>
-              </div>
+              <img
+                src="/property-manager-dashboard.jpg"
+                alt="Property Manager Live Console"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
+            </motion.div>
+          </motion.div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Occupancy Growth Trend</span>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB' }}>2026 Active</span>
-              </div>
-
-              <div style={{ height: '70px', width: '100%' }}>
-                <svg viewBox="0 0 300 80" style={{ width: '100%', height: '100%' }}>
-                  <path d="M 10 70 Q 80 50 140 35 T 230 20 T 290 10" fill="none" stroke="#2563EB" strokeWidth="3" />
-                  <circle cx="230" cy="20" r="4" fill="#2563EB" stroke="#FFFFFF" strokeWidth="2" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          {/* ---------------- CARD 2: SOFT PEACH BANNER (METRICS ANALYSIS + LUXURY INTERIOR) ---------------- */}
-          <div
+          {/* ---------------- CARD 2: SOFT PEACH BANNER (SLEEK CAMPAIGN & METRIC HUD) ---------------- */}
+          <motion.div
+            whileHover={{ y: -5, scale: 1.01 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 20 }}
             className="tt-feature-banner"
             style={{
               backgroundColor: '#FFF5EB',
@@ -538,6 +569,7 @@ export const HomePage: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: '40px',
+              boxShadow: '0 4px 20px rgba(249,115,22,0.04)',
             }}
           >
             {/* Left Content */}
@@ -571,46 +603,32 @@ export const HomePage: React.FC = () => {
               </button>
             </div>
 
-            {/* Right Embedded Metric Card */}
-            <div
+            {/* Right Embedded 3D Card with Sleek Console Mockup */}
+            <motion.div
+              whileHover={{ rotateY: -3, scale: 1.02 }}
               className="tt-feature-banner-right"
               style={{
-                width: '440px',
-                backgroundColor: '#FFFFFF',
+                width: '460px',
                 borderRadius: '20px',
-                padding: '20px',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
-                boxSizing: 'border-box',
-                border: '1px solid #E2E8F0',
+                overflow: 'hidden',
+                boxShadow: '0 16px 36px rgba(0,0,0,0.08)',
+                border: '1px solid #CBD5E1',
+                backgroundColor: '#FFFFFF',
+                transformStyle: 'preserve-3d',
               }}
             >
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div style={{ padding: '12px', backgroundColor: '#F8FAFC', borderRadius: '12px' }}>
-                  <div style={{ fontSize: '11px', color: '#64748B' }}>Collected Rent</div>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>KES 240,420</div>
-                  <div style={{ fontSize: '10px', color: '#16A34A', fontWeight: 700, marginTop: '2px' }}>+23% this month</div>
-                </div>
-                <div style={{ padding: '12px', backgroundColor: '#F8FAFC', borderRadius: '12px' }}>
-                  <div style={{ fontSize: '11px', color: '#64748B' }}>Security Deposits</div>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>KES 66,816</div>
-                  <div style={{ fontSize: '10px', color: '#16A34A', fontWeight: 700, marginTop: '2px' }}>Account 2100 Held</div>
-                </div>
-              </div>
+              <img
+                src="/sleek-console-mockup.jpg"
+                alt="Sleek Metric Performance Console"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
+            </motion.div>
+          </motion.div>
 
-              {/* Double-Bar Comparison Chart (Orange & Grey) */}
-              <div style={{ marginTop: '16px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '60px', gap: '6px' }}>
-                {[30, 40, 35, 60, 50, 80, 70, 95].map((v, i) => (
-                  <div key={i} style={{ flex: 1, display: 'flex', gap: '2px', height: '100%', alignItems: 'flex-end' }}>
-                    <div style={{ flex: 1, height: `${v}%`, backgroundColor: '#F97316', borderRadius: '2px' }} />
-                    <div style={{ flex: 1, height: `${v * 0.7}%`, backgroundColor: '#E2E8F0', borderRadius: '2px' }} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* ---------------- CARD 3: SOFT LAVENDER BANNER (FINANCIAL MANAGEMENT + RESIDENCE) ---------------- */}
-          <div
+          {/* ---------------- CARD 3: SOFT LAVENDER BANNER (ISOMETRIC 3D CARDS) ---------------- */}
+          <motion.div
+            whileHover={{ y: -5, scale: 1.01 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 20 }}
             className="tt-feature-banner"
             style={{
               backgroundColor: '#FAF5FF',
@@ -620,6 +638,7 @@ export const HomePage: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: '40px',
+              boxShadow: '0 4px 20px rgba(147,51,234,0.04)',
             }}
           >
             {/* Left Content */}
@@ -653,44 +672,27 @@ export const HomePage: React.FC = () => {
               </button>
             </div>
 
-            {/* Right Embedded Table Card with Real Interior Image */}
-            <div
+            {/* Right Embedded 3D Card with Isometric 3D Cards */}
+            <motion.div
+              whileHover={{ rotateY: -3, scale: 1.02 }}
               className="tt-feature-banner-right"
               style={{
-                width: '440px',
-                backgroundColor: '#FFFFFF',
+                width: '460px',
                 borderRadius: '20px',
-                padding: '20px',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
-                boxSizing: 'border-box',
-                border: '1px solid #E2E8F0',
+                overflow: 'hidden',
+                boxShadow: '0 16px 36px rgba(0,0,0,0.08)',
+                border: '1px solid #CBD5E1',
+                backgroundColor: '#FFFFFF',
+                transformStyle: 'preserve-3d',
               }}
             >
-              <div style={{ height: '90px', borderRadius: '10px', overflow: 'hidden', marginBottom: '14px' }}>
-                <img src="/luxury-minimalist-living.jpg" alt="Interior Living" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '10px' }}>
-                <span>Paid Activity</span>
-                <span style={{ color: '#2563EB' }}>Daraja C2B Verified</span>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid #F1F5F9' }}>
-                  <span style={{ fontWeight: 600, color: '#0F172A' }}>Apt 4B - Rent</span>
-                  <span style={{ color: '#16A34A', fontWeight: 700 }}>+KES 25,000</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid #F1F5F9' }}>
-                  <span style={{ fontWeight: 600, color: '#0F172A' }}>Unit 2A - Partial</span>
-                  <span style={{ color: '#16A34A', fontWeight: 700 }}>+KES 15,000</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0' }}>
-                  <span style={{ fontWeight: 600, color: '#0F172A' }}>Apt 1C - Deposit</span>
-                  <span style={{ color: '#16A34A', fontWeight: 700 }}>+KES 25,000</span>
-                </div>
-              </div>
-            </div>
-          </div>
+              <img
+                src="/isometric-3d-cards.jpg"
+                alt="Isometric 3D Monthly Summaries"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
