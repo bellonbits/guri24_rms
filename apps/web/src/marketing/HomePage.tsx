@@ -58,8 +58,14 @@ export const HomePage: React.FC = () => {
         overflowX: 'hidden',
       }}
     >
-      {/* Scoped CSS for responsive grids, borderless logos, and 3D card perspective */}
+      {/* Scoped CSS for responsive grids, borderless logos, smooth anchor scrolling, and 3D card perspective */}
       <style>{`
+        html {
+          scroll-behavior: smooth;
+        }
+        section[id] {
+          scroll-margin-top: 50px;
+        }
         .tt-container {
           width: 100%;
           max-width: 1180px;
@@ -143,6 +149,8 @@ export const HomePage: React.FC = () => {
           .tt-feature-banner { flex-direction: column !important; gap: 24px !important; }
           .tt-feature-banner-right { width: 100% !important; }
           .tt-four-grid { grid-template-columns: 1fr !important; }
+          .tt-how-it-works-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .tt-about-grid { grid-template-columns: 1fr !important; }
           .tt-testimonials-grid { grid-template-columns: 1fr !important; }
           .tt-pricing-grid { grid-template-columns: 1fr !important; }
           .tt-footer-content { flex-direction: column !important; gap: 32px !important; }
@@ -172,24 +180,20 @@ export const HomePage: React.FC = () => {
               padding: '12px 0 36px 0',
             }}
           >
-            {/* Logo */}
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-              <div
+            {/* Official Guri24 Brand Logo */}
+            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
+              <img
+                src="/logo.png"
+                alt="Guri24"
                 style={{
-                  width: '36px',
-                  height: '36px',
+                  width: '38px',
+                  height: '38px',
+                  objectFit: 'contain',
                   borderRadius: '10px',
-                  backgroundColor: '#2563EB',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#FFFFFF',
-                  boxShadow: '0 4px 12px rgba(37,99,235,0.35)',
+                  boxShadow: '0 4px 12px rgba(37,99,235,0.18)',
                 }}
-              >
-                <BuildingOffice2Icon style={{ width: '22px', height: '22px' }} />
-              </div>
-              <span style={{ fontSize: '20px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
+              />
+              <span style={{ fontSize: '21px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
                 Guri<span style={{ color: '#2563EB' }}>24</span>
               </span>
             </Link>
@@ -735,6 +739,346 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* =========================================================================
+          SECTION: HOW IT WORKS ("GET STARTED IN 3 EASY STEPS")
+      ========================================================================== */}
+      <section id="how-it-works" style={{ padding: '80px 24px', backgroundColor: '#FFFFFF' }}>
+        <div className="tt-container">
+          <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 56px auto' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+              How It Works
+            </div>
+            <h2 style={{ fontSize: '34px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
+              Get Started In Just 3 Easy Steps
+            </h2>
+            <p style={{ fontSize: '15px', color: '#64748B', marginTop: '12px', lineHeight: 1.6 }}>
+              Streamline your rental operations with a guided onboarding experience designed for speed, clarity, and complete operational control.
+            </p>
+          </div>
+
+          <div
+            className="tt-how-it-works-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1.1fr',
+              gap: '48px',
+              alignItems: 'center',
+              maxWidth: '1080px',
+              margin: '0 auto',
+            }}
+          >
+            {/* Left: Interactive 3D Mockup Preview */}
+            <motion.div
+              whileHover={{ rotateY: 2, scale: 1.015 }}
+              transition={{ type: 'spring', stiffness: 240, damping: 20 }}
+              style={{
+                borderRadius: '24px',
+                overflow: 'hidden',
+                boxShadow: '0 20px 50px rgba(37,99,235,0.12), 0 0 1px rgba(15,23,42,0.08)',
+                border: '1px solid #E2E8F0',
+                backgroundColor: '#FFFFFF',
+              }}
+            >
+              <img
+                src="/property-manager-dashboard.jpg"
+                alt="Property Management Workflow Console"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
+            </motion.div>
+
+            {/* Right: 3 Sequential Step Cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <motion.div
+                whileHover={{ x: 6 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                style={{
+                  padding: '24px',
+                  borderRadius: '18px',
+                  backgroundColor: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
+                  display: 'flex',
+                  gap: '18px',
+                  alignItems: 'flex-start',
+                }}
+              >
+                <div
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '12px',
+                    backgroundColor: '#EFF6FF',
+                    color: '#2563EB',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 800,
+                    fontSize: '15px',
+                    flexShrink: 0,
+                  }}
+                >
+                  01
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
+                    Simple & Fast Portfolio Setup
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+                    Add buildings, floors, and rental units in minutes. Set rent amounts, security deposits, and utilities with customizable billing cycles.
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ x: 6 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                style={{
+                  padding: '24px',
+                  borderRadius: '18px',
+                  backgroundColor: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
+                  display: 'flex',
+                  gap: '18px',
+                  alignItems: 'flex-start',
+                }}
+              >
+                <div
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '12px',
+                    backgroundColor: '#F5F3FF',
+                    color: '#7C3AED',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 800,
+                    fontSize: '15px',
+                    flexShrink: 0,
+                  }}
+                >
+                  02
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
+                    Work Together Effortlessly
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+                    Invite property managers, caretakers, and accountants with granular RBAC permissions. Register tenants and activate digital leases seamlessly.
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ x: 6 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                style={{
+                  padding: '24px',
+                  borderRadius: '18px',
+                  backgroundColor: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
+                  display: 'flex',
+                  gap: '18px',
+                  alignItems: 'flex-start',
+                }}
+              >
+                <div
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '12px',
+                    backgroundColor: '#ECFDF5',
+                    color: '#059669',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 800,
+                    fontSize: '15px',
+                    flexShrink: 0,
+                  }}
+                >
+                  03
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
+                    Monitor Collections & Growth
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+                    Collect rent automatically via Safaricom Daraja C2B Paybill 1343073. View live payment matching, arrears aging, and double-entry ledgers instantly.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION: ABOUT US ("BUILT FOR THE PEOPLE WHO MANAGE PROPERTIES")
+      ========================================================================== */}
+      <section id="about" style={{ padding: '80px 24px', backgroundColor: '#FAFCFF', borderTop: '1px solid #F1F5F9' }}>
+        <div className="tt-container">
+          <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 48px auto' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
+              About Us
+            </div>
+            <h2 style={{ fontSize: '34px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
+              Built for the People Who Manage Properties
+            </h2>
+            <p style={{ fontSize: '15px', color: '#64748B', marginTop: '12px', lineHeight: 1.6 }}>
+              Guri24 brings property owners, managers, accountants, and tenants together through one connected, intelligent property management platform designed for Kenyan real estate.
+            </p>
+
+            {/* Audience Badges */}
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                gap: '10px',
+                marginTop: '24px',
+              }}
+            >
+              {[
+                'Property Owners',
+                'Property Managers',
+                'Real Estate Companies',
+                'Landlords',
+                'Residential Estates',
+              ].map((badge, i) => (
+                <span
+                  key={i}
+                  style={{
+                    padding: '6px 16px',
+                    backgroundColor: '#EFF6FF',
+                    color: '#2563EB',
+                    borderRadius: '9999px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    border: '1px solid #DBEAFE',
+                  }}
+                >
+                  {badge}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* 3 Core Value Cards */}
+          <div
+            className="tt-about-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '24px',
+              maxWidth: '1080px',
+              margin: '0 auto',
+            }}
+          >
+            <motion.div
+              whileHover={{ y: -6, scale: 1.02 }}
+              transition={{ type: 'spring', stiffness: 280, damping: 20 }}
+              style={{
+                padding: '32px 24px',
+                borderRadius: '20px',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+              }}
+            >
+              <div
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '12px',
+                  backgroundColor: '#EFF6FF',
+                  color: '#2563EB',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '18px',
+                }}
+              >
+                <BuildingOfficeIcon style={{ width: '22px', height: '22px' }} />
+              </div>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: '0 0 10px 0' }}>
+                Kenya Real Estate Ready
+              </h3>
+              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+                Crafted specifically for the nuances of local property administration—from single apartment blocks to sprawling gated communities with localized tenancy conventions.
+              </p>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ y: -6, scale: 1.02 }}
+              transition={{ type: 'spring', stiffness: 280, damping: 20 }}
+              style={{
+                padding: '32px 24px',
+                borderRadius: '20px',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+              }}
+            >
+              <div
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '12px',
+                  backgroundColor: '#ECFDF5',
+                  color: '#059669',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '18px',
+                }}
+              >
+                <DevicePhoneMobileIcon style={{ width: '22px', height: '22px' }} />
+              </div>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: '0 0 10px 0' }}>
+                Automated Daraja C2B
+              </h3>
+              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+                Instant real-time payment matching on Paybill 1343073. Eliminate counterfeit MPESA messages, missed rent allocations, and hours of tedious spreadsheet reconciliation.
+              </p>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ y: -6, scale: 1.02 }}
+              transition={{ type: 'spring', stiffness: 280, damping: 20 }}
+              style={{
+                padding: '32px 24px',
+                borderRadius: '20px',
+                backgroundColor: '#FFFFFF',
+                border: '1px solid #E2E8F0',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+              }}
+            >
+              <div
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '12px',
+                  backgroundColor: '#F5F3FF',
+                  color: '#7C3AED',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '18px',
+                }}
+              >
+                <ShieldCheckIcon style={{ width: '22px', height: '22px' }} />
+              </div>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: '0 0 10px 0' }}>
+                Bank-Grade Accounting
+              </h3>
+              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+                Double-entry financial records ensure Debits == Credits. Security deposits post strictly to liability accounts, keeping your NOI and audit reports 100% compliant.
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
           SECTION 5: CUSTOMER TESTIMONIALS (SOFT SKY BLUE CONTAINER)
       ========================================================================== */}
       <section style={{ padding: '60px 24px', backgroundColor: '#EBF5FF' }}>
@@ -1011,9 +1355,19 @@ export const HomePage: React.FC = () => {
               borderBottom: '1px solid #1E293B',
             }}
           >
-            {/* Left Column */}
-            <div style={{ maxWidth: '300px' }}>
-              <div style={{ fontSize: '13px', color: '#E2E8F0', lineHeight: 1.6 }}>
+            {/* Left Column with Logo */}
+            <div style={{ maxWidth: '320px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                <img
+                  src="/logo.png"
+                  alt="Guri24"
+                  style={{ width: '32px', height: '32px', objectFit: 'contain', borderRadius: '8px' }}
+                />
+                <span style={{ fontSize: '20px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
+                  Guri<span style={{ color: '#3B82F6' }}>24</span>
+                </span>
+              </div>
+              <div style={{ fontSize: '13px', color: '#94A3B8', lineHeight: 1.6 }}>
                 Get real-time insights on occupancy growth, verified collections, and tenant lifecycle, all in one place.
               </div>
               <div style={{ fontSize: '11px', color: '#64748B', marginTop: '16px', fontWeight: 600 }}>
