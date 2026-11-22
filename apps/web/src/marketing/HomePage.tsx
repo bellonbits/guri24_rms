@@ -24,6 +24,15 @@ import {
   DevicePhoneMobileIcon,
 } from '@heroicons/react/24/outline';
 
+const PARTNER_LOGOS = [
+  { name: 'Safaricom Lipa Na M-Pesa C2B', src: '/logos/mpesa-c2b.png' },
+  { name: 'KCB Bank', src: '/logos/kcb-bank.png' },
+  { name: 'Equity Group', src: '/logos/equity-bank.png' },
+  { name: 'Co-operative Bank', src: '/logos/coop-bank.png' },
+  { name: 'Kenya Revenue Authority iTax', src: '/logos/kra-itax.png' },
+  { name: 'HassConsult Real Estate', src: '/logos/hassconsult.png' },
+];
+
 export const HomePage: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
@@ -607,51 +616,71 @@ export const HomePage: React.FC = () => {
             </motion.div>
           </div>
 
-          {/* ----------------- BORDERLESS PARTNER LOGO STRIP (ZERO BORDERS) ----------------- */}
-          <div style={{ marginTop: '56px', textAlign: 'center' }}>
+          {/* ----------------- BORDERLESS PARTNER LOGO STRIP (LEFT-TO-RIGHT INFINITE FRAMER MOTION STREAM) ----------------- */}
+          <div style={{ marginTop: '56px', textAlign: 'center', width: '100%', overflow: 'hidden' }}>
             <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94A3B8', marginBottom: '22px' }}>
               Trusted by Kenya's Leading Property & Financial Networks
             </div>
 
-            {/* BORDERLESS, CLEAN LOGOS FLOATING ON CANVAS */}
+            {/* Seamless Left-To-Right Animated Stream with Feathered Edge Fade Masks */}
             <div
               style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '40px',
+                position: 'relative',
+                width: '100%',
+                overflow: 'hidden',
+                padding: '12px 0 20px 0',
+                WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)',
+                maskImage: 'linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%)',
               }}
             >
-              {/* Safaricom M-Pesa C2B */}
-              <div className="partner-logo-item" title="Safaricom Lipa Na M-Pesa C2B">
-                <img src="/logos/mpesa-c2b.png" alt="Safaricom M-Pesa C2B" />
-              </div>
-
-              {/* KCB Bank */}
-              <div className="partner-logo-item" title="KCB Bank">
-                <img src="/logos/kcb-bank.png" alt="KCB Bank" />
-              </div>
-
-              {/* Equity Group */}
-              <div className="partner-logo-item" title="Equity Group">
-                <img src="/logos/equity-bank.png" alt="Equity Group" />
-              </div>
-
-              {/* Co-operative Bank (WHITE LETTERS PROCESSED TO BLACK FOR PERFECT CONTRAST) */}
-              <div className="partner-logo-item" title="Co-operative Bank">
-                <img src="/logos/coop-bank.png" alt="Co-operative Bank" />
-              </div>
-
-              {/* KRA iTax */}
-              <div className="partner-logo-item" title="Kenya Revenue Authority iTax">
-                <img src="/logos/kra-itax.png" alt="KRA iTax" />
-              </div>
-
-              {/* HassConsult */}
-              <div className="partner-logo-item" title="HassConsult Real Estate">
-                <img src="/logos/hassconsult.png" alt="HassConsult" />
-              </div>
+              <motion.div
+                animate={{ x: ['-50%', '0%'] }}
+                transition={{
+                  x: {
+                    repeat: Infinity,
+                    repeatType: 'loop',
+                    duration: 25,
+                    ease: 'linear',
+                  },
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '56px',
+                  width: 'max-content',
+                  willChange: 'transform',
+                }}
+              >
+                {/* 4 concatenated sets of authentic Kenyan partner logos for a seamless loop */}
+                {[...PARTNER_LOGOS, ...PARTNER_LOGOS, ...PARTNER_LOGOS, ...PARTNER_LOGOS].map((partner, index) => (
+                  <motion.div
+                    key={index}
+                    whileHover={{ scale: 1.12, y: -4 }}
+                    transition={{ type: 'spring', stiffness: 350, damping: 20 }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '8px 18px',
+                      borderRadius: '12px',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                    }}
+                    title={partner.name}
+                  >
+                    <img
+                      src={partner.src}
+                      alt={partner.name}
+                      style={{
+                        maxHeight: '38px',
+                        maxWidth: '140px',
+                        objectFit: 'contain',
+                        display: 'block',
+                      }}
+                    />
+                  </motion.div>
+                ))}
+              </motion.div>
             </div>
           </div>
         </div>
