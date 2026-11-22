@@ -13,15 +13,65 @@ export const AssistantPage: React.FC = () => {
   const effectiveRole = currentUserRole || state?.currentRole || 'ORGANIZATION_ADMINISTRATOR';
   const effectiveOrgId = currentOrg?.id || state?.currentOrganizationId || 'org-guri';
 
-  const conversationsList =
-    state?.conversations && state.conversations.length > 0
-      ? state.conversations
-      : state?.assistantConversations || [];
+  const conversationsList = React.useMemo(() => {
+    const raw =
+      state?.conversations && state.conversations.length > 0
+        ? state.conversations
+        : state?.assistantConversations || [];
+    return raw.filter((c) => c.organization_id === effectiveOrgId);
+  }, [state?.conversations, state?.assistantConversations, effectiveOrgId]);
 
   const confirmationsList =
     state?.confirmations && state.confirmations.length > 0
       ? state.confirmations
       : state?.assistantConfirmations || [];
+
+  React.useEffect(() => {
+    apiClient
+      .listAssistantConversations()
+      .then((items) => {
+        if (Array.isArray(items) && items.length > 0) {
+          setState((prev) => {
+            const existing = prev.conversations || [];
+            const otherOrgs = existing.filter((c) => c.organization_id !== effectiveOrgId);
+            return {
+              ...prev,
+              conversations: [...otherOrgs, ...items],
+              assistantConversations: [...otherOrgs, ...items],
+            };
+          });
+        }
+      })
+      .catch(() => {});
+  }, [effectiveOrgId]);
+
+  const handleClearChats = async () => {
+    try {
+      await apiClient.clearAssistantConversations();
+    } catch (e) {
+      console.info('Backend clear conversations failed, clearing locally:', e);
+    }
+    setState((prev) => ({
+      ...prev,
+      conversations: (prev.conversations || []).filter((c) => c.organization_id !== effectiveOrgId),
+      assistantConversations: (prev.assistantConversations || []).filter((c) => c.organization_id !== effectiveOrgId),
+    }));
+  };
+
+  const handleDeleteConversation = async (convId: string) => {
+    try {
+      if (convId.length === 36 && convId.includes('-')) {
+        await apiClient.deleteAssistantConversation(convId);
+      }
+    } catch (e) {
+      console.info('Backend delete conversation failed, deleting locally:', e);
+    }
+    setState((prev) => ({
+      ...prev,
+      conversations: (prev.conversations || []).filter((c) => c.id !== convId),
+      assistantConversations: (prev.assistantConversations || []).filter((c) => c.id !== convId),
+    }));
+  };
 
   return (
     <div style={{ margin: '-14px -14px -36px', height: 'calc(100vh - 110px)' }}>
@@ -35,12 +85,18 @@ export const AssistantPage: React.FC = () => {
         deposits={state?.deposits || state?.securityDeposits || []}
         conversations={conversationsList}
         confirmations={confirmationsList}
+        onClearChats={handleClearChats}
+        onDeleteConversation={handleDeleteConversation}
         onUpdateConversations={(convs) => {
-          setState((prev) => ({
-            ...prev,
-            conversations: convs,
-            assistantConversations: convs,
-          }));
+          setState((prev) => {
+            const otherOrgs = (prev.conversations || []).filter((c) => c.organization_id !== effectiveOrgId);
+            const merged = [...otherOrgs, ...convs];
+            return {
+              ...prev,
+              conversations: merged,
+              assistantConversations: merged,
+            };
+          });
         }}
         onUpdateConfirmations={(confs) => {
           setState((prev) => ({

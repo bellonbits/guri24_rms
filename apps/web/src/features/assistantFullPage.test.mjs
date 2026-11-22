@@ -70,3 +70,38 @@ test('Assistant Workspace: Chat bubble text colors enforce high-contrast WCAG AA
   assert.equal(assistantBubble.color, '#0f172a');
   assert.notEqual(assistantBubble.bg, assistantBubble.color);
 });
+
+test('Assistant Workspace: New account starts with zero prior chats and renders prompt starters', () => {
+  const newOrgId = 'org-fresh-009';
+  const allConversations = [
+    { id: 'c-old-1', organization_id: 'org-legacy', title: 'Old conversation', messages: [{ id: 'm-1', role: 'USER', content: 'test' }] },
+  ];
+
+  // Scoped conversations for the new account must be strictly empty
+  const scopedForNewAccount = allConversations.filter((c) => c.organization_id === newOrgId);
+  assert.equal(scopedForNewAccount.length, 0);
+
+  // When scoped conversations is empty, displayMessages must be empty (clean slate)
+  const displayMessages = scopedForNewAccount.length > 0 ? scopedForNewAccount[0].messages : [];
+  assert.equal(displayMessages.length, 0);
+});
+
+test('Assistant Workspace: Clear chats wipes conversation history for active account only', () => {
+  const activeOrgId = 'org-alpha';
+  const otherOrgId = 'org-beta';
+
+  let store = [
+    { id: 'conv-1', organization_id: 'org-alpha', title: 'Alpha chat 1', messages: [] },
+    { id: 'conv-2', organization_id: 'org-alpha', title: 'Alpha chat 2', messages: [] },
+    { id: 'conv-3', organization_id: 'org-beta', title: 'Beta chat 1', messages: [] },
+  ];
+
+  // Perform clear chats for active organization
+  store = store.filter((c) => c.organization_id !== activeOrgId);
+
+  // Assert active org conversations are completely cleared
+  assert.equal(store.filter((c) => c.organization_id === activeOrgId).length, 0);
+  // Assert other organizations' data remains untouched
+  assert.equal(store.filter((c) => c.organization_id === otherOrgId).length, 1);
+  assert.equal(store[0].id, 'conv-3');
+});

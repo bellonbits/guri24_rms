@@ -12,12 +12,11 @@ import {
   CheckIcon,
   XMarkIcon,
   PlusIcon,
-  ArrowPathIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import type {
   AssistantConversation,
   AssistantMessage,
-  AssistantCitation,
   AssistantAttachment,
   AssistantActionConfirmation,
   Organization,
@@ -27,7 +26,6 @@ import type {
   Payment,
   SecurityDepositLedger,
 } from '../types';
-import { apiClient } from '../lib/apiClient';
 
 interface FullPageAssistantProps {
   currentOrg: Organization;
@@ -43,6 +41,8 @@ interface FullPageAssistantProps {
   onUpdateConfirmations: (confirmations: AssistantActionConfirmation[]) => void;
   onSendMessage?: (query: string, convId?: string, attachment?: AssistantAttachment) => Promise<void>;
   onResolveConfirmation?: (confirmationId: string, confirmed: boolean) => Promise<void>;
+  onClearChats?: () => Promise<void> | void;
+  onDeleteConversation?: (convId: string) => Promise<void> | void;
 }
 
 export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
@@ -59,22 +59,24 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
   onUpdateConfirmations,
   onSendMessage,
   onResolveConfirmation,
+  onClearChats,
+  onDeleteConversation,
 }) => {
   // State
   const [activeConvId, setActiveConvId] = useState<string>(() => {
-    return conversations[0]?.id || 'conv-default';
+    return conversations[0]?.id || `conv-${Date.now()}`;
   });
   const [promptInput, setPromptInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
-  const [likedMsgIds, setLikedMsgIds] = useState<Record<string, boolean>>({ 'msg-default-assistant': true });
+  const [likedMsgIds, setLikedMsgIds] = useState<Record<string, boolean>>({});
   const [dislikedMsgIds, setDislikedMsgIds] = useState<Record<string, boolean>>({});
   const [selectedModule, setSelectedModule] = useState<'Thinker' | 'Financial Reasoner' | 'Lease Assistant'>('Thinker');
   const [showModuleDropdown, setShowModuleDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState<'Recent' | 'Favorite'>('Recent');
-  const [activeCarouselIndex, setActiveCarouselIndex] = useState(1);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [attachedFile, setAttachedFile] = useState<AssistantAttachment | null>(null);
+  const [showClearConfirmModal, setShowClearConfirmModal] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
     'Lease & Tenancy Operations': true,
   });
@@ -85,10 +87,8 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
   const renderCleanContent = (text: string) => {
     if (!text) return null;
     const cleaned = text
-      // Strip headers anywhere in string
       .replace(/(^|\n|\r)#{1,6}\s*/g, '$1')
       .replace(/#{1,6}\s*/g, '')
-      // Bold, italics, backticks, strikethrough
       .replace(/\*\*\*(.*?)\*\*\*/g, '$1')
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/__(.*?)__/g, '$1')
@@ -96,7 +96,6 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
       .replace(/_(.*?)_/g, '$1')
       .replace(/`{1,3}(.*?)`{1,3}/gs, '$1')
       .replace(/~~(.*?)~~/g, '$1')
-      // Break inline joined bullet dashes into clean vertical bullet points
       .replace(/\s+-\s+([A-Z])/g, '\n• $1')
       .replace(/(^|\n)[-*+]\s+/g, '$1• ');
 
@@ -127,66 +126,48 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
     return conversations.find((c) => c.id === activeConvId);
   }, [conversations, activeConvId]);
 
-  // Carousel images
-  const carouselImages = [
-    {
-      id: 'img-1',
-      title: 'Minimalist Perspective A',
-      url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600&auto=format&fit=crop&q=80',
-    },
-    {
-      id: 'img-2',
-      title: 'Minimalist Bedroom Design',
-      url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80',
-    },
-    {
-      id: 'img-3',
-      title: 'Forest View Window',
-      url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&auto=format&fit=crop&q=80',
-    },
-  ];
-
-  // Default initial message exchange matching property operations
-  const defaultMessages: AssistantMessage[] = useMemo(() => {
-    return [
-      {
-        id: 'msg-default-user',
-        role: 'USER',
-        content:
-          'Summarize our current portfolio health, occupancy, and collection performance across active estates.',
-        citations: [],
-        tool_calls: [],
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: 'msg-default-assistant',
-        role: 'ASSISTANT',
-        content:
-          'Here is the real-time operational overview for your managed properties. All active units, tenant leases, and M-Pesa ledger allocations are synchronized and verified.',
-        citations: [
-          {
-            record_id: 'rec-portfolio-1',
-            record_type: 'PORTFOLIO_SUMMARY',
-            reference_code: 'RMS-LEDGER-LIVE',
-            summary: 'Live Authoritative Ledger & Reconciled Bank Stream',
-          },
-        ],
-        tool_calls: [],
-        created_at: new Date().toISOString(),
-      },
-    ];
-  }, []);
-
   const displayMessages = useMemo(() => {
-    if (activeConversation && activeConversation.messages.length > 0) {
+    if (activeConversation && activeConversation.messages && activeConversation.messages.length > 0) {
       return activeConversation.messages;
     }
-    return defaultMessages;
-  }, [activeConversation, defaultMessages]);
+    return [];
+  }, [activeConversation]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [displayMessages]);
+
+  // Start a fresh, new conversation
+  const handleStartNewChat = () => {
+    const newId = `conv-${Date.now()}`;
+    setActiveConvId(newId);
+    setPromptInput('');
+    setAttachedFile(null);
+  };
+
+  // Clear all conversations for the active account
+  const handleConfirmClearChats = async () => {
+    if (onClearChats) {
+      await onClearChats();
+    } else {
+      onUpdateConversations([]);
+    }
+    setShowClearConfirmModal(false);
+    handleStartNewChat();
+  };
+
+  // Delete a single conversation
+  const handleDeleteSingleConversation = async (e: React.MouseEvent, convId: string) => {
+    e.stopPropagation();
+    if (onDeleteConversation) {
+      await onDeleteConversation(convId);
+    } else {
+      onUpdateConversations(conversations.filter((c) => c.id !== convId));
+    }
+    if (activeConvId === convId) {
+      handleStartNewChat();
+    }
+  };
 
   // Handle Send Message
   const handleSendMessage = async (textToSend?: string) => {
@@ -217,7 +198,6 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
       );
     } else {
       updatedConvs = [
-        ...conversations,
         {
           id: targetConvId,
           title: text.slice(0, 42),
@@ -226,6 +206,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
           updated_at: new Date().toISOString(),
           messages: [userMsg],
         },
+        ...conversations,
       ];
       setActiveConvId(targetConvId);
     }
@@ -235,7 +216,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
       if (onSendMessage) {
         await onSendMessage(text, targetConvId, attachedFile || undefined);
       } else {
-        // Fallback local simulated assistant response with real portfolio metrics
+        // Fallback local grounded assistant response with real portfolio metrics
         const totalBilled = invoices.reduce((s, i) => s + (i.amount_kes || 0), 0);
         const totalCollected = payments.reduce((s, p) => s + (p.allocated_amount_kes || p.amount_kes || 0), 0);
         const depositsHeld = deposits.reduce((s, d) => s + (d.held_amount_kes || 0), 0);
@@ -244,12 +225,12 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
           id: `msg-${Date.now()}-ast`,
           role: 'ASSISTANT',
           content:
-            `I have processed your request regarding ${currentOrg.name}.\n\n` +
+            `I have processed your request for ${currentOrg.name}.\n\n` +
             `• Active Properties: ${properties.length} managed location(s)\n` +
-            `• Total Billed: KES ${totalBilled.toLocaleString()}\n` +
+            `• Total Invoiced: KES ${totalBilled.toLocaleString()}\n` +
             `• Total Collected (M-Pesa/Bank): KES ${totalCollected.toLocaleString()}\n` +
             `• Account 2100 Deposits Liability: KES ${depositsHeld.toLocaleString()} held in trust escrow\n\n` +
-            `Everything is balanced in the authoritative general ledger. Let me know if you would like me to draft tenant notifications or export the financial run!`,
+            `All financial entries are balanced in the authoritative general ledger.`,
           citations: [
             {
               record_id: currentOrg.id,
@@ -292,16 +273,33 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
     setExpandedFolders((prev) => ({ ...prev, [folderName]: !prev[folderName] }));
   };
 
-  // Recent / Favorite conversations list
-  const conversationListItems = useMemo(() => {
-    return [
-      { id: 'c1', title: 'Summarize portfolio collections and rent arrears' },
-      { id: 'c2', title: 'Which units are currently vacant or up for renewal?' },
-      { id: 'c3', title: 'Draft standard 12-month residential tenancy lease' },
-      { id: 'c4', title: 'Check M-Pesa Daraja payment reconciliation status' },
-      { id: 'c5', title: 'Review pending OCR documents awaiting verification' },
-    ];
-  }, []);
+  // Quick prompt starter cards for empty / new account state
+  const quickPromptStarters = [
+    {
+      icon: '📊',
+      title: 'Portfolio Health & Occupancy',
+      subtitle: 'Summarize portfolio occupancy, active leases, and collections.',
+      prompt: 'Summarize our current portfolio health, occupancy, and collection performance across active estates.',
+    },
+    {
+      icon: '💳',
+      title: 'M-Pesa Paybill Collections',
+      subtitle: 'Review recent Daraja C2B receipts and automated allocations.',
+      prompt: 'Check recent M-Pesa Daraja Paybill 1343073 payments and reconcile against outstanding invoices.',
+    },
+    {
+      icon: '📄',
+      title: 'Lease & Vacancy Operations',
+      subtitle: 'Check which units are vacant or expiring in the next 30 days.',
+      prompt: 'Which tenant leases are up for renewal or currently in arrears?',
+    },
+    {
+      icon: '⚖️',
+      title: 'General Ledger Audit',
+      subtitle: 'Audit double-entry balances: ensure Debits equal Credits.',
+      prompt: 'Perform a financial integrity check: verify trial balance and ensure Debits equal Credits.',
+    },
+  ];
 
   return (
     <div
@@ -316,8 +314,99 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
         borderRadius: '24px',
         border: '1px solid #E5E7EB',
         boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)',
+        position: 'relative',
       }}
     >
+      {/* =========================================================================
+          CLEAR CHATS CONFIRMATION MODAL
+          ========================================================================= */}
+      {showClearConfirmModal && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.45)',
+            backdropFilter: 'blur(3px)',
+            zIndex: 999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '28px',
+              maxWidth: '440px',
+              width: '100%',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+              border: '1px solid #E2E8F0',
+              textAlign: 'center',
+            }}
+          >
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                backgroundColor: '#FEE2E2',
+                color: '#DC2626',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px',
+              }}
+            >
+              <TrashIcon style={{ width: 24, height: 24 }} />
+            </div>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
+              Clear All Chat History?
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: '#64748B', lineHeight: 1.5, marginBottom: '22px' }}>
+              This will permanently delete all saved conversations and prompts for{' '}
+              <strong style={{ color: '#0F172A' }}>{currentOrg.name}</strong>. This provides a clean slate for your new account.
+            </p>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={() => setShowClearConfirmModal(false)}
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: '9999px',
+                  border: '1px solid #E2E8F0',
+                  backgroundColor: '#FFFFFF',
+                  color: '#475569',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmClearChats}
+                style={{
+                  padding: '9px 20px',
+                  borderRadius: '9999px',
+                  border: 'none',
+                  backgroundColor: '#DC2626',
+                  color: '#FFFFFF',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(220, 38, 38, 0.25)',
+                }}
+              >
+                Yes, Clear All Chats
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* =========================================================================
           LEFT / MAIN CHAT CANVAS (AERO)
           ========================================================================= */}
@@ -336,62 +425,146 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
         <header
           style={{
             height: '64px',
-            padding: '0 28px',
+            padding: '0 24px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: 'space-between',
             position: 'relative',
             borderBottom: '1px solid #F3F4F6',
           }}
         >
-          {/* Centered Brand Mark: ⁂ aero */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '1.18rem',
-              fontWeight: 700,
-              color: '#0F172A',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            <span style={{ fontSize: '1.25rem', color: '#0F172A' }}>⁂</span>
-            <span>aero</span>
+          {/* Brand Mark & Organization Badge */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '1.18rem',
+                fontWeight: 700,
+                color: '#0F172A',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              <span style={{ fontSize: '1.25rem', color: '#0F172A' }}>⁂</span>
+              <span>aero</span>
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 10px',
+                backgroundColor: '#F1F5F9',
+                borderRadius: '9999px',
+                fontSize: '0.74rem',
+                fontWeight: 600,
+                color: '#475569',
+              }}
+            >
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: '#10B981',
+                }}
+              />
+              <span style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {currentOrg.name}
+              </span>
+            </div>
           </div>
 
-          {/* Right Collapse Toggle Button: > */}
-          <button
-            type="button"
-            onClick={() => setIsSidebarOpen((prev) => !prev)}
-            title={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-            style={{
-              position: 'absolute',
-              right: '24px',
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              backgroundColor: '#F3F4F6',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: '#64748B',
-              transition: 'background-color 0.15s ease',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#E5E7EB')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#F3F4F6')}
-          >
-            <ChevronRightIcon
+          {/* Right Header Action Buttons: New Chat, Clear Chats, Sidebar Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* + New Chat Button */}
+            <button
+              type="button"
+              onClick={handleStartNewChat}
+              title="Start a fresh conversation for this account"
               style={{
-                width: 16,
-                height: 16,
-                transform: isSidebarOpen ? 'rotate(0deg)' : 'rotate(180deg)',
-                transition: 'transform 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '7px 14px',
+                borderRadius: '9999px',
+                backgroundColor: '#0F172A',
+                color: '#FFFFFF',
+                fontSize: '0.80rem',
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(15, 23, 42, 0.12)',
+                transition: 'background-color 0.15s ease',
               }}
-            />
-          </button>
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1E293B')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0F172A')}
+            >
+              <PlusIcon style={{ width: 14, height: 14, strokeWidth: 2.5 }} />
+              <span>New Chat</span>
+            </button>
+
+            {/* Clear Chats Button (shown when conversations exist) */}
+            {conversations.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowClearConfirmModal(true)}
+                title="Clear all chat history for this account"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '7px 12px',
+                  borderRadius: '9999px',
+                  backgroundColor: '#FEE2E2',
+                  color: '#DC2626',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  border: '1px solid #FECACA',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.15s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FCA5A5')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FEE2E2')}
+              >
+                <TrashIcon style={{ width: 13, height: 13 }} />
+                <span>Clear Chats</span>
+              </button>
+            )}
+
+            {/* Sidebar Collapse/Expand Toggle */}
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen((prev) => !prev)}
+              title={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: '#F3F4F6',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: '#64748B',
+                transition: 'background-color 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#E5E7EB')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#F3F4F6')}
+            >
+              <ChevronRightIcon
+                style={{
+                  width: 16,
+                  height: 16,
+                  transform: isSidebarOpen ? 'rotate(0deg)' : 'rotate(180deg)',
+                  transition: 'transform 0.2s ease',
+                }}
+              />
+            </button>
+          </div>
         </header>
 
         {/* Message Stream Area */}
@@ -399,308 +572,288 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '32px 36px 16px',
+            padding: '24px 32px 16px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
           }}
         >
           <div style={{ width: '100%', maxWidth: '680px', display: 'flex', flexDirection: 'column' }}>
-            {/* User Prompt Bubble */}
-            <div
-              style={{
-                backgroundColor: '#EEF2FF',
-                borderRadius: '18px',
-                padding: '16px 22px',
-                color: '#1E1B4B',
-                fontSize: '0.92rem',
-                lineHeight: 1.5,
-                fontWeight: 400,
-                marginBottom: '28px',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.03)',
-                maxWidth: '560px',
-                alignSelf: 'center',
-                textAlign: 'left',
-              }}
-            >
-              {renderCleanContent(displayMessages[0]?.content ||
-                'Summarize our current portfolio health, occupancy, and collection performance across active estates.')}
-            </div>
-
-            {/* AI Response Block with Visual Carousel & Floating Left Actions */}
-            <div
-              style={{
-                position: 'relative',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                width: '100%',
-              }}
-            >
-              {/* Floating Vertical Pill Toolbar on the Left */}
+            {/* =========================================================================
+                EMPTY STATE / START NEW CHAT VIEW FOR NEW ACCOUNTS OR AFTER CLEARING
+                ========================================================================= */}
+            {displayMessages.length === 0 ? (
               <div
                 style={{
-                  position: 'absolute',
-                  left: '-52px',
-                  top: '64px',
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '9999px',
-                  padding: '8px 6px',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '12px',
-                  boxShadow: '0 4px 18px rgba(0, 0, 0, 0.06)',
-                  border: '1px solid #E5E7EB',
-                  zIndex: 10,
+                  textAlign: 'center',
+                  padding: '48px 16px 24px',
                 }}
               >
-                {/* ⁂ Sparkle */}
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage('Regenerate and enhance with deep thinking')}
-                  title="Deep Think / Regenerate"
+                {/* Aero Emblem */}
+                <div
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '20px',
+                    backgroundColor: '#F1F5F9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '2rem',
                     color: '#0F172A',
-                    padding: '3px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    marginBottom: '16px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.04)',
                   }}
                 >
-                  <span style={{ fontSize: '1.05rem', lineHeight: 1 }}>⁂</span>
-                </button>
-
-                {/* Copy */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleCopyMessage(
-                      'msg-default-assistant',
-                      displayMessages[1]?.content || 'Here is the minimalist bedroom design...'
-                    )
-                  }
-                  title={copiedMsgId ? 'Copied!' : 'Copy to clipboard'}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: copiedMsgId ? '#10B981' : '#64748B',
-                    padding: '3px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {copiedMsgId ? (
-                    <CheckIcon style={{ width: 15, height: 15 }} />
-                  ) : (
-                    <DocumentDuplicateIcon style={{ width: 15, height: 15 }} />
-                  )}
-                </button>
-
-                {/* Thumbs Up */}
-                <button
-                  type="button"
-                  onClick={() => handleToggleLike('msg-default-assistant')}
-                  title="Helpful"
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: likedMsgIds['msg-default-assistant'] ? '#10B981' : '#94A3B8',
-                    padding: '3px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <HandThumbUpIcon
-                    style={{
-                      width: 15,
-                      height: 15,
-                      fill: likedMsgIds['msg-default-assistant'] ? '#10B981' : 'none',
-                    }}
-                  />
-                </button>
-
-                {/* Thumbs Down */}
-                <button
-                  type="button"
-                  onClick={() => handleToggleDislike('msg-default-assistant')}
-                  title="Not helpful"
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: dislikedMsgIds['msg-default-assistant'] ? '#EF4444' : '#94A3B8',
-                    padding: '3px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <HandThumbDownIcon
-                    style={{
-                      width: 15,
-                      height: 15,
-                      fill: dislikedMsgIds['msg-default-assistant'] ? '#EF4444' : 'none',
-                    }}
-                  />
-                </button>
-              </div>
-
-              {/* 3D Visual Cards Carousel */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '12px',
-                  margin: '10px 0 24px',
-                  perspective: '900px',
-                  width: '100%',
-                }}
-              >
-                {/* Left Card */}
-                <div
-                  onClick={() => setActiveCarouselIndex(0)}
-                  style={{
-                    width: '180px',
-                    height: '220px',
-                    borderRadius: '20px',
-                    overflow: 'hidden',
-                    transform: 'scale(0.86) rotateY(18deg)',
-                    opacity: activeCarouselIndex === 0 ? 1 : 0.65,
-                    cursor: 'pointer',
-                    boxShadow: '0 12px 24px rgba(0, 0, 0, 0.08)',
-                    transition: 'all 0.3s ease',
-                  }}
-                >
-                  <img
-                    src={carouselImages[0].url}
-                    alt={carouselImages[0].title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
+                  ⁂
                 </div>
 
-                {/* Center Active Card */}
-                <div
-                  onClick={() => setActiveCarouselIndex(1)}
+                <h2
                   style={{
-                    width: '270px',
-                    height: '250px',
-                    borderRadius: '24px',
-                    overflow: 'hidden',
-                    transform: 'scale(1)',
-                    zIndex: 4,
-                    cursor: 'pointer',
-                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
-                    transition: 'all 0.3s ease',
+                    fontSize: '1.45rem',
+                    fontWeight: 700,
+                    color: '#0F172A',
+                    letterSpacing: '-0.02em',
+                    marginBottom: '8px',
                   }}
                 >
-                  <img
-                    src={carouselImages[activeCarouselIndex]?.url || carouselImages[1].url}
-                    alt="Active Minimalist Interior"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                </div>
+                  Welcome to Aero AI Assistant
+                </h2>
 
-                {/* Right Card */}
-                <div
-                  onClick={() => setActiveCarouselIndex(2)}
+                <p
                   style={{
-                    width: '180px',
-                    height: '220px',
-                    borderRadius: '20px',
-                    overflow: 'hidden',
-                    transform: 'scale(0.86) rotateY(-18deg)',
-                    opacity: activeCarouselIndex === 2 ? 1 : 0.65,
-                    cursor: 'pointer',
-                    boxShadow: '0 12px 24px rgba(0, 0, 0, 0.08)',
-                    transition: 'all 0.3s ease',
+                    fontSize: '0.88rem',
+                    color: '#64748B',
+                    maxWidth: '460px',
+                    lineHeight: 1.5,
+                    marginBottom: '32px',
                   }}
                 >
-                  <img
-                    src={carouselImages[2].url}
-                    alt={carouselImages[2].title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
+                  Ready to assist <strong style={{ color: '#0F172A' }}>{currentOrg.name}</strong> with real-time portfolio analytics, lease drafting, M-Pesa collections, and balanced double-entry accounting.
+                </p>
+
+                {/* Prompt Starter Cards Grid */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                    gap: '12px',
+                    width: '100%',
+                    maxWidth: '620px',
+                    marginBottom: '20px',
+                  }}
+                >
+                  {quickPromptStarters.map((item, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSendMessage(item.prompt)}
+                      style={{
+                        padding: '16px 18px',
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '16px',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = '#CBD5E1';
+                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.06)';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = '#E2E8F0';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.02)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '1.1rem' }}>{item.icon}</span>
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0F172A' }}>
+                          {item.title}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '0.78rem', color: '#64748B', lineHeight: 1.4 }}>
+                        {item.subtitle}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
+            ) : (
+              /* =========================================================================
+                  ACTIVE CONVERSATION MESSAGE STREAM
+                  ========================================================================= */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
+                {displayMessages.map((msg, idx) => {
+                  const isUser = msg.role === 'USER';
+                  return (
+                    <div
+                      key={msg.id || `msg-${idx}`}
+                      style={{
+                        alignSelf: isUser ? 'flex-end' : 'flex-start',
+                        maxWidth: '580px',
+                        width: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: isUser ? 'flex-end' : 'flex-start',
+                      }}
+                    >
+                      {/* Message Bubble:
+                          - User Bubble: Dark Navy (#0F172A) with White Text (#FFFFFF) -> WCAG AA Readability
+                          - Assistant Bubble: Clean White Card (#FFFFFF) with Dark Charcoal Text (#0F172A) */}
+                      <div
+                        style={{
+                          backgroundColor: isUser ? '#0F172A' : '#FFFFFF',
+                          color: isUser ? '#FFFFFF' : '#0F172A',
+                          borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                          padding: '16px 20px',
+                          border: isUser ? 'none' : '1px solid #E5E7EB',
+                          fontSize: '0.90rem',
+                          lineHeight: 1.55,
+                          boxShadow: isUser
+                            ? '0 2px 8px rgba(15, 23, 42, 0.15)'
+                            : '0 2px 10px rgba(0, 0, 0, 0.03)',
+                          width: isUser ? 'auto' : '100%',
+                        }}
+                      >
+                        {/* Render content */}
+                        {renderCleanContent(msg.content)}
 
-              {/* Assistant Response Text Card */}
-              <div
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '20px',
-                  padding: '20px 24px',
-                  border: '1px solid #E5E7EB',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
-                  maxWidth: '560px',
-                  width: '100%',
-                  color: '#1F2937',
-                  fontSize: '0.90rem',
-                  lineHeight: 1.55,
-                  textAlign: 'left',
-                }}
-              >
-                {renderCleanContent(displayMessages[1]?.content ||
-                  'Here is the real-time operational overview for your managed properties. All active units, tenant leases, and M-Pesa ledger allocations are synchronized and verified.')}
+                        {/* Grounded Citations Badge */}
+                        {!isUser && msg.citations && msg.citations.length > 0 && (
+                          <div
+                            style={{
+                              marginTop: '12px',
+                              paddingTop: '10px',
+                              borderTop: '1px solid #F1F5F9',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              fontSize: '0.74rem',
+                              color: '#64748B',
+                            }}
+                          >
+                            <span style={{ fontWeight: 600, color: '#0F172A' }}>Grounded Source:</span>
+                            <span>{msg.citations[0].summary}</span>
+                          </div>
+                        )}
 
-                {/* Grounded Citations Badge */}
-                {displayMessages[1]?.citations && displayMessages[1].citations.length > 0 && (
-                  <div
-                    style={{
-                      marginTop: '14px',
-                      paddingTop: '12px',
-                      borderTop: '1px solid #F1F5F9',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '0.74rem',
-                      color: '#64748B',
-                    }}
-                  >
-                    <span style={{ fontWeight: 600, color: '#0F172A' }}>Grounded Source:</span>
-                    <span>{displayMessages[1].citations[0].summary}</span>
-                  </div>
-                )}
+                        {/* Tool Calls Indicator */}
+                        {!isUser && msg.tool_calls && msg.tool_calls.length > 0 && (
+                          <div
+                            style={{
+                              marginTop: '8px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              fontSize: '0.70rem',
+                              color: '#10B981',
+                              fontWeight: 600,
+                            }}
+                          >
+                            <span>✓ Verified via {msg.tool_calls[0].tool_name || 'authoritative ledger'}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Action Bar for Assistant Messages */}
+                      {!isUser && (
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            marginTop: '6px',
+                            paddingLeft: '4px',
+                          }}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleCopyMessage(msg.id, msg.content)}
+                            title={copiedMsgId === msg.id ? 'Copied!' : 'Copy to clipboard'}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: copiedMsgId === msg.id ? '#10B981' : '#94A3B8',
+                              padding: '2px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              fontSize: '0.72rem',
+                            }}
+                          >
+                            {copiedMsgId === msg.id ? (
+                              <>
+                                <CheckIcon style={{ width: 13, height: 13 }} />
+                                <span>Copied</span>
+                              </>
+                            ) : (
+                              <DocumentDuplicateIcon style={{ width: 14, height: 14 }} />
+                            )}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleToggleLike(msg.id)}
+                            title="Helpful"
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: likedMsgIds[msg.id] ? '#10B981' : '#94A3B8',
+                              padding: '2px',
+                              display: 'flex',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <HandThumbUpIcon
+                              style={{
+                                width: 14,
+                                height: 14,
+                                fill: likedMsgIds[msg.id] ? '#10B981' : 'none',
+                              }}
+                            />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleToggleDislike(msg.id)}
+                            title="Not helpful"
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: dislikedMsgIds[msg.id] ? '#EF4444' : '#94A3B8',
+                              padding: '2px',
+                              display: 'flex',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <HandThumbDownIcon
+                              style={{
+                                width: 14,
+                                height: 14,
+                                fill: dislikedMsgIds[msg.id] ? '#EF4444' : 'none',
+                              }}
+                            />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            </div>
-
-            {/* Additional Messages Stream */}
-            {displayMessages.slice(2).map((msg) => {
-              const isUser = msg.role === 'USER';
-              return (
-                <div
-                  key={msg.id}
-                  style={{
-                    margin: '18px 0',
-                    alignSelf: isUser ? 'flex-end' : 'flex-start',
-                    maxWidth: '560px',
-                  }}
-                >
-                  <div
-                    style={{
-                      backgroundColor: isUser ? '#EEF2FF' : '#FFFFFF',
-                      borderRadius: '18px',
-                      padding: '16px 20px',
-                      border: isUser ? 'none' : '1px solid #E5E7EB',
-                      color: isUser ? '#1E1B4B' : '#1F2937',
-                      fontSize: '0.90rem',
-                      lineHeight: 1.5,
-                      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)',
-                    }}
-                  >
-                    {renderCleanContent(msg.content)}
-                  </div>
-                </div>
-              );
-            })}
+            )}
 
             <div ref={messagesEndRef} />
           </div>
@@ -778,7 +931,7 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
             {/* Text Input */}
             <input
               type="text"
-              placeholder="Ask aero anything..."
+              placeholder="Ask aero anything about your portfolio, leases, or M-Pesa..."
               value={promptInput}
               onChange={(e) => setPromptInput(e.target.value)}
               onKeyDown={(e) => {
@@ -925,13 +1078,43 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
           <div style={{ marginBottom: '28px' }}>
             <div
               style={{
-                fontSize: '0.84rem',
-                fontWeight: 600,
-                color: '#0F172A',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
                 marginBottom: '10px',
               }}
             >
-              Conversations
+              <span
+                style={{
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  color: '#0F172A',
+                }}
+              >
+                Conversations ({conversations.length})
+              </span>
+
+              {/* Sidebar Quick Action: + New */}
+              <button
+                type="button"
+                onClick={handleStartNewChat}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  background: 'none',
+                  border: 'none',
+                  color: '#4338CA',
+                  fontSize: '0.76rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: '2px 4px',
+                }}
+                title="Start a new conversation"
+              >
+                <PlusIcon style={{ width: 13, height: 13 }} />
+                <span>New</span>
+              </button>
             </div>
 
             {/* Segmented Pill: [ Recent | Favorite ] */}
@@ -968,31 +1151,77 @@ export const FullPageAssistant: React.FC<FullPageAssistantProps> = ({
               ))}
             </div>
 
-            {/* Conversation Titles List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {conversationListItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => handleSendMessage(item.title)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    textAlign: 'left',
-                    fontSize: '0.78rem',
-                    color: '#64748B',
-                    cursor: 'pointer',
-                    padding: '4px 2px',
-                    lineHeight: 1.4,
-                    transition: 'color 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = '#64748B')}
-                >
-                  {item.title}
-                </button>
-              ))}
-            </div>
+            {/* Dynamic Conversation History List */}
+            {conversations.length === 0 ? (
+              <div
+                style={{
+                  padding: '16px 8px',
+                  textAlign: 'center',
+                  fontSize: '0.76rem',
+                  color: '#94A3B8',
+                  lineHeight: 1.4,
+                }}
+              >
+                No previous chats for this account. Click <strong>+ New</strong> or ask a question to begin.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {conversations.map((c) => {
+                  const isActive = c.id === activeConvId;
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => setActiveConvId(c.id)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '7px 10px',
+                        borderRadius: '10px',
+                        backgroundColor: isActive ? '#EEF2FF' : 'transparent',
+                        border: isActive ? '1px solid #E0E7FF' : '1px solid transparent',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '0.78rem',
+                          color: isActive ? '#3730A3' : '#475569',
+                          fontWeight: isActive ? 600 : 400,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          flex: 1,
+                        }}
+                      >
+                        {c.title || 'RMS Inquiry'}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteSingleConversation(e, c.id)}
+                        title="Delete chat"
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          color: '#94A3B8',
+                          padding: '2px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          marginLeft: '6px',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = '#EF4444')}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = '#94A3B8')}
+                      >
+                        <TrashIcon style={{ width: 13, height: 13 }} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Section: Collections with 'New' badge */}

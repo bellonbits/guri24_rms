@@ -239,7 +239,12 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         // AI Agent Assistant (Permission-Checked Tools & Action Confirmations)
         .route(
             "/assistant/conversations",
-            get(list_assistant_conversations_handler),
+            get(list_assistant_conversations_handler)
+                .delete(clear_assistant_conversations_handler),
+        )
+        .route(
+            "/assistant/conversations/:id",
+            delete(delete_assistant_conversation_handler),
         )
         .route("/assistant/chat", post(assistant_chat_handler))
         .route(
@@ -2154,6 +2159,23 @@ async fn list_assistant_conversations_handler(
 ) -> AppResult<Json<Vec<AssistantConversation>>> {
     let items = state.assistant_service.list_conversations(&ctx)?;
     Ok(Json(items))
+}
+
+async fn clear_assistant_conversations_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+) -> AppResult<StatusCode> {
+    state.assistant_service.clear_conversations(&ctx)?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+async fn delete_assistant_conversation_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    Path(id): Path<Uuid>,
+) -> AppResult<StatusCode> {
+    state.assistant_service.delete_conversation(&ctx, id)?;
+    Ok(StatusCode::NO_CONTENT)
 }
 
 async fn assistant_chat_handler(

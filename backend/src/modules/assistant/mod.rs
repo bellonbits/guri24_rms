@@ -108,6 +108,8 @@ pub trait AssistantServiceTrait: Send + Sync {
         cmd: ConfirmAssistantActionCommand,
     ) -> AppResult<AssistantActionConfirmation>;
     fn list_conversations(&self, ctx: &TenantContext) -> AppResult<Vec<AssistantConversation>>;
+    fn clear_conversations(&self, ctx: &TenantContext) -> AppResult<()>;
+    fn delete_conversation(&self, ctx: &TenantContext, conversation_id: Uuid) -> AppResult<()>;
 }
 
 pub struct GroundedAssistantService {
@@ -637,5 +639,19 @@ impl AssistantServiceTrait for GroundedAssistantService {
             .filter(|c| c.organization_id == ctx.organization_id)
             .cloned()
             .collect())
+    }
+
+    fn clear_conversations(&self, ctx: &TenantContext) -> AppResult<()> {
+        ctx.require_permission("assistant.use")?;
+        let mut store = self.conversations.write().unwrap();
+        store.retain(|c| c.organization_id != ctx.organization_id);
+        Ok(())
+    }
+
+    fn delete_conversation(&self, ctx: &TenantContext, conversation_id: Uuid) -> AppResult<()> {
+        ctx.require_permission("assistant.use")?;
+        let mut store = self.conversations.write().unwrap();
+        store.retain(|c| !(c.organization_id == ctx.organization_id && c.id == conversation_id));
+        Ok(())
     }
 }

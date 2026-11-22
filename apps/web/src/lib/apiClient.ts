@@ -593,6 +593,22 @@ class ApiClient {
     });
   }
 
+  async listAssistantConversations(): Promise<any[]> {
+    return this.request('/assistant/conversations');
+  }
+
+  async clearAssistantConversations(): Promise<void> {
+    return this.request('/assistant/conversations', {
+      method: 'DELETE',
+    });
+  }
+
+  async deleteAssistantConversation(id: string): Promise<void> {
+    return this.request(`/assistant/conversations/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Portfolio Report
   async getPortfolioSummary(): Promise<any> {
     return this.request('/reports/summary');
