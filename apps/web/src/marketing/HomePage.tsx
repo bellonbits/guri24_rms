@@ -19,7 +19,9 @@ import {
   BanknotesIcon,
   ShieldCheckIcon,
   ArrowTrendingUpIcon,
-  GlobeAltIcon,
+  BuildingLibraryIcon,
+  DocumentTextIcon,
+  DevicePhoneMobileIcon,
 } from '@heroicons/react/24/outline';
 
 export const HomePage: React.FC = () => {
@@ -56,7 +58,7 @@ export const HomePage: React.FC = () => {
         overflowX: 'hidden',
       }}
     >
-      {/* Scoped CSS for responsive grids and hover dynamics */}
+      {/* Scoped CSS for responsive grids, logo cards, and clean typography */}
       <style>{`
         .tt-container {
           width: 100%;
@@ -71,7 +73,7 @@ export const HomePage: React.FC = () => {
           color: #475569;
           text-decoration: none;
           font-size: 14px;
-          font-weight: 500;
+          font-weight: 600;
           transition: color 0.15s ease;
         }
         .tt-nav-link:hover {
@@ -84,7 +86,7 @@ export const HomePage: React.FC = () => {
           border-radius: 9999px;
           font-weight: 600;
           cursor: pointer;
-          transition: background-color 0.15s ease, transform 0.15s ease;
+          transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -93,18 +95,50 @@ export const HomePage: React.FC = () => {
         .tt-btn-blue:hover {
           background-color: #1D4ED8;
           transform: translateY(-1px);
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
         }
         .tt-social-float {
           position: absolute;
-          width: 44px;
-          height: 44px;
-          border-radius: 12px;
+          width: 46px;
+          height: 46px;
+          border-radius: 14px;
           background-color: #FFFFFF;
           box-shadow: 0 10px 25px rgba(0,0,0,0.08);
           display: flex;
           align-items: center;
           justify-content: center;
-          border: 1px solid #F1F5F9;
+          border: 1px solid #E2E8F0;
+          z-index: 20;
+        }
+        .partner-logo-card {
+          background-color: #FFFFFF;
+          padding: 10px 18px;
+          border-radius: 12px;
+          border: 1px solid #E2E8F0;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 48px;
+          box-sizing: border-box;
+          transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .partner-logo-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 18px rgba(37,99,235,0.08);
+          border-color: #93C5FD;
+        }
+        .partner-logo-card img {
+          max-height: 28px;
+          max-width: 120px;
+          object-fit: contain;
+        }
+        .hero-dashboard-frame {
+          border-radius: 24px;
+          overflow: hidden;
+          box-shadow: 0 30px 70px -15px rgba(37, 99, 235, 0.18), 0 0 1px rgba(15, 23, 42, 0.08);
+          border: 1px solid #CBD5E1;
+          background-color: #FFFFFF;
         }
         @media (max-width: 900px) {
           .tt-desktop-nav { display: none !important; }
@@ -116,6 +150,7 @@ export const HomePage: React.FC = () => {
           .tt-testimonials-grid { grid-template-columns: 1fr !important; }
           .tt-pricing-grid { grid-template-columns: 1fr !important; }
           .tt-footer-content { flex-direction: column !important; gap: 32px !important; }
+          .tt-social-float { display: none !important; }
         }
       `}</style>
 
@@ -141,17 +176,18 @@ export const HomePage: React.FC = () => {
             }}
           >
             {/* Logo */}
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
               <div
                 style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '8px',
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
                   backgroundColor: '#2563EB',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#FFFFFF',
+                  boxShadow: '0 4px 10px rgba(37,99,235,0.3)',
                 }}
               >
                 <BuildingOffice2Icon style={{ width: '20px', height: '20px' }} />
@@ -210,15 +246,15 @@ export const HomePage: React.FC = () => {
                 backgroundColor: '#FFFFFF',
                 borderRadius: '9999px',
                 fontSize: '11px',
-                fontWeight: 600,
+                fontWeight: 700,
                 color: '#2563EB',
                 border: '1px solid #DBEAFE',
                 marginBottom: '18px',
                 boxShadow: '0 2px 6px rgba(37,99,235,0.06)',
               }}
             >
-              <SparklesIcon style={{ width: '13px', height: '13px', color: '#2563EB' }} />
-              <span>Instant Invoicing & Automated C2B</span>
+              <SparklesIcon style={{ width: '14px', height: '14px', color: '#2563EB' }} />
+              <span>Instant Invoicing & Automated Daraja C2B</span>
             </div>
 
             <h1
@@ -261,148 +297,98 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* ----------------- Hero Dashboard Mockup With Floating Icons ----------------- */}
-          <div style={{ position: 'relative', maxWidth: '880px', margin: '48px auto 0 auto' }}>
-            {/* 6 Floating Brand/Service Badges matching TrendTide screenshot */}
-            <div className="tt-social-float" style={{ top: '-10px', left: '-20px' }}>
-              <span style={{ fontSize: '18px', fontWeight: 800, color: '#16A34A' }}>M</span>
+          {/* ----------------- Hero Dashboard Showcase with Floating Heroicons ----------------- */}
+          <div style={{ position: 'relative', maxWidth: '960px', margin: '48px auto 0 auto' }}>
+            {/* 6 Floating Service Badges with Heroicons (NO EMOJIS) */}
+            <div className="tt-social-float" style={{ top: '-10px', left: '-20px' }} title="M-Pesa C2B Paybill 1343073">
+              <DevicePhoneMobileIcon style={{ width: '22px', height: '22px', color: '#16A34A' }} />
             </div>
-            <div className="tt-social-float" style={{ top: '80px', left: '-40px' }}>
-              <BuildingOfficeIcon style={{ width: '22px', height: '22px', color: '#EA580C' }} />
+            <div className="tt-social-float" style={{ top: '80px', left: '-40px' }} title="Bank Reconciliation">
+              <BuildingLibraryIcon style={{ width: '22px', height: '22px', color: '#2563EB' }} />
             </div>
-            <div className="tt-social-float" style={{ bottom: '60px', left: '-20px' }}>
+            <div className="tt-social-float" style={{ bottom: '60px', left: '-20px' }} title="Rent Ledger">
               <CreditCardIcon style={{ width: '22px', height: '22px', color: '#0284C7' }} />
             </div>
 
-            <div className="tt-social-float" style={{ top: '-10px', right: '-20px' }}>
-              <SparklesIcon style={{ width: '22px', height: '22px', color: '#0284C7' }} />
+            <div className="tt-social-float" style={{ top: '-10px', right: '-20px' }} title="AI Assistant">
+              <SparklesIcon style={{ width: '22px', height: '22px', color: '#2563EB' }} />
             </div>
-            <div className="tt-social-float" style={{ top: '90px', right: '-40px' }}>
-              <span style={{ fontSize: '14px', fontWeight: 800, color: '#2563EB' }}>in</span>
+            <div className="tt-social-float" style={{ top: '90px', right: '-40px' }} title="KRA Tax Compliance">
+              <ShieldCheckIcon style={{ width: '22px', height: '22px', color: '#DC2626' }} />
             </div>
-            <div className="tt-social-float" style={{ bottom: '50px', right: '-20px' }}>
-              <BanknotesIcon style={{ width: '22px', height: '22px', color: '#DC2626' }} />
+            <div className="tt-social-float" style={{ bottom: '50px', right: '-20px' }} title="Automated Receipts">
+              <DocumentTextIcon style={{ width: '22px', height: '22px', color: '#F59E0B' }} />
             </div>
 
-            {/* Main Center Dashboard Card */}
-            <div
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '24px',
-                border: '1px solid #E2E8F0',
-                boxShadow: '0 25px 60px -10px rgba(37, 99, 235, 0.12), 0 0 1px rgba(0,0,0,0.05)',
-                padding: '24px',
-                boxSizing: 'border-box',
-              }}
-            >
-              {/* Card Top Nav */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid #F1F5F9' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{ width: '18px', height: '18px', borderRadius: '4px', backgroundColor: '#2563EB' }} />
-                  <span style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A' }}>Guri24 Workspace</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, backgroundColor: '#ECFDF5', color: '#059669', padding: '3px 10px', borderRadius: '9999px', border: '1px solid #A7F3D0' }}>
-                    ● Paybill: 1343073 (Active)
-                  </span>
-                  <div style={{ width: '28px', height: '28px', borderRadius: '9999px', backgroundColor: '#E2E8F0', overflow: 'hidden' }}>
-                    <img src="/logo.png" alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Row 1: 3 KPI Cards matching TrendTide */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '16px' }}>
-                {/* Metric 1 */}
-                <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '16px', border: '1px solid #F1F5F9' }}>
-                  <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Total Occupied Units</div>
-                  <div style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', marginTop: '4px' }}>51 / 54</div>
-                  <div style={{ fontSize: '11px', color: '#10B981', fontWeight: 700, marginTop: '2px' }}>94.4% Occupancy rate</div>
-                </div>
-
-                {/* Metric 2: With Mini Bar Chart */}
-                <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '16px', border: '1px solid #F1F5F9' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Monthly Collections</span>
-                    <span style={{ fontSize: '10px', fontWeight: 700, color: '#2563EB' }}>KES 240,000</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '36px', marginTop: '10px' }}>
-                    {[30, 45, 60, 40, 75, 90, 80, 95].map((h, i) => (
-                      <div key={i} style={{ flex: 1, height: `${h}%`, backgroundColor: i === 7 ? '#2563EB' : '#CBD5E1', borderRadius: '2px' }} />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Metric 3: Rating & Tenants */}
-                <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '16px', border: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>Tenant Rating</div>
-                    <div style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', marginTop: '4px' }}>4.85 ★</div>
-                    <div style={{ fontSize: '11px', color: '#64748B' }}>51 active leases</div>
-                  </div>
-                  <div style={{ width: '48px', height: '48px', borderRadius: '9999px', border: '4px solid #10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800, color: '#065F46' }}>
-                    96%
-                  </div>
-                </div>
-              </div>
-
-              {/* Row 2: Nairobi Map & Property Breakdown */}
-              <div style={{ display: 'grid', gridTemplateColumns: '7fr 5fr', gap: '16px', marginTop: '16px' }}>
-                <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '16px', border: '1px solid #F1F5F9' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>Portfolio Distribution & Units</div>
-                  <div style={{ height: '110px', borderRadius: '10px', overflow: 'hidden', position: 'relative' }}>
-                    <img src="/modern-organic-balconies.jpg" alt="Building Units" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', fontWeight: 700, fontSize: '13px' }}>
-                      4 Properties Across Nairobi County
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '16px', border: '1px solid #F1F5F9', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>Top Performing Estates</div>
-                    <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#334155' }}>
-                        <span>Apex Court (Kilimani)</span>
-                        <strong style={{ color: '#10B981' }}>100%</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#334155' }}>
-                        <span>Haven Residences (Westlands)</span>
-                        <strong style={{ color: '#10B981' }}>95%</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#334155' }}>
-                        <span>Parkview Heights (South C)</span>
-                        <strong style={{ color: '#10B981' }}>90%</strong>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            {/* High-Fidelity Luxury Property Dashboard Image Frame */}
+            <div className="hero-dashboard-frame">
+              <img
+                src="/dashboard-preview.jpg"
+                alt="Guri24 Rental Management Dashboard Preview"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  objectFit: 'cover',
+                }}
+              />
             </div>
           </div>
 
-          {/* ----------------- Social Proof / Trusted By Strip ----------------- */}
-          <div style={{ marginTop: '48px', textAlign: 'center' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#94A3B8', marginBottom: '16px' }}>
-              Trusted by
+          {/* ----------------- Official Partners Logo Strip ----------------- */}
+          <div style={{ marginTop: '56px', textAlign: 'center' }}>
+            <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94A3B8', marginBottom: '20px' }}>
+              Trusted by Kenya's Leading Property & Financial Networks
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '28px', color: '#64748B', fontSize: '13px', fontWeight: 700 }}>
-              <span>Safaricom M-Pesa C2B</span>
-              <span>KCB Bank</span>
-              <span>Equity Group</span>
-              <span>Co-operative Bank</span>
-              <span>KRA iTax</span>
-              <span>HassConsult</span>
+
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '16px',
+              }}
+            >
+              {/* Safaricom M-Pesa C2B */}
+              <div className="partner-logo-card" title="Safaricom Lipa Na M-Pesa C2B">
+                <img src="/logos/mpesa-c2b.png" alt="Safaricom M-Pesa C2B" />
+              </div>
+
+              {/* KCB Bank */}
+              <div className="partner-logo-card" title="KCB Bank">
+                <img src="/logos/kcb-bank.png" alt="KCB Bank" />
+              </div>
+
+              {/* Equity Group */}
+              <div className="partner-logo-card" title="Equity Group">
+                <img src="/logos/equity-bank.png" alt="Equity Group" />
+              </div>
+
+              {/* Co-operative Bank */}
+              <div className="partner-logo-card" title="Co-operative Bank">
+                <img src="/logos/coop-bank.png" alt="Co-operative Bank" />
+              </div>
+
+              {/* KRA iTax */}
+              <div className="partner-logo-card" title="Kenya Revenue Authority iTax">
+                <img src="/logos/kra-itax.png" alt="KRA iTax" />
+              </div>
+
+              {/* HassConsult */}
+              <div className="partner-logo-card" title="HassConsult Real Estate">
+                <img src="/logos/hassconsult.png" alt="HassConsult" />
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          SECTION 2: STATEMENT WITH INLINE EMOJI / BADGES MATCHING TRENDTIDE
+          SECTION 2: NARRATIVE STATEMENT WITH HEROICONS (STRICTLY NO EMOJIS)
       ========================================================================== */}
       <section style={{ padding: '72px 24px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '780px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '820px', margin: '0 auto' }}>
           <p
             style={{
               fontSize: '26px',
@@ -413,17 +399,53 @@ export const HomePage: React.FC = () => {
               margin: 0,
             }}
           >
-            Whether you're aiming to grow your <span style={{ display: 'inline-flex', padding: '2px 8px', backgroundColor: '#EFF6FF', borderRadius: '8px', verticalAlign: 'middle' }}>🏢 portfolio</span>, identify new opportunities, or improve occupancy, our dashboard delivers actionable metrics <span style={{ display: 'inline-flex', padding: '2px 8px', backgroundColor: '#ECFDF5', borderRadius: '8px', verticalAlign: 'middle' }}>📈 that help you</span> refine your strategy and achieve lasting success.
+            Whether you're aiming to grow your{' '}
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '3px 10px',
+                backgroundColor: '#EFF6FF',
+                borderRadius: '8px',
+                color: '#2563EB',
+                verticalAlign: 'middle',
+                fontSize: '22px',
+                fontWeight: 700,
+              }}
+            >
+              <BuildingOffice2Icon style={{ width: '22px', height: '22px', color: '#2563EB' }} />
+              portfolio
+            </span>
+            , identify new opportunities, or improve occupancy, our dashboard delivers actionable metrics{' '}
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '3px 10px',
+                backgroundColor: '#ECFDF5',
+                borderRadius: '8px',
+                color: '#059669',
+                verticalAlign: 'middle',
+                fontSize: '22px',
+                fontWeight: 700,
+              }}
+            >
+              <ArrowTrendingUpIcon style={{ width: '22px', height: '22px', color: '#059669' }} />
+              that help you
+            </span>{' '}
+            refine your strategy and achieve lasting success.
           </p>
         </div>
       </section>
 
       {/* =========================================================================
-          SECTION 3: 3 ALTERNATING PASTEL FEATURE CARDS (EXACT MATCH TO REFERENCE)
+          SECTION 3: 3 ALTERNATING PASTEL FEATURE CARDS WITH HIGH-RES IMAGERY
       ========================================================================== */}
       <section id="features" style={{ padding: '0 24px 80px 24px' }}>
-        <div className="tt-container" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-          {/* ---------------- CARD 1: SOFT BLUE BANNER (OCCUPANCY GROWTH) ---------------- */}
+        <div className="tt-container" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          {/* ---------------- CARD 1: SOFT BLUE BANNER (OCCUPANCY GROWTH + NAIROBI BALCONIES) ---------------- */}
           <div
             className="tt-feature-banner"
             style={{
@@ -443,16 +465,18 @@ export const HomePage: React.FC = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '3px 10px',
+                  padding: '4px 12px',
                   backgroundColor: '#FFFFFF',
                   borderRadius: '9999px',
                   fontSize: '11px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   color: '#2563EB',
                   marginBottom: '14px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                 }}
               >
-                <span>● Know your tenants better</span>
+                <UsersIcon style={{ width: '13px', height: '13px' }} />
+                <span>Know your tenants better</span>
               </div>
               <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#0F172A', margin: '0 0 12px 0' }}>
                 Audience Growth & Analysis
@@ -465,58 +489,45 @@ export const HomePage: React.FC = () => {
               </button>
             </div>
 
-            {/* Right White Embedded Graph Card */}
+            {/* Right Embedded Card with Real Architecture Image & Clean Chart */}
             <div
               className="tt-feature-banner-right"
               style={{
-                width: '420px',
+                width: '440px',
                 backgroundColor: '#FFFFFF',
                 borderRadius: '20px',
-                padding: '22px',
+                padding: '20px',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
                 boxSizing: 'border-box',
+                border: '1px solid #E2E8F0',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Audience Growth</span>
-                <div style={{ display: 'flex', gap: '4px', fontSize: '10px', fontWeight: 600 }}>
-                  <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#F1F5F9', color: '#64748B' }}>Today</span>
-                  <span style={{ padding: '2px 8px', borderRadius: '6px', backgroundColor: '#2563EB', color: '#FFFFFF' }}>This Year</span>
+              <div style={{ height: '120px', borderRadius: '12px', overflow: 'hidden', position: 'relative', marginBottom: '14px' }}>
+                <img
+                  src="/modern-organic-balconies.jpg"
+                  alt="Modern Residences"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+                <div style={{ position: 'absolute', top: '10px', right: '10px', backgroundColor: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(6px)', color: '#FFFFFF', fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '9999px' }}>
+                  94.4% Occupied
                 </div>
               </div>
 
-              {/* Smooth Trend Area Chart */}
-              <div style={{ height: '140px', width: '100%', position: 'relative' }}>
-                <svg viewBox="0 0 300 120" style={{ width: '100%', height: '100%' }}>
-                  <path
-                    d="M 10 100 Q 80 80 130 50 T 220 30 T 290 20"
-                    fill="none"
-                    stroke="#2563EB"
-                    strokeWidth="3"
-                  />
-                  <circle cx="220" cy="30" r="5" fill="#0F172A" />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>Occupancy Growth Trend</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB' }}>2026 Active</span>
+              </div>
+
+              <div style={{ height: '70px', width: '100%' }}>
+                <svg viewBox="0 0 300 80" style={{ width: '100%', height: '100%' }}>
+                  <path d="M 10 70 Q 80 50 140 35 T 230 20 T 290 10" fill="none" stroke="#2563EB" strokeWidth="3" />
+                  <circle cx="230" cy="20" r="4" fill="#2563EB" stroke="#FFFFFF" strokeWidth="2" />
                 </svg>
-                {/* Black Tooltip Tag matching reference */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '10px',
-                    left: '60%',
-                    backgroundColor: '#0F172A',
-                    color: '#FFFFFF',
-                    padding: '3px 8px',
-                    borderRadius: '6px',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                  }}
-                >
-                  94.4% Occupied
-                </div>
               </div>
             </div>
           </div>
 
-          {/* ---------------- CARD 2: SOFT PEACH BANNER (METRICS ANALYSIS) ---------------- */}
+          {/* ---------------- CARD 2: SOFT PEACH BANNER (METRICS ANALYSIS + LUXURY INTERIOR) ---------------- */}
           <div
             className="tt-feature-banner"
             style={{
@@ -536,19 +547,21 @@ export const HomePage: React.FC = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '3px 10px',
+                  padding: '4px 12px',
                   backgroundColor: '#FFFFFF',
                   borderRadius: '9999px',
                   fontSize: '11px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   color: '#EA580C',
                   marginBottom: '14px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                 }}
               >
-                <span>● Drive deeper connections</span>
+                <ChartBarIcon style={{ width: '13px', height: '13px' }} />
+                <span>Drive deeper transparency</span>
               </div>
               <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#0F172A', margin: '0 0 12px 0' }}>
-                Improving Engagement with Metrics Analysis
+                Improving Collections with Metrics Analysis
               </h2>
               <p style={{ fontSize: '14px', color: '#475569', lineHeight: 1.6, margin: '0 0 24px 0', maxWidth: '440px' }}>
                 Enhance your rental performance with detailed metrics on on-time collections, arrears aging, and deposit liabilities. Discover which units generate the most consistent returns.
@@ -558,32 +571,33 @@ export const HomePage: React.FC = () => {
               </button>
             </div>
 
-            {/* Right White Embedded Metric Card */}
+            {/* Right Embedded Metric Card */}
             <div
               className="tt-feature-banner-right"
               style={{
-                width: '420px',
+                width: '440px',
                 backgroundColor: '#FFFFFF',
                 borderRadius: '20px',
-                padding: '22px',
+                padding: '20px',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
                 boxSizing: 'border-box',
+                border: '1px solid #E2E8F0',
               }}
             >
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div style={{ padding: '10px', backgroundColor: '#F8FAFC', borderRadius: '12px' }}>
-                  <div style={{ fontSize: '10px', color: '#64748B' }}>Collected Rent</div>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>128,420</div>
-                  <div style={{ fontSize: '9px', color: '#16A34A', fontWeight: 700 }}>+23% this month</div>
+                <div style={{ padding: '12px', backgroundColor: '#F8FAFC', borderRadius: '12px' }}>
+                  <div style={{ fontSize: '11px', color: '#64748B' }}>Collected Rent</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>KES 240,420</div>
+                  <div style={{ fontSize: '10px', color: '#16A34A', fontWeight: 700, marginTop: '2px' }}>+23% this month</div>
                 </div>
-                <div style={{ padding: '10px', backgroundColor: '#F8FAFC', borderRadius: '12px' }}>
-                  <div style={{ fontSize: '10px', color: '#64748B' }}>Deposit Liability</div>
-                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>66,816</div>
-                  <div style={{ fontSize: '9px', color: '#16A34A', fontWeight: 700 }}>+12% held</div>
+                <div style={{ padding: '12px', backgroundColor: '#F8FAFC', borderRadius: '12px' }}>
+                  <div style={{ fontSize: '11px', color: '#64748B' }}>Security Deposits</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>KES 66,816</div>
+                  <div style={{ fontSize: '10px', color: '#16A34A', fontWeight: 700, marginTop: '2px' }}>Account 2100 Held</div>
                 </div>
               </div>
 
-              {/* Double-Bar Monthly Comparison Chart (Orange/Grey) */}
+              {/* Double-Bar Comparison Chart (Orange & Grey) */}
               <div style={{ marginTop: '16px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '60px', gap: '6px' }}>
                 {[30, 40, 35, 60, 50, 80, 70, 95].map((v, i) => (
                   <div key={i} style={{ flex: 1, display: 'flex', gap: '2px', height: '100%', alignItems: 'flex-end' }}>
@@ -595,7 +609,7 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* ---------------- CARD 3: SOFT LAVENDER BANNER (FINANCIAL MANAGEMENT) ---------------- */}
+          {/* ---------------- CARD 3: SOFT LAVENDER BANNER (FINANCIAL MANAGEMENT + RESIDENCE) ---------------- */}
           <div
             className="tt-feature-banner"
             style={{
@@ -615,19 +629,21 @@ export const HomePage: React.FC = () => {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '3px 10px',
+                  padding: '4px 12px',
                   backgroundColor: '#FFFFFF',
                   borderRadius: '9999px',
                   fontSize: '11px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   color: '#9333EA',
                   marginBottom: '14px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                 }}
               >
-                <span>● Turn vacancies into clients</span>
+                <BanknotesIcon style={{ width: '13px', height: '13px' }} />
+                <span>Turn vacancies into revenue</span>
               </div>
               <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#0F172A', margin: '0 0 12px 0' }}>
-                Monetization and Advertising Management
+                Monetization and Financial Management
               </h2>
               <p style={{ fontSize: '14px', color: '#475569', lineHeight: 1.6, margin: '0 0 24px 0', maxWidth: '440px' }}>
                 Manage your listings and maximize rental yield. Guri24 helps you track invoices, verify automated M-Pesa C2B receipts, and unlock the full earning potential of your property portfolio.
@@ -637,33 +653,38 @@ export const HomePage: React.FC = () => {
               </button>
             </div>
 
-            {/* Right White Embedded Table Card */}
+            {/* Right Embedded Table Card with Real Interior Image */}
             <div
               className="tt-feature-banner-right"
               style={{
-                width: '420px',
+                width: '440px',
                 backgroundColor: '#FFFFFF',
                 borderRadius: '20px',
-                padding: '22px',
+                padding: '20px',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
                 boxSizing: 'border-box',
+                border: '1px solid #E2E8F0',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '12px' }}>
+              <div style={{ height: '90px', borderRadius: '10px', overflow: 'hidden', marginBottom: '14px' }}>
+                <img src="/luxury-minimalist-living.jpg" alt="Interior Living" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 700, color: '#0F172A', marginBottom: '10px' }}>
                 <span>Paid Activity</span>
                 <span style={{ color: '#2563EB' }}>Daraja C2B Verified</span>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #F1F5F9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid #F1F5F9' }}>
                   <span style={{ fontWeight: 600, color: '#0F172A' }}>Apt 4B - Rent</span>
                   <span style={{ color: '#16A34A', fontWeight: 700 }}>+KES 25,000</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #F1F5F9' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', borderBottom: '1px solid #F1F5F9' }}>
                   <span style={{ fontWeight: 600, color: '#0F172A' }}>Unit 2A - Partial</span>
                   <span style={{ color: '#16A34A', fontWeight: 700 }}>+KES 15,000</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0' }}>
                   <span style={{ fontWeight: 600, color: '#0F172A' }}>Apt 1C - Deposit</span>
                   <span style={{ color: '#16A34A', fontWeight: 700 }}>+KES 25,000</span>
                 </div>
@@ -674,7 +695,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* =========================================================================
-          SECTION 4: "GET MORE VALUE FROM YOUR TOOLS" (4-GRID CAPABILITIES)
+          SECTION 4: "GET MORE VALUE FROM YOUR TOOLS" (4-GRID HEROICONS)
       ========================================================================== */}
       <section style={{ padding: '60px 24px', backgroundColor: '#FAFCFF', borderTop: '1px solid #F1F5F9' }}>
         <div className="tt-container">
@@ -686,7 +707,7 @@ export const HomePage: React.FC = () => {
               Get more value from your tools
             </h2>
             <p style={{ fontSize: '14px', color: '#64748B', marginTop: '10px' }}>
-              Connect your properties, connect your team. With Daraja C2B already available in your directory, your team's favorite tools are just a click away.
+              Connect your properties, connect your team. With Daraja C2B already built-in, your team's favorite tools are just a click away.
             </p>
           </div>
 
@@ -701,7 +722,7 @@ export const HomePage: React.FC = () => {
             }}
           >
             <div>
-              <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+              <div style={{ width: '34px', height: '34px', borderRadius: '10px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
                 <BanknotesIcon style={{ width: '18px', height: '18px' }} />
               </div>
               <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>Monetization Tools</h3>
@@ -711,7 +732,7 @@ export const HomePage: React.FC = () => {
             </div>
 
             <div>
-              <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+              <div style={{ width: '34px', height: '34px', borderRadius: '10px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
                 <ChartBarIcon style={{ width: '18px', height: '18px' }} />
               </div>
               <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>User-Friendly Dashboard</h3>
@@ -721,7 +742,7 @@ export const HomePage: React.FC = () => {
             </div>
 
             <div>
-              <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+              <div style={{ width: '34px', height: '34px', borderRadius: '10px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
                 <SparklesIcon style={{ width: '18px', height: '18px' }} />
               </div>
               <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>Real-Time Insights</h3>
@@ -731,7 +752,7 @@ export const HomePage: React.FC = () => {
             </div>
 
             <div>
-              <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+              <div style={{ width: '34px', height: '34px', borderRadius: '10px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
                 <UsersIcon style={{ width: '18px', height: '18px' }} />
               </div>
               <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>Audience Deep Dive</h3>
@@ -782,7 +803,7 @@ export const HomePage: React.FC = () => {
                 role: "Commercial Property Executive",
               },
               {
-                quote: "TrendTide has completely transformed how I oversee my portfolio. Automated notifications have cut tenant arrears in half since month one.",
+                quote: "Guri24 has completely transformed how I oversee my portfolio. Automated notifications have cut tenant arrears in half since month one.",
                 name: "Bessie Cooper",
                 role: "Real Estate Operations Lead",
               },
@@ -955,7 +976,7 @@ export const HomePage: React.FC = () => {
           }}
         >
           <div style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', marginBottom: '8px' }}>
-            ● Know your properties better
+            Know your properties better
           </div>
           <h2 style={{ fontSize: '34px', fontWeight: 800, color: '#0F172A', margin: '0 0 20px 0' }}>
             Let's Grow Your Property Business Together!
@@ -968,7 +989,7 @@ export const HomePage: React.FC = () => {
           <div style={{ maxWidth: '640px', margin: '36px auto 0 auto', backgroundColor: '#FFFFFF', borderRadius: '16px 16px 0 0', border: '1px solid #DBEAFE', borderBottom: 'none', padding: '16px 20px 0 20px', boxShadow: '0 -10px 30px rgba(37,99,235,0.06)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px', borderBottom: '1px solid #F1F5F9' }}>
               <div style={{ fontSize: '11px', fontWeight: 700, color: '#0F172A' }}>Guri24 Real-Time Analytics</div>
-              <span style={{ fontSize: '10px', color: '#16A34A', fontWeight: 700 }}>● Online</span>
+              <span style={{ fontSize: '10px', color: '#16A34A', fontWeight: 700 }}>Online</span>
             </div>
             <div style={{ height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-around', fontSize: '12px' }}>
               <div>Total: <strong>KES 240,000</strong></div>
@@ -1023,7 +1044,7 @@ export const HomePage: React.FC = () => {
             {/* Left Column */}
             <div style={{ maxWidth: '300px' }}>
               <div style={{ fontSize: '13px', color: '#E2E8F0', lineHeight: 1.6 }}>
-                Get real-time insights on occupancy growth, follower trends, and potential clients, all in one place.
+                Get real-time insights on occupancy growth, verified collections, and tenant lifecycle, all in one place.
               </div>
               <div style={{ fontSize: '11px', color: '#64748B', marginTop: '16px', fontWeight: 600 }}>
                 Follow Us
