@@ -15,6 +15,7 @@ export const LoginPage: React.FC = () => {
 
   return (
     <AuthExperience
+      initialMode="signin"
       onSuccess={(session) => {
         login(session);
         navigate(redirectTarget, { replace: true });

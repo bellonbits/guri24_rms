@@ -20,6 +20,7 @@ import { AnalyticsLedgerPage } from './pages/AnalyticsLedgerPage';
 import { AutomatedEmailsPage } from './pages/AutomatedEmailsPage';
 import { SettingsPortalPage } from './pages/SettingsPortalPage';
 import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AcceptInvitationPage } from './pages/AcceptInvitationPage';
 import { PlatformLayout } from './layouts/PlatformLayout';
@@ -136,7 +137,11 @@ export const App: React.FC = () => {
 
             {/* Public Authentication & Onboarding Routes */}
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/signin" element={<LoginPage />} />
+            <Route path="/sign-in" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/sign-up" element={<SignupPage />} />
+            <Route path="/register" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ForgotPasswordPage />} />
             <Route path="/verify-email" element={<ForgotPasswordPage />} />
