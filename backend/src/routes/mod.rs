@@ -4,7 +4,7 @@ use axum::{
     http::{header, HeaderMap, StatusCode},
     middleware,
     response::IntoResponse,
-    routing::{get, patch, post},
+    routing::{delete, get, patch, post},
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
@@ -24,7 +24,7 @@ use crate::{
     database::AppState,
     integrations::mpesa::{
         C2bConfirmationRequest, C2bConfirmationResponse, C2bRegisterUrlRequest,
-        C2bRegisterUrlResult, C2bValidationRequest, C2bValidationResponse, VerifiedMpesaCallback,
+        C2bValidationRequest, C2bValidationResponse, VerifiedMpesaCallback,
     },
     modules::{
         accounting::{
