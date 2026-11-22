@@ -142,6 +142,9 @@ export const AppLayout: React.FC = () => {
         if (item.to === '/app/dashboard') {
           return location.pathname === '/app/dashboard' || location.pathname === '/app';
         }
+        if (item.to === '/app/settings-portal' || item.to === '/app/settings') {
+          return location.pathname.startsWith('/app/settings');
+        }
         return location.pathname.startsWith(item.to);
       }) || APP_NAV_ITEMS[0]
     );

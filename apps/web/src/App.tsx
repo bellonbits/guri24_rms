@@ -149,6 +149,11 @@ export const App: React.FC = () => {
             <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
             <Route path="/accept-invitation/:token" element={<AcceptInvitationPage />} />
             <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
+            <Route path="/properties-units" element={<Navigate to="/app/properties-units" replace />} />
+            <Route path="/properties" element={<Navigate to="/app/properties-units" replace />} />
+            <Route path="/units" element={<Navigate to="/app/properties-units" replace />} />
+            <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
+            <Route path="/settings-portal" element={<Navigate to="/app/settings" replace />} />
 
             {/* Authenticated Application Shell */}
             <Route
@@ -240,13 +245,18 @@ export const App: React.FC = () => {
               <Route path="automated-emails/settings" element={<AutomatedEmailsPage />} />
 
               {/* 12. Settings & Portal */}
+              <Route path="settings" element={<SettingsPortalPage />} />
+              <Route path="settings/:tab" element={<SettingsPortalPage />} />
+              <Route path="settings/*" element={<SettingsPortalPage />} />
               <Route path="settings-portal" element={<SettingsPortalPage />} />
+              <Route path="settings-portal/:tab" element={<SettingsPortalPage />} />
               <Route path="settings-portal/organization" element={<SettingsPortalPage />} />
               <Route path="settings-portal/finance-configuration" element={<SettingsPortalPage />} />
               <Route path="settings-portal/users" element={<SettingsPortalPage />} />
               <Route path="settings-portal/roles-permissions" element={<SettingsPortalPage />} />
               <Route path="settings-portal/billing" element={<SettingsPortalPage />} />
               <Route path="settings-portal/integrations" element={<SettingsPortalPage />} />
+              <Route path="settings-portal/*" element={<SettingsPortalPage />} />
             </Route>
 
             {/* 13. Guri24 Platform Administration (Multi-Tenant Super-Admin Shell) */}
