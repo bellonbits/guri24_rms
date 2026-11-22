@@ -198,11 +198,11 @@ export const HomePage: React.FC = () => {
               padding: '12px 0 36px 0',
             }}
           >
-            {/* Official Guri24 Brand Logo */}
+            {/* Official UnitFlow Brand Logo */}
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
               <img
                 src="/logo.png"
-                alt="Guri24"
+                alt="UnitFlow"
                 style={{
                   width: '38px',
                   height: '38px',
@@ -212,7 +212,7 @@ export const HomePage: React.FC = () => {
                 }}
               />
               <span style={{ fontSize: '21px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.02em' }}>
-                Guri<span style={{ color: '#2563EB' }}>24</span>
+                Unit<span style={{ color: '#2563EB' }}>Flow</span>
               </span>
             </Link>
 
@@ -651,7 +651,7 @@ export const HomePage: React.FC = () => {
             >
               <img
                 src="/dashboard-preview.png"
-                alt="Guri24 Rental Management Dashboard Preview"
+                alt="UnitFlow Rental Management Dashboard Preview"
                 style={{
                   width: '100%',
                   height: 'auto',
@@ -750,13 +750,13 @@ export const HomePage: React.FC = () => {
           >
             <div style={{ maxWidth: '640px' }}>
               <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#2563EB', marginBottom: '8px' }}>
-                Why Guri24
+                Why UnitFlow
               </div>
               <h2 style={{ fontSize: '36px', fontWeight: 800, color: '#0F172A', margin: '0 0 12px 0', letterSpacing: '-0.025em' }}>
                 The Rental Operations Challenge Every Landlord Faces
               </h2>
               <p style={{ fontSize: '15px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
-                Turning scattered property operations into predictable cash flow is a challenge for every landlord and estate. Guri24 simplifies workflows, enabling faster, smarter decisions.
+                Turning scattered property operations into predictable cash flow is a challenge for every landlord and estate. UnitFlow simplifies workflows, enabling faster, smarter decisions.
               </p>
             </div>
             <div>
@@ -1158,7 +1158,7 @@ export const HomePage: React.FC = () => {
                 Monetization and Financial Management
               </h2>
               <p style={{ fontSize: '14px', color: '#475569', lineHeight: 1.6, margin: '0 0 24px 0', maxWidth: '440px' }}>
-                Manage your listings and maximize rental yield. Guri24 helps you track invoices, verify automated M-Pesa C2B receipts, and unlock the full earning potential of your property portfolio.
+                Manage your listings and maximize rental yield. UnitFlow helps you track invoices, verify automated M-Pesa C2B receipts, and unlock the full earning potential of your property portfolio.
               </p>
               <button onClick={() => setDemoModalOpen(true)} className="tt-btn-blue" style={{ fontSize: '13px', padding: '10px 22px' }}>
                 Book a demo
@@ -1232,7 +1232,7 @@ export const HomePage: React.FC = () => {
               </div>
               <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>User-Friendly Dashboard</h3>
               <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
-                All your data in one place. With Guri24's intuitive interface, view and oversee an organized and visually clear dashboard for easy analysis.
+                All your data in one place. With UnitFlow's intuitive interface, view and oversee an organized and visually clear dashboard for easy analysis.
               </p>
             </div>
 
@@ -1242,7 +1242,7 @@ export const HomePage: React.FC = () => {
               </div>
               <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>Real-Time Insights</h3>
               <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
-                Stay up to date with your property performance. Guri24 provides real-time rent tracking to react quickly to charges and tenant balances.
+                Stay up to date with your property performance. UnitFlow provides real-time rent tracking to react quickly to charges and tenant balances.
               </p>
             </div>
 
@@ -1445,7 +1445,7 @@ export const HomePage: React.FC = () => {
               Built for the People Who Manage Properties
             </h2>
             <p style={{ fontSize: '15px', color: '#64748B', marginTop: '12px', lineHeight: 1.6 }}>
-              Guri24 brings property owners, managers, accountants, and tenants together through one connected, intelligent property management platform designed for Kenyan real estate.
+              UnitFlow brings property owners, managers, accountants, and tenants together through one connected, intelligent property management platform designed for Kenyan real estate.
             </p>
 
             {/* Audience Badges */}
@@ -1607,7 +1607,7 @@ export const HomePage: React.FC = () => {
           <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 40px auto' }}>
             <h2 style={{ fontSize: '32px', fontWeight: 800, color: '#0F172A', margin: 0 }}>Customer testimonials</h2>
             <p style={{ fontSize: '14px', color: '#64748B', marginTop: '8px' }}>
-              What Kenyan landlords, estate executives and property managers say about Guri24.
+              What Kenyan landlords, estate executives and property managers say about UnitFlow.
             </p>
           </div>
 
@@ -1623,22 +1623,22 @@ export const HomePage: React.FC = () => {
           >
             {[
               {
-                quote: "Guri24 has helped me finally understand my property cashflow on a deeper level. The automated Daraja C2B reconciliation means no more missing payment slips.",
+                quote: "UnitFlow has helped me finally understand my property cashflow on a deeper level. The automated Daraja C2B reconciliation means no more missing payment slips.",
                 name: "Kristin Watson",
                 role: "Residential Estate Landlord",
               },
               {
-                quote: "Before using Guri24, we struggled to make sense of all the data across my properties. Now, everything is in one place, and invoices are automatically matched.",
+                quote: "Before using UnitFlow, we struggled to make sense of all the data across my properties. Now, everything is in one place, and invoices are automatically matched.",
                 name: "Jerome Bell",
                 role: "Property Manager, Nairobi",
               },
               {
-                quote: "I love how easy it is to manage 50+ units with Guri24. The real-time insights are incredibly useful, and I've already seen improvements in collection speed.",
+                quote: "I love how easy it is to manage 50+ units with UnitFlow. The real-time insights are incredibly useful, and I've already seen improvements in collection speed.",
                 name: "Theresa Webb",
                 role: "Commercial Property Executive",
               },
               {
-                quote: "Guri24 has completely transformed how I oversee my portfolio. Automated notifications have cut tenant arrears in half since month one.",
+                quote: "UnitFlow has completely transformed how I oversee my portfolio. Automated notifications have cut tenant arrears in half since month one.",
                 name: "Bessie Cooper",
                 role: "Real Estate Operations Lead",
               },
@@ -1916,7 +1916,7 @@ export const HomePage: React.FC = () => {
                 Frequently Asked Questions
               </h2>
               <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6, margin: '0 0 24px 0' }}>
-                Need help or have questions about Guri24? Reach out to our dedicated real estate support team anytime.
+                Need help or have questions about UnitFlow? Reach out to our dedicated real estate support team anytime.
               </p>
               <button
                 onClick={() => setDemoModalOpen(true)}
@@ -1931,8 +1931,8 @@ export const HomePage: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {[
                 {
-                  q: 'What types of properties can I manage on Guri24?',
-                  a: 'Guri24 supports individual residential apartments, standalone villas, commercial retail centers, mixed-use buildings, and multi-estate developments across Kenya.',
+                  q: 'What types of properties can I manage on UnitFlow?',
+                  a: 'UnitFlow supports individual residential apartments, standalone villas, commercial retail centers, mixed-use buildings, and multi-estate developments across Kenya.',
                 },
                 {
                   q: 'How does Safaricom M-Pesa C2B Paybill 1343073 integration work?',
@@ -1947,8 +1947,8 @@ export const HomePage: React.FC = () => {
                   a: 'Basic is tailored for individual landlords with up to 10 units. Pro unlocks automated M-Pesa C2B Paybill reconciliation, multi-role RBAC, and AI insights. Enterprise delivers custom ERP integrations and SLA guarantees.',
                 },
                 {
-                  q: 'How does Guri24 support KRA iTax withholding tax compliance?',
-                  a: 'Guri24 automatically computes rental withholding taxes, generates audit-ready monthly summaries, and exports standardized reports ready for submission to the KRA iTax portal.',
+                  q: 'How does UnitFlow support KRA iTax withholding tax compliance?',
+                  a: 'UnitFlow automatically computes rental withholding taxes, generates audit-ready monthly summaries, and exports standardized reports ready for submission to the KRA iTax portal.',
                 },
               ].map((faq, index) => {
                 const isOpen = openFaqIndex === index;
@@ -2131,7 +2131,7 @@ export const HomePage: React.FC = () => {
             whiteSpace: 'nowrap',
           }}
         >
-          Guri24
+          UnitFlow
         </div>
 
         <div className="tt-container" style={{ position: 'relative', zIndex: 10 }}>
@@ -2149,15 +2149,15 @@ export const HomePage: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
                 <img
                   src="/logo.png"
-                  alt="Guri24"
+                  alt="UnitFlow"
                   style={{ width: '32px', height: '32px', objectFit: 'contain', borderRadius: '8px' }}
                 />
                 <span style={{ fontSize: '20px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
-                  Guri<span style={{ color: '#3B82F6' }}>24</span>
+                  Unit<span style={{ color: '#3B82F6' }}>Flow</span>
                 </span>
               </div>
               <div style={{ fontSize: '13px', color: '#94A3B8', lineHeight: 1.6 }}>
-                Get real-time insights on occupancy growth, verified collections, and tenant lifecycle, all in one place.
+                The intelligent property management platform designed for Kenyan landlords, estate executives, and property managers.
               </div>
               <div style={{ fontSize: '11px', color: '#64748B', marginTop: '16px', fontWeight: 600 }}>
                 Follow Us
@@ -2208,7 +2208,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           <div style={{ paddingTop: '24px', display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B' }}>
-            <div>© 2026 Guri24 Rental Management Ltd. All rights reserved.</div>
+            <div>© 2026 UnitFlow. All rights reserved.</div>
             <div style={{ display: 'flex', gap: '16px' }}>
               <span>Privacy Policy</span>
               <span>Terms of Use</span>
@@ -2251,7 +2251,7 @@ export const HomePage: React.FC = () => {
               ) : (
                 <form onSubmit={handleDemoSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   <div>
-                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>Book Guri24 Walkthrough</h3>
+                    <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>Book UnitFlow Walkthrough</h3>
                     <p style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>See how our automated Daraja C2B V2 (1343073) reconciliation works.</p>
                   </div>
                   <div>
