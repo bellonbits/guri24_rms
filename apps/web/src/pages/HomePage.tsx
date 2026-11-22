@@ -1,79 +1,84 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
+  Building2,
+  Users,
+  CreditCard,
+  FileCheck2,
+  Wrench,
+  BarChart3,
+  Sparkles,
+  ScanText,
+  PieChart,
   ArrowRight,
+  Shield,
+  Layers,
+  CheckCircle2,
+  Clock,
   ArrowUpRight,
-  Play,
+  Menu,
   X,
   Check,
-  Building2,
-  Wallet,
-  FileText,
-  Sparkles,
-  ShieldCheck,
-  Smartphone,
   ChevronRight,
+  Phone,
+  Mail,
+  Calendar,
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'features' | 'how-it-works' | 'integrations' | 'pricing'>('features');
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
-  const [videoDemoTab, setVideoDemoTab] = useState<'recon' | 'leases' | 'ledger' | 'ai'>('recon');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [demoSubmitted, setDemoSubmitted] = useState(false);
+  const [demoForm, setDemoForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    unitCount: '10 - 50 Units',
+  });
+
+  const handleDemoSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setDemoSubmitted(true);
+    setTimeout(() => {
+      setIsDemoModalOpen(false);
+      setDemoSubmitted(false);
+      setDemoForm({ name: '', email: '', phone: '', company: '', unitCount: '10 - 50 Units' });
+    }, 2500);
+  };
 
   return (
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: '#F3F2EE',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '20px 16px',
+        backgroundColor: '#FFFFFF',
         fontFamily: "'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        color: '#111827',
+        color: '#0F172A',
+        overflowX: 'hidden',
       }}
     >
-      {/* Outer Luxury Frame Container */}
-      <div
+      {/* =========================================================================
+          1. NAVIGATION
+          ========================================================================= */}
+      <header
         style={{
-          width: '100%',
-          maxWidth: '1360px',
-          backgroundColor: '#FAF9F6',
-          borderRadius: '28px',
-          border: '1px solid rgba(0, 0, 0, 0.07)',
-          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03)',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'relative',
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+          backgroundColor: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid #F1F5F9',
         }}
       >
-        {/* Subtle top ambient glow */}
         <div
           style={{
-            position: 'absolute',
-            top: 0,
-            left: '20%',
-            right: '20%',
-            height: '1px',
-            background: 'linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.35), rgba(168, 85, 247, 0.35), transparent)',
-            filter: 'blur(1px)',
-            pointerEvents: 'none',
-          }}
-        />
-
-        {/* =========================================================================
-            HEADER NAVIGATION
-            ========================================================================= */}
-        <header
-          style={{
-            padding: '24px 36px',
+            maxWidth: '1280px',
+            margin: '0 auto',
+            padding: '16px 24px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            position: 'relative',
-            zIndex: 10,
           }}
         >
           {/* Logo */}
@@ -81,1245 +86,1572 @@ export const HomePage: React.FC = () => {
             to="/"
             style={{
               textDecoration: 'none',
-              color: '#0F172A',
               display: 'flex',
-              alignItems: 'baseline',
-              gap: '2px',
+              alignItems: 'center',
+              gap: '8px',
             }}
           >
-            <span style={{ fontSize: '1.45rem', fontWeight: 800, letterSpacing: '-0.04em' }}>Guri24</span>
-            <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0F172A' }}>°</span>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                backgroundColor: '#4F46E5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
+              }}
+            >
+              <Building2 size={20} color="#FFFFFF" />
+            </div>
+            <span
+              style={{
+                fontSize: '1.45rem',
+                fontWeight: 800,
+                color: '#0F172A',
+                letterSpacing: '-0.03em',
+              }}
+            >
+              Guri24
+            </span>
           </Link>
 
-          {/* Center Pill Menu */}
+          {/* Desktop Menu */}
           <nav
-            aria-label="Main Navigation"
             style={{
               display: 'flex',
               alignItems: 'center',
-              backgroundColor: 'rgba(0, 0, 0, 0.04)',
-              padding: '4px',
-              borderRadius: '9999px',
-              border: '1px solid rgba(0, 0, 0, 0.04)',
+              gap: '32px',
             }}
+            className="hidden md:flex"
           >
-            {(
-              [
-                { key: 'features', label: 'Features', href: '#features' },
-                { key: 'how-it-works', label: 'How it works', href: '#how-it-works' },
-                { key: 'integrations', label: 'Integrations', href: '#integrations' },
-                { key: 'pricing', label: 'Pricing', href: '#pricing' },
-              ] as const
-            ).map((item) => (
-              <a
-                key={item.key}
-                href={item.href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setActiveTab(item.key);
-                  const el = document.getElementById(item.key);
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                style={{
-                  textDecoration: 'none',
-                  padding: '7px 18px',
-                  borderRadius: '9999px',
-                  fontSize: '0.84rem',
-                  fontWeight: 500,
-                  color: activeTab === item.key ? '#0F172A' : '#64748B',
-                  backgroundColor: activeTab === item.key ? '#FFFFFF' : 'transparent',
-                  boxShadow: activeTab === item.key ? '0 1px 3px rgba(0, 0, 0, 0.08)' : 'none',
-                  transition: 'all 0.18s ease',
-                }}
-              >
-                {item.label}
-              </a>
-            ))}
+            <a href="#home" style={{ textDecoration: 'none', color: '#0F172A', fontSize: '0.90rem', fontWeight: 600 }}>
+              Home
+            </a>
+            <a href="#features" style={{ textDecoration: 'none', color: '#64748B', fontSize: '0.90rem', fontWeight: 500, transition: 'color 0.15s ease' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')} onMouseLeave={(e) => (e.currentTarget.style.color = '#64748B')}>
+              Features
+            </a>
+            <a href="#solutions" style={{ textDecoration: 'none', color: '#64748B', fontSize: '0.90rem', fontWeight: 500, transition: 'color 0.15s ease' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')} onMouseLeave={(e) => (e.currentTarget.style.color = '#64748B')}>
+              Solutions
+            </a>
+            <a href="#how-it-works" style={{ textDecoration: 'none', color: '#64748B', fontSize: '0.90rem', fontWeight: 500, transition: 'color 0.15s ease' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')} onMouseLeave={(e) => (e.currentTarget.style.color = '#64748B')}>
+              How It Works
+            </a>
+            <a href="#why-guri24" style={{ textDecoration: 'none', color: '#64748B', fontSize: '0.90rem', fontWeight: 500, transition: 'color 0.15s ease' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')} onMouseLeave={(e) => (e.currentTarget.style.color = '#64748B')}>
+              About Us
+            </a>
+            <a href="#contact" style={{ textDecoration: 'none', color: '#64748B', fontSize: '0.90rem', fontWeight: 500, transition: 'color 0.15s ease' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#0F172A')} onMouseLeave={(e) => (e.currentTarget.style.color = '#64748B')}>
+              Contact
+            </a>
           </nav>
 
-          {/* Right CTA */}
+          {/* Action CTAs */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Link
-              to="/app/dashboard"
+              to="/login"
               style={{
+                textDecoration: 'none',
+                color: '#475569',
+                fontSize: '0.88rem',
+                fontWeight: 600,
+                padding: '8px 16px',
+                borderRadius: '9999px',
+                transition: 'background-color 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
+              Sign In
+            </Link>
+
+            <Link
+              to="/signup"
+              style={{
+                textDecoration: 'none',
+                backgroundColor: '#0F172A',
+                color: '#FFFFFF',
+                fontSize: '0.88rem',
+                fontWeight: 600,
+                padding: '9px 20px',
+                borderRadius: '9999px',
+                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.15)',
+                transition: 'all 0.15s ease',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                backgroundColor: '#0F172A',
-                color: '#FFFFFF',
-                padding: '9px 20px',
-                borderRadius: '9999px',
-                fontSize: '0.84rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.15)',
-                transition: 'transform 0.15s ease, background-color 0.15s ease',
               }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1E293B')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0F172A')}
             >
-              <span>Get the app</span>
-              <ArrowUpRight size={15} />
+              <span>Get Started</span>
+              <ArrowRight size={14} />
             </Link>
+
+            {/* Mobile menu toggle */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '4px',
+                color: '#0F172A',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+              className="flex md:hidden"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
-        </header>
+        </div>
+
+        {/* Mobile menu dropdown */}
+        {mobileMenuOpen && (
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderBottom: '1px solid #E2E8F0',
+              padding: '16px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+            }}
+            className="md:hidden"
+          >
+            <a href="#home" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#0F172A', fontWeight: 600 }}>Home</a>
+            <a href="#features" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#475569' }}>Features</a>
+            <a href="#solutions" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#475569' }}>Solutions</a>
+            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#475569' }}>How It Works</a>
+            <a href="#why-guri24" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#475569' }}>About Us</a>
+            <a href="#contact" onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: 'none', color: '#475569' }}>Contact</a>
+          </div>
+        )}
+      </header>
+
+      {/* =========================================================================
+          2. HERO SECTION
+          ========================================================================= */}
+      <section
+        id="home"
+        style={{
+          position: 'relative',
+          padding: '72px 24px 80px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          background: 'radial-gradient(ellipse 90% 60% at 50% -10%, rgba(129, 140, 248, 0.22), rgba(192, 132, 252, 0.12), transparent 75%)',
+        }}
+      >
+        <div style={{ maxWidth: '880px', margin: '0 auto' }}>
+          {/* Small Label Pill */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 16px',
+              borderRadius: '9999px',
+              backgroundColor: 'rgba(238, 242, 255, 0.9)',
+              border: '1px solid #E0E7FF',
+              color: '#4338CA',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              marginBottom: '24px',
+            }}
+          >
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#4F46E5' }} />
+            <span>SMART PROPERTY MANAGEMENT PLATFORM</span>
+          </div>
+
+          {/* Hero Headline */}
+          <h1
+            style={{
+              fontSize: 'clamp(2.4rem, 5.5vw, 4rem)',
+              fontWeight: 800,
+              color: '#0F172A',
+              letterSpacing: '-0.035em',
+              lineHeight: 1.12,
+              marginBottom: '20px',
+            }}
+          >
+            Manage Properties.{' '}
+            <span style={{ color: '#4F46E5' }}>Simplify Rentals.</span>{' '}
+            Grow Your Business.
+          </h1>
+
+          {/* Hero Subtitle */}
+          <p
+            style={{
+              fontSize: 'clamp(1rem, 2vw, 1.18rem)',
+              color: '#475569',
+              lineHeight: 1.6,
+              maxWidth: '720px',
+              margin: '0 auto 32px auto',
+            }}
+          >
+            Take control of your rental properties with one intelligent platform. Manage tenants, leases, rent collection, maintenance and financial records without the complexity of scattered spreadsheets and paperwork.
+          </p>
+
+          {/* Hero CTAs */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '14px',
+              flexWrap: 'wrap',
+              marginBottom: '18px',
+            }}
+          >
+            <Link
+              to="/signup"
+              style={{
+                textDecoration: 'none',
+                backgroundColor: '#4F46E5',
+                color: '#FFFFFF',
+                fontSize: '0.96rem',
+                fontWeight: 600,
+                padding: '13px 30px',
+                borderRadius: '9999px',
+                boxShadow: '0 4px 18px rgba(79, 70, 229, 0.35)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#4338CA')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#4F46E5')}
+            >
+              <span>Get Started</span>
+              <ArrowRight size={16} />
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => setIsDemoModalOpen(true)}
+              style={{
+                backgroundColor: '#FFFFFF',
+                color: '#0F172A',
+                border: '1px solid #CBD5E1',
+                fontSize: '0.96rem',
+                fontWeight: 600,
+                padding: '13px 26px',
+                borderRadius: '9999px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FFFFFF')}
+            >
+              <Calendar size={16} color="#4F46E5" />
+              <span>Book a Demo</span>
+            </button>
+          </div>
+
+          {/* Supporting Text */}
+          <p
+            style={{
+              fontSize: '0.84rem',
+              color: '#64748B',
+              margin: '0 0 48px 0',
+            }}
+          >
+            Everything you need to manage your properties, tenants and rental operations in one place.
+          </p>
+        </div>
 
         {/* =========================================================================
-            HERO SECTION
+            HERO VISUAL: HIGH-FIDELITY GURI24 APPLICATION DASHBOARD MOCKUP
             ========================================================================= */}
-        <section
+        <div
           style={{
-            position: 'relative',
-            paddingTop: '36px',
-            paddingBottom: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
+            width: '100%',
+            maxWidth: '1120px',
+            backgroundColor: '#FFFFFF',
+            borderRadius: '24px',
+            border: '1px solid #E2E8F0',
+            boxShadow: '0 25px 60px -12px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.02)',
             overflow: 'hidden',
+            textAlign: 'left',
           }}
         >
-          {/* Rotating Stamp in Top Right */}
+          {/* Dashboard Header Bar */}
           <div
             style={{
-              position: 'absolute',
-              top: '16px',
-              right: '48px',
-              width: '84px',
-              height: '84px',
-              pointerEvents: 'none',
-            }}
-          >
-            <svg
-              viewBox="0 0 100 100"
-              style={{
-                width: '100%',
-                height: '100%',
-                animation: 'spin 22s linear infinite',
-              }}
-            >
-              <defs>
-                <path
-                  id="stampCirclePath"
-                  d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"
-                />
-              </defs>
-              <text
-                style={{
-                  fontSize: '7.8px',
-                  fontWeight: 600,
-                  letterSpacing: '2.4px',
-                  fill: '#1F2937',
-                  textTransform: 'uppercase',
-                }}
-              >
-                <textPath href="#stampCirclePath" startOffset="0%">
-                  ★ MORE FOCUSED YOU ★ EVERYDAY
-                </textPath>
-              </text>
-              {/* 4-point star in center */}
-              <path
-                d="M 50 42 Q 50 50 42 50 Q 50 50 50 58 Q 50 50 58 50 Q 50 50 50 42 Z"
-                fill="#1F2937"
-              />
-            </svg>
-          </div>
-
-          {/* Headline */}
-          <div style={{ maxWidth: '820px', padding: '0 20px', zIndex: 2 }}>
-            <h1
-              style={{
-                fontFamily: "'Playfair Display', 'Instrument Serif', Georgia, serif",
-                fontSize: 'clamp(2.8rem, 5.2vw, 4.4rem)',
-                fontWeight: 600,
-                lineHeight: 1.12,
-                color: '#0F172A',
-                letterSpacing: '-0.025em',
-                margin: 0,
-              }}
-            >
-              A clearer mind
-              <br />
-              <span
-                style={{
-                  fontStyle: 'italic',
-                  fontWeight: 400,
-                  display: 'inline-block',
-                  color: '#0F172A',
-                }}
-              >
-                for a brighter you.
-              </span>
-            </h1>
-
-            {/* Subtitle */}
-            <p
-              style={{
-                marginTop: '18px',
-                fontSize: '0.98rem',
-                lineHeight: 1.55,
-                color: '#64748B',
-                maxWidth: '520px',
-                marginInline: 'auto',
-                fontWeight: 400,
-              }}
-            >
-              Guri24 helps you capture ideas, organize your properties, and stay focused — all in one beautiful space.
-            </p>
-
-            {/* CTAs */}
-            <div
-              style={{
-                marginTop: '26px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '14px',
-                flexWrap: 'wrap',
-              }}
-            >
-              <Link
-                to="/app/dashboard"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  backgroundColor: '#0F172A',
-                  color: '#FFFFFF',
-                  padding: '12px 26px',
-                  borderRadius: '9999px',
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.16)',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1E293B')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0F172A')}
-              >
-                <span>Get started free</span>
-                <ArrowRight size={16} />
-              </Link>
-
-              <button
-                type="button"
-                onClick={() => setIsVideoModalOpen(true)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  backgroundColor: '#FAF9F6',
-                  color: '#0F172A',
-                  border: '1px solid rgba(0, 0, 0, 0.12)',
-                  padding: '12px 24px',
-                  borderRadius: '9999px',
-                  fontSize: '0.9rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FFFFFF';
-                  e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#FAF9F6';
-                  e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.12)';
-                }}
-              >
-                <div
-                  style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    backgroundColor: '#0F172A',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Play size={10} fill="#FFFFFF" color="#FFFFFF" style={{ marginLeft: '1px' }} />
-                </div>
-                <span>Watch video</span>
-              </button>
-            </div>
-          </div>
-
-          {/* =========================================================================
-              HERO ARTWORK & TETHERED FLOATING CARDS
-              ========================================================================= */}
-          <div
-            style={{
-              position: 'relative',
-              width: '100%',
-              maxWidth: '1080px',
-              marginTop: '28px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            {/* SVG Connecting Wires */}
-            <svg
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                pointerEvents: 'none',
-                zIndex: 1,
-              }}
-              viewBox="0 0 1080 440"
-              fill="none"
-            >
-              {/* Left tether from card to head */}
-              <path
-                d="M 210 130 C 260 170, 340 210, 470 230"
-                stroke="#D6D3CD"
-                strokeWidth="1.2"
-                strokeLinecap="round"
-              />
-              {/* Right tether from card to head */}
-              <path
-                d="M 870 170 C 800 210, 710 230, 590 235"
-                stroke="#D6D3CD"
-                strokeWidth="1.2"
-                strokeLinecap="round"
-              />
-            </svg>
-
-            {/* Left Tethered Card */}
-            <div
-              style={{
-                position: 'absolute',
-                left: '28px',
-                top: '40px',
-                zIndex: 3,
-                backgroundColor: '#FFFFFF',
-                borderRadius: '18px',
-                padding: '16px 20px',
-                width: '200px',
-                textAlign: 'left',
-                boxShadow: '0 12px 30px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.04)',
-                border: '1px solid rgba(0, 0, 0, 0.05)',
-                transition: 'transform 0.25s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-4px)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
-            >
-              {/* Soundwave Icon */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '2px',
-                  marginBottom: '10px',
-                  color: '#0F172A',
-                }}
-              >
-                <div style={{ width: '2.5px', height: '10px', backgroundColor: '#0F172A', borderRadius: '1px' }} />
-                <div style={{ width: '2.5px', height: '16px', backgroundColor: '#0F172A', borderRadius: '1px' }} />
-                <div style={{ width: '2.5px', height: '8px', backgroundColor: '#0F172A', borderRadius: '1px' }} />
-                <div style={{ width: '2.5px', height: '13px', backgroundColor: '#0F172A', borderRadius: '1px' }} />
-              </div>
-              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0F172A', lineHeight: 1.3 }}>
-                Turn thoughts into progress.
-              </div>
-              <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: '6px', lineHeight: 1.35 }}>
-                Capture, organise and do more.
-              </div>
-            </div>
-
-            {/* Right Tethered Card */}
-            <div
-              style={{
-                position: 'absolute',
-                right: '40px',
-                top: '80px',
-                zIndex: 3,
-                backgroundColor: '#FFFFFF',
-                borderRadius: '18px',
-                padding: '16px 20px',
-                width: '190px',
-                textAlign: 'left',
-                boxShadow: '0 12px 30px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.04)',
-                border: '1px solid rgba(0, 0, 0, 0.05)',
-                transition: 'transform 0.25s ease',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-4px)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
-            >
-              {/* 3 Avatars + Plus */}
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                {[
-                  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&auto=format&fit=crop&q=80',
-                  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&auto=format&fit=crop&q=80',
-                  'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&auto=format&fit=crop&q=80',
-                ].map((src, idx) => (
-                  <img
-                    key={idx}
-                    src={src}
-                    alt="User"
-                    style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                      border: '2px solid #FFFFFF',
-                      marginLeft: idx > 0 ? '-6px' : 0,
-                    }}
-                  />
-                ))}
-                <div
-                  style={{
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '50%',
-                    backgroundColor: '#F1F5F9',
-                    border: '2px solid #FFFFFF',
-                    marginLeft: '-6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.65rem',
-                    fontWeight: 700,
-                    color: '#64748B',
-                  }}
-                >
-                  +
-                </div>
-              </div>
-
-              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0F172A', lineHeight: 1.3 }}>
-                Ideas, anytime, anywhere.
-              </div>
-              <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: '6px', lineHeight: 1.35 }}>
-                Sync across all your devices.
-              </div>
-            </div>
-
-            {/* Central Visual: Figure with Translucent Cards */}
-            <div
-              style={{
-                position: 'relative',
-                width: '100%',
-                maxWidth: '560px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 2,
-              }}
-            >
-              <img
-                src="/hero-character-clean.png"
-                alt="Guri24 RMS Intelligence Composite"
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  display: 'block',
-                  filter: 'contrast(1.02) drop-shadow(0 20px 30px rgba(0,0,0,0.06))',
-                }}
-              />
-            </div>
-          </div>
-
-          {/* =========================================================================
-              BOTTOM HERO METRICS & SOCIAL PROOF BADGES
-              ========================================================================= */}
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '1200px',
-              padding: '16px 40px 24px',
+              backgroundColor: '#0F172A',
+              padding: '14px 20px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              zIndex: 3,
-              marginTop: '-16px',
+              color: '#FFFFFF',
             }}
           >
-            {/* Bottom Left: Trusted by 50,000+ creators */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px' }}>
-              <div style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 500 }}>
-                Trusted by 50,000+ creators worldwide.
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#EF4444' }} />
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#F59E0B' }} />
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10B981' }} />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                {[
-                  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&auto=format&fit=crop&q=80',
-                  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&auto=format&fit=crop&q=80',
-                  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=80&auto=format&fit=crop&q=80',
-                  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&auto=format&fit=crop&q=80',
-                ].map((src, idx) => (
-                  <img
-                    key={idx}
-                    src={src}
-                    alt="Member"
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                      border: '2px solid #FAF9F6',
-                      marginLeft: idx > 0 ? '-8px' : 0,
-                    }}
-                  />
-                ))}
-                <div
-                  style={{
-                    width: '28px',
-                    height: '28px',
-                    borderRadius: '50%',
-                    backgroundColor: '#E2E8F0',
-                    border: '2px solid #FAF9F6',
-                    marginLeft: '-8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    color: '#475569',
-                  }}
-                >
-                  +
+              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#E2E8F0', marginLeft: '8px' }}>
+                Guri24 RMS · Portfolio Operations
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.76rem', color: '#94A3B8' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                M-Pesa Daraja C2B V2 Connected
+              </span>
+              <span>Shortcode: 1343073</span>
+            </div>
+          </div>
+
+          {/* Metric Stats Banner */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '1px',
+              backgroundColor: '#F1F5F9',
+              borderBottom: '1px solid #E2E8F0',
+            }}
+          >
+            {[
+              { label: 'Total Properties', val: '24 Estates', tone: '#0F172A' },
+              { label: 'Occupied Units', val: '148 / 160 (92.5%)', tone: '#10B981' },
+              { label: 'Rent Collected', val: 'KES 3,840,000', tone: '#4F46E5' },
+              { label: 'Outstanding Rent', val: 'KES 180,000', tone: '#F59E0B' },
+              { label: 'Maintenance Queue', val: '3 Tickets Active', tone: '#64748B' },
+            ].map((stat, idx) => (
+              <div
+                key={idx}
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  padding: '16px 20px',
+                }}
+              >
+                <div style={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>
+                  {stat.label}
                 </div>
+                <div style={{ fontSize: '1.18rem', fontWeight: 700, color: stat.tone, marginTop: '4px' }}>
+                  {stat.val}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Operational Mockup Workspace Body */}
+          <div
+            style={{
+              padding: '24px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: '20px',
+              backgroundColor: '#F8FAFC',
+            }}
+          >
+            {/* Left Mockup Card: Recent Verified Payments */}
+            <div
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '16px',
+                border: '1px solid #E2E8F0',
+                padding: '18px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CreditCard size={18} color="#4F46E5" />
+                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0F172A' }}>Recent M-Pesa C2B Collections</span>
+                </div>
+                <span style={{ fontSize: '0.72rem', color: '#16A34A', fontWeight: 700, backgroundColor: '#DCFCE7', padding: '2px 8px', borderRadius: '9999px' }}>
+                  Real-Time Verified
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {[
+                  { ref: 'SK88102911', tenant: 'James Otieno (A-102)', amount: 'KES 35,000', time: '10 mins ago', status: 'Allocated' },
+                  { ref: 'SK88102904', tenant: 'Grace Wanjiku (B-204)', amount: 'KES 42,000', time: '35 mins ago', status: 'Allocated' },
+                  { ref: 'SK88102899', tenant: 'Ahmed Noor (C-301)', amount: 'KES 28,000', time: '1 hr ago', status: 'Allocated' },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      backgroundColor: '#F8FAFC',
+                      border: '1px solid #F1F5F9',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#0F172A' }}>{item.tenant}</div>
+                      <div style={{ fontSize: '0.72rem', color: '#64748B' }}>TransID: {item.ref} · {item.time}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#10B981' }}>{item.amount}</div>
+                      <div style={{ fontSize: '0.70rem', color: '#4F46E5', fontWeight: 600 }}>{item.status}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Bottom Right: Minimal sparkle & Less chaos */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-              {/* 4-point sparkle */}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#0F172A">
-                <path d="M12 0 Q 12 12 0 12 Q 12 12 12 24 Q 12 12 24 12 Q 12 12 12 0 Z" />
-              </svg>
-              <div style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 500, marginTop: '4px' }}>
-                — Less chaos.
+            {/* Right Mockup Card: Tenant Leases & Invoices */}
+            <div
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '16px',
+                border: '1px solid #E2E8F0',
+                padding: '18px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FileCheck2 size={18} color="#4F46E5" />
+                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0F172A' }}>Tenancy Operations & Renewals</span>
+                </div>
+                <span style={{ fontSize: '0.72rem', color: '#4F46E5', fontWeight: 600 }}>Active Portfolio</span>
               </div>
-              <div style={{ fontSize: '0.82rem', color: '#64748B', fontWeight: 500 }}>
-                More clarity.
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {[
+                  { unit: 'Riverside Heights #402', lease: '12-Month Tenancy', rent: 'KES 45,000 / mo', tag: 'Active' },
+                  { unit: 'Parklands Executive #12', lease: 'Up for Renewal (20 Days)', rent: 'KES 65,000 / mo', tag: 'Renewal Ready' },
+                  { unit: 'Westlands Commercial #B3', lease: 'Corporate Lease Agreement', rent: 'KES 120,000 / mo', tag: 'Verified' },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      backgroundColor: '#F8FAFC',
+                      border: '1px solid #F1F5F9',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#0F172A' }}>{item.unit}</div>
+                      <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{item.lease}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0F172A' }}>{item.rent}</div>
+                      <span
+                        style={{
+                          fontSize: '0.68rem',
+                          padding: '2px 8px',
+                          borderRadius: '9999px',
+                          backgroundColor: item.tag === 'Renewal Ready' ? '#FEF3C7' : '#EFF6FF',
+                          color: item.tag === 'Renewal Ready' ? '#B45309' : '#1D4ED8',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {item.tag}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 1: FEATURES MATRIX (Anchor: #features)
-            ========================================================================= */}
-        <section
-          id="features"
-          style={{
-            padding: '72px 48px',
-            borderTop: '1px solid rgba(0, 0, 0, 0.06)',
-            backgroundColor: '#FFFFFF',
-          }}
-        >
-          <div style={{ maxWidth: '1100px', marginInline: 'auto' }}>
-            <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+      {/* =========================================================================
+          3. TRUST / AUDIENCE SECTION
+          ========================================================================= */}
+      <section
+        style={{
+          padding: '60px 24px',
+          borderTop: '1px solid #F1F5F9',
+          borderBottom: '1px solid #F1F5F9',
+          backgroundColor: '#FAFAFA',
+          textAlign: 'center',
+        }}
+      >
+        <div style={{ maxWidth: '1040px', margin: '0 auto' }}>
+          <h2
+            style={{
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              color: '#0F172A',
+              marginBottom: '10px',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            Built for the People Who Manage Properties
+          </h2>
+          <p
+            style={{
+              fontSize: '0.94rem',
+              color: '#64748B',
+              lineHeight: 1.55,
+              maxWidth: '680px',
+              margin: '0 auto 28px auto',
+            }}
+          >
+            Guri24 brings property owners, managers, accountants and tenants together through a connected property management experience.
+          </p>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              flexWrap: 'wrap',
+            }}
+          >
+            {[
+              'Property Owners',
+              'Property Managers',
+              'Real Estate Companies',
+              'Landlords',
+              'Residential Estates',
+            ].map((audience, idx) => (
               <div
+                key={idx}
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  backgroundColor: '#F1F5F9',
-                  color: '#0F172A',
-                  padding: '4px 14px',
+                  padding: '10px 22px',
                   borderRadius: '9999px',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                  marginBottom: '14px',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  color: '#334155',
+                  fontSize: '0.86rem',
+                  fontWeight: 600,
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
                 }}
               >
-                <Sparkles size={13} />
-                <span>Everything in one space</span>
+                {audience}
               </div>
-              <h2
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          4. FEATURES SECTION
+          ========================================================================= */}
+      <section
+        id="features"
+        style={{
+          padding: '96px 24px',
+          maxWidth: '1240px',
+          margin: '0 auto',
+        }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: '56px' }}>
+          <h2
+            style={{
+              fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
+              fontWeight: 800,
+              color: '#0F172A',
+              letterSpacing: '-0.03em',
+              marginBottom: '14px',
+            }}
+          >
+            Everything You Need to Manage Your Properties
+          </h2>
+          <p
+            style={{
+              fontSize: '1.05rem',
+              color: '#64748B',
+              lineHeight: 1.6,
+              maxWidth: '680px',
+              margin: '0 auto',
+            }}
+          >
+            Powerful property management tools designed to simplify everyday rental operations and give you better control of your business.
+          </p>
+        </div>
+
+        {/* 9 Feature Cards Grid */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '24px',
+          }}
+        >
+          {[
+            {
+              icon: Building2,
+              title: 'Property & Unit Management',
+              desc: 'Organize your entire property portfolio in one place. Manage buildings, apartments, units, occupancy, property details and rental information.',
+            },
+            {
+              icon: Users,
+              title: 'Tenant Management',
+              desc: 'Maintain organized tenant profiles, contact information, identification documents, emergency contacts, lease details and tenancy history.',
+            },
+            {
+              icon: CreditCard,
+              title: 'Rent Collection & Payments',
+              desc: 'Track rent invoices, payment records, outstanding balances and collection performance. Support M-Pesa Paybill/Till C2B and configured bank payment workflows.',
+            },
+            {
+              icon: FileCheck2,
+              title: 'Lease & Booking Management',
+              desc: 'Create and manage tenancy agreements, lease periods, renewals, bookings, rent terms and important expiry dates.',
+            },
+            {
+              icon: Wrench,
+              title: 'Maintenance Management',
+              desc: 'Receive maintenance requests, assign technicians, monitor progress, manage expenses and keep property maintenance records organized.',
+            },
+            {
+              icon: BarChart3,
+              title: 'Financial Management',
+              desc: 'Get a clearer view of rental income, outstanding invoices, deposits, expenses and financial reports through connected financial management.',
+            },
+            {
+              icon: ScanText,
+              title: 'OCR & Document Intelligence',
+              desc: 'Extract information from uploaded tenancy agreements, invoices, receipts and other documents. Review and approve extracted information before it is submitted to the relevant system.',
+            },
+            {
+              icon: Sparkles,
+              title: 'AI Property Assistant',
+              desc: 'Get assistance understanding property operations, identifying important trends and interpreting authorized business information with AI-powered insights.',
+            },
+            {
+              icon: PieChart,
+              title: 'Analytics & Reports',
+              desc: 'Understand occupancy, rent collection, arrears, property performance and operational trends through interactive dashboards and reports.',
+            },
+          ].map((item, idx) => {
+            const IconComponent = item.icon;
+            return (
+              <div
+                key={idx}
                 style={{
-                  fontFamily: "'Playfair Display', Georgia, serif",
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '20px',
+                  border: '1px solid #E2E8F0',
+                  padding: '28px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '14px',
+                  boxShadow: '0 4px 18px rgba(0, 0, 0, 0.02)',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#CBD5E1';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 12px 28px rgba(0, 0, 0, 0.06)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#E2E8F0';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 18px rgba(0, 0, 0, 0.02)';
+                }}
+              >
+                <div
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '12px',
+                    backgroundColor: '#EEF2FF',
+                    color: '#4F46E5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <IconComponent size={22} />
+                </div>
+                <h3
+                  style={{
+                    fontSize: '1.18rem',
+                    fontWeight: 700,
+                    color: '#0F172A',
+                    letterSpacing: '-0.015em',
+                  }}
+                >
+                  {item.title}
+                </h3>
+                <p
+                  style={{
+                    fontSize: '0.88rem',
+                    color: '#64748B',
+                    lineHeight: 1.6,
+                    margin: 0,
+                  }}
+                >
+                  {item.desc}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* =========================================================================
+          5. WHY CHOOSE GURI24?
+          ========================================================================= */}
+      <section
+        id="why-guri24"
+        style={{
+          padding: '96px 24px',
+          backgroundColor: '#F8FAFC',
+          borderTop: '1px solid #F1F5F9',
+          borderBottom: '1px solid #F1F5F9',
+        }}
+      >
+        <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '56px' }}>
+            <h2
+              style={{
+                fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
+                fontWeight: 800,
+                color: '#0F172A',
+                letterSpacing: '-0.03em',
+                marginBottom: '14px',
+              }}
+            >
+              Property Management, Made Simpler.
+            </h2>
+            <p
+              style={{
+                fontSize: '1.05rem',
+                color: '#64748B',
+                lineHeight: 1.6,
+                maxWidth: '640px',
+                margin: '0 auto',
+              }}
+            >
+              Spend less time managing scattered records and more time growing your property business.
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '20px',
+            }}
+          >
+            {[
+              {
+                title: 'One Connected Platform',
+                desc: 'Manage properties, tenants, leases, payments and maintenance from a central workspace.',
+              },
+              {
+                title: 'Better Financial Visibility',
+                desc: 'Know what has been invoiced, collected, allocated and remains outstanding.',
+              },
+              {
+                title: 'Organized Tenant Records',
+                desc: 'Keep tenant information, tenancy documents and communication records accessible to authorized staff.',
+              },
+              {
+                title: 'Smarter Operations',
+                desc: 'Use automation, reminders and AI-assisted insights to support everyday property management.',
+              },
+              {
+                title: 'Secure Access',
+                desc: 'Give owners, managers, accountants and tenants access to the information and tools relevant to their responsibilities.',
+              },
+            ].map((pillar, i) => (
+              <div
+                key={i}
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '18px',
+                  border: '1px solid #E2E8F0',
+                  padding: '24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                }}
+              >
+                <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#DCFCE7', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '4px' }}>
+                  <Check size={16} />
+                </div>
+                <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0F172A' }}>
+                  {pillar.title}
+                </h4>
+                <p style={{ fontSize: '0.86rem', color: '#64748B', lineHeight: 1.55, margin: 0 }}>
+                  {pillar.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          6. HOW IT WORKS
+          ========================================================================= */}
+      <section
+        id="how-it-works"
+        style={{
+          padding: '96px 24px',
+          maxWidth: '1240px',
+          margin: '0 auto',
+          textAlign: 'center',
+        }}
+      >
+        <div style={{ marginBottom: '56px' }}>
+          <h2
+            style={{
+              fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
+              fontWeight: 800,
+              color: '#0F172A',
+              letterSpacing: '-0.03em',
+              marginBottom: '14px',
+            }}
+          >
+            Get Started in 3 Simple Steps
+          </h2>
+          <p
+            style={{
+              fontSize: '1.05rem',
+              color: '#64748B',
+              lineHeight: 1.6,
+              maxWidth: '640px',
+              margin: '0 auto',
+            }}
+          >
+            Set up your organization and start managing your rental operations from one workspace.
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '24px',
+            textAlign: 'left',
+          }}
+        >
+          {[
+            {
+              step: '01',
+              title: 'Set Up Your Organization',
+              desc: 'Create your Guri24 organization, configure your business details and invite your team.',
+            },
+            {
+              step: '02',
+              title: 'Add Properties & Tenants',
+              desc: 'Register your buildings, units, tenants, leases and rental information.',
+            },
+            {
+              step: '03',
+              title: 'Manage Everything in One Place',
+              desc: 'Track rent collection, manage maintenance, organize documents and monitor property performance.',
+            },
+          ].map((item, idx) => (
+            <div
+              key={idx}
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '20px',
+                border: '1px solid #E2E8F0',
+                padding: '32px 28px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)',
+                position: 'relative',
+              }}
+            >
+              <div
+                style={{
                   fontSize: '2.5rem',
-                  fontWeight: 600,
+                  fontWeight: 800,
+                  color: '#4F46E5',
+                  opacity: 0.25,
+                  letterSpacing: '-0.04em',
+                }}
+              >
+                {item.step}
+              </div>
+              <h3
+                style={{
+                  fontSize: '1.25rem',
+                  fontWeight: 700,
                   color: '#0F172A',
-                  letterSpacing: '-0.02em',
+                }}
+              >
+                {item.title}
+              </h3>
+              <p
+                style={{
+                  fontSize: '0.90rem',
+                  color: '#64748B',
+                  lineHeight: 1.6,
                   margin: 0,
                 }}
               >
-                Crafted for clarity, designed for speed.
-              </h2>
-              <p style={{ color: '#64748B', fontSize: '0.96rem', marginTop: '12px', maxWidth: '580px', marginInline: 'auto' }}>
-                Stop toggling between spreadsheets, bank statements, and WhatsApp chats. Guri24 unites operations under one authoritative engine.
+                {item.desc}
               </p>
             </div>
+          ))}
+        </div>
+      </section>
 
-            {/* Grid of 4 Feature Cards */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                gap: '24px',
-              }}
-            >
-              {[
-                {
-                  icon: <Wallet size={22} color="#0F172A" />,
-                  title: 'Instant M-Pesa & Multi-Bank Recon',
-                  desc: 'Daraja C2B Paybill webhooks reconcile against tenant invoices in sub-second time. Supports Equity, NCBA, KCB, Stanbic, and Co-op statements.',
-                },
-                {
-                  icon: <Building2 size={22} color="#0F172A" />,
-                  title: 'Living Property Hierarchies',
-                  desc: 'Model estates, buildings, floors, and units with real-time occupancy tracking, tenant profiles, and automated lease lifecycle transitions.',
-                },
-                {
-                  icon: <FileText size={22} color="#0F172A" />,
-                  title: 'Double-Entry General Ledger',
-                  desc: 'Immutable trial balance where Debits always equal Credits. Tenant deposit liabilities (Account 2100) are strictly segregated from rental income.',
-                },
-                {
-                  icon: <Sparkles size={22} color="#0F172A" />,
-                  title: 'Grounded AI Financial Assistant',
-                  desc: 'Ask complex financial questions in plain language. Llama 3.3 computes collection efficiencies, arrears aging, and variance analysis with exact citations.',
-                },
-              ].map((feat, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    backgroundColor: '#FAF9F6',
-                    borderRadius: '20px',
-                    padding: '28px 24px',
-                    border: '1px solid rgba(0, 0, 0, 0.05)',
-                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 14px 30px rgba(0, 0, 0, 0.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '44px',
-                      height: '44px',
-                      borderRadius: '12px',
-                      backgroundColor: '#FFFFFF',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
-                      marginBottom: '18px',
-                    }}
-                  >
-                    {feat.icon}
-                  </div>
-                  <h3 style={{ fontSize: '1.02rem', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
-                    {feat.desc.split('.')[0]}
-                  </h3>
-                  <p style={{ fontSize: '0.84rem', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
-                    {feat.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+      {/* =========================================================================
+          7. DASHBOARD / PRODUCT SHOWCASE
+          ========================================================================= */}
+      <section
+        style={{
+          padding: '96px 24px',
+          backgroundColor: '#0F172A',
+          color: '#FFFFFF',
+          textAlign: 'center',
+        }}
+      >
+        <div style={{ maxWidth: '1040px', margin: '0 auto' }}>
+          <h2
+            style={{
+              fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
+              fontWeight: 800,
+              letterSpacing: '-0.03em',
+              marginBottom: '14px',
+            }}
+          >
+            Your Entire Property Portfolio at a Glance
+          </h2>
+          <p
+            style={{
+              fontSize: '1.05rem',
+              color: '#94A3B8',
+              lineHeight: 1.6,
+              maxWidth: '680px',
+              margin: '0 auto 40px auto',
+            }}
+          >
+            Get a clear overview of your properties and daily operations without switching between multiple tools.
+          </p>
 
-        {/* =========================================================================
-            SECTION 2: HOW IT WORKS (Anchor: #how-it-works)
-            ========================================================================= */}
-        <section
-          id="how-it-works"
-          style={{
-            padding: '72px 48px',
-            backgroundColor: '#FAF9F6',
-            borderTop: '1px solid rgba(0, 0, 0, 0.06)',
-          }}
-        >
-          <div style={{ maxWidth: '1000px', marginInline: 'auto' }}>
-            <div style={{ textAlign: 'center', marginBottom: '44px' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Simple, effortless onboarding
-              </div>
-              <h2
+          {/* Interactive Metric Showcase Pills */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '14px',
+              marginBottom: '40px',
+              textAlign: 'left',
+            }}
+          >
+            {[
+              { label: 'Total Properties', sub: 'Buildings & Estates' },
+              { label: 'Total Units', sub: 'Residential & Commercial' },
+              { label: 'Occupied Units', sub: 'Live Tenant Leases' },
+              { label: 'Vacant Units', sub: 'Ready for Assignment' },
+              { label: 'Active Tenants', sub: 'Verified Directory' },
+              { label: 'Rent Collected', sub: 'M-Pesa C2B & Bank' },
+              { label: 'Outstanding Rent', sub: 'Automated Reminders' },
+              { label: 'Maintenance Requests', sub: 'Tracked Workflows' },
+            ].map((card, i) => (
+              <div
+                key={i}
                 style={{
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                  fontSize: '2.4rem',
-                  fontWeight: 600,
-                  color: '#0F172A',
-                  marginTop: '6px',
-                  marginBottom: '10px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '14px',
+                  padding: '16px 18px',
                 }}
               >
-                Three steps to peace of mind.
-              </h2>
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '28px',
-              }}
-            >
-              {[
-                {
-                  step: '01',
-                  title: 'Setup your Organization & Bank Accounts',
-                  desc: 'Use the 10-step Client Finance Wizard to configure your legal entity, commercial bank accounts (Equity, NCBA, KCB), and M-Pesa Paybill channels.',
-                },
-                {
-                  step: '02',
-                  title: 'Import Properties & Active Leases',
-                  desc: 'Upload CSV/Excel schedules or drag-and-drop lease documents. Our OCR engine extracts tenant details, rent rates, and deposit escrow amounts.',
-                },
-                {
-                  step: '03',
-                  title: 'Automate Collections & Ledger',
-                  desc: 'Tenants pay directly via Safaricom M-Pesa Paybill. Invoices settle in real time, and double-entry journals update your live balance sheet.',
-                },
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    borderRadius: '20px',
-                    padding: '32px 28px',
-                    border: '1px solid rgba(0, 0, 0, 0.06)',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)',
-                    position: 'relative',
-                  }}
-                >
-                  <div
-                    style={{
-                      fontFamily: "'Playfair Display', Georgia, serif",
-                      fontSize: '2.2rem',
-                      fontWeight: 700,
-                      color: '#E2E8F0',
-                      marginBottom: '12px',
-                    }}
-                  >
-                    {item.step}
-                  </div>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
-                    {item.title}
-                  </h3>
-                  <p style={{ fontSize: '0.85rem', color: '#64748B', lineHeight: 1.55, margin: 0 }}>
-                    {item.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
+                <div style={{ fontSize: '0.94rem', fontWeight: 700, color: '#FFFFFF' }}>{card.label}</div>
+                <div style={{ fontSize: '0.78rem', color: '#94A3B8', marginTop: '4px' }}>{card.sub}</div>
+              </div>
+            ))}
           </div>
-        </section>
 
-        {/* =========================================================================
-            SECTION 3: INTEGRATIONS (Anchor: #integrations)
-            ========================================================================= */}
-        <section
-          id="integrations"
+          <Link
+            to="/signup"
+            style={{
+              textDecoration: 'none',
+              backgroundColor: '#4F46E5',
+              color: '#FFFFFF',
+              fontSize: '0.96rem',
+              fontWeight: 600,
+              padding: '13px 32px',
+              borderRadius: '9999px',
+              boxShadow: '0 4px 20px rgba(79, 70, 229, 0.4)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <span>Explore Guri24</span>
+            <ArrowRight size={16} />
+          </Link>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          8. SOLUTIONS SECTION
+          ========================================================================= */}
+      <section
+        id="solutions"
+        style={{
+          padding: '96px 24px',
+          maxWidth: '1240px',
+          margin: '0 auto',
+        }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: '56px' }}>
+          <h2
+            style={{
+              fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
+              fontWeight: 800,
+              color: '#0F172A',
+              letterSpacing: '-0.03em',
+              marginBottom: '14px',
+            }}
+          >
+            Designed for Every Property Management Need
+          </h2>
+        </div>
+
+        <div
           style={{
-            padding: '72px 48px',
-            backgroundColor: '#FFFFFF',
-            borderTop: '1px solid rgba(0, 0, 0, 0.06)',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))',
+            gap: '24px',
           }}
         >
-          <div style={{ maxWidth: '1000px', marginInline: 'auto', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Connected to Kenya's financial core
+          {[
+            {
+              title: 'For Landlords',
+              desc: 'Manage your rental properties, monitor rent collection and keep tenant records organized.',
+            },
+            {
+              title: 'For Property Managers',
+              desc: 'Coordinate multiple properties, manage teams, track maintenance and oversee daily rental operations.',
+            },
+            {
+              title: 'For Real Estate Companies',
+              desc: 'Centralize property portfolios, standardize workflows and improve operational visibility across your organization.',
+            },
+            {
+              title: 'For Tenants',
+              desc: 'Access your tenancy information, view payment records, receive important notifications and manage your rental experience through the tenant portal.',
+            },
+          ].map((sol, idx) => (
+            <div
+              key={idx}
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '20px',
+                border: '1px solid #E2E8F0',
+                padding: '28px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.02)',
+              }}
+            >
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A' }}>{sol.title}</h3>
+              <p style={{ fontSize: '0.88rem', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+                {sol.desc}
+              </p>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* =========================================================================
+          9. RESULTS / BUSINESS BENEFITS
+          ========================================================================= */}
+      <section
+        style={{
+          padding: '96px 24px',
+          backgroundColor: '#F8FAFC',
+          borderTop: '1px solid #F1F5F9',
+          borderBottom: '1px solid #F1F5F9',
+        }}
+      >
+        <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '56px' }}>
             <h2
               style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: '2.4rem',
-                fontWeight: 600,
+                fontSize: 'clamp(2rem, 3.8vw, 2.75rem)',
+                fontWeight: 800,
                 color: '#0F172A',
-                marginTop: '6px',
+                letterSpacing: '-0.03em',
                 marginBottom: '14px',
               }}
             >
-              Native Integrations with Banks & Telcos.
+              Better Visibility. Better Decisions. Better Property Management.
             </h2>
-            <p style={{ color: '#64748B', fontSize: '0.94rem', maxWidth: '600px', marginInline: 'auto', marginBottom: '40px' }}>
-              Direct connectivity with Safaricom Daraja, multi-bank statement parsers, and automated notification gateways.
+            <p
+              style={{
+                fontSize: '1.05rem',
+                color: '#64748B',
+                lineHeight: 1.6,
+                maxWidth: '680px',
+                margin: '0 auto',
+              }}
+            >
+              Guri24 helps bring your rental operations together so you can make informed decisions using organized, accessible business information.
             </p>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                gap: '18px',
-              }}
-            >
-              {[
-                { name: 'Safaricom M-Pesa', badge: 'Daraja C2B V2 Paybill' },
-                { name: 'Equity Bank', badge: 'Direct Wire & Statement Recon' },
-                { name: 'NCBA Group', badge: 'Automated Account Routing' },
-                { name: 'KCB Bank', badge: 'Petty Cash & Escrow Feeds' },
-                { name: 'Co-operative Bank', badge: 'Rent Collection Mappings' },
-                { name: 'Stanbic Bank', badge: 'Operating Expense Clearing' },
-              ].map((prov, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    backgroundColor: '#FAF9F6',
-                    padding: '20px 16px',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(0, 0, 0, 0.05)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0F172A' }}>{prov.name}</div>
-                  <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '4px' }}>{prov.badge}</div>
-                </div>
-              ))}
-            </div>
           </div>
-        </section>
 
-        {/* =========================================================================
-            SECTION 4: PRICING (Anchor: #pricing)
-            ========================================================================= */}
-        <section
-          id="pricing"
-          style={{
-            padding: '72px 48px',
-            backgroundColor: '#FAF9F6',
-            borderTop: '1px solid rgba(0, 0, 0, 0.06)',
-          }}
-        >
-          <div style={{ maxWidth: '1050px', marginInline: 'auto' }}>
-            <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Simple, transparent pricing
-              </div>
-              <h2
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+              gap: '20px',
+            }}
+          >
+            {[
+              {
+                title: 'Centralized Records',
+                desc: 'Your property and tenant information organized in one platform.',
+              },
+              {
+                title: 'Improved Rent Tracking',
+                desc: 'Understand rental invoices, collections and outstanding balances.',
+              },
+              {
+                title: 'Efficient Operations',
+                desc: 'Coordinate maintenance, leases, documents and team responsibilities.',
+              },
+              {
+                title: 'Actionable Insights',
+                desc: 'Understand property performance with analytics and AI-assisted interpretation.',
+              },
+            ].map((card, i) => (
+              <div
+                key={i}
                 style={{
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                  fontSize: '2.4rem',
-                  fontWeight: 600,
-                  color: '#0F172A',
-                  marginTop: '6px',
-                  marginBottom: '10px',
-                }}
-              >
-                Plans that scale with your portfolio.
-              </h2>
-              <p style={{ color: '#64748B', fontSize: '0.94rem' }}>
-                All plans include M-Pesa automated reconciliation, double-entry trust accounting, and tenant portal.
-              </p>
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '24px',
-                alignItems: 'stretch',
-              }}
-            >
-              {[
-                {
-                  name: 'Starter',
-                  price: 'KES 25,000',
-                  cadence: '/ month',
-                  desc: 'Ideal for independent landlords and small estates up to 20 units.',
-                  features: ['Up to 20 Units', '1 Commercial Bank Account', '1 M-Pesa Till / Paybill', 'Automated C2B Paybill Billing', 'Standard Email Support'],
-                  highlighted: false,
-                },
-                {
-                  name: 'Professional',
-                  price: 'KES 45,000',
-                  cadence: '/ month',
-                  desc: 'For property management firms operating multi-building portfolios up to 100 units.',
-                  features: ['Up to 100 Units', '3 Commercial Bank Accounts', 'Multiple M-Pesa Channels', 'AI Financial Assistant', 'Double-Entry General Ledger', 'Priority WhatsApp Support'],
-                  highlighted: true,
-                },
-                {
-                  name: 'Enterprise',
-                  price: 'KES 65,000',
-                  cadence: '/ month',
-                  desc: 'Full-scale solution for corporate property developers with unlimited units.',
-                  features: ['Unlimited Units & Estates', 'Unlimited Bank Accounts', 'Custom Reconciliation Rules', 'Dedicated Database Isolation', '24/7 Dedicated Account Manager'],
-                  highlighted: false,
-                },
-              ].map((plan, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    backgroundColor: '#FFFFFF',
-                    borderRadius: '24px',
-                    padding: '36px 32px',
-                    border: plan.highlighted ? '2px solid #0F172A' : '1px solid rgba(0, 0, 0, 0.06)',
-                    boxShadow: plan.highlighted ? '0 20px 40px rgba(0, 0, 0, 0.08)' : '0 4px 12px rgba(0, 0, 0, 0.02)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    position: 'relative',
-                  }}
-                >
-                  {plan.highlighted && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '-13px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        backgroundColor: '#0F172A',
-                        color: '#FFFFFF',
-                        fontSize: '0.72rem',
-                        fontWeight: 700,
-                        padding: '4px 14px',
-                        borderRadius: '9999px',
-                        letterSpacing: '0.04em',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      Most Popular
-                    </div>
-                  )}
-
-                  <div>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0F172A' }}>{plan.name}</div>
-                    <div style={{ fontSize: '0.82rem', color: '#64748B', marginTop: '4px', minHeight: '38px' }}>
-                      {plan.desc}
-                    </div>
-
-                    <div style={{ margin: '24px 0 20px', display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                      <span style={{ fontSize: '1.9rem', fontWeight: 800, color: '#0F172A' }}>{plan.price}</span>
-                      <span style={{ fontSize: '0.84rem', color: '#64748B' }}>{plan.cadence}</span>
-                    </div>
-
-                    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 28px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {plan.features.map((f, fIdx) => (
-                        <li key={fIdx} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.84rem', color: '#334155' }}>
-                          <Check size={16} color="#16A34A" />
-                          <span>{f}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <Link
-                    to="/login"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      backgroundColor: plan.highlighted ? '#0F172A' : '#F1F5F9',
-                      color: plan.highlighted ? '#FFFFFF' : '#0F172A',
-                      padding: '12px 20px',
-                      borderRadius: '9999px',
-                      fontSize: '0.88rem',
-                      fontWeight: 600,
-                      textDecoration: 'none',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <span>Choose {plan.name}</span>
-                    <ArrowRight size={15} />
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* =========================================================================
-            BOTTOM CALL TO ACTION
-            ========================================================================= */}
-        <section
-          style={{
-            padding: '72px 48px',
-            backgroundColor: '#0F172A',
-            color: '#FFFFFF',
-            textAlign: 'center',
-          }}
-        >
-          <div style={{ maxWidth: '720px', marginInline: 'auto' }}>
-            <h2
-              style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: '2.6rem',
-                fontWeight: 600,
-                color: '#FFFFFF',
-                marginBottom: '14px',
-              }}
-            >
-              Ready to experience modern rental intelligence?
-            </h2>
-            <p style={{ color: '#94A3B8', fontSize: '0.98rem', marginBottom: '32px' }}>
-              Join forward-thinking property managers across Nairobi, Mombasa, and Kisumu who manage their entire lifecycle on Guri24.
-            </p>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
-              <Link
-                to="/app/dashboard"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
                   backgroundColor: '#FFFFFF',
-                  color: '#0F172A',
-                  padding: '13px 28px',
-                  borderRadius: '9999px',
-                  fontSize: '0.92rem',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  boxShadow: '0 4px 14px rgba(255, 255, 255, 0.2)',
+                  borderRadius: '18px',
+                  border: '1px solid #E2E8F0',
+                  padding: '24px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
                 }}
               >
-                <span>Launch Guri24 RMS</span>
-                <ArrowRight size={16} />
-              </Link>
-            </div>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#4F46E5', marginBottom: '12px' }} />
+                <h4 style={{ fontSize: '1.08rem', fontWeight: 700, color: '#0F172A', marginBottom: '6px' }}>
+                  {card.title}
+                </h4>
+                <p style={{ fontSize: '0.86rem', color: '#64748B', lineHeight: 1.55, margin: 0 }}>
+                  {card.desc}
+                </p>
+              </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            FOOTER
-            ========================================================================= */}
-        <footer
+      {/* =========================================================================
+          10. FINAL CALL TO ACTION
+          ========================================================================= */}
+      <section
+        style={{
+          padding: '100px 24px',
+          textAlign: 'center',
+          backgroundColor: '#FFFFFF',
+        }}
+      >
+        <div style={{ maxWidth: '820px', margin: '0 auto' }}>
+          <h2
+            style={{
+              fontSize: 'clamp(2.2rem, 4.5vw, 3.4rem)',
+              fontWeight: 800,
+              color: '#0F172A',
+              letterSpacing: '-0.035em',
+              lineHeight: 1.15,
+              marginBottom: '18px',
+            }}
+          >
+            Ready to Take Control of Your Properties?
+          </h2>
+          <p
+            style={{
+              fontSize: '1.08rem',
+              color: '#64748B',
+              lineHeight: 1.6,
+              maxWidth: '680px',
+              margin: '0 auto 36px auto',
+            }}
+          >
+            Bring your property management operations together with Guri24. Start organizing your properties, managing tenants and gaining better visibility into your rental business.
+          </p>
+
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '14px',
+              flexWrap: 'wrap',
+              marginBottom: '20px',
+            }}
+          >
+            <Link
+              to="/signup"
+              style={{
+                textDecoration: 'none',
+                backgroundColor: '#4F46E5',
+                color: '#FFFFFF',
+                fontSize: '0.98rem',
+                fontWeight: 600,
+                padding: '14px 34px',
+                borderRadius: '9999px',
+                boxShadow: '0 4px 18px rgba(79, 70, 229, 0.35)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <span>Get Started Today</span>
+              <ArrowRight size={16} />
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => setIsDemoModalOpen(true)}
+              style={{
+                backgroundColor: '#FFFFFF',
+                color: '#0F172A',
+                border: '1px solid #CBD5E1',
+                fontSize: '0.98rem',
+                fontWeight: 600,
+                padding: '14px 28px',
+                borderRadius: '9999px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <Phone size={16} color="#4F46E5" />
+              <span>Talk to Our Team</span>
+            </button>
+          </div>
+
+          <p style={{ fontSize: '0.86rem', color: '#94A3B8', margin: 0, fontWeight: 500 }}>
+            Your properties. Your tenants. Your operations. One platform.
+          </p>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          11. FOOTER
+          ========================================================================= */}
+      <footer
+        id="contact"
+        style={{
+          backgroundColor: '#0F172A',
+          color: '#FFFFFF',
+          padding: '80px 24px 36px 24px',
+          borderTop: '1px solid #1E293B',
+        }}
+      >
+        <div
           style={{
-            padding: '32px 48px',
-            backgroundColor: '#FAF9F6',
+            maxWidth: '1240px',
+            margin: '0 auto',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '40px',
+            marginBottom: '60px',
+          }}
+        >
+          {/* Brand Info */}
+          <div style={{ maxWidth: '320px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  backgroundColor: '#4F46E5',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Building2 size={18} color="#FFFFFF" />
+              </div>
+              <span style={{ fontSize: '1.35rem', fontWeight: 800 }}>Guri24</span>
+            </div>
+            <p style={{ fontSize: '0.86rem', color: '#94A3B8', lineHeight: 1.6 }}>
+              Simplifying property management through connected technology, smarter operations and better business visibility.
+            </p>
+          </div>
+
+          {/* Platform */}
+          <div>
+            <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '16px' }}>
+              Platform
+            </h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.86rem', color: '#94A3B8' }}>
+              <li>Property Management</li>
+              <li>Tenant Management</li>
+              <li>Rent Collection</li>
+              <li>Maintenance</li>
+              <li>Analytics & Reports</li>
+            </ul>
+          </div>
+
+          {/* Company */}
+          <div>
+            <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '16px' }}>
+              Company
+            </h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.86rem', color: '#94A3B8' }}>
+              <li>About Guri24</li>
+              <li>Contact Us</li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => setIsDemoModalOpen(true)}
+                  style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, fontSize: '0.86rem' }}
+                >
+                  Book a Demo
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          {/* Support */}
+          <div>
+            <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '16px' }}>
+              Support
+            </h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.86rem', color: '#94A3B8' }}>
+              <li>Help Center</li>
+              <li>Documentation</li>
+              <li>FAQs</li>
+              <li>Contact Support</li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '16px' }}>
+              Legal
+            </h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.86rem', color: '#94A3B8' }}>
+              <li>Privacy Policy</li>
+              <li>Terms of Service</li>
+              <li>Data Protection (Kenya DPA 2019)</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Footer Bottom */}
+        <div
+          style={{
+            maxWidth: '1240px',
+            margin: '0 auto',
+            paddingTop: '24px',
+            borderTop: '1px solid #1E293B',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '16px',
-            fontSize: '0.82rem',
+            gap: '14px',
+            fontSize: '0.80rem',
             color: '#64748B',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontWeight: 800, color: '#0F172A' }}>Guri24°</span>
-            <span>© 2026 Guri24 Rental Management Ltd. All rights reserved.</span>
-          </div>
-
+          <div>© 2026 Guri24. All rights reserved.</div>
           <div style={{ display: 'flex', gap: '20px' }}>
-            <Link to="/login" style={{ color: '#64748B', textDecoration: 'none' }}>Staff Login</Link>
-            <Link to="/app/analytics-ledger" style={{ color: '#64748B', textDecoration: 'none' }}>Financial Ledger</Link>
-            <Link to="/platform/dashboard" style={{ color: '#64748B', textDecoration: 'none' }}>Platform Admin</Link>
+            <span>Nairobi, Kenya</span>
+            <span>M-Pesa C2B V2 Paybill: 1343073</span>
           </div>
-        </footer>
-      </div>
+        </div>
+      </footer>
 
       {/* =========================================================================
-          INTERACTIVE DEMO / VIDEO WALKTHROUGH MODAL
+          BOOK A DEMO / TALK TO TEAM MODAL
           ========================================================================= */}
-      {isVideoModalOpen && (
+      {isDemoModalOpen && (
         <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Guri24 RMS Interactive Walkthrough"
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.75)',
-            backdropFilter: 'blur(6px)',
-            zIndex: 9999,
+            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 100,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '24px',
+            padding: '20px',
           }}
-          onClick={() => setIsVideoModalOpen(false)}
         >
           <div
             style={{
               backgroundColor: '#FFFFFF',
               borderRadius: '24px',
-              maxWidth: '880px',
+              padding: '32px',
+              maxWidth: '480px',
               width: '100%',
-              overflow: 'hidden',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
-              display: 'flex',
-              flexDirection: 'column',
+              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
+              position: 'relative',
             }}
-            onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header */}
-            <div
+            <button
+              type="button"
+              onClick={() => setIsDemoModalOpen(false)}
               style={{
-                padding: '18px 24px',
-                borderBottom: '1px solid #E2E8F0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#64748B',
               }}
             >
-              <div>
-                <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0F172A' }}>
-                  Guri24 RMS — Product Walkthrough
+              <X size={20} />
+            </button>
+
+            {demoSubmitted ? (
+              <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: '#DCFCE7', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto' }}>
+                  <CheckCircle2 size={32} />
                 </div>
-                <div style={{ fontSize: '0.78rem', color: '#64748B' }}>
-                  Interactive live inspection of the core workflows
-                </div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
+                  Demo Request Received!
+                </h3>
+                <p style={{ fontSize: '0.88rem', color: '#64748B', lineHeight: 1.5 }}>
+                  Our property technology team will contact you shortly to schedule your personalized live Guri24 demonstration.
+                </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsVideoModalOpen(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#64748B',
-                  cursor: 'pointer',
-                  padding: '6px',
-                }}
-              >
-                <X size={20} />
-              </button>
-            </div>
+            ) : (
+              <div>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0F172A', marginBottom: '6px' }}>
+                  Book a Live Guri24 Demo
+                </h3>
+                <p style={{ fontSize: '0.86rem', color: '#64748B', lineHeight: 1.5, marginBottom: '20px' }}>
+                  See how Guri24 automates rent collection, leases, tenant management, and property accounting.
+                </p>
 
-            {/* Modal Subnav */}
-            <div
-              style={{
-                display: 'flex',
-                borderBottom: '1px solid #E2E8F0',
-                backgroundColor: '#F8FAFC',
-                padding: '0 24px',
-              }}
-            >
-              {[
-                { key: 'recon', label: '1. M-Pesa Automated Recon' },
-                { key: 'leases', label: '2. Living Leases & Tenants' },
-                { key: 'ledger', label: '3. Double-Entry Ledger' },
-                { key: 'ai', label: '4. AI Financial Assistant' },
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setVideoDemoTab(tab.key as any)}
-                  style={{
-                    padding: '12px 16px',
-                    fontSize: '0.82rem',
-                    fontWeight: videoDemoTab === tab.key ? 700 : 500,
-                    color: videoDemoTab === tab.key ? '#0F172A' : '#64748B',
-                    borderBottom: videoDemoTab === tab.key ? '2px solid #0F172A' : '2px solid transparent',
-                    background: 'none',
-                    borderLeft: 'none',
-                    borderRight: 'none',
-                    borderTop: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+                <form onSubmit={handleDemoSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. David Kamau"
+                      value={demoForm.name}
+                      onChange={(e) => setDemoForm({ ...demoForm, name: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '0.88rem',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
 
-            {/* Modal Preview Body */}
-            <div style={{ padding: '28px', backgroundColor: '#FAF9F6' }}>
-              {videoDemoTab === 'recon' && (
-                <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
-                    Safaricom Daraja C2B V2 & Webhook Deduplication
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                      Work Email
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="e.g. david@kamauproperties.co.ke"
+                      value={demoForm.email}
+                      onChange={(e) => setDemoForm({ ...demoForm, email: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '0.88rem',
+                        boxSizing: 'border-box',
+                      }}
+                    />
                   </div>
-                  <p style={{ fontSize: '0.84rem', color: '#64748B', lineHeight: 1.5 }}>
-                    When a tenant pays via M-Pesa Paybill (1343073), Guri24 captures the <code>TransID</code>, deduplicating callbacks atomically. Invoices are settled FIFO, partial receipts generate accurate balances, and tenant SMS receipts dispatch via transactional outbox.
-                  </p>
-                </div>
-              )}
-              {videoDemoTab === 'leases' && (
-                <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
-                    Living Property & Lease State Machine
-                  </div>
-                  <p style={{ fontSize: '0.84rem', color: '#64748B', lineHeight: 1.5 }}>
-                    Track occupancy from VacantAvailable to Occupied. Overlapping active leases on the same unit are prohibited by PostgreSQL exclusion constraints. Renewals transition prior leases cleanly while preserving deposit liability balances.
-                  </p>
-                </div>
-              )}
-              {videoDemoTab === 'ledger' && (
-                <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
-                    Double-Entry General Ledger with Account 2100 Segregation
-                  </div>
-                  <p style={{ fontSize: '0.84rem', color: '#64748B', lineHeight: 1.5 }}>
-                    Every transaction satisfies <code>Total Debits == Total Credits</code>. Security deposits post strictly to Account 2100 (Liability held in trust escrow) and are never commingled into Account 4000 (Rental Revenue), protecting Net Operating Income accuracy.
-                  </p>
-                </div>
-              )}
-              {videoDemoTab === 'ai' && (
-                <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
-                  <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
-                    Grounded AI Financial Interpreter
-                  </div>
-                  <p style={{ fontSize: '0.84rem', color: '#64748B', lineHeight: 1.5 }}>
-                    Embedded right inside the Analytics & Ledger workspace, the AI assistant computes collections efficiency, explains arrears aging trends, and confirms trial balance health with direct record citations.
-                  </p>
-                </div>
-              )}
-            </div>
 
-            {/* Modal Footer */}
-            <div
-              style={{
-                padding: '16px 24px',
-                borderTop: '1px solid #E2E8F0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                gap: '12px',
-                backgroundColor: '#FFFFFF',
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setIsVideoModalOpen(false)}
-                style={{
-                  padding: '8px 18px',
-                  borderRadius: '9999px',
-                  border: '1px solid #CBD5E1',
-                  backgroundColor: '#FFFFFF',
-                  fontSize: '0.84rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsVideoModalOpen(false);
-                  navigate('/app/dashboard');
-                }}
-                style={{
-                  padding: '8px 20px',
-                  borderRadius: '9999px',
-                  backgroundColor: '#0F172A',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  fontSize: '0.84rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Launch Live App
-              </button>
-            </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                      Phone / WhatsApp Number
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="e.g. +254 712 345 678"
+                      value={demoForm.phone}
+                      onChange={(e) => setDemoForm({ ...demoForm, phone: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '0.88rem',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.80rem', fontWeight: 600, color: '#334155', marginBottom: '4px' }}>
+                      Portfolio Size (Approx Units)
+                    </label>
+                    <select
+                      value={demoForm.unitCount}
+                      onChange={(e) => setDemoForm({ ...demoForm, unitCount: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '0.88rem',
+                        boxSizing: 'border-box',
+                        backgroundColor: '#FFFFFF',
+                      }}
+                    >
+                      <option value="1 - 10 Units">1 - 10 Units</option>
+                      <option value="10 - 50 Units">10 - 50 Units</option>
+                      <option value="50 - 200 Units">50 - 200 Units</option>
+                      <option value="200+ Units">200+ Units (Enterprise)</option>
+                    </select>
+                  </div>
+
+                  <button
+                    type="submit"
+                    style={{
+                      marginTop: '8px',
+                      backgroundColor: '#4F46E5',
+                      color: '#FFFFFF',
+                      border: 'none',
+                      borderRadius: '12px',
+                      padding: '12px 20px',
+                      fontSize: '0.92rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
+                    }}
+                  >
+                    Confirm Demo Request
+                  </button>
+                </form>
+              </div>
+            )}
           </div>
         </div>
       )}
-
-      {/* Global Style for Keyframe Animations */}
-      <style>{`
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
     </div>
   );
 };
