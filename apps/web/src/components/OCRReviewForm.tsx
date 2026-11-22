@@ -105,6 +105,24 @@ export const OCRReviewForm: React.FC<OCRReviewFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [customFields, setCustomFields] = useState<Array<{
+    id: string;
+    field_name: string;
+    field_label: string;
+    extracted_value: string;
+    confidence: number;
+    human_verified: boolean;
+    validation_errors: string[];
+    is_sensitive_pii: boolean;
+  }>>([]);
+  const [isAddingField, setIsAddingField] = useState(false);
+  const [newFieldKey, setNewFieldKey] = useState('');
+  const [newFieldValue, setNewFieldValue] = useState('');
+
+  // Combined fields
+  const allFields = useMemo(() => {
+    return [...normalizedFields, ...customFields];
+  }, [normalizedFields, customFields]);
 
   // Raw extracted text
   const rawExtractedText = useMemo(() => {
@@ -113,14 +131,34 @@ export const OCRReviewForm: React.FC<OCRReviewFormProps> = ({
 
   useEffect(() => {
     const init: Record<string, string> = {};
-    normalizedFields.forEach((f) => {
-      init[f.field_name] = f.normalized_value || f.extracted_value;
+    allFields.forEach((f) => {
+      init[f.field_name] = f.extracted_value;
     });
-    setFieldValues(init);
-  }, [normalizedFields]);
+    setFieldValues((prev) => ({ ...init, ...prev }));
+  }, [allFields]);
 
   const handleFieldChange = (key: string, val: string) => {
     setFieldValues((prev) => ({ ...prev, [key]: val }));
+  };
+
+  const handleAddCustomField = () => {
+    if (!newFieldKey.trim()) return;
+    const cleanKey = newFieldKey.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+    const newField = {
+      id: `custom-f-${Date.now()}`,
+      field_name: cleanKey,
+      field_label: newFieldKey.trim(),
+      extracted_value: newFieldValue.trim(),
+      confidence: 1.0,
+      human_verified: true,
+      validation_errors: [],
+      is_sensitive_pii: cleanKey.includes('id') || cleanKey.includes('pin'),
+    };
+    setCustomFields((prev) => [...prev, newField]);
+    setFieldValues((prev) => ({ ...prev, [cleanKey]: newFieldValue.trim() }));
+    setNewFieldKey('');
+    setNewFieldValue('');
+    setIsAddingField(false);
   };
 
   const handleCopy = (text: string, key: string) => {
@@ -538,16 +576,32 @@ export const OCRReviewForm: React.FC<OCRReviewFormProps> = ({
           {/* TAB 1: STRUCTURED FIELDS */}
           {activeTab === 'FIELDS' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', maxHeight: '440px' }}>
-              {normalizedFields.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '36px 12px', color: '#94a3b8' }}>
+              {allFields.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '32px 12px', color: '#94a3b8' }}>
                   <AlertTriangle size={28} color="#f59e0b" style={{ margin: '0 auto 8px auto' }} />
                   <div style={{ fontWeight: 600, color: '#334155' }}>No Structured Fields Extracted</div>
-                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>
-                    olmOCR did not detect key-value pairs. Review the raw layout Markdown tab or enter corrections below.
+                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px', marginBottom: '16px' }}>
+                    olmOCR did not detect key-value pairs automatically. You can review the raw layout Markdown tab or add fields manually below.
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingField(true)}
+                    style={{
+                      padding: '7px 16px',
+                      borderRadius: '8px',
+                      backgroundColor: '#0F172A',
+                      color: '#FFFFFF',
+                      fontSize: '0.80rem',
+                      fontWeight: 600,
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    + Add Field Manually
+                  </button>
                 </div>
               ) : (
-                normalizedFields.map((f) => {
+                allFields.map((f) => {
                   const hasErr = f.validation_errors.length > 0;
                   return (
                     <div
@@ -627,6 +681,94 @@ export const OCRReviewForm: React.FC<OCRReviewFormProps> = ({
                     </div>
                   );
                 })
+              )}
+
+              {/* Add Field Inline Form */}
+              {isAddingField ? (
+                <div
+                  style={{
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: '1px dashed #CBD5E1',
+                    backgroundColor: '#F8FAFC',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                  }}
+                >
+                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0F172A' }}>Add Custom Field</div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      placeholder="Field Label (e.g. Monthly Rent)"
+                      value={newFieldKey}
+                      onChange={(e) => setNewFieldKey(e.target.value)}
+                      className="form-control"
+                      style={{ fontSize: '0.80rem', flex: 1 }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Value (e.g. KES 25,000)"
+                      value={newFieldValue}
+                      onChange={(e) => setNewFieldValue(e.target.value)}
+                      className="form-control"
+                      style={{ fontSize: '0.80rem', flex: 1 }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingField(false)}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        border: '1px solid #CBD5E1',
+                        backgroundColor: '#FFFFFF',
+                        fontSize: '0.76rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddCustomField}
+                      disabled={!newFieldKey.trim()}
+                      style={{
+                        padding: '4px 12px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: '#2563EB',
+                        color: '#FFFFFF',
+                        fontSize: '0.76rem',
+                        fontWeight: 600,
+                        cursor: newFieldKey.trim() ? 'pointer' : 'default',
+                      }}
+                    >
+                      Save Field
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                allFields.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingField(true)}
+                    style={{
+                      padding: '7px 12px',
+                      borderRadius: '6px',
+                      border: '1px dashed #CBD5E1',
+                      backgroundColor: 'transparent',
+                      color: '#475569',
+                      fontSize: '0.76rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      marginTop: '4px',
+                    }}
+                  >
+                    + Add Another Field
+                  </button>
+                )
               )}
             </div>
           )}

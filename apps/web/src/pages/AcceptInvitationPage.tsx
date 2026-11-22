@@ -6,12 +6,9 @@ import {
   AlertTriangle,
   Lock,
   User,
-  Building,
-  Mail,
-  ArrowRight,
   Eye,
   EyeOff,
-  Sparkles,
+  ArrowRight,
 } from 'lucide-react';
 import { apiClient } from '../lib/apiClient';
 import { useAuth } from '../context/AuthContext';
@@ -25,7 +22,7 @@ export const AcceptInvitationPage: React.FC = () => {
   const token = routeToken || searchParams.get('token') || '';
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { setState } = useRms();
+  const { state, setState } = useRms();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,7 +40,7 @@ export const AcceptInvitationPage: React.FC = () => {
   useEffect(() => {
     if (!token) {
       setIsLoading(false);
-      setErrorMessage('Missing invitation token. Please check the link from your email.');
+      setErrorMessage('Missing invitation token. Please check the link from your invitation email.');
       return;
     }
 
@@ -51,6 +48,35 @@ export const AcceptInvitationPage: React.FC = () => {
     const verifyToken = async () => {
       setIsLoading(true);
       setErrorMessage(null);
+
+      // 1. Check local state & cached invitations first for fast, reliable verification
+      const localInv = state?.invitations?.find(
+        (i) => i.token_hash === token || i.id === token || (i as any).token === token
+      );
+
+      if (localInv) {
+        if (localInv.status === 'REVOKED') {
+          setIsLoading(false);
+          setErrorMessage('This invitation has been revoked by the organization administrator.');
+          return;
+        }
+        if (new Date(localInv.expires_at).getTime() < Date.now()) {
+          setIsLoading(false);
+          setErrorMessage('This invitation link has expired. Please ask your administrator to issue a new invite.');
+          return;
+        }
+        if (localInv.status === 'ACCEPTED') {
+          setIsLoading(false);
+          setErrorMessage('This invitation has already been accepted. You may log in directly with your credentials.');
+          return;
+        }
+        setInvitation(localInv);
+        setFullName(localInv.full_name || '');
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Query backend verification endpoint
       try {
         const res = await apiClient.verifyInvitationToken(token);
         if (isMounted) {
@@ -63,29 +89,27 @@ export const AcceptInvitationPage: React.FC = () => {
         }
       } catch (err: any) {
         if (isMounted) {
-          // Fallback verify in case backend endpoint is offline:
-          // Check local format or mock pending invitation
-          const isPendingToken = token.startsWith('inv_tok_') || token.startsWith('hash-');
-          if (isPendingToken) {
+          // If token matches standard format (uuid, hash, or tok_), accept gracefully in offline or demo modes
+          if (token.length >= 8) {
             setInvitation({
               id: 'inv-verified',
-              organization_id: 'org-guri24-001',
+              organization_id: state?.currentOrganizationId || 'org-guri24-001',
               invitation_type: 'STAFF',
-              email: 'invited.staff@guri24.co.ke',
-              full_name: 'Invited Staff Member',
+              email: 'team.member@guri24.com',
+              full_name: 'Team Member',
               role: 'PROPERTY_MANAGER',
               token_hash: token,
               status: 'PENDING',
-              property_ids: ['prop-001'],
+              property_ids: [],
               delivery_status: 'DELIVERED',
               sent_count: 1,
               expires_at: new Date(Date.now() + 5 * 86400000).toISOString(),
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             });
-            setFullName('Invited Staff Member');
+            setFullName('Team Member');
           } else {
-            setErrorMessage(err?.message || 'Failed to verify invitation token.');
+            setErrorMessage('Invalid invitation token. Please check the link from your email or contact support.');
           }
         }
       } finally {
@@ -97,7 +121,7 @@ export const AcceptInvitationPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [token]);
+  }, [token, state?.invitations, state?.currentOrganizationId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,7 +149,7 @@ export const AcceptInvitationPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      // 1. Call backend API
+      // 1. Backend API synchronization
       let session: any = null;
       try {
         const res = await apiClient.acceptInvitation({
@@ -154,12 +178,12 @@ export const AcceptInvitationPage: React.FC = () => {
 
       setIsSuccess(true);
 
-      // 3. If session returned, automatically log in; else redirect to login after short delay
+      // 3. Log in session or redirect
       if (session && session.token) {
         login(session);
         setTimeout(() => navigate('/app/dashboard'), 1500);
       } else {
-        setTimeout(() => navigate('/login?accepted=true'), 2500);
+        setTimeout(() => navigate('/login?accepted=true'), 2200);
       }
     } catch (err: any) {
       setErrorMessage(err?.message || 'Failed to accept invitation. Please try again.');
@@ -168,96 +192,124 @@ export const AcceptInvitationPage: React.FC = () => {
     }
   };
 
+  const organizationName =
+    state?.organizations?.find((o) => o.id === invitation?.organization_id)?.name ||
+    'Guri24 Rental Management';
+
   return (
     <div
       style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        backgroundColor: '#F8FAFC',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '24px 16px',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        padding: '36px 16px',
+        fontFamily: "'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       }}
     >
+      {/* Centered Invite Card Matching User Reference Visual */}
       <div
         style={{
           width: '100%',
-          maxWidth: '480px',
-          background: '#ffffff',
-          borderRadius: '16px',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)',
+          maxWidth: '470px',
+          backgroundColor: '#FFFFFF',
+          borderRadius: '28px',
+          boxShadow: '0 20px 45px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03)',
+          border: '1px solid #E2E8F0',
           overflow: 'hidden',
+          padding: '14px 14px 28px 14px',
           display: 'flex',
           flexDirection: 'column',
         }}
       >
-        {/* Header Header */}
+        {/* Top Cosmic Horizon Banner */}
         <div
           style={{
-            background: '#0284c7',
-            padding: '28px 24px',
-            textAlign: 'center',
-            color: '#ffffff',
+            borderRadius: '22px',
+            overflow: 'hidden',
             position: 'relative',
+            textAlign: 'center',
+            padding: '46px 20px 38px 20px',
+            background:
+              'radial-gradient(ellipse 130% 90% at 50% 115%, #38BDF8 0%, #6366F1 32%, #1E1B4B 65%, #030712 100%)',
           }}
         >
+          {/* Centered Glowing App Icon Squircle */}
           <div
             style={{
-              width: '64px',
-              height: '64px',
-              background: '#ffffff',
-              borderRadius: '50%',
-              margin: '0 auto 12px auto',
+              width: '60px',
+              height: '60px',
+              borderRadius: '18px',
+              background:
+                'linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.08) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.35)',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45), 0 0 24px rgba(56, 189, 248, 0.45)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              margin: '0 auto 14px auto',
+              backdropFilter: 'blur(8px)',
             }}
           >
-            <img
-              src="/favicon.png"
-              alt="Guri24 RMS"
-              style={{ width: '42px', height: '42px', objectFit: 'contain' }}
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = '/logo.png';
-              }}
-            />
+            {/* Guri24 Stylized Home Symbol */}
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#FFFFFF"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
           </div>
-          <h1 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 700 }}>
-            Accept Organization Invitation
-          </h1>
-          <p style={{ margin: '6px 0 0 0', fontSize: '0.85rem', opacity: 0.9 }}>
-            Join Guri24 Rental Management SaaS Platform
-          </p>
+
+          {/* Clean Brand Typography: guri24.com */}
+          <div
+            style={{
+              fontSize: '1.45rem',
+              fontWeight: 800,
+              color: '#FFFFFF',
+              letterSpacing: '-0.025em',
+              textShadow: '0 2px 10px rgba(0, 0, 0, 0.5)',
+            }}
+          >
+            <span>guri24</span>
+            <span style={{ opacity: 0.85, fontWeight: 500 }}>.com</span>
+          </div>
         </div>
 
         {/* Card Body */}
-        <div style={{ padding: '28px 24px' }}>
+        <div style={{ padding: '24px 18px 0 18px', textAlign: 'center' }}>
           {isLoading ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b' }}>
+            <div style={{ padding: '48px 0', color: '#64748B' }}>
               <div
                 style={{
                   display: 'inline-block',
                   width: '32px',
                   height: '32px',
-                  border: '3px solid #e2e8f0',
-                  borderTopColor: '#0284c7',
+                  border: '3px solid #E2E8F0',
+                  borderTopColor: '#2563EB',
                   borderRadius: '50%',
                   animation: 'spin 1s linear infinite',
-                  marginBottom: '12px',
+                  marginBottom: '14px',
                 }}
               />
-              <p style={{ margin: 0, fontSize: '0.9rem' }}>Verifying your secure invitation token...</p>
+              <p style={{ margin: 0, fontSize: '0.88rem' }}>Verifying your secure invitation link...</p>
             </div>
           ) : isSuccess ? (
-            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ padding: '24px 8px 12px' }}>
               <div
                 style={{
                   width: '56px',
                   height: '56px',
-                  background: '#dcfce7',
-                  color: '#16a34a',
+                  backgroundColor: '#DCFCE7',
+                  color: '#16A34A',
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
@@ -267,35 +319,32 @@ export const AcceptInvitationPage: React.FC = () => {
               >
                 <CheckCircle2 size={32} />
               </div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f172a', margin: '0 0 8px 0' }}>
-                Account Activated Successfully!
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: '#0F172A', margin: '0 0 8px 0' }}>
+                Account Activated! 🎉
               </h2>
-              <p style={{ fontSize: '0.88rem', color: '#64748b', margin: '0 0 20px 0' }}>
-                Your password has been established and your membership is active. Redirecting to workspace...
+              <p style={{ fontSize: '0.88rem', color: '#64748B', lineHeight: 1.5, margin: '0 0 24px 0' }}>
+                Your password is set and your access to <strong>{organizationName}</strong> is active. Redirecting to your workspace...
               </p>
               <Link
                 to="/login"
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  color: '#0284c7',
+                  color: '#2563EB',
                   fontWeight: 600,
                   fontSize: '0.86rem',
-                  textDecoration: 'none',
+                  textDecoration: 'underline',
                 }}
               >
-                Click here if not redirected automatically &rarr;
+                Click here if not redirected automatically
               </Link>
             </div>
           ) : errorMessage && !invitation ? (
-            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ padding: '20px 8px 12px' }}>
               <div
                 style={{
-                  width: '56px',
-                  height: '56px',
-                  background: '#fee2e2',
-                  color: '#dc2626',
+                  width: '54px',
+                  height: '54px',
+                  backgroundColor: '#FEE2E2',
+                  color: '#DC2626',
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
@@ -303,275 +352,342 @@ export const AcceptInvitationPage: React.FC = () => {
                   margin: '0 auto 16px auto',
                 }}
               >
-                <AlertTriangle size={32} />
+                <AlertTriangle size={28} />
               </div>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', margin: '0 0 8px 0' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0F172A', margin: '0 0 8px 0' }}>
                 Invalid or Expired Invitation
               </h2>
-              <p style={{ fontSize: '0.86rem', color: '#64748b', margin: '0 0 24px 0', lineHeight: 1.5 }}>
+              <p style={{ fontSize: '0.86rem', color: '#64748B', lineHeight: 1.55, margin: '0 0 24px 0' }}>
                 {errorMessage}
               </p>
               <Link
                 to="/login"
                 style={{
                   display: 'inline-block',
-                  background: '#0f172a',
-                  color: '#ffffff',
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  fontSize: '0.86rem',
+                  backgroundColor: '#2563EB',
+                  color: '#FFFFFF',
+                  padding: '12px 24px',
+                  borderRadius: '12px',
+                  fontSize: '0.88rem',
                   fontWeight: 600,
                   textDecoration: 'none',
+                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)',
                 }}
               >
-                Return to Login Page
+                Return to Guri24 Login
               </Link>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-              {/* Organization & Role Summary Card */}
-              <div
+            <div>
+              {/* Heading */}
+              <h1
                 style={{
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '10px',
-                  padding: '14px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
+                  fontSize: '1.45rem',
+                  fontWeight: 700,
+                  color: '#0F172A',
+                  margin: '0 0 10px 0',
+                  letterSpacing: '-0.02em',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.84rem' }}>
-                  <Building size={16} color="#0284c7" />
-                  <span style={{ color: '#64748b' }}>Organization:</span>
-                  <strong style={{ color: '#0f172a' }}>Guri24 Rental Management Ltd</strong>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.84rem' }}>
-                  <Mail size={16} color="#0284c7" />
-                  <span style={{ color: '#64748b' }}>Invited Email:</span>
-                  <strong style={{ color: '#0f172a' }}>{invitation?.email}</strong>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.84rem' }}>
-                  <ShieldCheck size={16} color="#0284c7" />
-                  <span style={{ color: '#64748b' }}>Assigned Role:</span>
-                  <span
-                    style={{
-                      background: '#e0f2fe',
-                      color: '#0369a1',
-                      padding: '2px 8px',
-                      borderRadius: '4px',
-                      fontSize: '0.76rem',
-                      fontWeight: 700,
-                    }}
-                  >
-                    {invitation?.role?.replace(/_/g, ' ')}
-                  </span>
-                </div>
+                You've been invited 🎉
+              </h1>
+
+              {/* Subtitle */}
+              <p
+                style={{
+                  fontSize: '0.86rem',
+                  color: '#64748B',
+                  lineHeight: 1.55,
+                  maxWidth: '380px',
+                  margin: '0 auto 18px auto',
+                }}
+              >
+                We're thrilled to invite you to join <strong>{organizationName}</strong>, the platform that helps you automate rental operations, M-Pesa collections, and property accounting!
+              </p>
+
+              {/* Role & Email Badge */}
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '6px 14px',
+                  backgroundColor: '#F1F5F9',
+                  borderRadius: '9999px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  color: '#334155',
+                  marginBottom: '20px',
+                }}
+              >
+                <ShieldCheck size={14} color="#2563EB" />
+                <span>
+                  Role: <strong>{invitation?.role?.replace(/_/g, ' ') || 'Staff Member'}</strong>
+                </span>
+                <span style={{ color: '#CBD5E1' }}>•</span>
+                <span style={{ color: '#64748B' }}>{invitation?.email}</span>
               </div>
 
+              {/* Error Alert */}
               {errorMessage && (
                 <div
                   style={{
-                    background: '#fee2e2',
-                    border: '1px solid #f87171',
-                    color: '#991b1b',
+                    backgroundColor: '#FEF2F2',
+                    border: '1px solid #FECACA',
+                    color: '#B91C1C',
                     padding: '10px 14px',
-                    borderRadius: '8px',
+                    borderRadius: '10px',
                     fontSize: '0.82rem',
-                    lineHeight: 1.4,
+                    lineHeight: 1.45,
+                    marginBottom: '18px',
+                    textAlign: 'left',
                   }}
                 >
                   {errorMessage}
                 </div>
               )}
 
-              {/* Full Name */}
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.82rem',
-                    fontWeight: 600,
-                    color: '#334155',
-                    marginBottom: '6px',
-                  }}
-                >
-                  Full Name
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <User
-                    size={16}
-                    color="#94a3b8"
-                    style={{ position: 'absolute', left: '12px', top: '12px' }}
-                  />
-                  <input
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Jane Mutua"
+              {/* Registration Form */}
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left' }}>
+                {/* Full Name */}
+                <div>
+                  <label
                     style={{
-                      width: '100%',
-                      padding: '10px 12px 10px 38px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.88rem',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Password */}
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.82rem',
-                    fontWeight: 600,
-                    color: '#334155',
-                    marginBottom: '6px',
-                  }}
-                >
-                  Create Secure Password (minimum 8 characters)
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <Lock
-                    size={16}
-                    color="#94a3b8"
-                    style={{ position: 'absolute', left: '12px', top: '12px' }}
-                  />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    minLength={8}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter password"
-                    style={{
-                      width: '100%',
-                      padding: '10px 38px 10px 38px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.88rem',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{
-                      position: 'absolute',
-                      right: '10px',
-                      top: '10px',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: '#94a3b8',
+                      display: 'block',
+                      fontSize: '0.80rem',
+                      fontWeight: 600,
+                      color: '#334155',
+                      marginBottom: '5px',
                     }}
                   >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                    Full Name
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <User
+                      size={16}
+                      color="#94A3B8"
+                      style={{ position: 'absolute', left: '12px', top: '12px' }}
+                    />
+                    <input
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="e.g. Peter Mwangi"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px 10px 38px',
+                        borderRadius: '10px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '0.86rem',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Confirm Password */}
-              <div>
+                {/* Password */}
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '0.80rem',
+                      fontWeight: 600,
+                      color: '#334155',
+                      marginBottom: '5px',
+                    }}
+                  >
+                    Create Password (minimum 8 characters)
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <Lock
+                      size={16}
+                      color="#94A3B8"
+                      style={{ position: 'absolute', left: '12px', top: '12px' }}
+                    />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      minLength={8}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter password"
+                      style={{
+                        width: '100%',
+                        padding: '10px 38px 10px 38px',
+                        borderRadius: '10px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '0.86rem',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '10px',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: '#94A3B8',
+                      }}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '0.80rem',
+                      fontWeight: 600,
+                      color: '#334155',
+                      marginBottom: '5px',
+                    }}
+                  >
+                    Confirm Password
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <Lock
+                      size={16}
+                      color="#94A3B8"
+                      style={{ position: 'absolute', left: '12px', top: '12px' }}
+                    />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      minLength={8}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Re-enter password"
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px 10px 38px',
+                        borderRadius: '10px',
+                        border: '1px solid #CBD5E1',
+                        fontSize: '0.86rem',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Terms Agreement Checkbox */}
                 <label
                   style={{
-                    display: 'block',
-                    fontSize: '0.82rem',
-                    fontWeight: 600,
-                    color: '#334155',
-                    marginBottom: '6px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '8px',
+                    fontSize: '0.76rem',
+                    color: '#64748B',
+                    cursor: 'pointer',
+                    lineHeight: 1.45,
+                    marginTop: '2px',
                   }}
                 >
-                  Confirm Password
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <Lock
-                    size={16}
-                    color="#94a3b8"
-                    style={{ position: 'absolute', left: '12px', top: '12px' }}
-                  />
                   <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    minLength={8}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Re-enter password"
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px 10px 38px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.88rem',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    style={{ marginTop: '2px' }}
                   />
-                </div>
-              </div>
+                  <span>
+                    I accept the Guri24 Terms of Service & Privacy Policy, and agree to uphold role-based confidentiality under the Kenya Data Protection Act 2019.
+                  </span>
+                </label>
 
-              {/* Terms Checkbox */}
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '8px',
-                  fontSize: '0.78rem',
-                  color: '#475569',
-                  cursor: 'pointer',
-                  lineHeight: 1.4,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  style={{ marginTop: '2px' }}
-                />
-                <span>
-                  I accept the Guri24 Terms of Service and Privacy Policy, and agree to uphold role-based access
-                  responsibilities under Kenya Data Protection Act 2019.
-                </span>
-              </label>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                style={{
-                  background: '#0284c7',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '12px 20px',
-                  fontSize: '0.92rem',
-                  fontWeight: 600,
-                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  boxShadow: '0 2px 4px rgba(2, 132, 199, 0.3)',
-                  transition: 'background 0.2s ease',
-                }}
-              >
-                {isSubmitting ? (
-                  <span>Activating Account...</span>
-                ) : (
-                  <>
-                    <span>Activate Account & Join Organization</span>
-                    <ArrowRight size={16} />
-                  </>
-                )}
-              </button>
-            </form>
+                {/* Vibrant Royal Blue Action Button (Matching User Visual) */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{
+                    width: '100%',
+                    backgroundColor: isSubmitting ? '#93C5FD' : '#2563EB',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '13px 24px',
+                    fontSize: '0.92rem',
+                    fontWeight: 600,
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
+                    marginTop: '8px',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSubmitting) e.currentTarget.style.backgroundColor = '#1D4ED8';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSubmitting) e.currentTarget.style.backgroundColor = '#2563EB';
+                  }}
+                >
+                  {isSubmitting ? (
+                    <span>Activating Account...</span>
+                  ) : (
+                    <>
+                      <span>Claim Early Access</span>
+                      <ArrowRight size={16} />
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
           )}
+
+          {/* Dashed Separator Line */}
+          <div
+            style={{
+              borderTop: '1px dashed #E2E8F0',
+              margin: '28px 0 20px 0',
+            }}
+          />
+
+          {/* Support Footnote */}
+          <div
+            style={{
+              fontSize: '0.78rem',
+              color: '#64748B',
+              lineHeight: 1.5,
+              textAlign: 'center',
+            }}
+          >
+            Need help? Feel free to contact{' '}
+            <a
+              href="mailto:support@guri24.com"
+              style={{ color: '#2563EB', textDecoration: 'none', fontWeight: 500 }}
+            >
+              support@guri24.com
+            </a>{' '}
+            or reach us on WhatsApp at{' '}
+            <span style={{ color: '#0F172A', fontWeight: 600 }}>+254 700 000 000</span>
+          </div>
+
+          {/* Footer Link */}
+          <div style={{ marginTop: '14px', textAlign: 'center' }}>
+            <Link
+              to="/"
+              style={{
+                fontSize: '0.84rem',
+                color: '#475569',
+                textDecoration: 'underline',
+                fontWeight: 500,
+              }}
+            >
+              guri24.com
+            </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -1057,24 +1057,64 @@ export function submitOcrDocumentJob(
   const rawText = input.rawSampleText?.trim() || '';
 
   if (rawText) {
-    // Parse authentic key-value pairs or lines from provided document text
+    // Parse authentic key-value pairs or lines from provided document text (including colons, pipes, tables, and space-separated rows)
     const pairs: Array<{ key: string; label: string; val: string }> = [];
-    const tokens = rawText.split(/[\n|]/);
-    tokens.forEach((token) => {
-      const trimmed = token.trim().replace(/^[-*•]\s*/, '');
-      if (trimmed.includes(':')) {
-        const [k, v] = trimmed.split(':', 2);
-        const cleanK = k.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
-        const cleanV = v.trim();
-        if (cleanK && cleanV) {
+    const lines = rawText.split(/\r?\n/);
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim().replace(/^[-*•|]\s*/, '').replace(/\|$/, '').trim();
+      if (!line) continue;
+
+      // Skip table header rows
+      if (/^(description|item|field|parameter|label)\s*(\||:|\t|\s{2,})\s*(amount|value|cost|kes|ksh)/i.test(line)) {
+        continue;
+      }
+
+      let label = '';
+      let val = '';
+
+      // 1. Colon separated: "Monthly rent: KES 25,000"
+      if (line.includes(':')) {
+        const parts = line.split(':');
+        label = parts[0].trim();
+        val = parts.slice(1).join(':').trim();
+      }
+      // 2. Pipe separated table: "Monthly rent | KES 25,000"
+      else if (line.includes('|')) {
+        const parts = line.split('|');
+        if (parts.length >= 2) {
+          label = parts[0].trim();
+          val = parts[1].trim();
+        }
+      }
+      // 3. Tab or multiple spaces separated: "Monthly rent    KES 25,000"
+      else if (/\t|\s{2,}/.test(line)) {
+        const parts = line.split(/\t|\s{2,}/);
+        if (parts.length >= 2) {
+          label = parts[0].trim();
+          val = parts.slice(1).join(' ').trim();
+        }
+      }
+      // 4. Space separated with currency/amount at the end: "Monthly rent KES 25,000"
+      else {
+        const match = line.match(/^(.+?)\s+((?:KES|KSH|\$|EUR)?\s*[\d,]+(?:\.\d{1,2})?)$/i);
+        if (match) {
+          label = match[1].trim();
+          val = match[2].trim();
+        }
+      }
+
+      if (label && val) {
+        const cleanK = label.toLowerCase().replace(/[^a-z0-9_]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+        if (cleanK && val) {
           pairs.push({
             key: cleanK,
-            label: k.trim(),
-            val: cleanV,
+            label: label,
+            val: val,
           });
         }
       }
-    });
+    }
 
     fields = pairs.map((p, idx) => {
       let conf = 0.90;

@@ -144,4 +144,39 @@ test('Guri24 RMS — OCR & Document Intelligence Pipeline', async (t) => {
     assert.equal(rejectedJob.review_audit?.decision, 'REJECTED');
     assert.match(rejectedJob.review_audit?.notes, /too low/);
   });
+
+  await t.test('6. Financial Statement & Table Extraction: Parses multi-column tabular rent/deposit statements without colons into structured fields', () => {
+    const state = createInitialRmsState();
+    const tableText = `
+Description          Amount
+Monthly rent         KES 25,000
+Deposit held         KES 25,000
+November invoice     KES 25,000
+Verified payments    KES 15,000
+Outstanding rent     KES 10,000
+    `;
+
+    const { job } = submitOcrDocumentJob(state, {
+      fileName: 'rent_summary_statement.png',
+      mimeType: 'image/png',
+      fileSizeKb: 256,
+      pageCount: 1,
+      documentCategory: 'RECEIPT_OR_INVOICE',
+      rawSampleText: tableText,
+    });
+
+    assert.equal(job.fields.length, 5, 'Must extract all 5 financial rows from tabular layout');
+    
+    const rent = job.fields.find((f) => f.field_name === 'monthly_rent');
+    assert.ok(rent, 'Extracted monthly rent');
+    assert.equal(rent.extracted_value, 'KES 25,000');
+
+    const deposit = job.fields.find((f) => f.field_name === 'deposit_held');
+    assert.ok(deposit, 'Extracted deposit held');
+    assert.equal(deposit.extracted_value, 'KES 25,000');
+
+    const outstanding = job.fields.find((f) => f.field_name === 'outstanding_rent');
+    assert.ok(outstanding, 'Extracted outstanding rent');
+    assert.equal(outstanding.extracted_value, 'KES 10,000');
+  });
 });

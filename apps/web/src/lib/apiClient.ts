@@ -220,7 +220,25 @@ class ApiClient {
       return {} as T;
     }
 
-    return response.json() as Promise<T>;
+    const contentType = response.headers.get('content-type') || '';
+    const text = await response.text();
+    if (!text || text.trim().length === 0) {
+      return {} as T;
+    }
+
+    if (!contentType.includes('application/json') && text.trim().startsWith('<')) {
+      throw new Error(
+        'The server returned an HTML webpage instead of a JSON API response. The backend endpoint may be unreachable or initializing.'
+      );
+    }
+
+    try {
+      return JSON.parse(text) as T;
+    } catch (parseErr) {
+      throw new Error(
+        `Failed to parse JSON response: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`
+      );
+    }
   }
 
   // System & Health

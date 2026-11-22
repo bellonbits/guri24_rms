@@ -100,18 +100,45 @@ impl OcrProvider for ConfigurableOcrProviderAdapter {
             });
         }
 
-        // When raw content is provided, extract genuine key-value pairs
+        // When raw content is provided, extract genuine key-value pairs (colons, pipes, or tabular space-separated rows)
         let mut fields = Vec::new();
         for line in raw_text.lines() {
-            let trimmed = line.trim().trim_start_matches('-').trim_start_matches('*').trim();
+            let trimmed = line.trim().trim_start_matches('-').trim_start_matches('*').trim_start_matches('|').trim_end_matches('|').trim();
+            if trimmed.is_empty() {
+                continue;
+            }
+
+            // Skip table header rows
+            let lower = trimmed.to_lowercase();
+            if lower.starts_with("description") || lower.starts_with("parameter") || lower.starts_with("item") {
+                if lower.contains("amount") || lower.contains("value") || lower.contains("cost") {
+                    continue;
+                }
+            }
+
+            let mut parsed: Option<(String, String)> = None;
+
             if let Some((k, v)) = trimmed.split_once(':') {
-                let key = k.trim().to_lowercase().replace(' ', "_");
-                let val = v.trim().to_string();
-                if !val.is_empty() {
+                parsed = Some((k.trim().to_string(), v.trim().to_string()));
+            } else if let Some((k, v)) = trimmed.split_once('|') {
+                parsed = Some((k.trim().to_string(), v.trim().to_string()));
+            } else if let Some((k, v)) = trimmed.split_once('\t') {
+                parsed = Some((k.trim().to_string(), v.trim().to_string()));
+            } else if let Some(idx) = trimmed.find("   ") {
+                let (k, v) = trimmed.split_at(idx);
+                parsed = Some((k.trim().to_string(), v.trim().to_string()));
+            } else if let Some(idx) = trimmed.find("  ") {
+                let (k, v) = trimmed.split_at(idx);
+                parsed = Some((k.trim().to_string(), v.trim().to_string()));
+            }
+
+            if let Some((k, val)) = parsed {
+                let key = k.to_lowercase().replace(' ', "_").replace(|c: char| !c.is_alphanumeric() && c != '_', "");
+                if !key.is_empty() && !val.is_empty() {
                     let is_pii = key.contains("id") || key.contains("pin") || key.contains("phone");
                     fields.push(OcrExtractedFieldDto {
-                        field_key: key.clone(),
-                        field_label: k.trim().to_string(),
+                        field_key: key,
+                        field_label: k,
                         extracted_value: val,
                         confidence_pct: Decimal::new(9200, 2),
                         is_sensitive_pii: is_pii,
