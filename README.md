@@ -1,6 +1,6 @@
 # Guri24 RMS — Multi-Tenant Residential Rental Management System (Kenya)
 
-Production-grade, multi-tenant Residential Rental Management SaaS built for the Kenyan market (`KES` currency, `Africa/Nairobi` timezone, Safaricom M-Pesa Daraja STK Push & Paybill/Till C2B reconciliation, double-entry financial accounting, and mobile-first tenant portal).
+Production-grade, multi-tenant Residential Rental Management SaaS built for the Kenyan market (`KES` currency, `Africa/Nairobi` timezone, Safaricom M-Pesa Daraja C2B V2 Paybill/Till reconciliation, double-entry financial accounting, and mobile-first tenant portal).
 
 ---
 

@@ -366,7 +366,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
         date: p.payment_date ? p.payment_date.slice(5, 10).replace('-', '.') : 'Recent',
         rawDate: p.payment_date || p.created_at || new Date().toISOString(),
         title: tenant?.full_name ? tenant.full_name : (p as any).payer_name || 'Tenant Rent Collection',
-        method: p.payment_method === 'MPESA' ? 'M-Pesa STK' : (p.payment_method === 'BANK_TRANSFER' ? 'Bank Wire' : 'Cash Clearing'),
+        method: p.payment_method?.toUpperCase().includes('MPESA') ? 'M-Pesa Paybill' : (p.payment_method === 'BANK_TRANSFER' ? 'Bank Wire' : 'Cash Clearing'),
         cat: isDeposit ? 'Deposit' : 'Rent',
         dotColor: isDeposit ? '#0284c7' : '#16a34a',
         amountFormatted: `+ ${formatKes(p.allocated_amount_kes || p.amount_kes || 0)}`,
@@ -1227,7 +1227,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                     maxWidth: '280px',
                   }}
                 >
-                  Configure automated tenant rent billing, recurring M-Pesa STK prompts, and standing orders for{' '}
+                  Configure automated tenant rent billing, M-Pesa Paybill reconciliations, and standing orders for{' '}
                   <strong>{currentOrg.name}</strong>. Guri24 RMS reconciles incoming payments in real time.
                 </p>
 
@@ -1368,7 +1368,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
                   <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
                     {formatKes(incomeBreakdown.mpesaTotal)}
                   </div>
-                  <div style={{ fontSize: '0.70rem', color: '#16a34a', fontWeight: 600 }}>Daraja STK Collections</div>
+                  <div style={{ fontSize: '0.70rem', color: '#16a34a', fontWeight: 600 }}>Daraja C2B Collections</div>
                 </div>
                 <button
                   type="button"
@@ -1977,7 +1977,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
             </div>
 
             <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 18px 0' }}>
-              Configure recurring M-Pesa STK prompts and direct tenant billing for {currentOrg.name}.
+              Configure automated M-Pesa Paybill reconciliation and direct tenant billing for {currentOrg.name}.
             </p>
 
             <form
@@ -2258,7 +2258,7 @@ export const AnalyticsLedgerWorkspace: React.FC<AnalyticsLedgerWorkspaceProps> =
               {/* M-Pesa */}
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem', fontWeight: 600, marginBottom: '4px' }}>
-                  <span>Safaricom M-Pesa Daraja C2B / STK</span>
+                  <span>Safaricom M-Pesa Daraja C2B V2</span>
                   <span>
                     {formatKes(incomeBreakdown.mpesaTotal)} ({incomeBreakdown.mpesaPct.toFixed(1)}%)
                   </span>

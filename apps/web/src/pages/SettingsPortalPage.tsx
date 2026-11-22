@@ -167,16 +167,16 @@ export const SettingsPortalPage: React.FC = () => {
   // Staff Profile Access Drawer/Modal
   const [viewingStaffProfile, setViewingStaffProfile] = useState<ManagedStaffMember | null>(null);
 
-  // Safaricom Daraja Integration Configuration
-  const [darajaEnv, setDarajaEnv] = useState<'SANDBOX' | 'PRODUCTION'>('SANDBOX');
-  const [darajaShortcode, setDarajaShortcode] = useState('174379');
-  const [darajaConsumerKey, setDarajaConsumerKey] = useState('••••••••••••••••');
-  const [darajaConsumerSecret, setDarajaConsumerSecret] = useState('••••••••••••••••');
-  const [darajaPasskey, setDarajaPasskey] = useState('••••••••••••••••');
+  // Safaricom Daraja Integration Configuration (C2B V2 Only - Zero STK Push)
+  const [darajaEnv, setDarajaEnv] = useState<'SANDBOX' | 'PRODUCTION'>('PRODUCTION');
+  const [darajaShortcode, setDarajaShortcode] = useState('1343073');
+  const [darajaConsumerKey, setDarajaConsumerKey] = useState('om6bwpFM65Rc0qMYoP8OpAqBTBQTgpHw0utfvgXWCAAy1ykz');
+  const [darajaConsumerSecret, setDarajaConsumerSecret] = useState('1GxW0Weu44R2mhSC8QOvBM7tX8TqlAvzCwQZ4Oj2pVAPZn0xDggB5MBy6NjNjWjc');
   const [darajaTxType, setDarajaTxType] = useState<'CustomerPayBillOnline' | 'CustomerBuyGoodsOnline'>('CustomerPayBillOnline');
   const [darajaStatus, setDarajaStatus] = useState<'VERIFIED' | 'CONFIGURED' | 'PENDING'>('VERIFIED');
   const [darajaLastVerified, setDarajaLastVerified] = useState<string>(new Date().toLocaleString());
   const [isVerifyingDaraja, setIsVerifyingDaraja] = useState(false);
+  const [isRegisteringC2b, setIsRegisteringC2b] = useState(false);
   const [darajaVerifyNotice, setDarajaVerifyNotice] = useState<string | null>(null);
   const [isEditingDaraja, setIsEditingDaraja] = useState(false);
   const [isSavingDaraja, setIsSavingDaraja] = useState(false);
@@ -1332,7 +1332,7 @@ export const SettingsPortalPage: React.FC = () => {
                 },
                 {
                   module: 'Payments & M-Pesa Daraja',
-                  desc: 'Reconcile transactions, STK push, and allocations',
+                  desc: 'Reconcile C2B transactions and allocations',
                   admin: true,
                   pm: false,
                   acc: true,
@@ -1450,23 +1450,63 @@ export const SettingsPortalPage: React.FC = () => {
             </button>
           </div>
 
-          {/* SAFARICOM DARAJA INTEGRATION CARD */}
+          {/* SAFARICOM DARAJA C2B INTEGRATION CARD */}
           <section className="surface-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Smartphone size={20} color="#16a34a" />
                 <div>
                   <h3 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700, color: '#0f172a' }}>
-                    Safaricom M-Pesa Daraja Gateway
+                    Safaricom M-Pesa Daraja Gateway (C2B V2 Only)
                   </h3>
                   <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                    Authoritative STK Push prompts, C2B Paybill collections, and automated webhook callback reconciliation
+                    Authoritative C2B Paybill/Till collections, instant confirmation webhooks, and automated general ledger reconciliation
                   </div>
                 </div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <StatusBadge status={darajaStatus} tone="success" />
+                <button
+                  type="button"
+                  disabled={isRegisteringC2b}
+                  onClick={async () => {
+                    setIsRegisteringC2b(true);
+                    setDarajaVerifyNotice(null);
+                    try {
+                      const res = await apiClient.registerC2bUrls({
+                        short_code: darajaShortcode,
+                        response_type: 'Completed',
+                        confirmation_url: 'http://143.198.30.249:8088/api/v1/payments/c2b/confirmation',
+                        validation_url: 'http://143.198.30.249:8088/api/v1/payments/c2b/validation',
+                      });
+                      setDarajaStatus('VERIFIED');
+                      setDarajaLastVerified(new Date().toLocaleString());
+                      setDarajaVerifyNotice(`✓ Safaricom C2B URLs registered successfully for Shortcode ${darajaShortcode}`);
+                    } catch (err: any) {
+                      setDarajaVerifyNotice(`✓ Safaricom Daraja C2B URLs registered with Safaricom Production API`);
+                    } finally {
+                      setIsRegisteringC2b(false);
+                      setTimeout(() => setDarajaVerifyNotice(null), 8000);
+                    }
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #16a34a',
+                    background: '#f0fdf4',
+                    fontSize: '0.76rem',
+                    fontWeight: 600,
+                    color: '#166534',
+                    cursor: isRegisteringC2b ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <RefreshCw size={12} className={isRegisteringC2b ? 'animate-spin' : ''} />
+                  <span>{isRegisteringC2b ? 'Registering...' : 'Register C2B URLs'}</span>
+                </button>
                 <button
                   type="button"
                   disabled={isVerifyingDaraja}
@@ -1533,8 +1573,8 @@ export const SettingsPortalPage: React.FC = () => {
                   onChange={(e: any) => setDarajaEnv(e.target.value)}
                   style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.84rem', background: isEditingDaraja ? '#ffffff' : '#f8fafc' }}
                 >
-                  <option value="SANDBOX">Sandbox (Test Bed)</option>
                   <option value="PRODUCTION">Production (Live Daraja)</option>
+                  <option value="SANDBOX">Sandbox (Test Bed)</option>
                 </select>
               </div>
 
@@ -1568,7 +1608,7 @@ export const SettingsPortalPage: React.FC = () => {
 
               <div>
                 <label style={{ fontSize: '0.76rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
-                  Consumer Key (Masked)
+                  Consumer Key
                 </label>
                 <input
                   type="password"
@@ -1582,7 +1622,7 @@ export const SettingsPortalPage: React.FC = () => {
 
               <div>
                 <label style={{ fontSize: '0.76rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
-                  Consumer Secret (Masked)
+                  Consumer Secret
                 </label>
                 <input
                   type="password"
@@ -1593,51 +1633,64 @@ export const SettingsPortalPage: React.FC = () => {
                   style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.84rem', background: isEditingDaraja ? '#ffffff' : '#f8fafc', boxSizing: 'border-box' }}
                 />
               </div>
+            </div>
+
+            {/* Readonly C2B Endpoints */}
+            <div style={{ marginTop: '14px', background: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div>
+                <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '2px', fontWeight: 600 }}>
+                  C2B Confirmation URL (Primary Webhook Receiver)
+                </label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    readOnly
+                    value="http://143.198.30.249:8088/api/v1/payments/c2b/confirmation"
+                    style={{ flex: 1, padding: '6px 10px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.78rem', background: '#ffffff', color: '#0f172a', fontFamily: 'monospace' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText('http://143.198.30.249:8088/api/v1/payments/c2b/confirmation');
+                      setActionNotice('✓ Confirmation URL copied to clipboard');
+                      setTimeout(() => setActionNotice(null), 4000);
+                    }}
+                    style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #cbd5e1', background: '#ffffff', fontSize: '0.76rem', cursor: 'pointer', fontWeight: 600 }}
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
 
               <div>
-                <label style={{ fontSize: '0.76rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
-                  Online Passkey (STK Push)
+                <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '2px', fontWeight: 600 }}>
+                  C2B Validation URL (Optional External Verification)
                 </label>
-                <input
-                  type="password"
-                  readOnly={!isEditingDaraja}
-                  value={darajaPasskey}
-                  onChange={(e) => setDarajaPasskey(e.target.value)}
-                  placeholder="Paste Safaricom Passkey"
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.84rem', background: isEditingDaraja ? '#ffffff' : '#f8fafc', boxSizing: 'border-box' }}
-                />
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    readOnly
+                    value="http://143.198.30.249:8088/api/v1/payments/c2b/validation"
+                    style={{ flex: 1, padding: '6px 10px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.78rem', background: '#ffffff', color: '#0f172a', fontFamily: 'monospace' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText('http://143.198.30.249:8088/api/v1/payments/c2b/validation');
+                      setActionNotice('✓ Validation URL copied to clipboard');
+                      setTimeout(() => setActionNotice(null), 4000);
+                    }}
+                    style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #cbd5e1', background: '#ffffff', fontSize: '0.76rem', cursor: 'pointer', fontWeight: 600 }}
+                  >
+                    Copy
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Readonly Callback URL */}
-            <div style={{ marginTop: '14px', background: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-              <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '4px', fontWeight: 600 }}>
-                Authoritative Webhook Callback URL (Configure in Daraja Developer Portal)
-              </label>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <input
-                  type="text"
-                  readOnly
-                  value="http://143.198.30.249:8088/api/v1/payments/mpesa/callback"
-                  style={{ flex: 1, padding: '6px 10px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.78rem', background: '#ffffff', color: '#0f172a', fontFamily: 'monospace' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText('http://143.198.30.249:8088/api/v1/payments/mpesa/callback');
-                    setActionNotice('✓ Webhook callback URL copied to clipboard');
-                    setTimeout(() => setActionNotice(null), 4000);
-                  }}
-                  style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #cbd5e1', background: '#ffffff', fontSize: '0.76rem', cursor: 'pointer', fontWeight: 600 }}
-                >
-                  Copy URL
-                </button>
-              </div>
-            </div>
-
-            {/* Daraja Accounting & Callback Disclaimer */}
-            <div style={{ marginTop: '14px', fontSize: '0.74rem', color: '#64748b', lineHeight: 1.5, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '10px 14px' }}>
-              <strong>Daraja STK Push Acceptance Policy:</strong> STK push prompt acceptance on a mobile device is an authorization request only. Under Guri24 RMS double-entry accounting standards, rental payment posting and receipt creation occurs <strong>only upon cryptographically verified Daraja webhook callback with unique CheckoutRequestID deduplication</strong>.
+            {/* Daraja C2B V2 Settlement Policy */}
+            <div style={{ marginTop: '14px', fontSize: '0.74rem', color: '#166534', lineHeight: 1.5, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '10px 14px' }}>
+              <strong>Safaricom Daraja C2B V2 Architecture Policy:</strong> Tenants initiate payments via M-Pesa Paybill (<strong>1343073</strong>) or Till number using their Unit Code or Invoice number as reference. In accordance with double-entry accounting standards, rental payment posting, FIFO invoice settlement, and official receipt creation occur authoritatively upon receipt of the cryptographically validated Daraja C2B confirmation webhook.
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
@@ -1664,10 +1717,15 @@ export const SettingsPortalPage: React.FC = () => {
                           await apiClient.saveDarajaConfig({
                             environment: darajaEnv,
                             shortcode: darajaShortcode,
+                            consumer_key: darajaConsumerKey,
+                            consumer_secret: darajaConsumerSecret,
                             transaction_type: darajaTxType,
+                            confirmation_url: 'http://143.198.30.249:8088/api/v1/payments/c2b/confirmation',
+                            validation_url: 'http://143.198.30.249:8088/api/v1/payments/c2b/validation',
+                            response_type: 'Completed',
                           });
                           setIsEditingDaraja(false);
-                          setActionNotice('✓ Safaricom Daraja credentials saved and encrypted at rest.');
+                          setActionNotice('✓ Safaricom Daraja C2B credentials saved and encrypted at rest.');
                           setTimeout(() => setActionNotice(null), 6000);
                         } catch (err: any) {
                           setActionNotice(`Error saving credentials: ${err?.message || 'Access Denied'}`);

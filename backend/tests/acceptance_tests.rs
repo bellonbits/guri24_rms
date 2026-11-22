@@ -1083,9 +1083,9 @@ async fn scenario_19_rbac_notification_permissions_and_tenant_isolation() {
 }
 
 #[tokio::test]
-async fn scenario_20_mpesa_stk_push_validation_and_financial_integrity() {
+async fn scenario_20_mpesa_c2b_validation_and_financial_integrity() {
     let state = AppState::new(AppConfig::from_env());
-    let org_ctx = build_test_org_ctx(&state, "Mpesa Org", "mpesa@example.com", "0711999888");
+    let _org_ctx = build_test_org_ctx(&state, "Mpesa Org", "mpesa@example.com", "0711999888");
 
     // 1. Phone number normalization
     let phone_valid = state.mpesa_adapter.normalize_kenyan_phone("0712345678").unwrap();
@@ -1104,47 +1104,76 @@ async fn scenario_20_mpesa_stk_push_validation_and_financial_integrity() {
     }
 
     // 2. Amount validation: zero or negative rejected
-    let cmd_zero_amount = InitiateMpesaPaymentCommand {
-        tenant_id: Uuid::new_v4(),
-        lease_id: None,
-        phone_number: "0712345678".to_string(),
-        amount_kes: Decimal::ZERO,
-        account_reference: "INV-001".to_string(),
-        idempotency_key: "idemp-001".to_string(),
+    let req_zero_amount = crate::integrations::mpesa::C2bConfirmationRequest {
+        transaction_type: Some("Pay Bill".to_string()),
+        trans_id: "RKTQDM7W60".to_string(),
+        trans_time: Some("20261122120000".to_string()),
+        trans_amount: Decimal::ZERO,
+        business_short_code: Some("1343073".to_string()),
+        bill_ref_number: Some("INV-001".to_string()),
+        invoice_number: None,
+        org_account_balance: None,
+        third_party_trans_id: None,
+        msisdn: "254712345678".to_string(),
+        first_name: Some("John".to_string()),
+        middle_name: None,
+        last_name: Some("Doe".to_string()),
     };
-    let res_zero = state.repositories.payments.initiate_mpesa_payment(&org_ctx, cmd_zero_amount);
+    let res_zero = state.repositories.payments.process_c2b_confirmation(req_zero_amount);
     assert!(res_zero.is_err());
     if let Err(AppError::Structured { code, .. }) = res_zero {
         assert_eq!(code, "INVALID_AMOUNT");
     }
 
-    // 3. Invoice/Account reference validation: empty rejected
-    let cmd_empty_ref = InitiateMpesaPaymentCommand {
-        tenant_id: Uuid::new_v4(),
-        lease_id: None,
-        phone_number: "0712345678".to_string(),
-        amount_kes: dec!(15000),
-        account_reference: "   ".to_string(),
-        idempotency_key: "idemp-002".to_string(),
+    // 3. TransID validation: empty rejected
+    let req_empty_trans = crate::integrations::mpesa::C2bConfirmationRequest {
+        transaction_type: Some("Pay Bill".to_string()),
+        trans_id: "   ".to_string(),
+        trans_time: Some("20261122120000".to_string()),
+        trans_amount: dec!(15000),
+        business_short_code: Some("1343073".to_string()),
+        bill_ref_number: Some("INV-001".to_string()),
+        invoice_number: None,
+        org_account_balance: None,
+        third_party_trans_id: None,
+        msisdn: "254712345678".to_string(),
+        first_name: Some("John".to_string()),
+        middle_name: None,
+        last_name: Some("Doe".to_string()),
     };
-    let res_empty_ref = state.repositories.payments.initiate_mpesa_payment(&org_ctx, cmd_empty_ref);
-    assert!(res_empty_ref.is_err());
-    if let Err(AppError::Structured { code, .. }) = res_empty_ref {
-        assert_eq!(code, "INVALID_INVOICE");
+    let res_empty_trans = state.repositories.payments.process_c2b_confirmation(req_empty_trans);
+    assert!(res_empty_trans.is_err());
+    if let Err(AppError::Structured { code, .. }) = res_empty_trans {
+        assert_eq!(code, "INVALID_TRANS_ID");
     }
 
-    // 4. Flexible UUID serde parsing: string IDs like "tnt-12345" parse into deterministic UUIDs
-    let json_payload = serde_json::json!({
-        "tenant_id": "tnt-1794725624550",
-        "lease_id": "lse-1794725624550",
-        "phone_number": "0712345678",
-        "amount_kes": 15000,
-        "account_reference": "RENT-A101",
-        "idempotency_key": "stk-test-999"
-    });
-    let parsed_cmd: Result<InitiateMpesaPaymentCommand, _> = serde_json::from_value(json_payload);
-    assert!(parsed_cmd.is_ok(), "Custom prefixed IDs should deserialize to deterministic UUIDs without 422 error");
-    let cmd = parsed_cmd.unwrap();
-    assert_ne!(cmd.tenant_id, Uuid::nil());
-    assert!(cmd.lease_id.is_some());
+    // 4. Valid C2B payment settles idempotently
+    let req_valid = crate::integrations::mpesa::C2bConfirmationRequest {
+        transaction_type: Some("Pay Bill".to_string()),
+        trans_id: "RKTQDM7W99".to_string(),
+        trans_time: Some("20261122120000".to_string()),
+        trans_amount: dec!(15000),
+        business_short_code: Some("1343073".to_string()),
+        bill_ref_number: Some("RENT-A101".to_string()),
+        invoice_number: None,
+        org_account_balance: None,
+        third_party_trans_id: None,
+        msisdn: "0712345678".to_string(),
+        first_name: Some("John".to_string()),
+        middle_name: None,
+        last_name: Some("Doe".to_string()),
+    };
+    let res_valid = state.repositories.payments.process_c2b_confirmation(req_valid.clone());
+    assert!(res_valid.is_ok());
+    let (payment, is_new) = res_valid.unwrap();
+    assert!(is_new);
+    assert_eq!(payment.amount_kes, dec!(15000));
+    assert_eq!(payment.provider_receipt_number.as_deref(), Some("RKTQDM7W99"));
+
+    // Duplicate submission returns existing payment with is_new = false
+    let res_dup = state.repositories.payments.process_c2b_confirmation(req_valid);
+    assert!(res_dup.is_ok());
+    let (payment_dup, is_new_dup) = res_dup.unwrap();
+    assert!(!is_new_dup);
+    assert_eq!(payment_dup.id, payment.id);
 }

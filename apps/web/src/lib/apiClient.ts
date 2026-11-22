@@ -444,15 +444,54 @@ class ApiClient {
     return Array.isArray(res) ? res : res.items || [];
   }
 
-  async initiateMpesaPayment(cmd: {
-    lease_id: string;
-    tenant_id: string;
-    amount_kes: number;
-    phone_number: string;
-    account_reference: string;
-    idempotency_key: string;
-  }): Promise<Payment> {
-    return this.request('/payments/initiate', {
+  // Safaricom Daraja C2B V2 Integration (Zero STK Push)
+  async getDarajaConfig(): Promise<any> {
+    return this.request('/integrations/daraja');
+  }
+
+  async saveDarajaConfig(cmd: {
+    environment?: string;
+    shortcode?: string;
+    consumer_key?: string;
+    consumer_secret?: string;
+    transaction_type?: string;
+    confirmation_url?: string;
+    validation_url?: string;
+    response_type?: string;
+  }): Promise<any> {
+    return this.request('/integrations/daraja', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async verifyDarajaConnection(): Promise<any> {
+    return this.request('/integrations/daraja/verify', {
+      method: 'POST',
+    });
+  }
+
+  async registerC2bUrls(cmd?: {
+    short_code?: string;
+    response_type?: string;
+    confirmation_url?: string;
+    validation_url?: string;
+  }): Promise<any> {
+    return this.request('/integrations/daraja/register-c2b', {
+      method: 'POST',
+      body: JSON.stringify(cmd || {}),
+    });
+  }
+
+  async postC2bConfirmation(cmd: any): Promise<any> {
+    return this.request('/payments/c2b/confirmation', {
+      method: 'POST',
+      body: JSON.stringify(cmd),
+    });
+  }
+
+  async postC2bValidation(cmd: any): Promise<any> {
+    return this.request('/payments/c2b/validation', {
       method: 'POST',
       body: JSON.stringify(cmd),
     });

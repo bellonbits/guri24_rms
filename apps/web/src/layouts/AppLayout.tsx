@@ -509,11 +509,11 @@ export const AppLayout: React.FC = () => {
             <button
               type="button"
               className="btn-dark"
-              onClick={() => setIsMpesaModalOpen(true)}
-              title="Initiate Kenyan M-Pesa STK Push Prompt"
+              onClick={() => navigate('/app/payments-mpesa')}
+              title="View Kenyan M-Pesa Paybill Collections & Ledger"
             >
               <DevicePhoneMobileIcon style={{ width: 14, height: 14 }} />
-              <span>M-Pesa Pay</span>
+              <span>M-Pesa Collections</span>
             </button>
             <button
               type="button"

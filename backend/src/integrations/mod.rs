@@ -38,8 +38,9 @@ impl PaymentProviderFactory {
             config.mpesa_shortcode.clone(),
             config.mpesa_consumer_key.clone(),
             config.mpesa_consumer_secret.clone(),
-            config.mpesa_passkey.clone(),
-            config.mpesa_callback_url.clone(),
+            config.mpesa_c2b_confirmation_url.clone(),
+            config.mpesa_c2b_validation_url.clone(),
+            config.mpesa_c2b_response_type.clone(),
             config.mpesa_callback_hmac_secret.clone(),
             breaker,
         ))

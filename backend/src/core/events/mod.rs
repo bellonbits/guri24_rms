@@ -67,14 +67,6 @@ pub enum DomainEvent {
         unit_id: Uuid,
         actual_cost_kes: Decimal,
     },
-    PaymentRequestInitiated {
-        organization_id: Uuid,
-        payment_id: Uuid,
-        tenant_id: Uuid,
-        phone_number: String,
-        amount_kes: Decimal,
-        account_reference: String,
-    },
     DepositReceived {
         organization_id: Uuid,
         deposit_id: Uuid,
@@ -141,7 +133,6 @@ impl DomainEvent {
             | Self::PaymentFailed { organization_id, .. }
             | Self::MaintenanceSubmitted { organization_id, .. }
             | Self::MaintenanceCompleted { organization_id, .. }
-            | Self::PaymentRequestInitiated { organization_id, .. }
             | Self::DepositReceived { organization_id, .. }
             | Self::RefundRequested { organization_id, .. }
             | Self::RefundApproved { organization_id, .. }
@@ -164,7 +155,6 @@ impl DomainEvent {
             Self::PaymentFailed { .. } => "PAYMENT_FAILED",
             Self::MaintenanceSubmitted { .. } => "MAINTENANCE_SUBMITTED",
             Self::MaintenanceCompleted { .. } => "MAINTENANCE_COMPLETED",
-            Self::PaymentRequestInitiated { .. } => "PAYMENT_REQUEST_INITIATED",
             Self::DepositReceived { .. } => "DEPOSIT_RECEIVED",
             Self::RefundRequested { .. } => "REFUND_REQUESTED",
             Self::RefundApproved { .. } => "REFUND_APPROVED",

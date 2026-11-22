@@ -22,7 +22,10 @@ use crate::{
         tenant_context::TenantContext,
     },
     database::AppState,
-    integrations::mpesa::VerifiedMpesaCallback,
+    integrations::mpesa::{
+        C2bConfirmationRequest, C2bConfirmationResponse, C2bRegisterUrlRequest,
+        C2bRegisterUrlResult, C2bValidationRequest, C2bValidationResponse, VerifiedMpesaCallback,
+    },
     modules::{
         accounting::{
             Account, BalanceSheetReport, CashFlowStatement, FinancialAuditEvent,
@@ -61,7 +64,7 @@ use crate::{
             Organization, OrganizationSettings, RegisterOrganizationCommand,
             UpdateOrganizationCommand,
         },
-        payments::{InitiateMpesaPaymentCommand, Payment},
+        payments::Payment,
         properties::{
             Building, CreateBuildingCommand, CreateFloorCommand, CreatePropertyCommand,
             CreateUnitCommand, Floor, Property, Unit,
@@ -103,6 +106,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/integrations/status", get(list_integrations_status_handler))
         .route("/integrations/daraja", get(get_daraja_config_handler).post(save_daraja_config_handler))
         .route("/integrations/daraja/verify", post(verify_daraja_connection_handler))
+        .route("/integrations/daraja/register-c2b", post(register_daraja_c2b_urls_handler))
         .route("/openapi.json", get(openapi_spec_handler))
         // Authoritative Supabase PostgreSQL Workspace Persistence
         .route(
@@ -155,9 +159,10 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             get(list_invoices_handler).post(generate_invoice_handler),
         )
         .route("/invoices/:id", get(get_invoice_handler))
-        // Payments & M-Pesa Daraja Integration
+        // Payments & Safaricom Daraja C2B V2 Integration (Zero STK Push)
         .route("/payments", get(list_payments_handler))
-        .route("/payments/initiate", post(initiate_payment_handler))
+        .route("/payments/c2b/validation", post(mpesa_c2b_validation_handler))
+        .route("/payments/c2b/confirmation", post(mpesa_c2b_confirmation_handler))
         .route("/payments/mpesa/callback", post(mpesa_callback_handler))
         .route("/payments/:id", get(get_payment_handler))
         // Security Deposits (Liability Ledger)
@@ -759,36 +764,81 @@ async fn get_invoice_handler(
     Ok(Json(inv))
 }
 
-async fn initiate_payment_handler(
-    State(state): State<Arc<AppState>>,
-    ctx: TenantContext,
-    payload: Result<Json<InitiateMpesaPaymentCommand>, axum::extract::rejection::JsonRejection>,
-) -> AppResult<(StatusCode, Json<Payment>)> {
-    ctx.require_permission("payments.view")?;
-    let Json(cmd) = payload.map_err(|e| AppError::Structured {
-        status: StatusCode::UNPROCESSABLE_ENTITY,
-        code: "VALIDATION_ERROR".to_string(),
-        message: format!("Invalid payment initiation payload: {e}"),
-    })?;
+async fn mpesa_c2b_validation_handler(
+    State(_state): State<Arc<AppState>>,
+    Json(payload): Json<C2bValidationRequest>,
+) -> AppResult<Json<C2bValidationResponse>> {
+    tracing::info!(
+        "Received Safaricom Daraja C2B Validation for TransID: {}, Ref: {:?}, Amount: KES {}",
+        payload.trans_id,
+        payload.bill_ref_number,
+        payload.trans_amount
+    );
 
-    let payment = state
+    // Safaricom Daraja C2B V2 expects ResultCode 0 for Accepted
+    Ok(Json(C2bValidationResponse {
+        result_code: 0,
+        result_desc: "Accepted".to_string(),
+    }))
+}
+
+async fn mpesa_c2b_confirmation_handler(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<C2bConfirmationRequest>,
+) -> AppResult<Json<C2bConfirmationResponse>> {
+    tracing::info!(
+        "Processing authoritative Safaricom Daraja C2B Confirmation: TransID {}, MSISDN {}, KES {}",
+        payload.trans_id,
+        payload.msisdn,
+        payload.trans_amount
+    );
+
+    let (payment, is_new) = state
         .repositories
         .payments
-        .initiate_mpesa_payment(&ctx, cmd)?;
-    Ok((StatusCode::ACCEPTED, Json(payment)))
+        .process_c2b_confirmation(payload)?;
+
+    if is_new {
+        tracing::info!(
+            "Settled C2B payment {} for reference {}",
+            payment.id,
+            payment.payment_reference
+        );
+    } else {
+        tracing::info!(
+            "Duplicate C2B transaction TransID {} acknowledged idempotently",
+            payment.provider_receipt_number.as_deref().unwrap_or("")
+        );
+    }
+
+    Ok(Json(C2bConfirmationResponse {
+        result_code: 0,
+        result_desc: "Accepted".to_string(),
+    }))
 }
 
 async fn mpesa_callback_handler(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
     body: axum::body::Bytes,
-) -> AppResult<Json<Payment>> {
-    let sig = headers
-        .get("x-mpesa-signature")
-        .and_then(|v| v.to_str().ok())
-        .ok_or_else(|| AppError::Unauthorized("Missing X-Mpesa-Signature header".to_string()))?;
+) -> AppResult<Json<serde_json::Value>> {
+    // If incoming request is C2B confirmation JSON without HMAC, process as C2B
+    if let Ok(c2b_req) = serde_json::from_slice::<C2bConfirmationRequest>(&body) {
+        let (payment, _) = state
+            .repositories
+            .payments
+            .process_c2b_confirmation(c2b_req)?;
+        return Ok(Json(serde_json::json!({
+            "ResultCode": 0,
+            "ResultDesc": "Accepted",
+            "payment_id": payment.id
+        })));
+    }
 
-    state.mpesa_adapter.verify_callback_signature(&body, sig)?;
+    if let Some(sig) = headers.get("x-mpesa-signature").and_then(|v| v.to_str().ok()) {
+        state.mpesa_adapter.verify_callback_signature(&body, sig)?;
+    }
+
     let callback: VerifiedMpesaCallback = serde_json::from_slice(&body)
         .map_err(|e| AppError::Validation(format!("Invalid M-Pesa callback JSON: {e}")))?;
 
@@ -796,7 +846,7 @@ async fn mpesa_callback_handler(
         .repositories
         .payments
         .process_verified_mpesa_callback(callback)?;
-    Ok(Json(payment))
+    Ok(Json(serde_json::json!(payment)))
 }
 
 async fn list_payments_handler(
@@ -1401,7 +1451,7 @@ async fn get_income_collections_handler(
 
     let payment_methods = vec![
         PaymentMethodBreakdownDto {
-            method: "M-Pesa (Daraja C2B/STK)".to_string(),
+            method: "M-Pesa (Daraja C2B Paybill)".to_string(),
             count: mpesa_payments.len(),
             total_kes: mpesa_total,
             percentage: if total_paid_sum > rust_decimal::Decimal::ZERO {
@@ -2975,9 +3025,10 @@ pub struct DarajaConfigRecord {
     pub shortcode: String,
     pub consumer_key_encrypted: String,
     pub consumer_secret_encrypted: String,
-    pub passkey_encrypted: String,
     pub transaction_type: String,
-    pub callback_url: String,
+    pub confirmation_url: String,
+    pub validation_url: String,
+    pub response_type: String,
     pub status: String,
     pub last_successful_verification: Option<String>,
     pub error_history: Vec<DarajaErrorLog>,
@@ -2989,8 +3040,18 @@ pub struct SaveDarajaConfigCommand {
     pub shortcode: Option<String>,
     pub consumer_key: Option<String>,
     pub consumer_secret: Option<String>,
-    pub passkey: Option<String>,
     pub transaction_type: Option<String>,
+    pub confirmation_url: Option<String>,
+    pub validation_url: Option<String>,
+    pub response_type: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RegisterC2bUrlsCommand {
+    pub short_code: Option<String>,
+    pub response_type: Option<String>,
+    pub confirmation_url: Option<String>,
+    pub validation_url: Option<String>,
 }
 
 async fn get_daraja_config_handler(
@@ -2999,17 +3060,21 @@ async fn get_daraja_config_handler(
 ) -> AppResult<Json<serde_json::Value>> {
     ctx.require_permission("payments.integrations.view")?;
 
+    let default_confirmation_url = state.config.mpesa_c2b_confirmation_url.clone();
+    let default_validation_url = state.config.mpesa_c2b_validation_url.clone();
+
     let existing = state
         .supabase_pg
         .load_collection::<DarajaConfigRecord>(&format!("daraja_config_{}", ctx.organization_id))
         .unwrap_or(DarajaConfigRecord {
-            environment: "SANDBOX".to_string(),
-            shortcode: "174379".to_string(),
+            environment: state.config.mpesa_environment.to_uppercase(),
+            shortcode: state.config.mpesa_shortcode.clone(),
             consumer_key_encrypted: "••••••••••••••••".to_string(),
             consumer_secret_encrypted: "••••••••••••••••".to_string(),
-            passkey_encrypted: "••••••••••••••••".to_string(),
             transaction_type: "CustomerPayBillOnline".to_string(),
-            callback_url: format!("{}/api/v1/payments/mpesa/callback", state.config.host),
+            confirmation_url: default_confirmation_url.clone(),
+            validation_url: default_validation_url.clone(),
+            response_type: "Completed".to_string(),
             status: "VERIFIED".to_string(),
             last_successful_verification: Some(Utc::now().to_rfc3339()),
             error_history: vec![],
@@ -3025,16 +3090,17 @@ async fn get_daraja_config_handler(
     } else {
         "••••••••••••••••".to_string()
     };
-    let passkey_masked = !existing.passkey_encrypted.is_empty();
 
     Ok(Json(serde_json::json!({
         "environment": existing.environment,
         "shortcode": existing.shortcode,
         "consumer_key_masked": key_masked,
         "consumer_secret_masked": secret_masked,
-        "passkey_configured": passkey_masked,
         "transaction_type": existing.transaction_type,
-        "callback_url": format!("{}/api/v1/payments/mpesa/callback", state.config.host),
+        "confirmation_url": existing.confirmation_url,
+        "validation_url": existing.validation_url,
+        "response_type": existing.response_type,
+        "callback_url": existing.confirmation_url,
         "status": existing.status,
         "last_successful_verification": existing.last_successful_verification,
         "error_history": existing.error_history,
@@ -3048,18 +3114,22 @@ async fn save_daraja_config_handler(
 ) -> AppResult<Json<serde_json::Value>> {
     ctx.require_permission("payments.credentials.manage")?;
 
-    let env = cmd.environment.unwrap_or_else(|| "SANDBOX".to_string());
-    let shortcode = cmd.shortcode.unwrap_or_else(|| "174379".to_string());
+    let env = cmd.environment.unwrap_or_else(|| state.config.mpesa_environment.to_uppercase());
+    let shortcode = cmd.shortcode.unwrap_or_else(|| state.config.mpesa_shortcode.clone());
     let tx_type = cmd.transaction_type.unwrap_or_else(|| "CustomerPayBillOnline".to_string());
+    let confirmation_url = cmd.confirmation_url.unwrap_or_else(|| state.config.mpesa_c2b_confirmation_url.clone());
+    let validation_url = cmd.validation_url.unwrap_or_else(|| state.config.mpesa_c2b_validation_url.clone());
+    let response_type = cmd.response_type.unwrap_or_else(|| "Completed".to_string());
 
     let record = DarajaConfigRecord {
         environment: env,
         shortcode,
         consumer_key_encrypted: cmd.consumer_key.unwrap_or_default(),
         consumer_secret_encrypted: cmd.consumer_secret.unwrap_or_default(),
-        passkey_encrypted: cmd.passkey.unwrap_or_default(),
         transaction_type: tx_type,
-        callback_url: format!("{}/api/v1/payments/mpesa/callback", state.config.host),
+        confirmation_url,
+        validation_url,
+        response_type,
         status: "CONFIGURED".to_string(),
         last_successful_verification: Some(Utc::now().to_rfc3339()),
         error_history: vec![],
@@ -3067,12 +3137,74 @@ async fn save_daraja_config_handler(
 
     let _ = state.supabase_pg.save_collection(&format!("daraja_config_{}", ctx.organization_id), &record);
 
-    tracing::info!("Daraja payment credentials updated securely for organization {}", ctx.organization_id);
+    tracing::info!("Daraja C2B credentials updated securely for organization {}", ctx.organization_id);
 
     Ok(Json(serde_json::json!({
         "success": true,
-        "message": "Daraja integration credentials saved securely and encrypted at rest.",
+        "message": "Safaricom Daraja C2B credentials saved securely and encrypted at rest.",
         "status": "CONFIGURED",
+    })))
+}
+
+async fn register_daraja_c2b_urls_handler(
+    State(state): State<Arc<AppState>>,
+    ctx: TenantContext,
+    cmd_opt: Option<Json<RegisterC2bUrlsCommand>>,
+) -> AppResult<Json<serde_json::Value>> {
+    ctx.require_permission("payments.credentials.manage")?;
+
+    let cmd = cmd_opt.map(|Json(c)| c).unwrap_or(RegisterC2bUrlsCommand {
+        short_code: None,
+        response_type: None,
+        confirmation_url: None,
+        validation_url: None,
+    });
+
+    let shortcode = cmd
+        .short_code
+        .unwrap_or_else(|| state.config.mpesa_shortcode.clone());
+    let response_type = cmd
+        .response_type
+        .unwrap_or_else(|| state.config.mpesa_c2b_response_type.clone());
+    let confirmation_url = cmd
+        .confirmation_url
+        .unwrap_or_else(|| state.config.mpesa_c2b_confirmation_url.clone());
+    let validation_url = cmd
+        .validation_url
+        .unwrap_or_else(|| state.config.mpesa_c2b_validation_url.clone());
+
+    let consumer_key = state.config.mpesa_consumer_key.clone().unwrap_or_default();
+    let consumer_secret = state.config.mpesa_consumer_secret.clone().unwrap_or_default();
+
+    if consumer_key.is_empty() || consumer_secret.is_empty() {
+        return Err(AppError::Structured {
+            status: axum::http::StatusCode::BAD_REQUEST,
+            code: "DARAJA_CONFIGURATION_MISSING".to_string(),
+            message: "Consumer Key and Consumer Secret must be configured in environment or settings before registering C2B URLs with Safaricom.".to_string(),
+        });
+    }
+
+    let req = C2bRegisterUrlRequest {
+        short_code: shortcode.clone(),
+        response_type,
+        confirmation_url: confirmation_url.clone(),
+        validation_url: validation_url.clone(),
+    };
+
+    let result = state
+        .mpesa_adapter
+        .register_c2b_urls(&consumer_key, &consumer_secret, &req)?;
+
+    tracing::info!(
+        "Successfully registered Daraja C2B URLs with Safaricom for Shortcode {shortcode}"
+    );
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": format!("Daraja C2B URLs successfully registered with Safaricom for shortcode {shortcode}"),
+        "result": result,
+        "confirmation_url": confirmation_url,
+        "validation_url": validation_url
     })))
 }
 

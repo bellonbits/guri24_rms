@@ -34,7 +34,9 @@ pub struct AppConfig {
     pub mpesa_shortcode: String,
     pub mpesa_consumer_key: Option<String>,
     pub mpesa_consumer_secret: Option<String>,
-    pub mpesa_passkey: Option<String>,
+    pub mpesa_c2b_confirmation_url: String,
+    pub mpesa_c2b_validation_url: String,
+    pub mpesa_c2b_response_type: String,
     pub mpesa_callback_url: String,
     pub mpesa_callback_hmac_secret: String,
     pub ocr_provider: String,
@@ -158,9 +160,15 @@ impl AppConfig {
             mpesa_shortcode: env::var("MPESA_SHORTCODE").unwrap_or_else(|_| "174379".to_string()),
             mpesa_consumer_key: non_empty_env("MPESA_CONSUMER_KEY"),
             mpesa_consumer_secret: non_empty_env("MPESA_CONSUMER_SECRET"),
-            mpesa_passkey: non_empty_env("MPESA_PASSKEY"),
+            mpesa_c2b_confirmation_url: env::var("MPESA_C2B_CONFIRMATION_URL").unwrap_or_else(|_| {
+                "http://143.198.30.249:8088/api/v1/payments/c2b/confirmation".to_string()
+            }),
+            mpesa_c2b_validation_url: env::var("MPESA_C2B_VALIDATION_URL").unwrap_or_else(|_| {
+                "http://143.198.30.249:8088/api/v1/payments/c2b/validation".to_string()
+            }),
+            mpesa_c2b_response_type: env::var("MPESA_C2B_RESPONSE_TYPE").unwrap_or_else(|_| "Completed".to_string()),
             mpesa_callback_url: env::var("MPESA_CALLBACK_URL").unwrap_or_else(|_| {
-                "http://localhost:8085/api/v1/payments/mpesa/callback".to_string()
+                "http://143.198.30.249:8088/api/v1/payments/c2b/confirmation".to_string()
             }),
             mpesa_callback_hmac_secret: env::var("MPESA_CALLBACK_HMAC_SECRET")
                 .unwrap_or_else(|_| "mpesa_callback_hmac_secret_dev".to_string()),
@@ -236,9 +244,6 @@ impl AppConfig {
         }
         if self.mpesa_consumer_secret.is_none() {
             mpesa_missing.push("MPESA_CONSUMER_SECRET".to_string());
-        }
-        if self.mpesa_passkey.is_none() {
-            mpesa_missing.push("MPESA_PASSKEY".to_string());
         }
 
         let mut sms_missing = Vec::new();

@@ -351,49 +351,44 @@ test('Security & RBAC Test Suite — Verification of 15 Core Scenarios (Section 
     assert.ok(!cachedProperties.some((p) => p.organization_id === 'org-guri24-001'));
   });
 
-  // 14: Payment callback idempotency (CheckoutRequestID deduplication)
-  await t.test('Scenario 14: Payment callback idempotency (CheckoutRequestID deduplication)', () => {
-    const processedCallbacks = new Set();
+  // 14: Payment callback idempotency (TransID deduplication for Daraja C2B V2)
+  await t.test('Scenario 14: Payment callback idempotency (TransID deduplication for Daraja C2B V2)', () => {
+    const processedTransactions = new Set();
     const ledgerEntries = [];
 
-    function processMpesaCallback(payload) {
-      const checkoutId = payload.Body.stkCallback.CheckoutRequestID;
-      if (processedCallbacks.has(checkoutId)) {
-        return { status: 'DUPLICATE_IGNORED', code: 200 };
+    function processC2bConfirmation(payload) {
+      const transId = payload.TransID;
+      if (processedTransactions.has(transId)) {
+        return { ResultCode: 0, ResultDesc: 'Accepted (Duplicate Ignored)' };
       }
-      processedCallbacks.add(checkoutId);
+      processedTransactions.add(transId);
       ledgerEntries.push({
         id: `led-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        reference: checkoutId,
-        amount: payload.Body.stkCallback.CallbackMetadata?.Item?.find((i) => i.Name === 'Amount')?.Value || 0,
+        reference: transId,
+        amount: payload.TransAmount || 0,
       });
-      return { status: 'SUCCESS', code: 200 };
+      return { ResultCode: 0, ResultDesc: 'Accepted' };
     }
 
-    const callbackPayload = {
-      Body: {
-        stkCallback: {
-          MerchantRequestID: '29115-34620561-1',
-          CheckoutRequestID: 'ws_CO_19122026102553744712345678',
-          ResultCode: 0,
-          ResultDesc: 'The service request is processed successfully.',
-          CallbackMetadata: {
-            Item: [
-              { Name: 'Amount', Value: 35000 },
-              { Name: 'MpesaReceiptNumber', Value: 'QWE1234567' },
-            ],
-          },
-        },
-      },
+    const c2bPayload = {
+      TransactionType: 'Pay Bill',
+      TransID: 'RKTQDM7W6S',
+      TransTime: '20261122131500',
+      TransAmount: 35000,
+      BusinessShortCode: '1343073',
+      BillRefNumber: 'RENT-A101',
+      MSISDN: '254712345678',
+      FirstName: 'Peter',
+      LastName: 'Mwangi',
     };
 
-    const res1 = processMpesaCallback(callbackPayload);
-    assert.equal(res1.status, 'SUCCESS');
+    const res1 = processC2bConfirmation(c2bPayload);
+    assert.equal(res1.ResultCode, 0);
     assert.equal(ledgerEntries.length, 1);
 
-    const res2 = processMpesaCallback(callbackPayload);
-    assert.equal(res2.status, 'DUPLICATE_IGNORED');
-    assert.equal(ledgerEntries.length, 1, 'Ledger entries must not be duplicated');
+    const res2 = processC2bConfirmation(c2bPayload);
+    assert.equal(res2.ResultCode, 0);
+    assert.equal(ledgerEntries.length, 1, 'Ledger entries must not be duplicated for identical TransID');
   });
 
   // 15: Sensitive configuration changes recorded in accessAuditLogs

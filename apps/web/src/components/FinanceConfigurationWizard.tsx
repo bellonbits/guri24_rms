@@ -724,7 +724,7 @@ export const FinanceConfigurationWizard: React.FC<FinanceConfigurationWizardProp
                 Daraja 2.0 Webhook Status: {mpesaConfig.darajaIntegrationStatus}
               </div>
               <div style={{ fontSize: '0.78rem', color: '#15803d', marginTop: '2px' }}>
-                C2B instant confirmation and STK push prompts are supported. Transactions clear to General Ledger Account 1020.
+                C2B instant confirmation via Safaricom Daraja is supported. Transactions clear to General Ledger Account 1020.
               </div>
             </div>
           </div>

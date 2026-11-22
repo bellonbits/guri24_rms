@@ -164,39 +164,6 @@ impl CentralizedNotificationService {
 
         // 1. Resolve notification parameters based on domain event type
         let (template_key, subject, body_html, body_text, recipient_email, recipient_name, recipient_role, idem_key) = match event {
-            DomainEvent::PaymentRequestInitiated {
-                payment_id,
-                phone_number,
-                amount_kes,
-                account_reference,
-                ..
-            } => {
-                let subject = format!("M-Pesa STK Prompt Initiated — KES {}", amount_kes);
-                let html = render_notification_email_template(
-                    "tenant@guri24.co.ke",
-                    "M-Pesa Payment Request Initiated",
-                    &format!(
-                        "An STK push payment request of <strong>KES {}</strong> has been sent to your phone ({}). Please enter your M-Pesa PIN on your phone to complete payment for reference {}. <em>Note: This is an authorization prompt, not a confirmed receipt.</em>",
-                        amount_kes, phone_number, account_reference
-                    ),
-                    Some("View Invoices"),
-                    None,
-                );
-                let text = format!(
-                    "M-Pesa Payment Request of KES {} sent to {}. Enter PIN on phone for ref {}.",
-                    amount_kes, phone_number, account_reference
-                );
-                (
-                    "PAYMENT_REQUEST_INITIATED",
-                    subject,
-                    html,
-                    text,
-                    "tenant@guri24.co.ke".to_string(),
-                    "Tenant".to_string(),
-                    "TENANT",
-                    format!("idem:pay_req:{}", payment_id),
-                )
-            }
             DomainEvent::PaymentReceived {
                 payment_id,
                 amount_kes,
@@ -674,13 +641,6 @@ impl NotificationServiceTrait for CentralizedNotificationService {
                 category: "ONBOARDING".to_string(),
                 is_mandatory: true,
                 sample_subject: "Hi Filippo, your Guri24 RMS account has been approved!".to_string(),
-            },
-            NotificationTemplateSummary {
-                key: "PAYMENT_REQUEST_INITIATED".to_string(),
-                title: "M-Pesa STK Prompt Initiated".to_string(),
-                category: "TENANT".to_string(),
-                is_mandatory: true,
-                sample_subject: "M-Pesa STK Prompt Initiated — KES 15,000.00".to_string(),
             },
             NotificationTemplateSummary {
                 key: "PAYMENT_VERIFIED".to_string(),

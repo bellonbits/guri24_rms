@@ -20,7 +20,7 @@ export const FaqPage: React.FC = () => {
     {
       category: 'reconciliation',
       q: 'How does Guri24 RMS reconcile M-Pesa rent payments automatically?',
-      a: 'Guri24 integrates directly with Safaricom Daraja C2B and STK Push APIs. When a tenant pays via your Paybill or Till number with their unit code as the account reference, our platform receives instant Instant Payment Notifications (IPN), matches the transaction to the active lease invoice, marks it settled, updates the general ledger, and sends an automated SMS/email receipt to the tenant in real time.',
+      a: 'Guri24 integrates directly with Safaricom Daraja C2B V2 APIs. When a tenant pays via your Paybill (1343073) or Till number with their unit code as the account reference, our platform receives instant payment notifications (C2B confirmation), matches the transaction to the active lease invoice, marks it settled, updates the general ledger, and sends an automated SMS/email receipt to the tenant in real time.',
     },
     {
       category: 'reconciliation',

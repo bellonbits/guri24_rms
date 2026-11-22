@@ -664,7 +664,7 @@ export const HomePage: React.FC = () => {
                 {
                   icon: <Wallet size={22} color="#0F172A" />,
                   title: 'Instant M-Pesa & Multi-Bank Recon',
-                  desc: 'Daraja STK push and C2B webhooks reconcile against tenant invoices in sub-second time. Supports Equity, NCBA, KCB, Stanbic, and Co-op statements.',
+                  desc: 'Daraja C2B Paybill webhooks reconcile against tenant invoices in sub-second time. Supports Equity, NCBA, KCB, Stanbic, and Co-op statements.',
                 },
                 {
                   icon: <Building2 size={22} color="#0F172A" />,
@@ -778,7 +778,7 @@ export const HomePage: React.FC = () => {
                 {
                   step: '03',
                   title: 'Automate Collections & Ledger',
-                  desc: 'Tenants receive automated STK push notifications. Invoices settle in real time, and double-entry journals update your live balance sheet.',
+                  desc: 'Tenants pay directly via Safaricom M-Pesa Paybill. Invoices settle in real time, and double-entry journals update your live balance sheet.',
                 },
               ].map((item, idx) => (
                 <div
@@ -854,7 +854,7 @@ export const HomePage: React.FC = () => {
               }}
             >
               {[
-                { name: 'Safaricom M-Pesa', badge: 'STK Push & C2B Webhook' },
+                { name: 'Safaricom M-Pesa', badge: 'Daraja C2B V2 Paybill' },
                 { name: 'Equity Bank', badge: 'Direct Wire & Statement Recon' },
                 { name: 'NCBA Group', badge: 'Automated Account Routing' },
                 { name: 'KCB Bank', badge: 'Petty Cash & Escrow Feeds' },
@@ -929,7 +929,7 @@ export const HomePage: React.FC = () => {
                   price: 'KES 25,000',
                   cadence: '/ month',
                   desc: 'Ideal for independent landlords and small estates up to 20 units.',
-                  features: ['Up to 20 Units', '1 Commercial Bank Account', '1 M-Pesa Till / Paybill', 'Automated STK Push Billing', 'Standard Email Support'],
+                  features: ['Up to 20 Units', '1 Commercial Bank Account', '1 M-Pesa Till / Paybill', 'Automated C2B Paybill Billing', 'Standard Email Support'],
                   highlighted: false,
                 },
                 {
@@ -1219,10 +1219,10 @@ export const HomePage: React.FC = () => {
               {videoDemoTab === 'recon' && (
                 <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
                   <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>
-                    Safaricom Daraja STK Push & Webhook Deduplication
+                    Safaricom Daraja C2B V2 & Webhook Deduplication
                   </div>
                   <p style={{ fontSize: '0.84rem', color: '#64748B', lineHeight: 1.5 }}>
-                    When a tenant pays via M-Pesa, Guri24 captures the <code>MpesaReceiptNumber</code> and <code>CheckoutRequestID</code>, deduplicating callbacks atomically. Invoices are settled FIFO, partial receipts generate accurate balances, and tenant SMS receipts dispatch via transactional outbox.
+                    When a tenant pays via M-Pesa Paybill (1343073), Guri24 captures the <code>TransID</code>, deduplicating callbacks atomically. Invoices are settled FIFO, partial receipts generate accurate balances, and tenant SMS receipts dispatch via transactional outbox.
                   </p>
                 </div>
               )}

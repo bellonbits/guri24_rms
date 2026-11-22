@@ -123,11 +123,6 @@ export const PaymentsMpesaPage: React.FC = () => {
         journals={state?.journals || state?.journalEntries || []}
         initialTab={currentTab}
         onTabChange={handleTabChange}
-        onInitiatePayment={async (cmd) => {
-          const res = await apiClient.initiateMpesaPayment(cmd);
-          await loadWorkspaceSnapshot();
-          return res;
-        }}
         onAllocatePayment={async (paymentId, allocations) => {
           setState((prev) => {
             const nextPays = prev.payments.map((p) => {

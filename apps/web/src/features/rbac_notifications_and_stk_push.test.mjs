@@ -50,7 +50,7 @@ test('RBAC: Tenant has no access to organization notification management or sett
   assert.ok(!tenantPerms.includes('notifications.view'), 'Tenant cannot view organization delivery ledger');
 });
 
-test('STK Push Validation: Kenyan phone normalization patterns', () => {
+test('Daraja C2B V2 Validation: Kenyan phone normalization patterns', () => {
   function normalizeKenyanPhone(raw) {
     const digits = (raw || '').replace(/\D/g, '');
     let normalized;
@@ -75,7 +75,7 @@ test('STK Push Validation: Kenyan phone normalization patterns', () => {
   assert.equal(normalizeKenyanPhone('12345'), null);
 });
 
-test('STK Push Validation: Amount must be strictly greater than 0', () => {
+test('Daraja C2B V2 Validation: Amount must be strictly greater than 0', () => {
   function validateAmount(amount) {
     if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) {
       return { valid: false, code: 'INVALID_AMOUNT', message: 'Payment amount must be greater than KES 0' };
@@ -89,7 +89,7 @@ test('STK Push Validation: Amount must be strictly greater than 0', () => {
   assert.equal(validateAmount(15000.5).valid, true);
 });
 
-test('STK Push Validation: Invoice/Account reference cannot be empty', () => {
+test('Daraja C2B V2 Validation: Invoice/Account reference cannot be empty', () => {
   function validateInvoiceRef(ref) {
     if (!ref || ref.trim().length === 0) {
       return { valid: false, code: 'INVALID_INVOICE', message: 'Valid invoice or account reference is required' };

@@ -134,13 +134,13 @@ export const FEATURES_CATALOG: Record<string, FeatureData> = {
   'mpesa-and-payments': {
     slug: 'mpesa-and-payments',
     name: 'M-Pesa Real-Time Reconciliation',
-    tagline: 'Instant Safaricom C2B, STK Push, and Paybill/Till automated transaction matching',
+    tagline: 'Instant Safaricom Daraja C2B V2 Paybill/Till automated transaction matching',
     category: 'Financial Operations',
     icon: Smartphone,
     overview: 'The gold standard for Kenyan property financial operations. Zero human intervention: tenant pays via M-Pesa Paybill or Till, our instant payment notification (IPN) webhook matches the unit number, credits the tenant ledger, marks invoices paid, and sends an SMS receipt.',
     benefits: [
       { title: 'Zero Manual Data Entry', desc: 'End the nightmare of manual spreadsheet cross-referencing and fake SMS payment claims.' },
-      { title: 'STK Push In-App Checkout', desc: 'Tenants can initiate one-click STK push payments directly from the web portal or mobile notification.' },
+      { title: 'Automated Paybill Matching', desc: 'Tenants pay via Paybill 1343073 and invoices settle instantaneously with zero typing errors.' },
       { title: 'Duplicate Transaction Shield', desc: 'Cryptographic receipt validation ensures an M-Pesa transaction code can never be credited twice.' },
     ],
     technicalSpecs: ['Safaricom Daraja API v2 integration', 'Sub-second webhook processing time', 'Idempotent transaction deduplication', 'Automated Account 1010 M-Pesa clearing debit'],
@@ -273,7 +273,7 @@ export const FEATURES_CATALOG: Record<string, FeatureData> = {
     overview: 'Give your tenants a polished digital home. Tenants can securely log in to review their lease terms, download itemized monthly invoices, initiate instant M-Pesa payments, and track maintenance tickets in real time.',
     benefits: [
       { title: '24/7 Self-Service Access', desc: 'Tenants download payment receipts and historical statements without calling management.' },
-      { title: 'Frictionless M-Pesa Checkout', desc: 'Single-tap STK Push payments from mobile devices with zero account number typing errors.' },
+      { title: 'Frictionless M-Pesa Checkout', desc: 'Direct Paybill 1343073 payments from mobile devices with zero account number typing errors.' },
       { title: 'Live Ticket Status Tracking', desc: 'Tenants receive progress alerts when their maintenance issue is scheduled and completed.' },
     ],
     technicalSpecs: ['Progressive Web App (PWA) compatible', 'Passwordless magic link or SMS OTP authentication', 'Multi-tenant branded organization skin', 'WCAG 2.1 AA accessible interface'],

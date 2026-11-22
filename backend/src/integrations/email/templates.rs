@@ -479,7 +479,7 @@ pub fn render_invoice_issued_template(
           <tr>
             <td align="center" style="border-radius: 6px; background-color: #0284c7;">
               <a href="https://guri24rms.co.ke" target="_blank" style="display: inline-block; padding: 12px 32px; font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 6px;">
-                Settle via M-Pesa STK Push
+                Pay via M-Pesa Paybill 1343073
               </a>
             </td>
           </tr>
@@ -1046,7 +1046,7 @@ pub fn render_tenant_portal_invitation_email(
         </div>
 
         <p style="font-size: 14px; color: #475569; line-height: 1.55; margin: 0 0 16px 0;">
-          Your tenancy for <strong>{property_unit}</strong> under {organization_name} is active. With your personal tenant portal, you can view your digital lease, trigger 1-click M-Pesa STK push payments, download verified receipts, and submit maintenance tickets.
+          Your tenancy for <strong>{property_unit}</strong> under {organization_name} is active. With your personal tenant portal, you can view your digital lease, pay rent directly via Safaricom M-Pesa Paybill 1343073, download verified receipts, and submit maintenance tickets.
         </p>
 
         <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px; margin: 16px 0; font-size: 12px; color: #166534; text-align: left;">

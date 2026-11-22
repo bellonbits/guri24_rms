@@ -256,13 +256,6 @@ export const NotificationSettingsWorkspace: React.FC<NotificationSettingsWorkspa
             sample_subject: 'Urgent: Overdue Rent Arrears Notice — KES 35,000.00',
           },
           {
-            key: 'PAYMENT_REQUEST_INITIATED',
-            title: 'M-Pesa STK Prompt Authorization Notice',
-            category: 'TENANT',
-            is_mandatory: false,
-            sample_subject: 'M-Pesa STK Push Initiated — KES 35,000.00',
-          },
-          {
             key: 'DAILY_COLLECTION_SUMMARY',
             title: 'Daily Portfolio Collections Digest',
             category: 'OWNER',
@@ -2208,7 +2201,7 @@ export const NotificationSettingsWorkspace: React.FC<NotificationSettingsWorkspa
                       : previewTemplate.key === 'PAYMENT_RECEIPT'
                       ? 'View Statement in Portal'
                       : previewTemplate.key === 'INVOICE_ISSUED'
-                      ? 'Settle via M-Pesa STK Push'
+                      ? 'Pay via M-Pesa Paybill 1343073'
                       : previewTemplate.key === 'DEPOSIT_RECEIVED'
                       ? 'Download Deposit Bond'
                       : 'Open in Guri24 RMS'}

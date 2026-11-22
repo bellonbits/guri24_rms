@@ -2,7 +2,6 @@ use std::{
     io::Write,
     process::{Command, Stdio},
 };
-use chrono::Utc;
 use hmac::{Hmac, Mac};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -42,23 +41,102 @@ fn base64_encode(input: &[u8]) -> String {
     out
 }
 
-/// Normalized internal domain request for M-Pesa STK Push initiation.
-/// Business logic never depends directly on Safaricom Daraja JSON wire formats.
+/// Safaricom Daraja C2B V2 Register URL Payload
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StkPushRequest {
-    pub idempotency_key: String,
-    pub phone_number: String,
-    pub amount_kes: Decimal,
-    pub account_reference: String,
-    pub transaction_desc: String,
+pub struct C2bRegisterUrlRequest {
+    #[serde(rename = "ShortCode")]
+    pub short_code: String,
+    #[serde(rename = "ResponseType")]
+    pub response_type: String,
+    #[serde(rename = "ConfirmationURL")]
+    pub confirmation_url: String,
+    #[serde(rename = "ValidationURL")]
+    pub validation_url: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StkPushInitiationResult {
-    pub merchant_request_id: String,
-    pub checkout_request_id: String,
-    pub customer_message: String,
+pub struct C2bRegisterUrlResult {
     pub response_code: String,
+    pub response_description: String,
+    pub conversation_id: Option<String>,
+}
+
+/// Safaricom Daraja C2B Validation Request
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct C2bValidationRequest {
+    #[serde(rename = "TransactionType", default)]
+    pub transaction_type: Option<String>,
+    #[serde(rename = "TransID")]
+    pub trans_id: String,
+    #[serde(rename = "TransTime", default)]
+    pub trans_time: Option<String>,
+    #[serde(rename = "TransAmount")]
+    pub trans_amount: Decimal,
+    #[serde(rename = "BusinessShortCode", default)]
+    pub business_short_code: Option<String>,
+    #[serde(rename = "BillRefNumber", default)]
+    pub bill_ref_number: Option<String>,
+    #[serde(rename = "InvoiceNumber", default)]
+    pub invoice_number: Option<String>,
+    #[serde(rename = "OrgAccountBalance", default)]
+    pub org_account_balance: Option<String>,
+    #[serde(rename = "ThirdPartyTransID", default)]
+    pub third_party_trans_id: Option<String>,
+    #[serde(rename = "MSISDN")]
+    pub msisdn: String,
+    #[serde(rename = "FirstName", default)]
+    pub first_name: Option<String>,
+    #[serde(rename = "MiddleName", default)]
+    pub middle_name: Option<String>,
+    #[serde(rename = "LastName", default)]
+    pub last_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct C2bValidationResponse {
+    #[serde(rename = "ResultCode")]
+    pub result_code: i32,
+    #[serde(rename = "ResultDesc")]
+    pub result_desc: String,
+}
+
+/// Safaricom Daraja C2B Confirmation Request
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct C2bConfirmationRequest {
+    #[serde(rename = "TransactionType", default)]
+    pub transaction_type: Option<String>,
+    #[serde(rename = "TransID")]
+    pub trans_id: String,
+    #[serde(rename = "TransTime", default)]
+    pub trans_time: Option<String>,
+    #[serde(rename = "TransAmount")]
+    pub trans_amount: Decimal,
+    #[serde(rename = "BusinessShortCode", default)]
+    pub business_short_code: Option<String>,
+    #[serde(rename = "BillRefNumber", default)]
+    pub bill_ref_number: Option<String>,
+    #[serde(rename = "InvoiceNumber", default)]
+    pub invoice_number: Option<String>,
+    #[serde(rename = "OrgAccountBalance", default)]
+    pub org_account_balance: Option<String>,
+    #[serde(rename = "ThirdPartyTransID", default)]
+    pub third_party_trans_id: Option<String>,
+    #[serde(rename = "MSISDN")]
+    pub msisdn: String,
+    #[serde(rename = "FirstName", default)]
+    pub first_name: Option<String>,
+    #[serde(rename = "MiddleName", default)]
+    pub middle_name: Option<String>,
+    #[serde(rename = "LastName", default)]
+    pub last_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct C2bConfirmationResponse {
+    #[serde(rename = "ResultCode")]
+    pub result_code: i32,
+    #[serde(rename = "ResultDesc")]
+    pub result_desc: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -73,10 +151,16 @@ pub struct VerifiedMpesaCallback {
     pub account_reference: String,
 }
 
-/// Section 5.10: Adapter Pattern for Safaricom M-Pesa Daraja
+/// Section 5.10: Adapter Pattern for Safaricom M-Pesa Daraja C2B V2
 pub trait MpesaAdapter: Send + Sync {
     fn normalize_kenyan_phone(&self, raw_phone: &str) -> AppResult<String>;
-    fn initiate_stk_push(&self, request: &StkPushRequest) -> AppResult<StkPushInitiationResult>;
+    fn fetch_oauth_token(&self, consumer_key: &str, consumer_secret: &str) -> AppResult<String>;
+    fn register_c2b_urls(
+        &self,
+        consumer_key: &str,
+        consumer_secret: &str,
+        req: &C2bRegisterUrlRequest,
+    ) -> AppResult<C2bRegisterUrlResult>;
     fn verify_callback_signature(&self, payload_bytes: &[u8], signature_hex: &str) -> AppResult<()>;
     fn compute_callback_signature(&self, payload_bytes: &[u8]) -> String;
     fn circuit_breaker(&self) -> &CircuitBreaker;
@@ -87,8 +171,9 @@ pub struct SafaricomDarajaAdapter {
     pub shortcode: String,
     pub consumer_key: Option<String>,
     pub consumer_secret: Option<String>,
-    pub passkey: Option<String>,
-    pub callback_url: String,
+    pub confirmation_url: String,
+    pub validation_url: String,
+    pub response_type: String,
     pub callback_hmac_secret: String,
     pub breaker: CircuitBreaker,
 }
@@ -99,8 +184,9 @@ impl SafaricomDarajaAdapter {
         shortcode: String,
         consumer_key: Option<String>,
         consumer_secret: Option<String>,
-        passkey: Option<String>,
-        callback_url: String,
+        confirmation_url: String,
+        validation_url: String,
+        response_type: String,
         callback_hmac_secret: String,
         breaker: CircuitBreaker,
     ) -> Self {
@@ -109,157 +195,11 @@ impl SafaricomDarajaAdapter {
             shortcode,
             consumer_key,
             consumer_secret,
-            passkey,
-            callback_url,
+            confirmation_url,
+            validation_url,
+            response_type,
             callback_hmac_secret,
             breaker,
-        }
-    }
-
-    fn execute_real_daraja_stk_push(
-        &self,
-        consumer_key: &str,
-        consumer_secret: &str,
-        msisdn: &str,
-        request: &StkPushRequest,
-    ) -> AppResult<StkPushInitiationResult> {
-        // 1. Fetch OAuth access token from Safaricom Daraja
-        let oauth_url = format!("{}/oauth/v1/generate?grant_type=client_credentials", self.base_url.trim_end_matches('/'));
-        let auth_header = format!("Basic {}", base64_encode(format!("{consumer_key}:{consumer_secret}").as_bytes()));
-
-        let oauth_out = Command::new("curl")
-            .arg("-sS")
-            .arg("--max-time")
-            .arg("15")
-            .arg("-X")
-            .arg("GET")
-            .arg(&oauth_url)
-            .arg("-H")
-            .arg(format!("Authorization: {auth_header}"))
-            .output()
-            .map_err(|e| AppError::Structured {
-                status: axum::http::StatusCode::BAD_GATEWAY,
-                code: "DARAJA_CONNECTION_ERROR".to_string(),
-                message: format!("Daraja OAuth curl spawn error: {e}"),
-            })?;
-
-        if !oauth_out.status.success() {
-            let stderr = String::from_utf8_lossy(&oauth_out.stderr);
-            return Err(AppError::Structured {
-                status: axum::http::StatusCode::BAD_GATEWAY,
-                code: "DARAJA_AUTHENTICATION_FAILED".to_string(),
-                message: format!("Daraja OAuth connection failed: {stderr}"),
-            });
-        }
-
-        let oauth_json: serde_json::Value = serde_json::from_slice(&oauth_out.stdout)
-            .map_err(|e| AppError::Structured {
-                status: axum::http::StatusCode::BAD_GATEWAY,
-                code: "DARAJA_AUTHENTICATION_FAILED".to_string(),
-                message: format!("Invalid Daraja OAuth JSON response: {e}"),
-            })?;
-
-        let access_token = oauth_json
-            .get("access_token")
-            .and_then(|v| v.as_str())
-            .ok_or_else(|| {
-                let err_desc = oauth_json.get("errorMessage").and_then(|v| v.as_str()).unwrap_or("Invalid consumer credentials");
-                AppError::Structured {
-                    status: axum::http::StatusCode::BAD_GATEWAY,
-                    code: "DARAJA_AUTHENTICATION_FAILED".to_string(),
-                    message: format!("Failed to retrieve Daraja access token: {err_desc}"),
-                }
-            })?;
-
-        // 2. Prepare STK Push payload
-        let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
-        let passkey = self.passkey.as_deref().unwrap_or("bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919");
-        let password = base64_encode(format!("{}{}{}", self.shortcode, passkey, timestamp).as_bytes());
-
-        let amount_int = request.amount_kes.to_string().split('.').next().unwrap_or("1").parse::<u64>().unwrap_or(1);
-
-        let stk_url = format!("{}/mpesa/stkpush/v1/processrequest", self.base_url.trim_end_matches('/'));
-        let payload = serde_json::json!({
-            "BusinessShortCode": self.shortcode,
-            "Password": password,
-            "Timestamp": timestamp,
-            "TransactionType": "CustomerPayBillOnline",
-            "Amount": amount_int,
-            "PartyA": msisdn,
-            "PartyB": self.shortcode,
-            "PhoneNumber": msisdn,
-            "CallBackURL": self.callback_url,
-            "AccountReference": request.account_reference,
-            "TransactionDesc": request.transaction_desc
-        });
-        let body_str = payload.to_string();
-
-        let mut child = Command::new("curl")
-            .arg("-sS")
-            .arg("--max-time")
-            .arg("20")
-            .arg("-X")
-            .arg("POST")
-            .arg(&stk_url)
-            .arg("-H")
-            .arg("Content-Type: application/json")
-            .arg("-H")
-            .arg(format!("Authorization: Bearer {access_token}"))
-            .arg("-d")
-            .arg("@-")
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .map_err(|e| AppError::Structured {
-                status: axum::http::StatusCode::BAD_GATEWAY,
-                code: "DARAJA_CONNECTION_ERROR".to_string(),
-                message: format!("Daraja STK push curl spawn error: {e}"),
-            })?;
-
-        if let Some(mut stdin) = child.stdin.take() {
-            let _ = stdin.write_all(body_str.as_bytes());
-        }
-
-        let stk_out = child.wait_with_output().map_err(|e| AppError::Structured {
-            status: axum::http::StatusCode::BAD_GATEWAY,
-            code: "DARAJA_CONNECTION_ERROR".to_string(),
-            message: format!("Daraja STK push wait error: {e}"),
-        })?;
-        if !stk_out.status.success() {
-            let stderr = String::from_utf8_lossy(&stk_out.stderr);
-            return Err(AppError::Structured {
-                status: axum::http::StatusCode::BAD_GATEWAY,
-                code: "DARAJA_CONNECTION_ERROR".to_string(),
-                message: format!("Daraja STK push request failed: {stderr}"),
-            });
-        }
-
-        let res_json: serde_json::Value = serde_json::from_slice(&stk_out.stdout)
-            .map_err(|e| AppError::Structured {
-                status: axum::http::StatusCode::BAD_GATEWAY,
-                code: "DARAJA_VALIDATION_FAILED".to_string(),
-                message: format!("Invalid Daraja STK push response JSON: {e}"),
-            })?;
-
-        let response_code = res_json.get("ResponseCode").and_then(|v| v.as_str()).unwrap_or("-1").to_string();
-        if response_code == "0" {
-            Ok(StkPushInitiationResult {
-                merchant_request_id: res_json.get("MerchantRequestID").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                checkout_request_id: res_json.get("CheckoutRequestID").and_then(|v| v.as_str()).unwrap_or("").to_string(),
-                customer_message: res_json.get("CustomerMessage").and_then(|v| v.as_str()).unwrap_or("Request accepted for processing").to_string(),
-                response_code,
-            })
-        } else {
-            let desc = res_json.get("ResponseDescription")
-                .or_else(|| res_json.get("errorMessage"))
-                .and_then(|v| v.as_str())
-                .unwrap_or("Daraja STK push rejected");
-            Err(AppError::Structured {
-                status: axum::http::StatusCode::UNPROCESSABLE_ENTITY,
-                code: "DARAJA_VALIDATION_FAILED".to_string(),
-                message: format!("Safaricom Daraja STK Push Error: {desc}"),
-            })
         }
     }
 }
@@ -297,29 +237,162 @@ impl MpesaAdapter for SafaricomDarajaAdapter {
         Ok(normalized)
     }
 
-    fn initiate_stk_push(&self, request: &StkPushRequest) -> AppResult<StkPushInitiationResult> {
-        if request.amount_kes <= Decimal::ZERO {
+    fn fetch_oauth_token(&self, consumer_key: &str, consumer_secret: &str) -> AppResult<String> {
+        let oauth_url = format!(
+            "{}/oauth/v1/generate?grant_type=client_credentials",
+            self.base_url.trim_end_matches('/')
+        );
+        let auth_header = format!(
+            "Basic {}",
+            base64_encode(format!("{consumer_key}:{consumer_secret}").as_bytes())
+        );
+
+        let oauth_out = Command::new("curl")
+            .arg("-sS")
+            .arg("--max-time")
+            .arg("15")
+            .arg("-X")
+            .arg("GET")
+            .arg(&oauth_url)
+            .arg("-H")
+            .arg(format!("Authorization: {auth_header}"))
+            .output()
+            .map_err(|e| AppError::Structured {
+                status: axum::http::StatusCode::BAD_GATEWAY,
+                code: "DARAJA_CONNECTION_ERROR".to_string(),
+                message: format!("Daraja OAuth curl spawn error: {e}"),
+            })?;
+
+        if !oauth_out.status.success() {
+            let stderr = String::from_utf8_lossy(&oauth_out.stderr);
             return Err(AppError::Structured {
-                status: axum::http::StatusCode::BAD_REQUEST,
-                code: "INVALID_AMOUNT".to_string(),
-                message: "M-Pesa STK Push amount must be greater than KES 0".to_string(),
+                status: axum::http::StatusCode::BAD_GATEWAY,
+                code: "DARAJA_AUTHENTICATION_FAILED".to_string(),
+                message: format!("Daraja OAuth connection failed: {stderr}"),
             });
         }
 
-        let msisdn = self.normalize_kenyan_phone(&request.phone_number)?;
+        let oauth_json: serde_json::Value = serde_json::from_slice(&oauth_out.stdout)
+            .map_err(|e| AppError::Structured {
+                status: axum::http::StatusCode::BAD_GATEWAY,
+                code: "DARAJA_AUTHENTICATION_FAILED".to_string(),
+                message: format!("Invalid Daraja OAuth JSON response: {e}"),
+            })?;
 
-        let ck = self.consumer_key.as_deref().unwrap_or("").trim();
-        let cs = self.consumer_secret.as_deref().unwrap_or("").trim();
+        let access_token = oauth_json
+            .get("access_token")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| {
+                let err_desc = oauth_json
+                    .get("errorMessage")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("Invalid consumer credentials");
+                AppError::Structured {
+                    status: axum::http::StatusCode::BAD_GATEWAY,
+                    code: "DARAJA_AUTHENTICATION_FAILED".to_string(),
+                    message: format!("Failed to retrieve Daraja access token: {err_desc}"),
+                }
+            })?;
 
-        if ck.is_empty() || cs.is_empty() {
+        Ok(access_token.to_string())
+    }
+
+    fn register_c2b_urls(
+        &self,
+        consumer_key: &str,
+        consumer_secret: &str,
+        req: &C2bRegisterUrlRequest,
+    ) -> AppResult<C2bRegisterUrlResult> {
+        let access_token = self.fetch_oauth_token(consumer_key, consumer_secret)?;
+        let register_url = format!(
+            "{}/mpesa/c2b/v2/registerurl",
+            self.base_url.trim_end_matches('/')
+        );
+
+        let payload = serde_json::json!({
+            "ShortCode": req.short_code,
+            "ResponseType": req.response_type,
+            "ConfirmationURL": req.confirmation_url,
+            "ValidationURL": req.validation_url
+        });
+        let body_str = payload.to_string();
+
+        let mut child = Command::new("curl")
+            .arg("-sS")
+            .arg("--max-time")
+            .arg("20")
+            .arg("-X")
+            .arg("POST")
+            .arg(&register_url)
+            .arg("-H")
+            .arg("Content-Type: application/json")
+            .arg("-H")
+            .arg(format!("Authorization: Bearer {access_token}"))
+            .arg("-d")
+            .arg("@-")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .map_err(|e| AppError::Structured {
+                status: axum::http::StatusCode::BAD_GATEWAY,
+                code: "DARAJA_CONNECTION_ERROR".to_string(),
+                message: format!("Daraja C2B register URL curl spawn error: {e}"),
+            })?;
+
+        if let Some(mut stdin) = child.stdin.take() {
+            let _ = stdin.write_all(body_str.as_bytes());
+        }
+
+        let out = child.wait_with_output().map_err(|e| AppError::Structured {
+            status: axum::http::StatusCode::BAD_GATEWAY,
+            code: "DARAJA_CONNECTION_ERROR".to_string(),
+            message: format!("Daraja C2B register URL wait error: {e}"),
+        })?;
+
+        if !out.status.success() {
+            let stderr = String::from_utf8_lossy(&out.stderr);
             return Err(AppError::Structured {
-                status: axum::http::StatusCode::UNPROCESSABLE_ENTITY,
-                code: "DARAJA_CONFIGURATION_MISSING".to_string(),
-                message: "Safaricom Daraja credentials (Consumer Key, Consumer Secret, and Passkey) must be configured in Settings & Portal to initiate live STK push".to_string(),
+                status: axum::http::StatusCode::BAD_GATEWAY,
+                code: "DARAJA_CONNECTION_ERROR".to_string(),
+                message: format!("Daraja C2B register URL request failed: {stderr}"),
             });
         }
 
-        self.execute_real_daraja_stk_push(ck, cs, &msisdn, request)
+        let res_json: serde_json::Value = serde_json::from_slice(&out.stdout).map_err(|e| {
+            AppError::Structured {
+                status: axum::http::StatusCode::BAD_GATEWAY,
+                code: "DARAJA_VALIDATION_FAILED".to_string(),
+                message: format!("Invalid Daraja register URL response JSON: {e}"),
+            }
+        })?;
+
+        let response_code = res_json
+            .get("ResponseCode")
+            .and_then(|v| v.as_str())
+            .or_else(|| res_json.get("responseCode").and_then(|v| v.as_str()))
+            .unwrap_or("0")
+            .to_string();
+
+        let response_desc = res_json
+            .get("ResponseDescription")
+            .or_else(|| res_json.get("responseDescription"))
+            .or_else(|| res_json.get("errorMessage"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("Success")
+            .to_string();
+
+        let conversation_id = res_json
+            .get("OriginatorCoversationID")
+            .or_else(|| res_json.get("ConversationID"))
+            .and_then(|v| v.as_str())
+            .map(ToString::to_string);
+
+        Ok(C2bRegisterUrlResult {
+            response_code,
+            response_description: response_desc,
+            conversation_id,
+        })
     }
 
     fn verify_callback_signature(&self, payload_bytes: &[u8], signature_hex: &str) -> AppResult<()> {

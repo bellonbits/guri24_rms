@@ -30,7 +30,7 @@ export const DataProtectionPage: React.FC = () => {
       </p>
       <ul>
         <li><strong>Database Engine:</strong> Supabase PostgreSQL with cryptographic row-level security and tenant context assertions.</li>
-        <li><strong>Communications Gateways:</strong> Safaricom Daraja API for authenticated M-Pesa STK push and webhook callbacks.</li>
+        <li><strong>Communications Gateways:</strong> Safaricom Daraja API for authenticated M-Pesa C2B and webhook callbacks.</li>
         <li><strong>Document Intelligence:</strong> Isolated Python OCR processing queue that requires explicit human manager verification before records are committed.</li>
       </ul>
 

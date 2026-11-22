@@ -13,7 +13,7 @@ use crate::{
         events::{DomainEvent, EventBus},
         tenant_context::TenantContext,
     },
-    integrations::mpesa::{MpesaAdapter, StkPushRequest, VerifiedMpesaCallback},
+    integrations::mpesa::{C2bConfirmationRequest, MpesaAdapter, VerifiedMpesaCallback},
     modules::{
         accounting::{AccountType, AccountingRepository, JournalLine},
         billing::{Invoice, InvoiceRepository},
@@ -258,13 +258,13 @@ pub struct InitiateMpesaPaymentCommand {
 
 /// Section 5.1: Repository Pattern - PaymentRepository
 pub trait PaymentRepository: Send + Sync {
-    /// Initiates an M-Pesa STK Push payment in PENDING state.
-    /// Never marks a payment COMPLETED until a verified provider callback is processed!
-    fn initiate_mpesa_payment(
+    /// Processes an authoritative Safaricom Daraja C2B V2 payment confirmation idempotently.
+    /// Deduplicates by `TransID` (M-Pesa receipt number) to prevent double allocations or double journal postings.
+    /// Resolves tenant & invoices FIFO, creates double-entry journal lines, and issues receipt.
+    fn process_c2b_confirmation(
         &self,
-        ctx: &TenantContext,
-        cmd: InitiateMpesaPaymentCommand,
-    ) -> AppResult<Payment>;
+        req: C2bConfirmationRequest,
+    ) -> AppResult<(Payment, bool)>;
 
     /// Processes a verified M-Pesa Daraja callback idempotently.
     /// Duplicate callbacks with the same `checkout_request_id` or `mpesa_receipt_number`
@@ -304,79 +304,223 @@ impl InMemoryPaymentRepository {
 }
 
 impl PaymentRepository for InMemoryPaymentRepository {
-    fn initiate_mpesa_payment(
+    fn process_c2b_confirmation(
         &self,
-        ctx: &TenantContext,
-        cmd: InitiateMpesaPaymentCommand,
-    ) -> AppResult<Payment> {
-        if cmd.amount_kes <= Decimal::ZERO {
+        req: C2bConfirmationRequest,
+    ) -> AppResult<(Payment, bool)> {
+        if req.trans_amount <= Decimal::ZERO {
             return Err(AppError::Structured {
                 status: axum::http::StatusCode::BAD_REQUEST,
                 code: "INVALID_AMOUNT".to_string(),
-                message: "Payment amount must be greater than KES 0".to_string(),
+                message: "C2B payment amount must be greater than KES 0".to_string(),
             });
         }
 
-        let acc_ref = cmd.account_reference.trim();
-        if acc_ref.is_empty() {
+        let trans_id_clean = req.trans_id.trim().to_uppercase();
+        if trans_id_clean.is_empty() {
             return Err(AppError::Structured {
                 status: axum::http::StatusCode::BAD_REQUEST,
-                code: "INVALID_INVOICE".to_string(),
-                message: "Valid invoice or account reference is required to initiate M-Pesa payment".to_string(),
+                code: "INVALID_TRANS_ID".to_string(),
+                message: "TransID is required for C2B confirmation".to_string(),
             });
         }
 
-        // Idempotency check by (organization_id, idempotency_key)
+        // Idempotency check: duplicate TransID returns existing payment immediately
         {
             let guard = self.payments.read().unwrap_or_else(|e| e.into_inner());
             if let Some(existing) = guard.values().find(|p| {
-                p.organization_id == ctx.organization_id
-                    && p.idempotency_key == cmd.idempotency_key
+                p.provider_receipt_number.as_deref() == Some(trans_id_clean.as_str())
+                    && p.status == PaymentStatus::Completed
             }) {
-                return Ok(existing.clone());
+                return Ok((existing.clone(), false));
             }
         }
 
-        let stk_res = self.mpesa_adapter.initiate_stk_push(&StkPushRequest {
-            idempotency_key: cmd.idempotency_key.clone(),
-            phone_number: cmd.phone_number.clone(),
-            amount_kes: cmd.amount_kes,
-            account_reference: cmd.account_reference.clone(),
-            transaction_desc: format!("Rent payment {}", cmd.account_reference),
-        })?;
+        let normalized_phone = self
+            .mpesa_adapter
+            .normalize_kenyan_phone(&req.msisdn)
+            .unwrap_or_else(|_| req.msisdn.trim().to_string());
 
-        let mut guard = self.payments.write().unwrap_or_else(|e| e.into_inner());
-        let seq = guard
-            .values()
-            .filter(|p| p.organization_id == ctx.organization_id)
-            .count()
-            + 1;
+        let bill_ref = req
+            .bill_ref_number
+            .as_deref()
+            .or_else(|| req.invoice_number.as_deref())
+            .unwrap_or("")
+            .trim();
 
-        let payment = Payment {
-            id: Uuid::new_v4(),
-            organization_id: ctx.organization_id,
-            tenant_id: cmd.tenant_id,
-            lease_id: cmd.lease_id,
-            payment_reference: format!("PAY-{seq:05}"),
-            idempotency_key: cmd.idempotency_key,
-            checkout_request_id: Some(stk_res.checkout_request_id),
-            merchant_request_id: Some(stk_res.merchant_request_id),
-            provider_receipt_number: None,
-            payment_method: "MPESA_STK".to_string(),
-            payer_phone: self.mpesa_adapter.normalize_kenyan_phone(&cmd.phone_number)?,
-            amount_kes: cmd.amount_kes,
-            allocated_amount_kes: Decimal::ZERO,
-            unallocated_amount_kes: Decimal::ZERO,
-            currency: "KES".to_string(),
-            status: PaymentStatus::Pending,
-            allocations: Vec::new(),
-            receipt: None,
-            created_at: Utc::now(),
-            paid_at: None,
+        // Resolve matching tenant context
+        let (org_id, tenant_id, lease_id) = {
+            let guard = self.payments.read().unwrap_or_else(|e| e.into_inner());
+            if let Some(p) = guard.values().find(|p| {
+                (!bill_ref.is_empty() && p.payment_reference.eq_ignore_ascii_case(bill_ref))
+                    || p.payer_phone == normalized_phone
+            }) {
+                (p.organization_id, p.tenant_id, p.lease_id)
+            } else if let Some(first_p) = guard.values().next() {
+                (first_p.organization_id, first_p.tenant_id, first_p.lease_id)
+            } else {
+                let default_org = Uuid::new_v5(&Uuid::NAMESPACE_OID, b"guri24_org_production");
+                let default_tnt = if !bill_ref.is_empty() {
+                    Uuid::new_v5(&Uuid::NAMESPACE_OID, bill_ref.as_bytes())
+                } else {
+                    Uuid::new_v5(&Uuid::NAMESPACE_OID, normalized_phone.as_bytes())
+                };
+                (default_org, default_tnt, None)
+            }
         };
 
-        guard.insert(payment.id, payment.clone());
-        Ok(payment)
+        let sys_ctx = TenantContext {
+            user_id: Uuid::nil(),
+            organization_id: org_id,
+            role: crate::core::security::SystemRole::OrganizationAdministrator,
+            permissions: crate::core::security::SystemRole::OrganizationAdministrator
+                .default_permissions()
+                .into_iter()
+                .map(ToString::to_string)
+                .collect(),
+        };
+
+        // Plan FIFO allocation across outstanding invoices for tenant
+        let outstanding = self
+            .invoice_repo
+            .list_outstanding_invoices_for_tenant(&sys_ctx, tenant_id)
+            .unwrap_or_default();
+        let strategy = FifoOldestFirstAllocationStrategy;
+        let planned = strategy.plan_allocations(req.trans_amount, &outstanding);
+
+        let mut allocations = Vec::new();
+        let mut total_allocated = Decimal::ZERO;
+
+        for (inv_id, alloc_amt) in planned {
+            if let Ok(updated_inv) = self.invoice_repo.apply_payment_to_invoice(&sys_ctx, inv_id, alloc_amt) {
+                total_allocated += alloc_amt;
+                let allocation = PaymentAllocation {
+                    id: Uuid::new_v4(),
+                    organization_id: org_id,
+                    payment_id: Uuid::nil(),
+                    invoice_id: inv_id,
+                    invoice_number: updated_inv.invoice_number.clone(),
+                    allocated_amount_kes: alloc_amt,
+                    remaining_invoice_balance_kes: updated_inv.balance_kes,
+                    created_at: Utc::now(),
+                };
+                allocations.push(allocation);
+
+                self.event_bus.publish(DomainEvent::PaymentAllocated {
+                    organization_id: org_id,
+                    payment_id: Uuid::nil(),
+                    invoice_id: inv_id,
+                    allocated_amount_kes: alloc_amt,
+                    remaining_invoice_balance_kes: updated_inv.balance_kes,
+                });
+            }
+        }
+
+        let unallocated = req.trans_amount - total_allocated;
+        let payment_id = Uuid::new_v4();
+        for alloc in &mut allocations {
+            alloc.payment_id = payment_id;
+        }
+
+        let receipt = ReceiptBuilder::new()
+            .organization_id(org_id)
+            .payment_id(payment_id)
+            .tenant_id(tenant_id)
+            .receipt_number(format!("RCT-{}", trans_id_clean))
+            .amount_kes(req.trans_amount)
+            .mpesa_receipt(Some(trans_id_clean.clone()))
+            .build()?;
+
+        // Post Double-Entry Journal:
+        // DR M-Pesa & Bank Clearing Account (1010) = amount_kes
+        // CR Accounts Receivable - Tenants (1100) = total_allocated
+        // CR Tenant Advance Prepayments (2200) = unallocated
+        let mut journal_lines = vec![JournalLine {
+            id: Uuid::new_v4(),
+            account_code: "1010".to_string(),
+            account_name: "M-Pesa & Bank Clearing Account".to_string(),
+            account_type: AccountType::Asset,
+            tenant_id: Some(tenant_id),
+            lease_id,
+            debit_kes: req.trans_amount,
+            credit_kes: Decimal::ZERO,
+            memo: format!("M-Pesa C2B Paybill receipt {trans_id_clean}"),
+        }];
+
+        if total_allocated > Decimal::ZERO {
+            journal_lines.push(JournalLine {
+                id: Uuid::new_v4(),
+                account_code: "1100".to_string(),
+                account_name: "Accounts Receivable - Tenants".to_string(),
+                account_type: AccountType::Asset,
+                tenant_id: Some(tenant_id),
+                lease_id,
+                debit_kes: Decimal::ZERO,
+                credit_kes: total_allocated,
+                memo: format!("Allocated to {} invoice(s)", allocations.len()),
+            });
+        }
+
+        if unallocated > Decimal::ZERO {
+            journal_lines.push(JournalLine {
+                id: Uuid::new_v4(),
+                account_code: "2200".to_string(),
+                account_name: "Tenant Advance Prepayments (Liability)".to_string(),
+                account_type: AccountType::Liability,
+                tenant_id: Some(tenant_id),
+                lease_id,
+                debit_kes: Decimal::ZERO,
+                credit_kes: unallocated,
+                memo: "Unallocated advance rent credit".to_string(),
+            });
+        }
+
+        let _ = self.accounting_repo.post_journal_entry(
+            org_id,
+            None,
+            "PAYMENT_RECEIVED",
+            payment_id,
+            format!("M-Pesa C2B payment {trans_id_clean} settled"),
+            journal_lines,
+        );
+
+        let payment = Payment {
+            id: payment_id,
+            organization_id: org_id,
+            tenant_id,
+            lease_id,
+            payment_reference: format!("PAY-{}", trans_id_clean),
+            idempotency_key: trans_id_clean.clone(),
+            checkout_request_id: None,
+            merchant_request_id: None,
+            provider_receipt_number: Some(trans_id_clean.clone()),
+            payment_method: "MPESA_C2B".to_string(),
+            payer_phone: normalized_phone,
+            amount_kes: req.trans_amount,
+            allocated_amount_kes: total_allocated,
+            unallocated_amount_kes: unallocated,
+            currency: "KES".to_string(),
+            status: PaymentStatus::Completed,
+            allocations,
+            receipt: Some(receipt),
+            created_at: Utc::now(),
+            paid_at: Some(Utc::now()),
+        };
+
+        {
+            let mut guard = self.payments.write().unwrap_or_else(|e| e.into_inner());
+            guard.insert(payment.id, payment.clone());
+        }
+
+        self.event_bus.publish(DomainEvent::PaymentReceived {
+            organization_id: org_id,
+            payment_id,
+            tenant_id,
+            amount_kes: req.trans_amount,
+            mpesa_receipt: Some(trans_id_clean),
+        });
+
+        Ok((payment, true))
     }
 
     fn process_verified_mpesa_callback(

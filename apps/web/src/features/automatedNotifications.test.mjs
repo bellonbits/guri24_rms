@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
  *
  * Validates:
  * 1. Event-driven transactional outbox decoupling (zero ledger rollback on email failure)
- * 2. Financial accuracy guards (STK prompt != receipt; receipt requires verified MpesaReceiptNumber; deposits strictly Account 2100)
+ * 2. Financial accuracy guards (Invoice != receipt; verified receipt requires authoritative MpesaReceiptNumber; deposits strictly Account 2100)
  * 3. Idempotency and duplicate suppression
  * 4. Automatic cancellation of reminders when invoice balance is settled
  * 5. Delivery lifecycle and retry state machines
@@ -35,18 +35,16 @@ class TestNotificationEngine {
     }
 
     // 2. Strict financial guards
-    if (event.type === 'PaymentRequestInitiated') {
-      // Must NOT be treated as a receipt
+    if (event.type === 'InvoiceIssued') {
       const delivery = {
         id: `notif-${this.deliveries.length + 1}`,
-        template_key: 'PAYMENT_REQUEST_INITIATED',
-        subject: `M-Pesa STK Prompt Initiated — KES ${event.amount_kes}`,
+        template_key: 'INVOICE_ISSUED',
+        subject: `Rent Invoice Issued — KES ${event.amount_kes}`,
         is_receipt: false,
         recipient_email: event.recipient_email,
         status: 'SENT',
-        provider_message_id: `re_mock_${Date.now()}`,
+        paybill_instructions: 'Pay via Safaricom Paybill 1343073',
         idempotency_key: event.idempotency_key,
-        disclaimer: 'This is an authorization prompt, not a confirmed receipt.',
       };
       this.deliveries.push(delivery);
       return { status: 'DISPATCHED', delivery };
@@ -138,19 +136,19 @@ class TestNotificationEngine {
   }
 }
 
-test('Notification Engine: STK prompt initiation creates authorization notice, NOT a receipt', () => {
+test('Notification Engine: Invoice issuance dispatches Paybill 1343073 instructions, NOT a phone prompt', () => {
   const engine = new TestNotificationEngine();
   const res = engine.processEvent({
-    type: 'PaymentRequestInitiated',
+    type: 'InvoiceIssued',
     recipient_email: 'tenant@gmail.com',
     amount_kes: '35000.00',
-    idempotency_key: 'stk_init_001',
+    idempotency_key: 'inv_init_001',
   });
 
   assert.equal(res.status, 'DISPATCHED');
   assert.equal(res.delivery.is_receipt, false);
-  assert.equal(res.delivery.template_key, 'PAYMENT_REQUEST_INITIATED');
-  assert.match(res.delivery.disclaimer, /authorization prompt/i);
+  assert.equal(res.delivery.template_key, 'INVOICE_ISSUED');
+  assert.match(res.delivery.paybill_instructions, /1343073/);
 });
 
 test('Notification Engine: Verified payment receipt requires authoritative MpesaReceiptNumber', () => {
