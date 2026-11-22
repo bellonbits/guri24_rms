@@ -317,28 +317,23 @@ export const HomePage: React.FC = () => {
               <DocumentTextIcon style={{ width: '24px', height: '24px', color: '#F59E0B' }} />
             </div>
 
-            {/* Foreground 3D Interactive Framer Motion Dashboard Tablet */}
+            {/* Foreground 3D Interactive Framer Motion Dashboard Tablet with Silhouette Drop-Shadow */}
             <motion.div
               whileHover={{
                 rotateX: -1.5,
                 rotateY: 1.5,
-                scale: 1.015,
-                boxShadow: '0 35px 85px -15px rgba(99, 102, 241, 0.28)',
+                scale: 1.02,
               }}
               transition={{ type: 'spring', stiffness: 260, damping: 20 }}
               style={{
                 position: 'relative',
-                borderRadius: '28px',
-                overflow: 'hidden',
-                boxShadow: '0 25px 70px -15px rgba(99, 102, 241, 0.22), 0 0 1px rgba(15, 23, 42, 0.08)',
-                border: '1px solid rgba(203, 213, 225, 0.7)',
-                backgroundColor: '#FFFFFF',
                 zIndex: 10,
                 transformStyle: 'preserve-3d',
+                filter: 'drop-shadow(0 30px 65px rgba(99, 102, 241, 0.26)) drop-shadow(0 10px 25px rgba(15, 23, 42, 0.1))',
               }}
             >
               <img
-                src="/dashboard-preview.jpg"
+                src="/dashboard-preview.png"
                 alt="Guri24 Rental Management Dashboard Preview"
                 style={{
                   width: '100%',
