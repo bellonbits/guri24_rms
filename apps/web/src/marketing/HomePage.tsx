@@ -105,20 +105,8 @@ export const HomePage: React.FC = () => {
         }
         .tt-social-float {
           position: absolute;
-          width: 48px;
-          height: 48px;
-          border-radius: 14px;
-          background-color: #FFFFFF;
-          box-shadow: 0 12px 28px rgba(0,0,0,0.08);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid #E2E8F0;
-          z-index: 20;
-          transition: transform 0.2s ease;
-        }
-        .tt-social-float:hover {
-          transform: scale(1.1) translateY(-2px);
+          z-index: 25;
+          user-select: none;
         }
         /* BORDERLESS PARTNER LOGO STRIP */
         .partner-logo-item {
@@ -299,41 +287,310 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* ----------------- 3D Layered Perspective Showcase ----------------- */}
-          <div className="card-3d-perspective" style={{ position: 'relative', maxWidth: '980px', margin: '54px auto 0 auto' }}>
-            {/* 6 Floating Service Badges with Heroicons (NO EMOJIS) */}
-            <div className="tt-social-float" style={{ top: '-12px', left: '-24px' }} title="M-Pesa C2B Paybill 1343073">
-              <DevicePhoneMobileIcon style={{ width: '24px', height: '24px', color: '#16A34A' }} />
-            </div>
-            <div className="tt-social-float" style={{ top: '80px', left: '-48px' }} title="Bank Reconciliation">
-              <BuildingLibraryIcon style={{ width: '24px', height: '24px', color: '#2563EB' }} />
-            </div>
-            <div className="tt-social-float" style={{ bottom: '60px', left: '-24px' }} title="Rent Ledger">
-              <CreditCardIcon style={{ width: '24px', height: '24px', color: '#0284C7' }} />
-            </div>
+          <div
+            className="card-3d-perspective"
+            style={{
+              position: 'relative',
+              maxWidth: '960px',
+              margin: '48px auto 0 auto',
+            }}
+          >
+            {/* Ambient Radiant Glow Aura behind tablet */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '46%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '740px',
+                height: '480px',
+                background:
+                  'radial-gradient(circle at center, rgba(99, 102, 241, 0.22) 0%, rgba(147, 51, 234, 0.12) 35%, rgba(59, 130, 246, 0.05) 60%, transparent 75%)',
+                filter: 'blur(50px)',
+                zIndex: 1,
+                pointerEvents: 'none',
+              }}
+            />
 
-            <div className="tt-social-float" style={{ top: '-12px', right: '-24px' }} title="AI Property Assistant">
-              <SparklesIcon style={{ width: '24px', height: '24px', color: '#2563EB' }} />
-            </div>
-            <div className="tt-social-float" style={{ top: '80px', right: '-48px' }} title="KRA Tax Compliance">
-              <ShieldCheckIcon style={{ width: '24px', height: '24px', color: '#DC2626' }} />
-            </div>
-            <div className="tt-social-float" style={{ bottom: '60px', right: '-24px' }} title="Automated Receipts">
-              <DocumentTextIcon style={{ width: '24px', height: '24px', color: '#F59E0B' }} />
-            </div>
+            {/* 6 High-Fidelity Floating Service Badges Hugging Tablet with Bouncing Physics */}
+            {/* 1. M-Pesa C2B Paybill (Top-Left) */}
+            <motion.div
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+              whileHover={{ scale: 1.1, y: -6 }}
+              className="tt-social-float"
+              style={{
+                top: '10%',
+                left: '-8px',
+                padding: '7px 14px 7px 8px',
+                borderRadius: '9999px',
+                background: 'rgba(255, 255, 255, 0.94)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                boxShadow: '0 14px 32px rgba(16, 185, 129, 0.22), 0 4px 10px rgba(0,0,0,0.04)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '9px',
+                zIndex: 30,
+                cursor: 'pointer',
+              }}
+              title="Safaricom Lipa Na M-Pesa C2B Paybill 1343073"
+            >
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: '#ECFDF5',
+                  color: '#059669',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <DevicePhoneMobileIcon style={{ width: '18px', height: '18px' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>M-Pesa C2B</span>
+                <span style={{ fontSize: '9px', fontWeight: 700, color: '#059669', lineHeight: 1.2 }}>1343073 Verified</span>
+              </div>
+            </motion.div>
+
+            {/* 2. Bank Reconciliation (Mid-Left) */}
+            <motion.div
+              animate={{ y: [0, -14, 0] }}
+              transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+              whileHover={{ scale: 1.1, y: -6 }}
+              className="tt-social-float"
+              style={{
+                top: '46%',
+                left: '-24px',
+                padding: '7px 14px 7px 8px',
+                borderRadius: '9999px',
+                background: 'rgba(255, 255, 255, 0.94)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(37, 99, 235, 0.3)',
+                boxShadow: '0 14px 32px rgba(37, 99, 235, 0.22), 0 4px 10px rgba(0,0,0,0.04)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '9px',
+                zIndex: 30,
+                cursor: 'pointer',
+              }}
+              title="Bank Feeds: KCB, Equity & Co-op"
+            >
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: '#EFF6FF',
+                  color: '#2563EB',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <BuildingLibraryIcon style={{ width: '18px', height: '18px' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>Bank Feeds</span>
+                <span style={{ fontSize: '9px', fontWeight: 700, color: '#2563EB', lineHeight: 1.2 }}>Auto-Reconciled</span>
+              </div>
+            </motion.div>
+
+            {/* 3. Double-Entry Rent Ledger (Bottom-Left) */}
+            <motion.div
+              animate={{ y: [0, -11, 0] }}
+              transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut', delay: 0.9 }}
+              whileHover={{ scale: 1.1, y: -6 }}
+              className="tt-social-float"
+              style={{
+                bottom: '15%',
+                left: '12px',
+                padding: '7px 14px 7px 8px',
+                borderRadius: '9999px',
+                background: 'rgba(255, 255, 255, 0.94)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(2, 132, 199, 0.3)',
+                boxShadow: '0 14px 32px rgba(2, 132, 199, 0.22), 0 4px 10px rgba(0,0,0,0.04)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '9px',
+                zIndex: 30,
+                cursor: 'pointer',
+              }}
+              title="Audit-Ready Double-Entry Ledger"
+            >
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: '#F0F9FF',
+                  color: '#0284C7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <CreditCardIcon style={{ width: '18px', height: '18px' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>Rent Ledger</span>
+                <span style={{ fontSize: '9px', fontWeight: 700, color: '#0284C7', lineHeight: 1.2 }}>DR == CR Balanced</span>
+              </div>
+            </motion.div>
+
+            {/* 4. AI Assistant (Top-Right) */}
+            <motion.div
+              animate={{ y: [0, -13, 0] }}
+              transition={{ duration: 3.0, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+              whileHover={{ scale: 1.1, y: -6 }}
+              className="tt-social-float"
+              style={{
+                top: '10%',
+                right: '-8px',
+                padding: '7px 14px 7px 8px',
+                borderRadius: '9999px',
+                background: 'rgba(255, 255, 255, 0.94)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(124, 58, 237, 0.3)',
+                boxShadow: '0 14px 32px rgba(124, 58, 237, 0.22), 0 4px 10px rgba(0,0,0,0.04)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '9px',
+                zIndex: 30,
+                cursor: 'pointer',
+              }}
+              title="AI Property Intelligence"
+            >
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: '#F5F3FF',
+                  color: '#7C3AED',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <SparklesIcon style={{ width: '18px', height: '18px' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>AI Assistant</span>
+                <span style={{ fontSize: '9px', fontWeight: 700, color: '#7C3AED', lineHeight: 1.2 }}>Smart Trends</span>
+              </div>
+            </motion.div>
+
+            {/* 5. KRA iTax Compliance (Mid-Right) */}
+            <motion.div
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 3.6, repeat: Infinity, ease: 'easeInOut', delay: 0.7 }}
+              whileHover={{ scale: 1.1, y: -6 }}
+              className="tt-social-float"
+              style={{
+                top: '46%',
+                right: '-24px',
+                padding: '7px 14px 7px 8px',
+                borderRadius: '9999px',
+                background: 'rgba(255, 255, 255, 0.94)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(220, 38, 38, 0.3)',
+                boxShadow: '0 14px 32px rgba(220, 38, 38, 0.20), 0 4px 10px rgba(0,0,0,0.04)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '9px',
+                zIndex: 30,
+                cursor: 'pointer',
+              }}
+              title="KRA iTax Real Estate Withholding & Tax Ready"
+            >
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: '#FEF2F2',
+                  color: '#DC2626',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <ShieldCheckIcon style={{ width: '18px', height: '18px' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>KRA iTax</span>
+                <span style={{ fontSize: '9px', fontWeight: 700, color: '#DC2626', lineHeight: 1.2 }}>100% Compliant</span>
+              </div>
+            </motion.div>
+
+            {/* 6. Instant Digital Receipts (Bottom-Right) */}
+            <motion.div
+              animate={{ y: [0, -13, 0] }}
+              transition={{ duration: 3.3, repeat: Infinity, ease: 'easeInOut', delay: 1.1 }}
+              whileHover={{ scale: 1.1, y: -6 }}
+              className="tt-social-float"
+              style={{
+                bottom: '15%',
+                right: '12px',
+                padding: '7px 14px 7px 8px',
+                borderRadius: '9999px',
+                background: 'rgba(255, 255, 255, 0.94)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1px solid rgba(217, 119, 6, 0.3)',
+                boxShadow: '0 14px 32px rgba(217, 119, 6, 0.20), 0 4px 10px rgba(0,0,0,0.04)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '9px',
+                zIndex: 30,
+                cursor: 'pointer',
+              }}
+              title="Automated SMS & Email Receipts"
+            >
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: '#FFFBEB',
+                  color: '#D97706',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <DocumentTextIcon style={{ width: '18px', height: '18px' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>Auto Receipts</span>
+                <span style={{ fontSize: '9px', fontWeight: 700, color: '#D97706', lineHeight: 1.2 }}>Instant SMS</span>
+              </div>
+            </motion.div>
 
             {/* Foreground 3D Interactive Framer Motion Dashboard Tablet with Silhouette Drop-Shadow */}
             <motion.div
               whileHover={{
-                rotateX: -1.5,
-                rotateY: 1.5,
-                scale: 1.02,
+                rotateX: -1.2,
+                rotateY: 1.2,
+                scale: 1.015,
               }}
               transition={{ type: 'spring', stiffness: 260, damping: 20 }}
               style={{
                 position: 'relative',
                 zIndex: 10,
                 transformStyle: 'preserve-3d',
-                filter: 'drop-shadow(0 30px 65px rgba(99, 102, 241, 0.26)) drop-shadow(0 10px 25px rgba(15, 23, 42, 0.1))',
+                filter:
+                  'drop-shadow(0 32px 70px rgba(99, 102, 241, 0.26)) drop-shadow(0 12px 28px rgba(15, 23, 42, 0.09))',
               }}
             >
               <img
@@ -343,6 +600,8 @@ export const HomePage: React.FC = () => {
                   width: '100%',
                   height: 'auto',
                   display: 'block',
+                  WebkitMaskImage: 'linear-gradient(to bottom, black 90%, transparent 100%)',
+                  maskImage: 'linear-gradient(to bottom, black 90%, transparent 100%)',
                 }}
               />
             </motion.div>
