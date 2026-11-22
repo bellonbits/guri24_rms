@@ -317,47 +317,21 @@ export const HomePage: React.FC = () => {
               <DocumentTextIcon style={{ width: '24px', height: '24px', color: '#F59E0B' }} />
             </div>
 
-            {/* Tilted 3D Background Card Layer peaking from behind */}
-            <div
-              className="hero-3d-layer-behind"
-              style={{
-                position: 'absolute',
-                top: '-24px',
-                left: '20px',
-                right: '20px',
-                height: '520px',
-                borderRadius: '28px',
-                overflow: 'hidden',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.06)',
-                transform: 'rotate(-2.5deg) scale(0.96)',
-                opacity: 0.5,
-                zIndex: 0,
-                border: '1px solid #CBD5E1',
-                pointerEvents: 'none',
-              }}
-            >
-              <img
-                src="/layered-3d-compliance.jpg"
-                alt="3D Multi-Layered Overview"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            </div>
-
-            {/* Foreground 3D Interactive Framer Motion Dashboard Card */}
+            {/* Foreground 3D Interactive Framer Motion Dashboard Tablet */}
             <motion.div
               whileHover={{
-                rotateX: -2,
-                rotateY: 2,
-                scale: 1.01,
-                boxShadow: '0 35px 80px -15px rgba(37, 99, 235, 0.22)',
+                rotateX: -1.5,
+                rotateY: 1.5,
+                scale: 1.015,
+                boxShadow: '0 35px 85px -15px rgba(99, 102, 241, 0.28)',
               }}
               transition={{ type: 'spring', stiffness: 260, damping: 20 }}
               style={{
                 position: 'relative',
-                borderRadius: '24px',
+                borderRadius: '28px',
                 overflow: 'hidden',
-                boxShadow: '0 30px 70px -15px rgba(37, 99, 235, 0.18), 0 0 1px rgba(15, 23, 42, 0.08)',
-                border: '1px solid #CBD5E1',
+                boxShadow: '0 25px 70px -15px rgba(99, 102, 241, 0.22), 0 0 1px rgba(15, 23, 42, 0.08)',
+                border: '1px solid rgba(203, 213, 225, 0.7)',
                 backgroundColor: '#FFFFFF',
                 zIndex: 10,
                 transformStyle: 'preserve-3d',
@@ -370,7 +344,6 @@ export const HomePage: React.FC = () => {
                   width: '100%',
                   height: 'auto',
                   display: 'block',
-                  objectFit: 'cover',
                 }}
               />
             </motion.div>
