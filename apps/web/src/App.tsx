@@ -289,34 +289,30 @@ export const App: React.FC = () => {
             {/* 14. Unit Flow Tenant Portal (Dedicated Self-Service Environment) */}
             <Route
               path="/portal"
-              element={
-                <AuthGuard>
-                  <TenantLayout />
-                </AuthGuard>
-              }
+              element={<TenantLayout />}
             >
-              <Route index element={<Navigate to="/portal/payments" replace />} />
+              <Route index element={<Navigate to="/portal/dashboard" replace />} />
+              <Route path="dashboard" element={<TenantPortalPage view="dashboard" />} />
+              <Route path="overview" element={<TenantPortalPage view="dashboard" />} />
+              <Route path="home" element={<TenantPortalPage view="dashboard" />} />
               <Route path="payments" element={<TenantPortalPage view="payments" />} />
-              <Route path="home" element={<TenantPortalPage view="home" />} />
-              <Route path="dashboard" element={<TenantPortalPage view="home" />} />
-              <Route path="overview" element={<TenantPortalPage view="home" />} />
-              <Route path="notifications" element={<TenantPortalPage view="notifications" />} />
-              <Route path="notification" element={<TenantPortalPage view="notifications" />} />
-              <Route path="community" element={<TenantPortalPage view="community" />} />
-              <Route path="messages" element={<TenantPortalPage view="community" />} />
-              <Route path="apartment" element={<TenantPortalPage view="apartment" />} />
-              <Route path="lease" element={<TenantPortalPage view="apartment" />} />
-              <Route path="properties" element={<TenantPortalPage view="apartment" />} />
-              <Route path="services" element={<TenantPortalPage view="services" />} />
-              <Route path="maintenance" element={<TenantPortalPage view="services" />} />
-              <Route path="documents" element={<TenantPortalPage view="services" />} />
-              <Route path="account" element={<TenantPortalPage view="account" />} />
-              <Route path="profile" element={<TenantPortalPage view="account" />} />
-              <Route path="settings" element={<TenantPortalPage view="account" />} />
               <Route path="financials" element={<TenantPortalPage view="payments" />} />
               <Route path="rent-payments" element={<TenantPortalPage view="payments" />} />
-              <Route path="tenants" element={<TenantPortalPage view="home" />} />
-              <Route path="tenants/*" element={<TenantPortalPage view="home" />} />
+              <Route path="lease" element={<TenantPortalPage view="lease" />} />
+              <Route path="apartment" element={<TenantPortalPage view="lease" />} />
+              <Route path="properties" element={<TenantPortalPage view="lease" />} />
+              <Route path="maintenance" element={<TenantPortalPage view="maintenance" />} />
+              <Route path="services" element={<TenantPortalPage view="maintenance" />} />
+              <Route path="documents" element={<TenantPortalPage view="documents" />} />
+              <Route path="messages" element={<TenantPortalPage view="messages" />} />
+              <Route path="community" element={<TenantPortalPage view="messages" />} />
+              <Route path="notifications" element={<TenantPortalPage view="notifications" />} />
+              <Route path="notification" element={<TenantPortalPage view="notifications" />} />
+              <Route path="profile" element={<TenantPortalPage view="profile" />} />
+              <Route path="account" element={<TenantPortalPage view="profile" />} />
+              <Route path="settings" element={<TenantPortalPage view="profile" />} />
+              <Route path="tenants" element={<TenantPortalPage view="dashboard" />} />
+              <Route path="tenants/*" element={<TenantPortalPage view="dashboard" />} />
             </Route>
 
             {/* 404 Unknown Route Fallback */}

@@ -181,42 +181,40 @@ export const TenantLayout: React.FC = () => {
                   width: '36px',
                   height: '36px',
                   borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #2563eb 0%, #0284c7 100%)',
+                  background: 'linear-gradient(135deg, #f27a59 0%, #ff5722 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#ffffff',
                   fontWeight: 800,
                   fontSize: '1.1rem',
-                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.35)',
+                  boxShadow: '0 4px 12px rgba(242, 122, 89, 0.35)',
                   flexShrink: 0,
                 }}
               >
-                U
+                RP
               </div>
               {!isSidebarCollapsed && (
-                <div>
+                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
                   <div
                     style={{
-                      fontSize: '1.05rem',
+                      fontSize: '1.15rem',
                       fontWeight: 800,
                       letterSpacing: '-0.02em',
-                      lineHeight: 1.15,
                       color: '#ffffff',
                     }}
                   >
-                    Unit Flow
+                    resident
                   </div>
                   <div
                     style={{
-                      fontSize: '0.68rem',
-                      fontWeight: 700,
-                      color: '#38bdf8',
-                      letterSpacing: '0.04em',
-                      textTransform: 'uppercase',
+                      fontSize: '1.05rem',
+                      fontWeight: 500,
+                      color: '#f27a59',
+                      letterSpacing: '0.01em',
                     }}
                   >
-                    Tenant Portal
+                    portal
                   </div>
                 </div>
               )}
@@ -293,8 +291,8 @@ export const TenantLayout: React.FC = () => {
                     borderRadius: '8px',
                     fontSize: '0.86rem',
                     fontWeight: active ? 600 : 500,
-                    color: active ? '#ffffff' : '#94a3b8',
-                    background: active ? '#2563eb' : 'transparent', // Crisp blue active item
+                    color: active ? '#f27a59' : '#94a3b8',
+                    background: active ? 'rgba(242, 122, 89, 0.12)' : 'transparent',
                     textDecoration: 'none',
                     justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
                     transition: 'all 0.15s ease',
@@ -302,7 +300,7 @@ export const TenantLayout: React.FC = () => {
                   }}
                   title={isSidebarCollapsed ? item.label : undefined}
                 >
-                  <span style={{ color: active ? '#ffffff' : '#94a3b8', flexShrink: 0 }}>
+                  <span style={{ color: active ? '#f27a59' : '#94a3b8', flexShrink: 0 }}>
                     {item.icon}
                   </span>
                   {!isSidebarCollapsed && (
@@ -313,7 +311,7 @@ export const TenantLayout: React.FC = () => {
                   {!isSidebarCollapsed && item.badge && (
                     <span
                       style={{
-                        background: '#ef4444',
+                        background: '#f27a59',
                         color: '#ffffff',
                         fontSize: '0.68rem',
                         fontWeight: 700,
