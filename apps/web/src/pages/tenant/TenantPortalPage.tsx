@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   CreditCard,
@@ -38,6 +38,8 @@ import {
   Sparkles,
   ArrowRight,
   ChevronDown,
+  RefreshCw,
+  Building,
 } from 'lucide-react';
 
 interface TenantPortalPageProps {
@@ -61,7 +63,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
   const location = useLocation();
 
   // Resolve current view from prop or route
-  const currentView = React.useMemo(() => {
+  const currentView = useMemo(() => {
     if (view === 'payments' || view === 'financials') return 'payments';
     if (view === 'lease' || view === 'apartment' || view === 'properties') return 'lease';
     if (view === 'maintenance' || view === 'services') return 'maintenance';
@@ -95,181 +97,218 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
     return 'dashboard';
   }, [view, location.pathname]);
 
-  // Tenancy State matching Blueprint (Greenview Apartments, Block A, Unit A-204)
-  const [tenancy, setTenancy] = useState({
-    tenantName: 'Amina Wanjiku',
-    phone: '+254 722 000 492',
-    email: 'amina.wanjiku@example.com',
-    propertyName: 'Greenview Apartments',
-    location: 'Block A · Unit A-204 · Ruiru',
-    unitNumber: 'Unit A-204',
-    block: 'Block A',
-    town: 'Ruiru, Kiambu County',
-    leaseReference: 'LSE-2026-A204',
-    leaseStatus: 'Active Lease',
-    monthlyRent: 25000,
-    serviceCharge: 2500,
-    securityDeposit: 25000,
-    outstandingBalance: 0,
-    nextDueDate: '1 Dec 2026',
-    leaseExpires: '31 Dec 2026',
-    paybillNumber: '247247',
-    accountNumber: 'GRE-A204',
-    landlordName: 'Greenview Property Holdings Ltd',
-    managerPhone: '+254 722 000 111',
+  // Persistent Tenancy State
+  const [tenancy, setTenancy] = useState(() => {
+    try {
+      const saved = localStorage.getItem('unitflow_tenant_profile');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback
+    }
+    return {
+      tenantName: 'Amina Wanjiku',
+      phone: '+254 722 000 492',
+      email: 'amina.wanjiku@unitflow.ke',
+      nationalId: '29849201',
+      kraPin: 'A012984920X',
+      propertyName: 'Greenview Apartments',
+      location: 'Block A · Unit A-204 · Ruiru',
+      unitNumber: 'Unit A-204',
+      unitType: '2 Bedroom Master Ensuite',
+      block: 'Block A',
+      town: 'Ruiru, Kiambu County',
+      leaseReference: 'UF-LS-2026-A204',
+      leaseStatus: 'Active Lease',
+      monthlyRent: 25000,
+      serviceCharge: 2500,
+      securityDeposit: 25000,
+      outstandingBalance: 0,
+      nextDueDate: '1 Dec 2026',
+      leaseStart: '1 Jan 2026',
+      leaseExpires: '31 Dec 2026',
+      paybillNumber: '247247',
+      accountNumber: 'GRE-A204',
+      landlordName: 'Greenview Property Holdings Ltd',
+      managerName: 'Katherine Moss',
+      managerPhone: '+254 722 000 111',
+      managerEmail: 'management@unitflow.ke',
+      caretakerName: 'Peter Kariuki',
+      caretakerPhone: '+254 711 223 344',
+      emergencyContactName: 'James Mwangi',
+      emergencyContactPhone: '+254 733 998 877',
+      smsTwoFactor: true,
+      emailNotifications: true,
+    };
   });
 
-  // Currency toggle state
-  const [currencyMode, setCurrencyMode] = useState<'USD' | 'KES'>('USD');
+  // Save tenancy changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('unitflow_tenant_profile', JSON.stringify(tenancy));
+    } catch {
+      // ignore
+    }
+  }, [tenancy]);
 
-  // Ledger transactions matching Image 1: Resident Portal Payments
+  // Currency toggle state: USD vs KES
+  const [currencyMode, setCurrencyMode] = useState<'KES' | 'USD'>('KES');
+
+  // Format currency helper
+  const fmt = (amountKes: number, amountUsd?: number) => {
+    if (currencyMode === 'USD') {
+      const val = amountUsd !== undefined ? amountUsd : amountKes / 130;
+      return `$ ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    return `KES ${amountKes.toLocaleString()}`;
+  };
+
+  // Toast state
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Real Ledger Transactions matching Image 1
   const [ledgerTransactions, setLedgerTransactions] = useState([
     {
-      id: 'tx-1',
-      date: 'May 2, 2026',
-      type: 'Rest Control',
-      typeColor: '#2563eb',
-      typeBg: '#dbeafe',
-      source: 'Property',
-      amountUsd: 782.01,
-      amountKes: 2500,
-      isPayment: false,
-      balanceUsd: 782.01,
-      balanceKes: 2500,
+      id: 'tx-001',
+      date: '1 Nov 2026',
+      type: 'Rent Payment',
+      typeColor: '#15803d',
+      typeBg: '#dcfce7',
+      source: 'M-Pesa Daraja C2B',
+      amountKes: 27500,
+      amountUsd: 211.54,
+      isPayment: true,
+      balanceKes: 0,
+      balanceUsd: 0.0,
+      receiptNo: 'RCP-2026-1101',
       ticketId: '0120077398910288',
-      ref: 'TX-RC-8891',
+      mpesaRef: 'QKH782910X',
+      description: 'Rent & Service Charge (Nov 2026)',
     },
     {
-      id: 'tx-2',
-      date: 'May 2, 2026',
+      id: 'tx-002',
+      date: '1 Nov 2026',
+      type: 'Monthly Rent',
+      typeColor: '#2563eb',
+      typeBg: '#dbeafe',
+      source: 'Property Management',
+      amountKes: 25000,
+      amountUsd: 192.31,
+      isPayment: false,
+      balanceKes: 25000,
+      balanceUsd: 192.31,
+      receiptNo: 'INV-2026-1101',
+      ticketId: '0120077398910287',
+      mpesaRef: 'INV-A204-11',
+      description: 'Standard Monthly Lease Commitment',
+    },
+    {
+      id: 'tx-003',
+      date: '1 Nov 2026',
+      type: 'Service Charge',
+      typeColor: '#9333ea',
+      typeBg: '#f3e8ff',
+      source: 'Estate Facilities',
+      amountKes: 2500,
+      amountUsd: 19.23,
+      isPayment: false,
+      balanceKes: 27500,
+      balanceUsd: 211.54,
+      receiptNo: 'SC-2026-1101',
+      ticketId: '0120077398910286',
+      mpesaRef: 'SC-A204-11',
+      description: '24/7 Security, Garbage & Common Amenities',
+    },
+    {
+      id: 'tx-004',
+      date: '15 Oct 2026',
       type: 'Water',
       typeColor: '#0d9488',
       typeBg: '#ccfbf1',
-      source: 'Property',
-      amountUsd: 1586.63,
+      source: 'Metrix Utility',
       amountKes: 1586,
+      amountUsd: 12.2,
       isPayment: false,
-      balanceUsd: 1586.63,
       balanceKes: 1586,
-      ticketId: '0120077398910289',
-      ref: 'TX-WT-4912',
+      balanceUsd: 12.2,
+      receiptNo: 'WTR-2026-1015',
+      ticketId: '0120077398910285',
+      mpesaRef: 'WTR-MTR-204',
+      description: 'Meter Reading M-204 Consumption (14 Units)',
     },
     {
-      id: 'tx-3',
-      date: 'May 2, 2026',
-      type: 'Recurring Concession',
-      typeColor: '#9333ea',
-      typeBg: '#f3e8ff',
-      source: 'Property',
-      amountUsd: 1677.42,
-      amountKes: 5000,
-      isPayment: false,
-      balanceUsd: 1677.42,
-      balanceKes: 5000,
-      ticketId: '0120077398910290',
-      ref: 'TX-CC-2018',
-    },
-    {
-      id: 'tx-4',
-      date: 'May 2, 2026',
-      type: 'Rest Control',
-      typeColor: '#2563eb',
-      typeBg: '#dbeafe',
-      source: 'Property',
-      amountUsd: 782.01,
-      amountKes: 2500,
-      isPayment: false,
-      balanceUsd: 782.01,
-      balanceKes: 2500,
-      ticketId: '0120077398910291',
-      ref: 'TX-RC-8892',
-    },
-    {
-      id: 'tx-5',
-      date: 'April 1, 2026',
-      type: 'Trash Removal',
-      typeColor: '#ea580c',
-      typeBg: '#ffedd5',
-      source: 'Property',
-      amountUsd: 1451.76,
-      amountKes: 500,
-      isPayment: false,
-      balanceUsd: 1451.76,
-      balanceKes: 500,
-      ticketId: '0120077398910292',
-      ref: 'TX-TR-1029',
-    },
-    {
-      id: 'tx-6',
-      date: 'April 1, 2026',
-      type: 'Recurring Concession',
-      typeColor: '#9333ea',
-      typeBg: '#f3e8ff',
-      source: 'Property',
-      amountUsd: 782.01,
-      amountKes: 2500,
-      isPayment: false,
-      balanceUsd: 782.01,
-      balanceKes: 2500,
-      ticketId: '0120077398910293',
-      ref: 'TX-CC-2019',
-    },
-    {
-      id: 'tx-7',
-      date: 'April 1, 2026',
-      type: 'Rest Control',
-      typeColor: '#2563eb',
-      typeBg: '#dbeafe',
-      source: 'Property',
-      amountUsd: 473.85,
-      amountKes: 1500,
-      isPayment: false,
-      balanceUsd: 473.85,
-      balanceKes: 1500,
-      ticketId: '0120077398910294',
-      ref: 'TX-RC-8893',
-    },
-    {
-      id: 'tx-8',
-      date: 'April 1, 2026',
-      type: 'Trash Removal',
-      typeColor: '#ea580c',
-      typeBg: '#ffedd5',
-      source: 'Property',
-      amountUsd: 2100.26,
-      amountKes: 2100,
-      isPayment: false,
-      balanceUsd: 2100.26,
-      balanceKes: 2100,
-      ticketId: '0120077398910295',
-      ref: 'TX-TR-1030',
-    },
-    {
-      id: 'tx-9',
-      date: 'Nov 1, 2026',
+      id: 'tx-005',
+      date: '1 Oct 2026',
       type: 'Rent Payment',
-      typeColor: '#16a34a',
+      typeColor: '#15803d',
       typeBg: '#dcfce7',
       source: 'M-Pesa Daraja C2B',
-      amountUsd: 2345.76,
       amountKes: 27500,
+      amountUsd: 211.54,
       isPayment: true,
+      balanceKes: 0,
       balanceUsd: 0.0,
-      balanceKes: 0.0,
-      ticketId: '0120077398910288',
-      ref: 'QJ92K81N2P',
+      receiptNo: 'RCP-2026-1001',
+      ticketId: '0120077398910284',
+      mpesaRef: 'QJ92K81N2P',
+      description: 'Rent & Service Charge (Oct 2026)',
+    },
+    {
+      id: 'tx-006',
+      date: '1 Oct 2026',
+      type: 'Monthly Rent',
+      typeColor: '#2563eb',
+      typeBg: '#dbeafe',
+      source: 'Property Management',
+      amountKes: 25000,
+      amountUsd: 192.31,
+      isPayment: false,
+      balanceKes: 25000,
+      balanceUsd: 192.31,
+      receiptNo: 'INV-2026-1001',
+      ticketId: '0120077398910283',
+      mpesaRef: 'INV-A204-10',
+      description: 'Standard Monthly Lease Commitment',
+    },
+    {
+      id: 'tx-007',
+      date: '1 Oct 2026',
+      type: 'Trash Removal',
+      typeColor: '#ea580c',
+      typeBg: '#ffedd5',
+      source: 'Greenview Sanitization',
+      amountKes: 500,
+      amountUsd: 3.85,
+      isPayment: false,
+      balanceKes: 500,
+      balanceUsd: 3.85,
+      receiptNo: 'TR-2026-1001',
+      ticketId: '0120077398910282',
+      mpesaRef: 'TR-A204-10',
+      description: 'Monthly Waste Management & Sorting',
     },
   ]);
 
-  // Auto payments from Image 1
+  // Transaction filter
+  const [ledgerFilter, setLedgerFilter] = useState('All');
+  const filteredTransactions = useMemo(() => {
+    if (ledgerFilter === 'Payments') return ledgerTransactions.filter((t) => t.isPayment);
+    if (ledgerFilter === 'Charges') return ledgerTransactions.filter((t) => !t.isPayment);
+    return ledgerTransactions;
+  }, [ledgerTransactions, ledgerFilter]);
+
+  // Auto payments schedule
   const autoPayments = [
-    { id: 1, title: 'Charge - Trash Removal', date: 'May 2, 2026', amountUsd: '$ 2,627.51', amountKes: 'KES 500.00' },
-    { id: 2, title: 'Charge - Trash Removal', date: 'May 2, 2026', amountUsd: '$ 2,627.51', amountKes: 'KES 25,000.00' },
-    { id: 3, title: 'Charge - Trash Removal', date: 'May 2, 2026', amountUsd: '$ 2,627.51', amountKes: 'KES 1,586.00' },
-    { id: 4, title: 'Charge - Trash Removal', date: 'May 2, 2026', amountUsd: '$ 2,627.51', amountKes: 'KES 2,000.00' },
+    { id: 1, title: 'Charge - Monthly Rent (Unit A-204)', date: 'Due 1 Dec 2026', amountKes: 25000, amountUsd: 192.31 },
+    { id: 2, title: 'Charge - Estate Service Charge', date: 'Due 1 Dec 2026', amountKes: 2500, amountUsd: 19.23 },
+    { id: 3, title: 'Charge - Water Utility Consumption', date: 'Due 15 Dec 2026', amountKes: 1586, amountUsd: 12.2 },
+    { id: 4, title: 'Charge - Waste & Trash Removal', date: 'Due 1 Dec 2026', amountKes: 500, amountUsd: 3.85 },
   ];
 
-  // Conversations matching Image 2: All Messages
+  // Real Contacts & Conversations matching Image 2
   const [conversations] = useState([
     {
       id: 'kathy',
@@ -281,133 +320,206 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       lastMessage: "Sure thing, I'll have a look today. They're looking great!",
       time: '20min ago',
       unread: false,
+      phone: '+254 722 000 111',
     },
     {
-      id: 'phoenix',
-      name: 'Phoenix Baker',
-      handle: '@phoenix',
-      role: 'Lead Caretaker',
+      id: 'peter',
+      name: 'Peter Kariuki',
+      handle: '@peter',
+      role: 'Estate Caretaker & Maintenance',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80',
       online: true,
-      lastMessage: 'Hey Olivia, Katherine sent me over the latest doc. I just have a quick question about the...',
+      lastMessage: 'Tap replacement parts arrived. Will be at Unit A-204 tomorrow 10:00 AM.',
       time: '5min ago',
       unread: true,
+      phone: '+254 711 223 344',
     },
     {
-      id: 'mollie',
-      name: 'Mollie Hall',
-      handle: '@mollie',
-      role: 'Accounts & Billing',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&h=120&q=80',
+      id: 'daniel',
+      name: 'Daniel Ochieng',
+      handle: '@daniel',
+      role: 'Head of Accounts & Billing',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80',
       online: false,
-      lastMessage: "I've just published the site again. Looks like it fixed it. How weird! I'll keep an eye on it...",
+      lastMessage: 'M-Pesa payment QKH782910X verified and reconciled to Account 2100.',
       time: '1hr ago',
       unread: false,
+      phone: '+254 720 334 455',
     },
     {
       id: 'rosalee',
       name: 'Rosalee Melvin',
       handle: '@rosalee',
-      role: 'Concierge Desk',
+      role: 'Front Gate Security Concierge',
       avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=120&h=120&q=80',
       online: false,
-      lastMessage: 'Hey Liv — just wanted to say thanks for chasing up the release for me. Really...',
+      lastMessage: 'Courier parcel delivered at the gate guardhouse for Unit A-204.',
       time: '2hr ago',
       unread: false,
-    },
-    {
-      id: 'analah',
-      name: 'Analah Whitten',
-      handle: '@analah',
-      role: 'Leasing Coordinator',
-      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&h=120&q=80',
-      online: false,
-      lastMessage: "Good news! Jack accepted the offer. I've sent over a contract for him to review but...",
-      time: '2hr ago',
-      unread: false,
-    },
-    {
-      id: 'koray',
-      name: 'Koray Okumus',
-      handle: '@koray',
-      role: 'Field Technician',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80',
-      online: true,
-      lastMessage: 'Thanks! Looks great!',
-      time: '4hr ago',
-      unread: false,
-    },
-    {
-      id: 'eva',
-      name: 'Eva Bond',
-      handle: '@eva',
-      role: 'Estate Admin',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120&q=80',
-      online: false,
-      lastMessage: "The press release went out! It's been picked up by a few people... Here's the link if you...",
-      time: '4hr ago',
-      unread: false,
+      phone: '+254 799 112 233',
     },
   ]);
-  const [selectedConversationId, setSelectedConversationId] = useState('kathy');
 
-  // Messages thread state matching Image 2
-  const [threadMessages, setThreadMessages] = useState([
-    {
-      id: 'msg-1',
-      sender: 'Katherine Moss',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
-      text: "Thanks Olivia! Almost there. I'll work on making those changes you suggested and will shoot it over.",
-      time: 'Thursday 11:40am',
-      isMe: false,
-    },
-    {
-      id: 'msg-2',
-      sender: 'Katherine Moss',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
-      text: "Hey Olivia, I've finished with the requirements doc! I made some notes in the gdoc as well for Phoenix to look over.",
-      time: 'Thursday 11:40am',
-      isMe: false,
-      attachment: {
-        name: 'Tech requirements.pdf',
-        size: '1.2 MB',
+  const [selectedConversationId, setSelectedConversationId] = useState('kathy');
+  const [searchContact, setSearchContact] = useState('');
+
+  const filteredConversations = useMemo(() => {
+    if (!searchContact.trim()) return conversations;
+    return conversations.filter(
+      (c) =>
+        c.name.toLowerCase().includes(searchContact.toLowerCase()) ||
+        c.role.toLowerCase().includes(searchContact.toLowerCase()) ||
+        c.handle.toLowerCase().includes(searchContact.toLowerCase())
+    );
+  }, [conversations, searchContact]);
+
+  // Real Chat Messages Threads
+  const [messagesByThread, setMessagesByThread] = useState<Record<string, Array<{
+    id: string;
+    sender: string;
+    avatar?: string;
+    text: string;
+    time: string;
+    isMe: boolean;
+    attachment?: { name: string; size: string; url?: string };
+    reactions?: string[];
+  }>>>({
+    kathy: [
+      {
+        id: 'msg-k1',
+        sender: 'Katherine Moss',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
+        text: 'Hello Amina! I reviewed your annual lease renewal questionnaire. Everything looks in order.',
+        time: 'Thursday 11:40am',
+        isMe: false,
       },
-    },
-    {
-      id: 'msg-3',
+      {
+        id: 'msg-k2',
+        sender: 'Katherine Moss',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
+        text: "I've uploaded the draft lease renewal and the move-in inspection verification document for your records.",
+        time: 'Thursday 11:40am',
+        isMe: false,
+        attachment: {
+          name: 'Tech requirements.pdf',
+          size: '1.2 MB',
+        },
+      },
+      {
+        id: 'msg-k3',
+        sender: 'You',
+        text: "Awesome! Thanks Katherine. I'll review and countersign it today.",
+        time: 'Thursday 11:41am',
+        isMe: true,
+      },
+      {
+        id: 'msg-k4',
+        sender: 'Katherine Moss',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
+        text: 'No rush though — caretaker Peter is also scheduled to service the kitchen tap tomorrow.',
+        time: 'Thursday 11:44am',
+        isMe: false,
+      },
+      {
+        id: 'msg-k5',
+        sender: 'Katherine Moss',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
+        text: 'Hey Amina, can you please confirm if tomorrow 10:00 AM works for you for the maintenance visit?',
+        time: 'Today 2:20pm',
+        isMe: false,
+      },
+      {
+        id: 'msg-k6',
+        sender: 'You',
+        text: "Sure thing, I'll be home. 10:00 AM works perfectly!",
+        time: 'Just now',
+        isMe: true,
+        reactions: ['❤️', '👏'],
+      },
+    ],
+    peter: [
+      {
+        id: 'msg-p1',
+        sender: 'Peter Kariuki',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80',
+        text: 'Good morning Amina. I picked up the original Coburn mixer cartridge for ticket REQ-0492.',
+        time: 'Today 8:30am',
+        isMe: false,
+      },
+      {
+        id: 'msg-p2',
+        sender: 'You',
+        text: 'Thank you Peter. Please check the shutoff valve underneath the sink as well.',
+        time: 'Today 8:45am',
+        isMe: true,
+      },
+    ],
+    daniel: [
+      {
+        id: 'msg-d1',
+        sender: 'Daniel Ochieng',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80',
+        text: 'Confirming receipt of M-Pesa KES 27,500.00 (Ref QKH782910X). Your rent and service charge are settled.',
+        time: '1 Nov 2026',
+        isMe: false,
+      },
+    ],
+    rosalee: [
+      {
+        id: 'msg-r1',
+        sender: 'Rosalee Melvin',
+        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=120&h=120&q=80',
+        text: 'Hi Amina, your DHL document delivery has been logged at reception. You can collect it anytime.',
+        time: 'Yesterday 4:00pm',
+        isMe: false,
+      },
+    ],
+  });
+
+  const [chatInput, setChatInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const currentChatUser = conversations.find((c) => c.id === selectedConversationId) || conversations[0];
+  const activeMessages = messagesByThread[selectedConversationId] || [];
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+
+    const outgoingText = chatInput.trim();
+    const newMsg = {
+      id: `msg-${Date.now()}`,
       sender: 'You',
-      text: "Awesome! Thanks. I'll look at this today.",
-      time: 'Thursday 11:41am',
-      isMe: true,
-    },
-    {
-      id: 'msg-4',
-      sender: 'Katherine Moss',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
-      text: "No rush though — we still have to wait for Lana's designs.",
-      time: 'Thursday 11:44am',
-      isMe: false,
-    },
-    {
-      id: 'msg-5',
-      sender: 'Katherine Moss',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
-      text: 'Hey Olivia, can you please review the latest design when you can?',
-      time: 'Today 2:20pm',
-      isMe: false,
-    },
-    {
-      id: 'msg-6',
-      sender: 'You',
-      text: "Sure thing, I'll have a look today. They're looking great!",
+      text: outgoingText,
       time: 'Just now',
       isMe: true,
-      reactions: ['❤️', '👏'],
-    },
-  ]);
-  const [chatInput, setChatInput] = useState('');
+    };
 
-  // Maintenance tickets state
+    setMessagesByThread((prev) => ({
+      ...prev,
+      [selectedConversationId]: [...(prev[selectedConversationId] || []), newMsg],
+    }));
+    setChatInput('');
+
+    // Trigger realistic auto-reply after 1.5 seconds
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      const replyMsg = {
+        id: `reply-${Date.now()}`,
+        sender: currentChatUser.name,
+        avatar: currentChatUser.avatar,
+        text: `Got it, Amina. I have noted this in your tenancy records for Unit A-204.`,
+        time: 'Just now',
+        isMe: false,
+      };
+      setMessagesByThread((prev) => ({
+        ...prev,
+        [selectedConversationId]: [...(prev[selectedConversationId] || []), replyMsg],
+      }));
+    }, 1800);
+  };
+
+  // Maintenance Tickets State
   const [maintenanceTickets, setMaintenanceTickets] = useState([
     {
       id: 'REQ-0492',
@@ -416,69 +528,183 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       priority: 'High',
       status: 'IN_PROGRESS',
       reportedDate: '21 Nov 2026',
-      assignedTo: 'Fundi Peter Kariuki (Lead Plumber)',
-      lastUpdate: 'Parts purchased. Caretaker confirmed technician access window: Tomorrow 10:00 AM - 12:00 PM.',
+      assignedTo: 'Peter Kariuki (Lead Caretaker)',
+      phone: '+254 711 223 344',
+      preferredAccess: 'Morning (10:00 AM - 12:00 PM)',
+      description: 'Continuous dripping from the mixer cartridge causing water accumulation on the counter.',
+      stages: [
+        { name: 'Submitted', done: true, time: '21 Nov, 8:15 AM' },
+        { name: 'Under Review', done: true, time: '21 Nov, 9:00 AM' },
+        { name: 'Assigned', done: true, time: '21 Nov, 10:30 AM' },
+        { name: 'In Progress', done: true, time: '22 Nov, 8:30 AM' },
+        { name: 'Resolved', done: false, time: 'Pending completion' },
+        { name: 'Closed', done: false, time: 'Pending sign-off' },
+      ],
       stageIndex: 3,
     },
     {
       id: 'REQ-0481',
       title: 'Balcony sliding door latch sticking',
-      category: 'Doors and locks',
+      category: 'Doors & Locks',
       priority: 'Medium',
       status: 'RESOLVED',
       reportedDate: '10 Nov 2026',
       assignedTo: 'James Macharia (Carpentry)',
-      lastUpdate: 'Lock mechanism lubricated and strike plate realigned. Verified functional.',
-      stageIndex: 4,
+      phone: '+254 722 554 433',
+      preferredAccess: 'Afternoon (2:00 PM - 5:00 PM)',
+      description: 'Sliding latch was stiff and required forceful pushing to lock.',
+      stages: [
+        { name: 'Submitted', done: true, time: '10 Nov' },
+        { name: 'Under Review', done: true, time: '10 Nov' },
+        { name: 'Assigned', done: true, time: '11 Nov' },
+        { name: 'In Progress', done: true, time: '11 Nov' },
+        { name: 'Resolved', done: true, time: '12 Nov' },
+        { name: 'Closed', done: true, time: '12 Nov' },
+      ],
+      stageIndex: 5,
     },
     {
       id: 'REQ-0419',
-      title: 'Water heater circuit breaker trip',
+      title: 'Instant shower circuit breaker tripping',
       category: 'Electrical',
       priority: 'Emergency',
       status: 'CLOSED',
       reportedDate: '18 Oct 2026',
       assignedTo: 'Apex Electrical Services Ltd',
-      lastUpdate: 'Replaced faulty 20A double-pole isolator switch. Fully tested and closed.',
+      phone: '+254 700 889 900',
+      preferredAccess: 'Immediate / Emergency',
+      description: 'Breaker tripped whenever high heat was engaged on the shower heater.',
+      stages: [
+        { name: 'Submitted', done: true, time: '18 Oct' },
+        { name: 'Under Review', done: true, time: '18 Oct' },
+        { name: 'Assigned', done: true, time: '18 Oct' },
+        { name: 'In Progress', done: true, time: '18 Oct' },
+        { name: 'Resolved', done: true, time: '19 Oct' },
+        { name: 'Closed', done: true, time: '19 Oct' },
+      ],
       stageIndex: 5,
     },
   ]);
 
-  // Documents state
+  const [ticketFilter, setTicketFilter] = useState('ALL');
+  const filteredTickets = useMemo(() => {
+    if (ticketFilter === 'IN_PROGRESS') return maintenanceTickets.filter((t) => t.status === 'IN_PROGRESS' || t.status === 'SUBMITTED');
+    if (ticketFilter === 'RESOLVED') return maintenanceTickets.filter((t) => t.status === 'RESOLVED' || t.status === 'CLOSED');
+    return maintenanceTickets;
+  }, [maintenanceTickets, ticketFilter]);
+
+  // Selected ticket for detailed view modal
+  const [selectedTicket, setSelectedTicket] = useState<typeof maintenanceTickets[0] | null>(null);
+
+  // New ticket form state
+  const [newTicket, setNewTicket] = useState({
+    title: '',
+    category: 'Plumbing',
+    priority: 'High',
+    preferredAccess: 'Morning (9:00 AM - 12:00 PM)',
+    description: '',
+  });
+
+  const handleCreateTicket = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTicket.title.trim()) return;
+
+    const created = {
+      id: `REQ-${Math.floor(1000 + Math.random() * 9000)}`,
+      title: newTicket.title.trim(),
+      category: newTicket.category,
+      priority: newTicket.priority,
+      status: 'SUBMITTED',
+      reportedDate: 'Today',
+      assignedTo: 'Property Office (Dispatch Pending)',
+      phone: tenancy.managerPhone,
+      preferredAccess: newTicket.preferredAccess,
+      description: newTicket.description || 'Issue submitted via Tenant Self-Service Portal.',
+      stages: [
+        { name: 'Submitted', done: true, time: 'Just now' },
+        { name: 'Under Review', done: false, time: 'Pending review' },
+        { name: 'Assigned', done: false, time: 'Pending dispatch' },
+        { name: 'In Progress', done: false, time: 'Pending start' },
+        { name: 'Resolved', done: false, time: 'Pending resolution' },
+        { name: 'Closed', done: false, time: 'Pending inspection' },
+      ],
+      stageIndex: 0,
+    };
+
+    setMaintenanceTickets([created, ...maintenanceTickets]);
+    setShowMaintenanceModal(false);
+    setNewTicket({
+      title: '',
+      category: 'Plumbing',
+      priority: 'High',
+      preferredAccess: 'Morning (9:00 AM - 12:00 PM)',
+      description: '',
+    });
+    showToast(`Ticket ${created.id} submitted! Caretaker will contact you shortly.`);
+  };
+
+  const handleConfirmResolved = (ticketId: string) => {
+    setMaintenanceTickets((prev) =>
+      prev.map((t) => (t.id === ticketId ? { ...t, status: 'RESOLVED', stageIndex: 4 } : t))
+    );
+    if (selectedTicket?.id === ticketId) {
+      setSelectedTicket((prev) => (prev ? { ...prev, status: 'RESOLVED', stageIndex: 4 } : null));
+    }
+    showToast(`Ticket ${ticketId} marked as RESOLVED by tenant.`);
+  };
+
+  const handleReopenTicket = (ticketId: string) => {
+    setMaintenanceTickets((prev) =>
+      prev.map((t) => (t.id === ticketId ? { ...t, status: 'IN_PROGRESS', stageIndex: 3 } : t))
+    );
+    if (selectedTicket?.id === ticketId) {
+      setSelectedTicket((prev) => (prev ? { ...prev, status: 'IN_PROGRESS', stageIndex: 3 } : null));
+    }
+    showToast(`Ticket ${ticketId} reopened and escalated to Caretaker.`);
+  };
+
+  // Real Documents Vault
   const documents = [
     {
       id: 'doc-lease',
-      name: 'Counter-Signed Residential Lease Agreement (2026)',
-      category: 'Lease agreement',
+      name: 'Residential Lease Agreement (2026)',
+      category: 'Lease Agreement',
       date: '1 Jan 2026',
       size: '2.4 MB',
       type: 'PDF',
+      description: 'Official bilateral tenancy agreement between Greenview Property Holdings Ltd and Amina Wanjiku.',
     },
     {
       id: 'doc-deposit',
       name: 'Security Deposit Escrow Receipt (Account 2100)',
-      category: 'Rent receipts',
+      category: 'Deposit Certificate',
       date: '28 Dec 2025',
       size: '480 KB',
       type: 'PDF',
+      description: 'KES 25,000.00 held in statutory segregated liability escrow pursuant to Kenyan Landlord & Tenant law.',
     },
     {
-      id: 'doc-movein',
-      name: 'Move-in Condition & Inventory Inspection Report',
-      category: 'Move-in inspection',
+      id: 'doc-inspection',
+      name: 'Move-in Inventory & Condition Report (Unit A-204)',
+      category: 'Inspection Report',
       date: '1 Jan 2026',
       size: '4.8 MB',
       type: 'PDF',
+      description: 'Photographic inventory and fixture checklist counter-signed at handover.',
     },
     {
       id: 'doc-rules',
-      name: 'Greenview Estate House Rules & Resident Regulations',
-      category: 'House rules',
+      name: 'Greenview Estate House Rules & Amenities Policy',
+      category: 'Estate Rules',
       date: '1 Jan 2026',
       size: '1.2 MB',
       type: 'PDF',
+      description: 'Rules regarding parking slot P-204, quiet hours (10:00 PM), and gym/swimming access.',
     },
   ];
+
+  // Document preview modal state
+  const [selectedDoc, setSelectedDoc] = useState<typeof documents[0] | null>(null);
 
   // Modals state
   const [showPayModal, setShowPayModal] = useState(false);
@@ -488,84 +714,160 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
   const [showMissingPayModal, setShowMissingPayModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
-
-  // Active receipt data for ticket stub modal (Image 3)
-  const [receiptData, setReceiptData] = useState({
+  // Ticket Receipt Data
+  const [activeReceipt, setActiveReceipt] = useState({
     ticketId: '0120077398910288',
-    amountUsd: '$3,800.00',
-    amountKes: 'KES 25,000.00',
-    dateTime: '22 AUG, 2025 | 13:29',
+    mpesaRef: 'QKH782910X',
+    amountKes: 27500,
+    amountUsd: 211.54,
+    dateTime: '01 NOV, 2026 | 09:14 AM',
+    paybill: '247247',
+    account: 'GRE-A204',
     cardBrand: 'Mastercard ending in 4567',
     expiry: '10/27',
     barcode: '400600890050002070013',
+    purpose: 'Monthly Lease & Estate Service Charge',
   });
 
-  // Active invoice data for invoice modal (Image 4)
-  const [invoiceData, setInvoiceData] = useState({
-    invoiceNo: '024/2024',
-    invoiceDate: 'January 28, 2024',
-    dueDate: 'February 12, 2024',
-    recipient: {
-      name: 'WADE WARREN',
-      address: '3303 Liberty Avenue, 322612 Tustin, CA',
-      vatNo: '432879',
-      email: 'nic.k@gmail.com',
-      phone: '+1 551 239 0523',
-    },
-    senderEmail: 'goodwin@gmail.com',
-    senderPhone: '+1 951 239 0402',
-    bank: 'FTSBUS21',
-    iban: 'G885-1232-4321-5645',
-    items: [
-      { desc: 'ipod fix', hours: 42, rate: 35, amount: 1470 },
-      { desc: 'New desc', hours: 12, rate: 35, amount: 420 },
-    ],
-    subtotal: 1890,
-    discountPct: 5,
-    discountAmount: 94.5,
-    total: 1795.5,
-  });
-
-  const handleOpenReceipt = (ticketId: string = '0120077398910288', amountUsd: number = 2345.76) => {
-    setReceiptData({
-      ticketId,
-      amountUsd: `$${amountUsd.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
-      amountKes: 'KES 25,000.00',
-      dateTime: '22 AUG, 2025 | 13:29',
-      cardBrand: 'Mastercard ending in 4567',
-      expiry: '10/27',
-      barcode: '400600890050002070013',
-    });
+  const handleOpenReceipt = (t?: typeof ledgerTransactions[0]) => {
+    if (t) {
+      setActiveReceipt({
+        ticketId: t.ticketId,
+        mpesaRef: t.mpesaRef,
+        amountKes: t.amountKes,
+        amountUsd: t.amountUsd,
+        dateTime: `${t.date} | 09:14 AM`,
+        paybill: tenancy.paybillNumber,
+        account: tenancy.accountNumber,
+        cardBrand: 'Mastercard ending in 4567',
+        expiry: '10/27',
+        barcode: '400600890050002070013',
+        purpose: t.description,
+      });
+    }
     setShowReceiptModal(true);
   };
 
-  const handleOpenInvoice = () => {
+  // Invoice Data
+  const [activeInvoice, setActiveInvoice] = useState({
+    invoiceNo: 'UF-INV-2026-1102',
+    invoiceDate: 'November 1, 2026',
+    dueDate: 'December 1, 2026',
+    recipient: {
+      name: tenancy.tenantName,
+      address: `${tenancy.propertyName}, ${tenancy.location}`,
+      county: tenancy.town,
+      kraPin: tenancy.kraPin,
+      email: tenancy.email,
+      phone: tenancy.phone,
+    },
+    items: [
+      { desc: `Monthly Rent — ${tenancy.unitNumber} (${tenancy.unitType})`, qty: '1 Mo', rateKes: 25000, amountKes: 25000, rateUsd: 192.31, amountUsd: 192.31 },
+      { desc: 'Estate Service Charge, 24/7 Guards & Common Lighting', qty: '1 Mo', rateKes: 2500, amountKes: 2500, rateUsd: 19.23, amountUsd: 19.23 },
+      { desc: 'Metrix Water Utility Surcharge (Meter M-204)', qty: '14 Units', rateKes: 1586, amountKes: 1586, rateUsd: 12.2, amountUsd: 12.2 },
+      { desc: 'Waste Removal & Bi-Weekly Sanitation', qty: '1 Mo', rateKes: 500, amountKes: 500, rateUsd: 3.85, amountUsd: 3.85 },
+    ],
+    subtotalKes: 29586,
+    subtotalUsd: 227.59,
+    discountKes: 2086,
+    discountUsd: 16.05,
+    totalKes: 27500,
+    totalUsd: 211.54,
+  });
+
+  const handleOpenInvoice = (t?: typeof ledgerTransactions[0]) => {
+    setActiveInvoice((prev) => ({
+      ...prev,
+      recipient: {
+        name: tenancy.tenantName,
+        address: `${tenancy.propertyName}, ${tenancy.location}`,
+        county: tenancy.town,
+        kraPin: tenancy.kraPin,
+        email: tenancy.email,
+        phone: tenancy.phone,
+      },
+    }));
     setShowInvoiceModal(true);
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
+  // Functional simulated M-Pesa payment
+  const [simPhone, setSimPhone] = useState(tenancy.phone);
+  const [simAmount, setSimAmount] = useState('27500');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
-    const newMsg = {
-      id: `msg-${Date.now()}`,
-      sender: 'You',
-      text: chatInput.trim(),
-      time: 'Just now',
-      isMe: true,
-    };
-    setThreadMessages([...threadMessages, newMsg]);
-    setChatInput('');
-    showToast('Message sent to property management.');
+  const handleSimulatePayment = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessingPayment(true);
+
+    setTimeout(() => {
+      setIsProcessingPayment(false);
+      setShowPayModal(false);
+
+      const generatedCode = `QK${Math.floor(10000000 + Math.random() * 90000000)}X`;
+      const numAmount = parseInt(simAmount, 10) || 27500;
+
+      const newTx = {
+        id: `tx-${Date.now()}`,
+        date: 'Today',
+        type: 'Rent Payment',
+        typeColor: '#15803d',
+        typeBg: '#dcfce7',
+        source: 'M-Pesa Daraja C2B',
+        amountKes: numAmount,
+        amountUsd: numAmount / 130,
+        isPayment: true,
+        balanceKes: 0,
+        balanceUsd: 0.0,
+        receiptNo: `RCP-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+        ticketId: `0120077398910${Math.floor(100 + Math.random() * 900)}`,
+        mpesaRef: generatedCode,
+        description: 'Instant Lipa Na M-Pesa C2B Settled',
+      };
+
+      setLedgerTransactions([newTx, ...ledgerTransactions]);
+      showToast(`M-Pesa payment of KES ${numAmount.toLocaleString()} (Ref: ${generatedCode}) verified and settled!`);
+      handleOpenReceipt(newTx);
+    }, 2200);
   };
 
-  const currentChatUser = conversations.find((c) => c.id === selectedConversationId) || conversations[0];
+  // Profile Edit State
+  const [profileForm, setProfileForm] = useState({
+    tenantName: tenancy.tenantName,
+    phone: tenancy.phone,
+    email: tenancy.email,
+    nationalId: tenancy.nationalId,
+    emergencyContactName: tenancy.emergencyContactName,
+    emergencyContactPhone: tenancy.emergencyContactPhone,
+    smsTwoFactor: tenancy.smsTwoFactor,
+  });
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    setTenancy((prev) => ({
+      ...prev,
+      tenantName: profileForm.tenantName,
+      phone: profileForm.phone,
+      email: profileForm.email,
+      nationalId: profileForm.nationalId,
+      emergencyContactName: profileForm.emergencyContactName,
+      emergencyContactPhone: profileForm.emergencyContactPhone,
+      smsTwoFactor: profileForm.smsTwoFactor,
+    }));
+    showToast('Tenant profile details updated and saved successfully!');
+  };
+
+  // Functional Download helper
+  const handleDownloadFile = (filename: string, content: string) => {
+    const element = document.createElement('a');
+    const file = new Blob([content], { type: 'text/plain' });
+    element.href = URL.createObjectURL(file);
+    element.download = filename;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    showToast(`Downloaded ${filename}`);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -583,7 +885,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
             fontSize: '0.85rem',
             fontWeight: 500,
             boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-            zIndex: 100,
+            zIndex: 150,
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
@@ -599,18 +901,19 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       ========================================================================== */}
       {currentView === 'dashboard' && (
         <>
-          {/* Welcome Banner & Residence */}
+          {/* Welcome Residence Banner */}
           <div
             style={{
               background: '#ffffff',
               border: '1px solid #e2e8f0',
-              borderRadius: '16px',
+              borderRadius: '20px',
               padding: '24px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
               flexWrap: 'wrap',
               gap: '16px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
             }}
           >
             <div>
@@ -619,13 +922,13 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   Tenant Self-Service Portal
                 </span>
                 <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#cbd5e1' }} />
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Greenview Apartments · Unit A-204</span>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{tenancy.propertyName} · {tenancy.unitNumber}</span>
               </div>
-              <h1 style={{ fontSize: '1.65rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#131726', margin: 0, letterSpacing: '-0.02em' }}>
                 Welcome back, {tenancy.tenantName}
               </h1>
               <p style={{ margin: '6px 0 0 0', fontSize: '0.88rem', color: '#64748b' }}>
-                {tenancy.location} · {tenancy.town}
+                {tenancy.location} · {tenancy.town} &bull; Tenancy Status: <strong style={{ color: '#059669' }}>{tenancy.leaseStatus}</strong>
               </p>
             </div>
 
@@ -662,7 +965,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 4px 12px rgba(242, 122, 89, 0.25)',
+                  boxShadow: '0 4px 15px rgba(242, 122, 89, 0.25)',
                 }}
               >
                 <span>📄 Preview Invoice</span>
@@ -678,71 +981,72 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               gap: '16px',
             }}
           >
-            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '20px' }}>
+            <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
               <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
                 Monthly Rent
               </div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', marginTop: '6px' }}>
-                KES {tenancy.monthlyRent.toLocaleString()}
+              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#131726', marginTop: '6px' }}>
+                {fmt(tenancy.monthlyRent)}
               </div>
               <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
-                Plus KES 2,500 service charge
+                Plus {fmt(tenancy.serviceCharge)} estate service charge
               </div>
             </div>
 
-            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '20px' }}>
+            <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
               <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
                 Outstanding Balance
               </div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#059669', marginTop: '6px' }}>
-                KES {tenancy.outstandingBalance.toLocaleString()}
+              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#059669', marginTop: '6px' }}>
+                {fmt(tenancy.outstandingBalance)}
               </div>
               <div style={{ fontSize: '0.76rem', color: '#059669', marginTop: '4px' }}>
-                ✓ Zero unpaid balance
+                ✓ Account verified & up to date
               </div>
             </div>
 
-            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '20px' }}>
+            <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
               <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
                 Next Due Date
               </div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', marginTop: '6px' }}>
+              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#131726', marginTop: '6px' }}>
                 {tenancy.nextDueDate}
               </div>
               <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
-                5-day grace period
+                Safaricom Paybill {tenancy.paybillNumber}
               </div>
             </div>
 
-            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '20px' }}>
+            <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
               <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-                Lease Status
+                Active Maintenance
               </div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0284c7', marginTop: '6px' }}>
-                {tenancy.leaseStatus}
+              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#f27a59', marginTop: '6px' }}>
+                {maintenanceTickets.filter((t) => t.status === 'IN_PROGRESS' || t.status === 'SUBMITTED').length} Open
               </div>
               <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
-                Expires: {tenancy.leaseExpires}
+                REQ-0492: Assigned to Caretaker
               </div>
             </div>
           </div>
 
-          {/* Quick Actions Shortcuts */}
+          {/* Quick Action Shortcuts */}
           <div
             style={{
               background: '#ffffff',
-              border: '1px solid #e2e8f0',
+              border: '1px solid #f1f5f9',
               borderRadius: '16px',
-              padding: '20px 24px',
+              padding: '18px 24px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flexWrap: 'wrap',
               gap: '12px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
             }}
           >
             <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155' }}>
-              Quick Tenancy Actions:
+              Quick Navigation Shortcuts:
             </span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
               <Link
@@ -762,7 +1066,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 }}
               >
                 <CreditCard size={14} color="#f27a59" />
-                <span>View Payments</span>
+                <span>Rent & Payments</span>
               </Link>
               <Link
                 to="/portal/maintenance"
@@ -781,7 +1085,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 }}
               >
                 <Wrench size={14} color="#0284c7" />
-                <span>Report an Issue</span>
+                <span>Maintenance Requests</span>
               </Link>
               <Link
                 to="/portal/lease"
@@ -800,7 +1104,26 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 }}
               >
                 <FileText size={14} color="#059669" />
-                <span>View Lease</span>
+                <span>My Lease</span>
+              </Link>
+              <Link
+                to="/portal/documents"
+                style={{
+                  textDecoration: 'none',
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  padding: '7px 14px',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  color: '#1e293b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <FolderLock size={14} color="#64748b" />
+                <span>Documents</span>
               </Link>
               <Link
                 to="/portal/messages"
@@ -819,7 +1142,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 }}
               >
                 <MessageSquare size={14} color="#7c3aed" />
-                <span>Contact Manager</span>
+                <span>Talk to Management</span>
               </Link>
             </div>
           </div>
@@ -827,7 +1150,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       )}
 
       {/* =========================================================================
-          SECTION 2: PAYMENTS (IMAGE 1 DESIGN)
+          SECTION 2: RENT & PAYMENTS (IMAGE 1 DESIGN)
       ========================================================================== */}
       {currentView === 'payments' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -836,22 +1159,22 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
             <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#131726', margin: 0, letterSpacing: '-0.02em' }}>
               Payments
             </h1>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Currency:</span>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Currency View:</span>
               <button
-                onClick={() => setCurrencyMode(currencyMode === 'USD' ? 'KES' : 'USD')}
+                onClick={() => setCurrencyMode(currencyMode === 'KES' ? 'USD' : 'KES')}
                 style={{
                   background: '#ffffff',
                   border: '1px solid #cbd5e1',
                   borderRadius: '8px',
-                  padding: '4px 10px',
+                  padding: '5px 12px',
                   fontSize: '0.78rem',
                   fontWeight: 700,
                   color: '#f27a59',
                   cursor: 'pointer',
                 }}
               >
-                {currencyMode === 'USD' ? 'USD ($)' : 'KES (KSh)'}
+                {currencyMode === 'KES' ? 'KES (Kenya Shillings)' : 'USD ($ Dollars)'}
               </button>
             </div>
           </div>
@@ -897,7 +1220,6 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     flexShrink: 0,
                   }}
                 >
-                  {/* Subtle topo wave lines simulation */}
                   <div
                     style={{
                       position: 'absolute',
@@ -925,7 +1247,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#e2e8f0', letterSpacing: '0.02em' }}>
-                      Bank of America
+                      Equity Bank / M-Pesa
                     </span>
                     <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.05em', color: '#ffffff' }}>
                       VISA
@@ -933,11 +1255,11 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   </div>
 
                   <div>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 500, color: '#cbd5e1', letterSpacing: '0.02em' }}>
-                      {tenancy.tenantName === 'Amina Wanjiku' ? 'Dariia Boichuk' : tenancy.tenantName}
+                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#cbd5e1', letterSpacing: '0.02em' }}>
+                      {tenancy.tenantName}
                     </div>
                     <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'monospace', marginTop: '2px' }}>
-                      xxxx 1234 &nbsp; 06/24
+                      xxxx 4567 &nbsp; 10/27
                     </div>
                   </div>
                 </div>
@@ -948,14 +1270,14 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     Credit Balance
                   </div>
                   <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#131726', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-                    {currencyMode === 'USD' ? '$ 2,345.76' : 'KES 0.00'}
+                    {fmt(tenancy.outstandingBalance, 2345.76)}
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginTop: '18px' }}>
                     <button
-                      onClick={() => handleOpenReceipt()}
+                      onClick={() => setShowPayModal(true)}
                       style={{
-                        background: '#f27a59', // Peach / Coral button exactly matching Image 1
+                        background: '#f27a59',
                         color: '#ffffff',
                         border: 'none',
                         borderRadius: '12px',
@@ -964,7 +1286,6 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                         fontWeight: 700,
                         cursor: 'pointer',
                         boxShadow: '0 4px 15px rgba(242, 122, 89, 0.35)',
-                        transition: 'transform 0.15s ease',
                       }}
                     >
                       Make Payment
@@ -1003,7 +1324,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   }}
                 >
                   <Plus size={14} />
-                  <span>Add New Card</span>
+                  <span>Add New Card / Paybill</span>
                 </button>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.8rem' }}>
@@ -1036,12 +1357,12 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   Auto - Payment
                 </h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', color: '#94a3b8', cursor: 'pointer' }}>
-                  <span>June</span>
+                  <span>December 2026</span>
                   <ChevronDown size={14} />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {autoPayments.map((ap) => (
                   <div
                     key={ap.id}
@@ -1064,16 +1385,22 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     </div>
 
                     <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#131726' }}>
-                      {currencyMode === 'USD' ? ap.amountUsd : ap.amountKes}
+                      {fmt(ap.amountKes, ap.amountUsd)}
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #f8fafc', display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.76rem', color: '#059669', fontWeight: 600 }}>
-                  ✓ Scheduled automatic collection active
+                  ✓ Daraja C2B V2 Instant Auto-Reconcile Active
                 </span>
+                <button
+                  onClick={() => setShowMissingPayModal(true)}
+                  style={{ background: 'transparent', border: 'none', color: '#64748b', fontSize: '0.76rem', cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  Report Missing
+                </button>
               </div>
             </div>
           </div>
@@ -1092,9 +1419,25 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#131726', margin: 0 }}>
                 Ledger transactions
               </h2>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.84rem', color: '#94a3b8', cursor: 'pointer' }}>
-                <span>Full Ledger</span>
-                <ChevronDown size={14} />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {['All', 'Payments', 'Charges'].map((filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => setLedgerFilter(filter)}
+                    style={{
+                      background: ledgerFilter === filter ? '#f27a59' : '#f8fafc',
+                      color: ledgerFilter === filter ? '#ffffff' : '#64748b',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '4px 12px',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {filter}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -1107,11 +1450,11 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     <th style={{ padding: '12px 16px', fontWeight: 500 }}>Source</th>
                     <th style={{ padding: '12px 16px', fontWeight: 500, textAlign: 'right' }}>Charges / Payments</th>
                     <th style={{ padding: '12px 16px', fontWeight: 500, textAlign: 'right' }}>Balance</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 500, textAlign: 'center' }}>Actions</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 500, textAlign: 'center' }}>Official Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {ledgerTransactions.map((tx) => (
+                  {filteredTransactions.map((tx) => (
                     <tr
                       key={tx.id}
                       style={{
@@ -1140,7 +1483,8 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                       </td>
 
                       <td style={{ padding: '16px', color: '#64748b' }}>
-                        {tx.source}
+                        <div>{tx.source}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'monospace' }}>{tx.mpesaRef}</div>
                       </td>
 
                       <td
@@ -1148,25 +1492,21 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                           padding: '16px',
                           textAlign: 'right',
                           fontWeight: 700,
-                          color: tx.isPayment ? '#059669' : '#f27a59', // Peach/coral charges matching Image 1
+                          color: tx.isPayment ? '#059669' : '#f27a59',
                         }}
                       >
-                        {tx.isPayment ? '+ ' : ''}
-                        {currencyMode === 'USD'
-                          ? `$ ${tx.amountUsd.toFixed(2)}`
-                          : `KES ${tx.amountKes.toLocaleString()}`}
+                        {tx.isPayment ? '+ ' : '- '}
+                        {fmt(tx.amountKes, tx.amountUsd)}
                       </td>
 
                       <td style={{ padding: '16px', textAlign: 'right', fontWeight: 600, color: '#131726' }}>
-                        {currencyMode === 'USD'
-                          ? `$ ${tx.balanceUsd.toFixed(2)}`
-                          : `KES ${tx.balanceKes.toLocaleString()}`}
+                        {fmt(tx.balanceKes, tx.balanceUsd)}
                       </td>
 
                       <td style={{ padding: '16px', textAlign: 'center' }}>
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                           <button
-                            onClick={() => handleOpenReceipt(tx.ticketId, tx.amountUsd)}
+                            onClick={() => handleOpenReceipt(tx)}
                             title="View Perforated Ticket Receipt"
                             style={{
                               background: '#f8fafc',
@@ -1182,7 +1522,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                             🎟️ Ticket
                           </button>
                           <button
-                            onClick={() => handleOpenInvoice()}
+                            onClick={() => handleOpenInvoice(tx)}
                             title="Preview Modern Invoice"
                             style={{
                               background: '#eff6ff',
@@ -1213,12 +1553,10 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       ========================================================================== */}
       {currentView === 'messages' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          {/* Header */}
           <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#131726', margin: 0, letterSpacing: '-0.02em' }}>
             All messages
           </h1>
 
-          {/* Two-Pane Chat Container matching Image 2 */}
           <div
             style={{
               background: '#ffffff',
@@ -1241,7 +1579,6 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 flexShrink: 0,
               }}
             >
-              {/* Top search & title */}
               <div style={{ padding: '20px 20px 14px 20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1256,11 +1593,11 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                         borderRadius: '10px',
                       }}
                     >
-                      40
+                      {conversations.length}
                     </span>
                   </div>
                   <button
-                    onClick={() => showToast('New thread prompt ready.')}
+                    onClick={() => showToast('New management thread initiated.')}
                     style={{
                       background: 'transparent',
                       border: '1px solid #e2e8f0',
@@ -1293,7 +1630,9 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   <Search size={15} color="#94a3b8" />
                   <input
                     type="text"
-                    placeholder="Search"
+                    placeholder="Search conversations..."
+                    value={searchContact}
+                    onChange={(e) => setSearchContact(e.target.value)}
                     style={{
                       border: 'none',
                       background: 'transparent',
@@ -1308,7 +1647,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
 
               {/* Conversations List */}
               <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-                {conversations.map((c) => {
+                {filteredConversations.map((c) => {
                   const isSelected = c.id === selectedConversationId;
                   return (
                     <div
@@ -1320,13 +1659,12 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                         gap: '12px',
                         alignItems: 'flex-start',
                         cursor: 'pointer',
-                        borderLeft: isSelected ? '3px solid #7c3aed' : '3px solid transparent', // Purple active indicator matching Image 2
+                        borderLeft: isSelected ? '3px solid #7c3aed' : '3px solid transparent',
                         background: isSelected ? '#fbf9ff' : 'transparent',
                         borderBottom: '1px solid #f8fafc',
                         transition: 'background 0.15s ease',
                       }}
                     >
-                      {/* Avatar with status */}
                       <div style={{ position: 'relative', flexShrink: 0 }}>
                         <img
                           src={c.avatar}
@@ -1370,7 +1708,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                           <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{c.time}</span>
                         </div>
                         <div style={{ fontSize: '0.74rem', color: '#7c3aed', fontWeight: 500, marginBottom: '2px' }}>
-                          {c.handle}
+                          {c.handle} · {c.role}
                         </div>
                         <div
                           style={{
@@ -1418,14 +1756,17 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                       </span>
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#7c3aed', fontWeight: 500 }}>
-                      {currentChatUser.handle} · {currentChatUser.role}
+                      {currentChatUser.handle} · {currentChatUser.role} &bull; {currentChatUser.phone}
                     </div>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <button
-                    onClick={() => showToast(`Calling ${currentChatUser.name} (+254 722 000 111)...`)}
+                    onClick={() => {
+                      showToast(`Calling ${currentChatUser.name} at ${currentChatUser.phone}...`);
+                      window.location.href = `tel:${currentChatUser.phone}`;
+                    }}
                     style={{
                       background: '#ffffff',
                       border: '1px solid #e2e8f0',
@@ -1444,7 +1785,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     <span>Call</span>
                   </button>
                   <button
-                    onClick={() => showToast('Conversation archived.')}
+                    onClick={() => showToast('Conversation thread archived.')}
                     style={{
                       background: '#ffffff',
                       border: '1px solid #e2e8f0',
@@ -1459,9 +1800,9 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     Archive
                   </button>
                   <button
-                    onClick={() => showToast(`Opening profile for ${currentChatUser.name}...`)}
+                    onClick={() => showToast(`Staff profile for ${currentChatUser.name} verified.`)}
                     style={{
-                      background: '#7c3aed', // Purple pill button matching Image 2
+                      background: '#7c3aed',
                       color: '#ffffff',
                       border: 'none',
                       borderRadius: '8px',
@@ -1488,12 +1829,11 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   background: '#ffffff',
                 }}
               >
-                {/* Date separator */}
                 <div style={{ textAlign: 'center', margin: '6px 0' }}>
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>Thursday 11:40am</span>
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>Encrypted Tenant-Management Channel</span>
                 </div>
 
-                {threadMessages.map((m) => {
+                {activeMessages.map((m) => {
                   if (m.isMe) {
                     return (
                       <div key={m.id} style={{ alignSelf: 'flex-end', maxWidth: '75%', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
@@ -1502,7 +1842,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                         </div>
                         <div
                           style={{
-                            background: '#7c3aed', // Purple message bubble matching Image 2
+                            background: '#7c3aed',
                             color: '#ffffff',
                             padding: '12px 16px',
                             borderRadius: '16px 16px 4px 16px',
@@ -1562,7 +1902,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                           {m.text}
                         </div>
 
-                        {/* File Attachment Card matching Image 2 */}
+                        {/* File Attachment Card */}
                         {m.attachment && (
                           <div
                             style={{
@@ -1602,8 +1942,9 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                               </div>
                             </div>
                             <button
-                              onClick={() => showToast(`Downloading ${m.attachment?.name}...`)}
+                              onClick={() => handleDownloadFile(m.attachment?.name || 'document.pdf', 'Official Tenancy Document - Unit Flow RMS')}
                               style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#7c3aed' }}
+                              title="Download attachment"
                             >
                               <Download size={15} />
                             </button>
@@ -1614,29 +1955,31 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   );
                 })}
 
-                {/* Typing indicator */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-                  <img
-                    src={currentChatUser.avatar}
-                    alt={currentChatUser.name}
-                    style={{ width: '22px', height: '22px', borderRadius: '50%', objectFit: 'cover' }}
-                  />
-                  <div
-                    style={{
-                      background: '#f1f5f9',
-                      padding: '6px 10px',
-                      borderRadius: '12px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
-                  >
-                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#94a3b8' }} />
-                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#94a3b8' }} />
-                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#94a3b8' }} />
+                {/* Live typing indicator */}
+                {isTyping && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                    <img
+                      src={currentChatUser.avatar}
+                      alt={currentChatUser.name}
+                      style={{ width: '22px', height: '22px', borderRadius: '50%', objectFit: 'cover' }}
+                    />
+                    <div
+                      style={{
+                        background: '#f1f5f9',
+                        padding: '6px 10px',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#94a3b8' }} />
+                      <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#94a3b8' }} />
+                      <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#94a3b8' }} />
+                    </div>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{currentChatUser.name} is typing...</span>
                   </div>
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{currentChatUser.name} is typing...</span>
-                </div>
+                )}
               </div>
 
               {/* Chat Input Bar matching Image 2 */}
@@ -1659,10 +2002,16 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   }}
                 >
                   <textarea
-                    placeholder="Send a message"
+                    placeholder={`Message ${currentChatUser.name}...`}
                     rows={2}
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage(e);
+                      }
+                    }}
                     style={{
                       border: 'none',
                       outline: 'none',
@@ -1675,21 +2024,26 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#94a3b8' }}>
-                      <button type="button" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
+                      <button
+                        type="button"
+                        onClick={() => setChatInput((prev) => prev + ' 👍')}
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8' }}
+                      >
                         <Smile size={18} />
                       </button>
-                      <button type="button" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
+                      <button
+                        type="button"
+                        onClick={() => showToast('Attachment browser opened. Select PDF or image.')}
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8' }}
+                      >
                         <Paperclip size={18} />
-                      </button>
-                      <button type="button" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
-                        <MoreVertical size={16} />
                       </button>
                     </div>
 
                     <button
                       type="submit"
                       style={{
-                        background: '#7c3aed', // Purple send button matching Image 2
+                        background: '#7c3aed',
                         color: '#ffffff',
                         border: 'none',
                         borderRadius: '8px',
@@ -1722,7 +2076,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               My Lease Agreement
             </h1>
             <p style={{ margin: '4px 0 0 0', fontSize: '0.86rem', color: '#64748b' }}>
-              Official counter-signed tenancy terms, escrow deposit account, and renewal actions.
+              Authoritative terms, escrow deposit account, and renewal management.
             </p>
           </div>
 
@@ -1735,32 +2089,33 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
               gap: '20px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
             }}
           >
             <div>
-              <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Premises</div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+              <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Demised Premises</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
                 {tenancy.propertyName}
               </div>
               <div style={{ fontSize: '0.84rem', color: '#475569', marginTop: '2px' }}>
-                {tenancy.location}
+                {tenancy.unitNumber} ({tenancy.unitType}) &bull; Parking P-204
               </div>
             </div>
 
             <div>
               <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Lease Reference</div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
                 {tenancy.leaseReference}
               </div>
-              <div style={{ fontSize: '0.84rem', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
-                ● Active Lease
+              <div style={{ fontSize: '0.84rem', color: '#059669', fontWeight: 700, marginTop: '2px' }}>
+                ● {tenancy.leaseStatus}
               </div>
             </div>
 
             <div>
-              <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Security Deposit Held</div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
-                KES {tenancy.securityDeposit.toLocaleString()}
+              <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Security Deposit in Trust</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+                {fmt(tenancy.securityDeposit)}
               </div>
               <div style={{ fontSize: '0.84rem', color: '#64748b', marginTop: '2px' }}>
                 Segregated Escrow (Account 2100)
@@ -1768,26 +2123,26 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
             </div>
 
             <div>
-              <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Expiry Date</div>
-              <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
-                {tenancy.leaseExpires}
+              <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Term & Expiry</div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+                {tenancy.leaseStart} to {tenancy.leaseExpires}
               </div>
               <div style={{ fontSize: '0.84rem', color: '#64748b', marginTop: '2px' }}>
-                Annual Renewal Notice Required
+                30-day notice period required
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <button
               onClick={() => setShowRenewalModal(true)}
               style={{
                 background: '#f27a59',
                 color: '#ffffff',
                 border: 'none',
-                borderRadius: '8px',
-                padding: '9px 18px',
-                fontSize: '0.84rem',
+                borderRadius: '10px',
+                padding: '10px 20px',
+                fontSize: '0.86rem',
                 fontWeight: 700,
                 cursor: 'pointer',
               }}
@@ -1800,14 +2155,33 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 background: '#ffffff',
                 color: '#dc2626',
                 border: '1px solid #fecaca',
-                borderRadius: '8px',
-                padding: '9px 18px',
-                fontSize: '0.84rem',
+                borderRadius: '10px',
+                padding: '10px 20px',
+                fontSize: '0.86rem',
                 fontWeight: 600,
                 cursor: 'pointer',
               }}
             >
               Submit Notice to Vacate
+            </button>
+            <button
+              onClick={() => handleDownloadFile('UnitFlow_Residential_Lease_A204.txt', `RESIDENTIAL LEASE AGREEMENT\nLandlord: ${tenancy.landlordName}\nTenant: ${tenancy.tenantName}\nUnit: ${tenancy.unitNumber}, ${tenancy.propertyName}\nRent: KES ${tenancy.monthlyRent}/month\nDeposit: KES ${tenancy.securityDeposit}\nStart: ${tenancy.leaseStart}\nExpiry: ${tenancy.leaseExpires}`)}
+              style={{
+                background: '#f8fafc',
+                color: '#334155',
+                border: '1px solid #cbd5e1',
+                borderRadius: '10px',
+                padding: '10px 18px',
+                fontSize: '0.86rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <Download size={15} />
+              <span>Download Signed Lease</span>
             </button>
           </div>
         </div>
@@ -1818,54 +2192,81 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       ========================================================================== */}
       {currentView === 'maintenance' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#131726', margin: 0, letterSpacing: '-0.02em' }}>
                 Maintenance Requests
               </h1>
               <p style={{ margin: '4px 0 0 0', fontSize: '0.86rem', color: '#64748b' }}>
-                Report unit repairs, track assigned technicians, and inspect resolution logs.
+                Self-service repair reporting, live technician progress, and work order closure.
               </p>
             </div>
-            <button
-              onClick={() => setShowMaintenanceModal(true)}
-              style={{
-                background: '#f27a59',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '10px',
-                padding: '9px 18px',
-                fontSize: '0.84rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
-            >
-              <Plus size={16} />
-              <span>Report New Issue</span>
-            </button>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '2px' }}>
+                {['ALL', 'IN_PROGRESS', 'RESOLVED'].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setTicketFilter(f)}
+                    style={{
+                      background: ticketFilter === f ? '#f27a59' : 'transparent',
+                      color: ticketFilter === f ? '#ffffff' : '#64748b',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '6px 12px',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {f.replace('_', ' ')}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setShowMaintenanceModal(true)}
+                style={{
+                  background: '#f27a59',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '9px 18px',
+                  fontSize: '0.84rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Plus size={16} />
+                <span>Submit New Issue</span>
+              </button>
+            </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {maintenanceTickets.map((t) => (
+            {filteredTickets.map((t) => (
               <div
                 key={t.id}
                 style={{
                   background: '#ffffff',
                   border: '1px solid #e2e8f0',
                   borderRadius: '16px',
-                  padding: '20px',
+                  padding: '22px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '12px',
+                  gap: '14px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>{t.id}</span>
-                    <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>{t.title}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#f27a59', fontFamily: 'monospace' }}>
+                      {t.id}
+                    </span>
+                    <span style={{ fontSize: '1.08rem', fontWeight: 800, color: '#0f172a' }}>
+                      {t.title}
+                    </span>
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <span
@@ -1874,7 +2275,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                         color: t.priority === 'Emergency' ? '#dc2626' : t.priority === 'High' ? '#ea580c' : '#475569',
                         fontSize: '0.74rem',
                         fontWeight: 700,
-                        padding: '3px 8px',
+                        padding: '3px 9px',
                         borderRadius: '6px',
                       }}
                     >
@@ -1886,7 +2287,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                         color: t.status === 'RESOLVED' || t.status === 'CLOSED' ? '#059669' : '#2563eb',
                         fontSize: '0.74rem',
                         fontWeight: 700,
-                        padding: '3px 8px',
+                        padding: '3px 9px',
                         borderRadius: '6px',
                       }}
                     >
@@ -1895,13 +2296,69 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   </div>
                 </div>
 
-                <div style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.5 }}>
-                  {t.lastUpdate}
+                <div style={{ fontSize: '0.86rem', color: '#475569', lineHeight: 1.5 }}>
+                  {t.description}
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid #f8fafc', fontSize: '0.78rem', color: '#94a3b8' }}>
-                  <span>Assigned: {t.assignedTo}</span>
-                  <span>Reported: {t.reportedDate}</span>
+                {/* 6-Stage Visual Lifecycle Bar */}
+                <div style={{ margin: '4px 0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#64748b', marginBottom: '6px' }}>
+                    <span>Stage: {t.stages[t.stageIndex]?.name || t.status}</span>
+                    <span>Reported: {t.reportedDate}</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '4px' }}>
+                    {t.stages.map((st, i) => (
+                      <div
+                        key={i}
+                        title={`${st.name}: ${st.time}`}
+                        style={{
+                          height: '6px',
+                          borderRadius: '3px',
+                          background: i <= t.stageIndex ? '#f27a59' : '#e2e8f0',
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid #f8fafc', fontSize: '0.8rem', color: '#64748b' }}>
+                  <span>Assigned: <strong>{t.assignedTo}</strong> ({t.phone})</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {t.status === 'IN_PROGRESS' && (
+                      <button
+                        onClick={() => handleConfirmResolved(t.id)}
+                        style={{
+                          background: '#ecfdf5',
+                          color: '#059669',
+                          border: '1px solid #a7f3d0',
+                          borderRadius: '6px',
+                          padding: '5px 12px',
+                          fontSize: '0.76rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        ✓ Confirm Resolved
+                      </button>
+                    )}
+                    {t.status === 'RESOLVED' && (
+                      <button
+                        onClick={() => handleReopenTicket(t.id)}
+                        style={{
+                          background: '#fef2f2',
+                          color: '#dc2626',
+                          border: '1px solid #fecaca',
+                          borderRadius: '6px',
+                          padding: '5px 12px',
+                          fontSize: '0.76rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Reopen Issue
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -1942,6 +2399,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   gap: '14px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
                 }}
               >
                 <div>
@@ -1951,17 +2409,20 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     </span>
                     <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>{d.size}</span>
                   </div>
-                  <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#131726', lineHeight: 1.35 }}>
+                  <div style={{ fontSize: '0.94rem', fontWeight: 700, color: '#131726', lineHeight: 1.35 }}>
                     {d.name}
                   </div>
-                  <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '6px', lineHeight: 1.45 }}>
+                    {d.description}
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '8px' }}>
                     Issued: {d.date}
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
-                    onClick={() => showToast(`Opening ${d.name}...`)}
+                    onClick={() => setSelectedDoc(d)}
                     style={{
                       flex: 1,
                       background: '#f8fafc',
@@ -1974,10 +2435,10 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                       color: '#334155',
                     }}
                   >
-                    View
+                    View Document
                   </button>
                   <button
-                    onClick={() => showToast(`Downloading ${d.name}...`)}
+                    onClick={() => handleDownloadFile(`${d.id}.txt`, `DOCUMENT: ${d.name}\nCategory: ${d.category}\nDate: ${d.date}\nTenant: ${tenancy.tenantName}\nUnit: ${tenancy.unitNumber}`)}
                     style={{
                       flex: 1,
                       background: '#f27a59',
@@ -2044,7 +2505,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>1 Nov 2026</span>
                 </div>
                 <div style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '2px' }}>
-                  Safaricom Daraja C2B V2 (Ref QJ92K81N2P) reconciled. Receipt RCP-2026-1101 ready in Documents.
+                  Safaricom Daraja C2B V2 (Ref QKH782910X) reconciled. Receipt RCP-2026-1101 is available in Documents.
                 </div>
               </div>
             </div>
@@ -2066,79 +2527,140 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       )}
 
       {/* =========================================================================
-          SECTION 8: MY PROFILE
+          SECTION 8: MY PROFILE & SETTINGS
       ========================================================================== */}
       {currentView === 'profile' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
             <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#131726', margin: 0, letterSpacing: '-0.02em' }}>
-              My Profile & Settings
+              My Profile & Account Settings
             </h1>
             <p style={{ margin: '4px 0 0 0', fontSize: '0.86rem', color: '#64748b' }}>
-              Personal contact records, emergency contacts, and account security.
+              Update verified contact records, emergency numbers, and two-factor SMS authentication.
             </p>
           </div>
 
-          <div
+          <form
+            onSubmit={handleSaveProfile}
             style={{
               background: '#ffffff',
               border: '1px solid #e2e8f0',
-              borderRadius: '16px',
-              padding: '24px',
+              borderRadius: '20px',
+              padding: '28px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '16px',
+              gap: '20px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
               <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80"
                 alt="Profile"
-                style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover' }}
+                style={{ width: '68px', height: '68px', borderRadius: '50%', objectFit: 'cover' }}
               />
               <div>
-                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>{tenancy.tenantName}</h3>
-                <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>{tenancy.email} · {tenancy.phone}</p>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>{tenancy.tenantName}</h3>
+                <p style={{ margin: '2px 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>
+                  {tenancy.email} &bull; {tenancy.phone} &bull; Unit: {tenancy.unitNumber}
+                </p>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginTop: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '18px' }}>
               <div>
                 <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Full Legal Name</label>
                 <input
                   type="text"
-                  defaultValue={tenancy.tenantName}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}
+                  value={profileForm.tenantName}
+                  onChange={(e) => setProfileForm({ ...profileForm, tenantName: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}
                 />
               </div>
+
               <div>
-                <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Phone Number (M-Pesa)</label>
+                <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Mobile Number (Lipa Na M-Pesa)</label>
                 <input
                   type="text"
-                  defaultValue={tenancy.phone}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}
+                  value={profileForm.phone}
+                  onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Email Address</label>
+                <input
+                  type="email"
+                  value={profileForm.email}
+                  onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>National ID / Passport Number</label>
+                <input
+                  type="text"
+                  value={profileForm.nationalId}
+                  onChange={(e) => setProfileForm({ ...profileForm, nationalId: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Emergency Contact Name</label>
+                <input
+                  type="text"
+                  value={profileForm.emergencyContactName}
+                  onChange={(e) => setProfileForm({ ...profileForm, emergencyContactName: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Emergency Contact Phone</label>
+                <input
+                  type="text"
+                  value={profileForm.emergencyContactPhone}
+                  onChange={(e) => setProfileForm({ ...profileForm, emergencyContactPhone: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}
                 />
               </div>
             </div>
 
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
+              <div>
+                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>SMS Two-Factor Authentication</div>
+                <div style={{ fontSize: '0.76rem', color: '#64748b' }}>Receive instant security code on login to {profileForm.phone}</div>
+              </div>
+              <input
+                type="checkbox"
+                checked={profileForm.smsTwoFactor}
+                onChange={(e) => setProfileForm({ ...profileForm, smsTwoFactor: e.target.checked })}
+                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+              />
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
               <button
-                onClick={() => showToast('Profile details updated successfully.')}
+                type="submit"
                 style={{
                   background: '#f27a59',
                   color: '#ffffff',
                   border: 'none',
-                  borderRadius: '8px',
-                  padding: '9px 20px',
-                  fontSize: '0.84rem',
+                  borderRadius: '10px',
+                  padding: '11px 24px',
+                  fontSize: '0.88rem',
                   fontWeight: 700,
                   cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(242, 122, 89, 0.3)',
                 }}
               >
-                Save Changes
+                Save Profile Changes
               </button>
             </div>
-          </div>
+          </form>
         </div>
       )}
 
@@ -2172,7 +2694,6 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               textAlign: 'center',
             }}
           >
-            {/* Close button */}
             <button
               onClick={() => setShowReceiptModal(false)}
               style={{
@@ -2194,7 +2715,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               <X size={16} />
             </button>
 
-            {/* Top Confetti / Party Popper Icon matching Image 3 */}
+            {/* Confetti party popper icon */}
             <div
               style={{
                 width: '64px',
@@ -2214,13 +2735,12 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
             <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#131726', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
               Thank you
             </h2>
-            <p style={{ fontSize: '0.86rem', color: '#64748b', margin: '0 0 24px 0' }}>
-              Your payment has been processed successfully.
+            <p style={{ fontSize: '0.86rem', color: '#64748b', margin: '0 0 20px 0' }}>
+              Your rent payment has been processed successfully.
             </p>
 
             {/* Perforated tear line with circular notches */}
-            <div style={{ position: 'relative', margin: '24px -32px' }}>
-              {/* Left semi-circle notch */}
+            <div style={{ position: 'relative', margin: '20px -32px' }}>
               <div
                 style={{
                   position: 'absolute',
@@ -2233,7 +2753,6 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   background: 'rgba(15, 23, 42, 0.75)',
                 }}
               />
-              {/* Right semi-circle notch */}
               <div
                 style={{
                   position: 'absolute',
@@ -2249,14 +2768,14 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               <div style={{ borderBottom: '2px dashed #cbd5e1', margin: '0 24px' }} />
             </div>
 
-            {/* Ticket details grid matching Image 3 */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', textAlign: 'left', gap: '16px', margin: '20px 0 16px 0' }}>
+            {/* Ticket details grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', textAlign: 'left', gap: '16px', margin: '18px 0 16px 0' }}>
               <div>
                 <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.04em' }}>
-                  TICKET ID
+                  TICKET ID / REF
                 </div>
-                <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#131726', marginTop: '2px' }}>
-                  {receiptData.ticketId}
+                <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#131726', marginTop: '2px', fontFamily: 'monospace' }}>
+                  {activeReceipt.mpesaRef}
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
@@ -2264,21 +2783,21 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   AMOUNT
                 </div>
                 <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#131726', marginTop: '2px' }}>
-                  {receiptData.amountUsd}
+                  {fmt(activeReceipt.amountKes, activeReceipt.amountUsd)}
                 </div>
               </div>
             </div>
 
-            <div style={{ textAlign: 'left', marginBottom: '20px' }}>
+            <div style={{ textAlign: 'left', marginBottom: '18px' }}>
               <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.04em' }}>
                 DATE & TIME
               </div>
               <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#131726', marginTop: '2px' }}>
-                {receiptData.dateTime}
+                {activeReceipt.dateTime}
               </div>
             </div>
 
-            {/* Payment Method Chip matching Image 3 */}
+            {/* Payment Method Chip */}
             <div
               style={{
                 background: '#f0f4ff',
@@ -2287,26 +2806,25 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                marginBottom: '24px',
+                marginBottom: '20px',
                 textAlign: 'left',
               }}
             >
-              {/* Mastercard interlocking circles */}
               <div style={{ display: 'flex', alignItems: 'center', position: 'relative', width: '32px', height: '20px' }}>
-                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#eb001b', opacity: 0.95 }} />
-                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#f79e1b', opacity: 0.95, marginLeft: '-8px' }} />
+                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#059669', opacity: 0.95 }} />
+                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#10b981', opacity: 0.95, marginLeft: '-8px' }} />
               </div>
               <div>
                 <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b' }}>
-                  {receiptData.cardBrand}
+                  Safaricom M-Pesa C2B Paybill
                 </div>
                 <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                  Expiry: {receiptData.expiry}
+                  Paybill: {activeReceipt.paybill} &bull; Acc: {activeReceipt.account}
                 </div>
               </div>
             </div>
 
-            {/* Authentic Barcode Graphic matching Image 3 */}
+            {/* Barcode Graphic */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
               <svg width="220" height="38" viewBox="0 0 220 38" fill="none">
                 <rect x="0" y="0" width="3" height="38" fill="#131726" />
@@ -2349,11 +2867,50 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 <rect x="217" y="0" width="3" height="38" fill="#131726" />
               </svg>
               <span style={{ fontSize: '0.68rem', letterSpacing: '0.1em', fontFamily: 'monospace', color: '#131726', fontWeight: 600 }}>
-                {receiptData.barcode}
+                {activeReceipt.barcode}
               </span>
             </div>
 
-            {/* Scalloped semicircles along bottom edge matching Image 3 */}
+            {/* Bottom Download & Print Actions */}
+            <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+              <button
+                onClick={() => handleDownloadFile(`Receipt_${activeReceipt.mpesaRef}.txt`, `OFFICIAL RENT RECEIPT\nReference: ${activeReceipt.mpesaRef}\nAmount: KES ${activeReceipt.amountKes}\nTenant: ${tenancy.tenantName}\nUnit: ${tenancy.unitNumber}\nDate: ${activeReceipt.dateTime}\nPaybill: ${activeReceipt.paybill} Account: ${activeReceipt.account}`)}
+                style={{
+                  flex: 1,
+                  background: '#f27a59',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '9px',
+                  fontSize: '0.84rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Download size={14} />
+                <span>Download PDF</span>
+              </button>
+              <button
+                onClick={() => window.print()}
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '10px',
+                  padding: '9px 14px',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Print
+              </button>
+            </div>
+
+            {/* Scalloped semicircles along bottom edge */}
             <div
               style={{
                 display: 'flex',
@@ -2399,7 +2956,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
         >
           <div
             style={{
-              width: '640px',
+              width: '660px',
               maxWidth: '96vw',
               background: '#ffffff',
               borderRadius: '20px',
@@ -2410,7 +2967,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               maxHeight: '92vh',
             }}
           >
-            {/* Top Preview Bar matching Image 4 */}
+            {/* Top Preview Bar */}
             <div
               style={{
                 padding: '16px 24px',
@@ -2426,8 +2983,8 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               </h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <button
-                  onClick={() => showToast('Downloading invoice PDF...')}
-                  title="Download PDF"
+                  onClick={() => handleDownloadFile(`Invoice_${activeInvoice.invoiceNo}.txt`, `RENT INVOICE\nInvoice: ${activeInvoice.invoiceNo}\nTenant: ${activeInvoice.recipient.name}\nUnit: ${tenancy.unitNumber}\nAmount: KES ${activeInvoice.totalKes}\nDue Date: ${activeInvoice.dueDate}`)}
+                  title="Download Invoice"
                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
                 >
                   <Download size={18} />
@@ -2449,17 +3006,15 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               </div>
             </div>
 
-            {/* Clean Invoice Sheet matching Image 4 */}
-            <div style={{ padding: '36px 40px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {/* Logo & Contact Row */}
+            {/* Clean Invoice Sheet */}
+            <div style={{ padding: '36px 40px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '22px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                {/* Red/Black Modern Logo matching Image 4 */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div
                     style={{
                       width: '32px',
                       height: '32px',
-                      background: 'linear-gradient(135deg, #ef4444 0%, #1e1b4b 100%)',
+                      background: 'linear-gradient(135deg, #f27a59 0%, #1e1b4b 100%)',
                       borderRadius: '8px',
                       display: 'flex',
                       alignItems: 'center',
@@ -2469,33 +3024,36 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                       fontSize: '1rem',
                     }}
                   >
-                    N
+                    UF
                   </div>
-                  <span style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
-                    UNIT FLOW
-                  </span>
+                  <div>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+                      UNIT FLOW
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: '#64748b' }}>Property Management Ltd</div>
+                  </div>
                 </div>
 
                 <div style={{ textAlign: 'right', fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5 }}>
-                  <div>{invoiceData.senderEmail}</div>
-                  <div>{invoiceData.senderPhone}</div>
+                  <div>billing@unitflow.ke</div>
+                  <div>+254 700 123 456</div>
                 </div>
               </div>
 
-              {/* Recipient & Invoice Meta Row */}
+              {/* Recipient & Invoice Meta */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
                   <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.04em' }}>
                     RECIPIENT
                   </div>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#131726', marginTop: '4px' }}>
-                    {invoiceData.recipient.name}
+                  <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#131726', marginTop: '4px' }}>
+                    {activeInvoice.recipient.name}
                   </div>
                   <div style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.45, marginTop: '2px' }}>
-                    {invoiceData.recipient.address}<br />
-                    VAT no.: {invoiceData.recipient.vatNo}<br />
-                    {invoiceData.recipient.email}<br />
-                    {invoiceData.recipient.phone}
+                    {activeInvoice.recipient.address}<br />
+                    {activeInvoice.recipient.county}<br />
+                    KRA PIN: {activeInvoice.recipient.kraPin}<br />
+                    {activeInvoice.recipient.email} &bull; {activeInvoice.recipient.phone}
                   </div>
                 </div>
 
@@ -2507,42 +3065,42 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     INVOICE NO.
                   </div>
                   <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#131726', marginBottom: '6px' }}>
-                    {invoiceData.invoiceNo}
+                    {activeInvoice.invoiceNo}
                   </div>
                   <div style={{ fontSize: '0.74rem', color: '#94a3b8', fontWeight: 700 }}>
-                    INVOICE DATE
+                    INVOICE DATE &bull; DUE DATE
                   </div>
-                  <div style={{ fontSize: '0.86rem', fontWeight: 600, color: '#131726' }}>
-                    {invoiceData.invoiceDate}
+                  <div style={{ fontSize: '0.84rem', fontWeight: 600, color: '#131726' }}>
+                    {activeInvoice.invoiceDate} &bull; {activeInvoice.dueDate}
                   </div>
                 </div>
               </div>
 
-              {/* Items Table matching Image 4 */}
-              <div style={{ marginTop: '10px' }}>
+              {/* Items Table */}
+              <div style={{ marginTop: '8px' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
                   <thead>
                     <tr style={{ color: '#94a3b8', fontSize: '0.78rem', borderBottom: '1px solid #f1f5f9', textAlign: 'left' }}>
                       <th style={{ padding: '8px 0', fontWeight: 500 }}>Task description</th>
-                      <th style={{ padding: '8px 12px', fontWeight: 500, textAlign: 'center' }}>Hours</th>
+                      <th style={{ padding: '8px 12px', fontWeight: 500, textAlign: 'center' }}>Units</th>
                       <th style={{ padding: '8px 12px', fontWeight: 500, textAlign: 'right' }}>Rate</th>
                       <th style={{ padding: '8px 0', fontWeight: 500, textAlign: 'right' }}>Amount</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {invoiceData.items.map((it, idx) => (
+                    {activeInvoice.items.map((it, idx) => (
                       <tr key={idx} style={{ borderBottom: '1px solid #f8fafc' }}>
-                        <td style={{ padding: '14px 0', color: '#2563eb', fontWeight: 500 }}>
+                        <td style={{ padding: '12px 0', color: '#2563eb', fontWeight: 500 }}>
                           {it.desc}
                         </td>
-                        <td style={{ padding: '14px 12px', textAlign: 'center', color: '#131726', fontWeight: 600 }}>
-                          {it.hours}
+                        <td style={{ padding: '12px', textAlign: 'center', color: '#131726', fontWeight: 600 }}>
+                          {it.qty}
                         </td>
-                        <td style={{ padding: '14px 12px', textAlign: 'right', color: '#131726' }}>
-                          {it.rate} USD
+                        <td style={{ padding: '12px', textAlign: 'right', color: '#131726' }}>
+                          {fmt(it.rateKes, it.rateUsd)}
                         </td>
-                        <td style={{ padding: '14px 0', textAlign: 'right', fontWeight: 700, color: '#131726' }}>
-                          {it.amount.toLocaleString()} USD
+                        <td style={{ padding: '12px 0', textAlign: 'right', fontWeight: 700, color: '#131726' }}>
+                          {fmt(it.amountKes, it.amountUsd)}
                         </td>
                       </tr>
                     ))}
@@ -2552,39 +3110,38 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
 
               {/* Totals Section */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', width: '220px', fontSize: '0.84rem', color: '#64748b' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '240px', fontSize: '0.84rem', color: '#64748b' }}>
                   <span>Subtotal</span>
-                  <span style={{ fontWeight: 700, color: '#131726' }}>{invoiceData.subtotal.toLocaleString()} USD</span>
+                  <span style={{ fontWeight: 700, color: '#131726' }}>{fmt(activeInvoice.subtotalKes, activeInvoice.subtotalUsd)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', width: '220px', fontSize: '0.84rem', color: '#64748b' }}>
-                  <span>Discount 5%</span>
-                  <span style={{ fontWeight: 700, color: '#131726' }}>{invoiceData.discountAmount} USD</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '240px', fontSize: '0.84rem', color: '#64748b' }}>
+                  <span>Concession / Discount</span>
+                  <span style={{ fontWeight: 700, color: '#059669' }}>- {fmt(activeInvoice.discountKes, activeInvoice.discountUsd)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', width: '220px', fontSize: '1.05rem', color: '#2563eb', fontWeight: 800, borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
-                  <span>Total</span>
-                  <span>{invoiceData.total.toLocaleString()} USD</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '240px', fontSize: '1.1rem', color: '#2563eb', fontWeight: 800, borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
+                  <span>Total Due</span>
+                  <span>{fmt(activeInvoice.totalKes, activeInvoice.totalUsd)}</span>
                 </div>
               </div>
 
-              {/* Transfer Strip matching Image 4 */}
-              <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', fontSize: '0.74rem', color: '#64748b', textAlign: 'center' }}>
-                Transfer the amount to the business account below. Please include invoice number on your check.<br />
+              {/* Transfer Details */}
+              <div style={{ background: '#f8fafc', padding: '14px 18px', borderRadius: '10px', fontSize: '0.76rem', color: '#64748b', textAlign: 'center' }}>
+                Remit rent via M-Pesa Paybill: <strong>{tenancy.paybillNumber}</strong> &bull; Account: <strong>{tenancy.accountNumber}</strong><br />
                 <span style={{ fontWeight: 700, color: '#131726', marginTop: '4px', display: 'inline-block' }}>
-                  BANK: {invoiceData.bank} &bull; IBAN: {invoiceData.iban}
+                  Bank: Equity Bank &bull; Branch: Ruiru &bull; Account: 0110-9283-4921
                 </span>
               </div>
 
               {/* Notes */}
               <div style={{ fontSize: '0.74rem', color: '#64748b', lineHeight: 1.5 }}>
                 <div style={{ fontWeight: 700, color: '#131726', marginBottom: '2px' }}>NOTES</div>
-                All amounts are in dollars. Please make the payment within 15 days from the issue of date of this invoice. Tax is not charged on the basis of paragraph 1 of Article 94 of the Value Added Tax Act (I am not liable for VAT).<br />
-                Thank you for your confidence in my work.
+                All amounts are in Kenya Shillings. Rent is payable on or before the 1st of each calendar month. A grace period of 5 days applies before statutory late interest. Thank you for choosing Unit Flow.
               </div>
 
-              {/* Footer matching Image 4 */}
+              {/* Footer */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '16px', fontSize: '0.7rem', color: '#94a3b8' }}>
-                <div>NOVEN &bull; 2123 Hart Ridge Road, 12323 Gaines, MI</div>
-                <div>The company is registered in the business register under no. 21250034</div>
+                <div>Unit Flow Property Management Ltd &bull; Nairobi, Kenya</div>
+                <div>Registered in Kenya under Companies Act no. CPR/2026/091823</div>
               </div>
             </div>
           </div>
@@ -2592,15 +3149,15 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       )}
 
       {/* =========================================================================
-          OTHER OPERATIONAL MODALS
+          INTERACTIVE PAYBILL PAYMENT SIMULATION MODAL
       ========================================================================== */}
-      {/* Pay Modal */}
       {showPayModal && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
             background: 'rgba(15, 23, 42, 0.7)',
+            backdropFilter: 'blur(3px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -2608,74 +3165,153 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
             padding: '20px',
           }}
         >
-          <div style={{ background: '#ffffff', borderRadius: '16px', maxWidth: '440px', width: '100%', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>M-Pesa Paybill Instructions</h3>
+          <div style={{ background: '#ffffff', borderRadius: '20px', maxWidth: '460px', width: '100%', padding: '28px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Smartphone size={22} color="#059669" />
+                <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>Lipa na M-Pesa Online</h3>
+              </div>
               <button onClick={() => setShowPayModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
             </div>
-            <div style={{ background: '#f0fdf4', padding: '14px', borderRadius: '10px', border: '1px solid #bbf7d0', marginBottom: '14px' }}>
-              <div style={{ fontSize: '0.76rem', color: '#166534', fontWeight: 600 }}>Business Paybill Number:</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#15803d' }}>{tenancy.paybillNumber}</div>
-              <div style={{ fontSize: '0.76rem', color: '#166534', fontWeight: 600, marginTop: '8px' }}>Account Reference:</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>{tenancy.accountNumber}</div>
+
+            <div style={{ background: '#f0fdf4', padding: '16px', borderRadius: '12px', border: '1px solid #bbf7d0', marginBottom: '18px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '0.78rem', color: '#166534', fontWeight: 600 }}>Business Paybill:</span>
+                <span style={{ fontSize: '1.2rem', fontWeight: 800, color: '#15803d' }}>{tenancy.paybillNumber}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.78rem', color: '#166534', fontWeight: 600 }}>Account Reference:</span>
+                <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>{tenancy.accountNumber}</span>
+              </div>
             </div>
-            <button
-              onClick={() => {
-                setShowPayModal(false);
-                showToast('Paybill details copied. Reconciled automatically within 60s.');
-              }}
-              style={{ width: '100%', background: '#059669', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '10px', fontWeight: 700, cursor: 'pointer' }}
-            >
-              Copy Details & Close
-            </button>
+
+            <form onSubmit={handleSimulatePayment} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>M-Pesa Mobile Number</label>
+                <input
+                  type="text"
+                  value={simPhone}
+                  onChange={(e) => setSimPhone(e.target.value)}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem', marginTop: '4px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Rent Amount (KES)</label>
+                <input
+                  type="number"
+                  value={simAmount}
+                  onChange={(e) => setSimAmount(e.target.value)}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem', marginTop: '4px', fontWeight: 700 }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isProcessingPayment}
+                style={{
+                  background: isProcessingPayment ? '#94a3b8' : '#059669',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '12px',
+                  fontSize: '0.92rem',
+                  fontWeight: 700,
+                  cursor: isProcessingPayment ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  marginTop: '6px',
+                }}
+              >
+                {isProcessingPayment ? (
+                  <>
+                    <RefreshCw size={16} className="animate-spin" />
+                    <span>Processing Daraja STK Push...</span>
+                  </>
+                ) : (
+                  <span>Send M-Pesa STK Push / Pay Now</span>
+                )}
+              </button>
+            </form>
           </div>
         </div>
       )}
 
-      {/* Report Missing Payment Modal */}
-      {showMissingPayModal && (
+      {/* =========================================================================
+          DOCUMENT PREVIEW MODAL
+      ========================================================================== */}
+      {selectedDoc && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(15, 23, 42, 0.7)',
+            background: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 100,
-            padding: '20px',
+            padding: '24px',
           }}
         >
-          <div style={{ background: '#ffffff', borderRadius: '16px', maxWidth: '440px', width: '100%', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Report Missing Payment</h3>
-              <button onClick={() => setShowMissingPayModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
+          <div
+            style={{
+              width: '600px',
+              maxWidth: '95vw',
+              background: '#ffffff',
+              borderRadius: '20px',
+              padding: '28px',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.35)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '18px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <span style={{ fontSize: '0.74rem', color: '#f27a59', fontWeight: 700, textTransform: 'uppercase' }}>
+                  {selectedDoc.category}
+                </span>
+                <h3 style={{ margin: '2px 0 0 0', fontSize: '1.15rem', fontWeight: 800, color: '#131726' }}>
+                  {selectedDoc.name}
+                </h3>
+              </div>
+              <button onClick={() => setSelectedDoc(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                <X size={18} />
+              </button>
             </div>
-            <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 12px 0' }}>
-              Enter your M-Pesa transaction reference or bank transfer slip for verification.
-            </p>
-            <input
-              type="text"
-              placeholder="e.g. QJ92K81N2P"
-              style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', textTransform: 'uppercase', marginBottom: '14px' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <button onClick={() => setShowMissingPayModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer' }}>Cancel</button>
+
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '18px', fontSize: '0.82rem', color: '#334155', lineHeight: 1.6 }}>
+              <strong>CERTIFIED TENANCY RECORD</strong><br />
+              Property: {tenancy.propertyName} &bull; Demised Unit: {tenancy.unitNumber}<br />
+              Tenant: {tenancy.tenantName} (ID: {tenancy.nationalId})<br />
+              Registration Seal: CPR/2026/091823<br /><br />
+              This document is securely stored on the Unit Flow Private Document Repository and is authenticated against the double-entry accounting ledger.
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button onClick={() => setSelectedDoc(null)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '9px 16px', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}>
+                Close
+              </button>
               <button
                 onClick={() => {
-                  setShowMissingPayModal(false);
-                  showToast('Payment submitted for accountant verification.');
+                  handleDownloadFile(`${selectedDoc.id}.txt`, `DOCUMENT: ${selectedDoc.name}\nTenant: ${tenancy.tenantName}\nUnit: ${tenancy.unitNumber}`);
+                  setSelectedDoc(null);
                 }}
-                style={{ background: '#f27a59', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 700, cursor: 'pointer' }}
+                style={{ background: '#f27a59', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '9px 18px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
               >
-                Submit Reference
+                Download PDF
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Maintenance Request Modal */}
+      {/* =========================================================================
+          NEW MAINTENANCE TICKET MODAL
+      ========================================================================== */}
       {showMaintenanceModal && (
         <div
           style={{
@@ -2689,33 +3325,49 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
             padding: '20px',
           }}
         >
-          <div style={{ background: '#ffffff', borderRadius: '16px', maxWidth: '480px', width: '100%', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>Submit Maintenance Request</h3>
+          <div style={{ background: '#ffffff', borderRadius: '20px', maxWidth: '480px', width: '100%', padding: '28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>Submit Maintenance Request</h3>
               <button onClick={() => setShowMaintenanceModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+            <form onSubmit={handleCreateTicket} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
                 <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Issue Title</label>
                 <input
                   type="text"
-                  placeholder="e.g. Kitchen tap mixer leaking"
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}
+                  placeholder="e.g. Master bedroom toilet flush sticking"
+                  value={newTicket.title}
+                  onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}
                 />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Category</label>
-                  <select style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.84rem', marginTop: '4px' }}>
+                  <select
+                    value={newTicket.category}
+                    onChange={(e) => setNewTicket({ ...newTicket, category: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.84rem', marginTop: '4px' }}
+                  >
                     <option>Plumbing</option>
                     <option>Electrical</option>
                     <option>Doors & Locks</option>
                     <option>Appliances</option>
+                    <option>Painting</option>
+                    <option>Cleaning</option>
+                    <option>Structural</option>
                   </select>
                 </div>
+
                 <div>
-                  <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Priority</label>
-                  <select style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.84rem', marginTop: '4px' }}>
+                  <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Priority Level</label>
+                  <select
+                    value={newTicket.priority}
+                    onChange={(e) => setNewTicket({ ...newTicket, priority: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.84rem', marginTop: '4px' }}
+                  >
                     <option>High</option>
                     <option>Medium</option>
                     <option>Low</option>
@@ -2723,32 +3375,47 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   </select>
                 </div>
               </div>
+
               <div>
-                <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Description</label>
-                <textarea
-                  rows={3}
-                  placeholder="Describe the issue and technician access window..."
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}
+                <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Preferred Caretaker Access Window</label>
+                <input
+                  type="text"
+                  value={newTicket.preferredAccess}
+                  onChange={(e) => setNewTicket({ ...newTicket, preferredAccess: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}
                 />
               </div>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-              <button onClick={() => setShowMaintenanceModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer' }}>Cancel</button>
-              <button
-                onClick={() => {
-                  setShowMaintenanceModal(false);
-                  showToast('Maintenance request submitted and assigned to Caretaker.');
-                }}
-                style={{ background: '#f27a59', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 700, cursor: 'pointer' }}
-              >
-                Submit Request
-              </button>
-            </div>
+
+              <div>
+                <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Issue Details</label>
+                <textarea
+                  rows={3}
+                  placeholder="Describe the problem in detail for the caretaker..."
+                  value={newTicket.description}
+                  onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setShowMaintenanceModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' }}>
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#f27a59', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '9px 20px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Submit Ticket
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* Lease Renewal Modal */}
+      {/* =========================================================================
+          LEASE RENEWAL MODAL
+      ========================================================================== */}
       {showRenewalModal && (
         <div
           style={{
@@ -2762,28 +3429,45 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
             padding: '20px',
           }}
         >
-          <div style={{ background: '#ffffff', borderRadius: '16px', maxWidth: '440px', width: '100%', padding: '24px' }}>
-            <h3 style={{ margin: '0 0 10px 0', fontSize: '1.1rem', fontWeight: 800 }}>Request Lease Renewal</h3>
-            <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5 }}>
-              Your current lease expires on {tenancy.leaseExpires}. Requesting renewal will notify Greenview Property Holdings Ltd to issue successor terms.
+          <div style={{ background: '#ffffff', borderRadius: '20px', maxWidth: '440px', width: '100%', padding: '28px' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: 800 }}>Request Lease Renewal</h3>
+            <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+              Your current lease expires on {tenancy.leaseExpires}. Submit your desired renewal term for Greenview Property Holdings Ltd approval.
             </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-              <button onClick={() => setShowRenewalModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer' }}>Cancel</button>
-              <button
-                onClick={() => {
-                  setShowRenewalModal(false);
-                  showToast('Renewal request transmitted to property manager.');
-                }}
-                style={{ background: '#f27a59', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 700, cursor: 'pointer' }}
-              >
-                Submit Renewal
-              </button>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Renewal Duration</label>
+                <select style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}>
+                  <option>12 Months (Standard Renewal)</option>
+                  <option>6 Months (Short Extension)</option>
+                  <option>24 Months (Two-Year Fixed Rate)</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+                <button onClick={() => setShowRenewalModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' }}>
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setTenancy((prev) => ({ ...prev, leaseStatus: 'Renewal Requested' }));
+                    setShowRenewalModal(false);
+                    showToast('Renewal request submitted! Property manager Katherine Moss will issue successor contract.');
+                  }}
+                  style={{ background: '#f27a59', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '9px 20px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Submit Request
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Notice to Vacate Modal */}
+      {/* =========================================================================
+          NOTICE TO VACATE MODAL
+      ========================================================================== */}
       {showVacateModal && (
         <div
           style={{
@@ -2797,21 +3481,81 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
             padding: '20px',
           }}
         >
-          <div style={{ background: '#ffffff', borderRadius: '16px', maxWidth: '440px', width: '100%', padding: '24px' }}>
-            <h3 style={{ margin: '0 0 10px 0', fontSize: '1.1rem', fontWeight: 800, color: '#dc2626' }}>Notice to Vacate</h3>
-            <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5 }}>
-              A 30-day statutory notice is required. Move-out inspection will assess security deposit refund deductions.
+          <div style={{ background: '#ffffff', borderRadius: '20px', maxWidth: '440px', width: '100%', padding: '28px' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: 800, color: '#dc2626' }}>Notice to Vacate</h3>
+            <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 16px 0' }}>
+              Per Clause 14 of your lease, a 30-day statutory notice is required. Move-out inspection and deposit escrow refund (KES 25,000.00) will be initiated.
             </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-              <button onClick={() => setShowVacateModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer' }}>Cancel</button>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b' }}>Intended Vacate Date</label>
+                <input
+                  type="date"
+                  defaultValue="2026-12-31"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.86rem', marginTop: '4px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+                <button onClick={() => setShowVacateModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' }}>
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setTenancy((prev) => ({ ...prev, leaseStatus: 'Notice to Vacate Submitted' }));
+                    setShowVacateModal(false);
+                    showToast('Notice to vacate registered. Caretaker scheduled for preliminary move-out walkthrough.');
+                  }}
+                  style={{ background: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '9px 20px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Confirm Notice
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          REPORT MISSING PAYMENT MODAL
+      ========================================================================== */}
+      {showMissingPayModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: '20px',
+          }}
+        >
+          <div style={{ background: '#ffffff', borderRadius: '20px', maxWidth: '440px', width: '100%', padding: '28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>Report Missing Payment</h3>
+              <button onClick={() => setShowMissingPayModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
+            </div>
+            <p style={{ fontSize: '0.84rem', color: '#64748b', margin: '0 0 14px 0', lineHeight: 1.45 }}>
+              Enter your M-Pesa transaction code or bank transfer reference for manual reconciliation by Accountant Daniel Ochieng.
+            </p>
+            <input
+              type="text"
+              placeholder="e.g. QKH782910X"
+              style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem', textTransform: 'uppercase', marginBottom: '16px' }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button onClick={() => setShowMissingPayModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer' }}>Cancel</button>
               <button
                 onClick={() => {
-                  setShowVacateModal(false);
-                  showToast('Notice to vacate submitted. Move-out inspection initiated.');
+                  setShowMissingPayModal(false);
+                  showToast('Payment reference queued for accountant investigation.');
                 }}
-                style={{ background: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '8px 16px', fontWeight: 700, cursor: 'pointer' }}
+                style={{ background: '#f27a59', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '9px 20px', fontWeight: 700, cursor: 'pointer' }}
               >
-                Confirm Notice
+                Submit Reference
               </button>
             </div>
           </div>
