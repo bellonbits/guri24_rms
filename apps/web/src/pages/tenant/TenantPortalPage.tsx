@@ -20,6 +20,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Shield,
+  ShieldCheck,
   Smartphone,
   Info,
   Calendar,
@@ -112,7 +113,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
     return 'dashboard';
   }, [view, location.pathname]);
 
-  // Persistent Tenancy State
+  // Persistent Tenancy State matching reference screenshots (Courtney Henry / Amina Wanjiku)
   const [tenancy, setTenancy] = useState(() => {
     try {
       const saved = localStorage.getItem('unitflow_tenant_profile');
@@ -121,12 +122,27 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       // fallback
     }
     return {
-      tenantName: 'Amina Wanjiku',
-      phone: '+254 722 000 492',
-      email: 'amina.wanjiku@unitflow.ke',
+      tenantName: 'Courtney Henry',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
+      phone: '+44 9999 999 999',
+      email: 'courtneyh@gmail.com',
+      occupation: 'Sr. UX/UI Designer',
+      emergencyPhone: '+44 9999 999 999',
+      currentAddress: '9865 Aurore Expressway',
+      maritalStatus: 'Married',
+      occupants: '02',
+      pets: '--',
+      cars: '02',
+      monthlyIncome: '$15000/month',
+      guarantorName: 'Alexa Joseph',
+      allottedParking: '02 (Slot P-204)',
+      accessCardNo: '9834Y65',
+      applicationDate: '23 June 2024',
+      desiredMoveInDate: '01 July 2024',
+      desiredLeaseTerm: '2 Years',
       nationalId: '29849201',
       kraPin: 'A012984920X',
-      propertyName: 'Greenview Apartments',
+      propertyName: 'Greenview Luxury Residences',
       location: 'Block A · Unit A-204 · Ruiru',
       unitNumber: 'Unit A-204',
       unitType: '2 Bedroom Master Ensuite',
@@ -135,12 +151,13 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       leaseReference: 'UF-LS-2026-A204',
       leaseStatus: 'Active Lease',
       monthlyRent: 25000,
+      monthlyRentUsd: 5000,
       serviceCharge: 2500,
       securityDeposit: 25000,
       outstandingBalance: 0,
       nextDueDate: '1 Dec 2026',
-      leaseStart: '1 Jan 2026',
-      leaseExpires: '31 Dec 2026',
+      leaseStart: '21 June 2023',
+      leaseExpires: '21 June 2024',
       paybillNumber: '247247',
       accountNumber: 'GRE-A204',
       landlordName: 'Greenview Property Holdings Ltd',
@@ -150,7 +167,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       caretakerName: 'Peter Kariuki',
       caretakerPhone: '+254 711 223 344',
       emergencyContactName: 'James Mwangi',
-      emergencyContactPhone: '+254 733 998 877',
+      emergencyContactPhone: '+44 9999 999 999',
       smsTwoFactor: true,
       emailNotifications: true,
     };
@@ -165,14 +182,20 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
     }
   }, [tenancy]);
 
+  // Tab state for My Lease / Tenant Details screen (matching PropEasy reference)
+  const [leaseTab, setLeaseTab] = useState<'application' | 'history' | 'documents' | 'notes'>('application');
+
+  // Tab state for Notifications screen (matching Resident Portal reference)
+  const [notificationTab, setNotificationTab] = useState<'All' | 'Messages' | 'Alert' | 'Announcements' | 'Classifieds'>('All');
+
   // Currency toggle state: USD vs KES
-  const [currencyMode, setCurrencyMode] = useState<'KES' | 'USD'>('KES');
+  const [currencyMode, setCurrencyMode] = useState<'KES' | 'USD'>('USD');
 
   // Format currency helper
   const fmt = (amountKes: number, amountUsd?: number) => {
     if (currencyMode === 'USD') {
-      const val = amountUsd !== undefined ? amountUsd : amountKes / 130;
-      return `$ ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const val = amountUsd !== undefined ? amountUsd : (amountKes === 25000 ? 5000 : amountKes / 130);
+      return `$${val.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
     }
     return `KES ${amountKes.toLocaleString()}`;
   };
@@ -925,1181 +948,797 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       )}
 
       {/* =========================================================================
-          SECTION 1: OVERVIEW DASHBOARD (REFERENCE SCREENSHOT DESIGN)
+          SECTION 1: TENANT DASHBOARD — OVERVIEW (RECOMMENDED STRUCTURE)
+          Answers 5 questions immediately:
+          1. Where am I staying? (Greenview Apartments, Block A · Unit A-204 · Ruiru)
+          2. How much rent do I owe? (KES 0 Outstanding · KES 25,000 Monthly Rent)
+          3. When is my next payment due? (1 Dec 2026 · Paybill 247247 / GRE-A204)
+          4. What is happening with my maintenance requests? (REQ-0492 In Progress)
+          5. Where can I find my lease, receipts and important info? (Quick Actions & Recent Activity)
       ========================================================================== */}
       {currentView === 'dashboard' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-          {/* Header Switcher & Controls */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <div style={{ display: 'flex', gap: '6px', background: '#ffffff', padding: '4px', borderRadius: '12px', border: '1px solid #edf0f7', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-              <button
-                type="button"
-                onClick={() => setDashboardMode('operations')}
-                style={{
-                  border: 'none',
-                  background: dashboardMode === 'operations' ? '#fff0f3' : 'transparent',
-                  color: dashboardMode === 'operations' ? '#ff4b72' : '#64748b',
-                  fontWeight: dashboardMode === 'operations' ? 700 : 500,
-                  fontSize: '0.84rem',
-                  padding: '7px 16px',
-                  borderRadius: '9px',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                Operations Dashboard
-              </button>
-              <button
-                type="button"
-                onClick={() => setDashboardMode('residence')}
-                style={{
-                  border: 'none',
-                  background: dashboardMode === 'residence' ? '#fff0f3' : 'transparent',
-                  color: dashboardMode === 'residence' ? '#ff4b72' : '#64748b',
-                  fontWeight: dashboardMode === 'residence' ? 700 : 500,
-                  fontSize: '0.84rem',
-                  padding: '7px 16px',
-                  borderRadius: '9px',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                Residence Overview
-              </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Welcome Residence Banner */}
+          <div
+            style={{
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '20px',
+              padding: '24px 28px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '20px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+            }}
+          >
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                <span
+                  style={{
+                    background: '#ecfdf5',
+                    color: '#059669',
+                    border: '1px solid #a7f3d0',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    padding: '3px 10px',
+                    borderRadius: '20px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <CheckCircle2 size={12} color="#059669" />
+                  <span>My Residence &bull; Active Lease</span>
+                </span>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                  Lease Ref: <strong>{tenancy.leaseReference}</strong>
+                </span>
+              </div>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+                Welcome back, {tenancy.tenantName}
+              </h1>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Home size={15} color="#2563eb" />
+                <span><strong>{tenancy.propertyName}</strong> &bull; {tenancy.location} &bull; {tenancy.town}</span>
+              </p>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               <button
+                type="button"
                 onClick={() => handleOpenReceipt()}
                 style={{
-                  background: '#ffffff',
-                  color: '#475569',
-                  border: '1px solid #edf0f7',
+                  background: '#f8fafc',
+                  color: '#334155',
+                  border: '1px solid #cbd5e1',
                   borderRadius: '10px',
-                  padding: '8px 16px',
-                  fontSize: '0.82rem',
+                  padding: '9px 16px',
+                  fontSize: '0.84rem',
                   fontWeight: 600,
                   cursor: 'pointer',
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
                 }}
               >
                 <span>🎟️ Latest Receipt</span>
               </button>
               <button
+                type="button"
                 onClick={() => handleOpenInvoice()}
                 style={{
-                  background: 'linear-gradient(135deg, #ff5b79 0%, #ff758c 100%)',
+                  background: '#2563eb',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '10px',
-                  padding: '8px 18px',
-                  fontSize: '0.82rem',
+                  padding: '9px 18px',
+                  fontSize: '0.84rem',
                   fontWeight: 700,
                   cursor: 'pointer',
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 4px 14px rgba(255, 91, 121, 0.25)',
+                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.25)',
                 }}
               >
-                <span>📄 Preview Invoice</span>
+                <span>📄 View Invoice</span>
               </button>
             </div>
           </div>
 
-          {/* MODE 1: Operations Dashboard matching Reference Screenshot */}
-          {dashboardMode === 'operations' && (
-            <>
-              {/* TOP ONBOARDING CARD: "Well begun is half done" */}
-              <div
-                style={{
-                  background: '#ffffff',
-                  borderRadius: '24px',
-                  padding: '28px 32px',
-                  boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
-                  border: '1px solid #f1f4fb',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '24px',
-                }}
-              >
-                {/* Left Text */}
-                <div style={{ minWidth: '260px', flex: '1 1 280px' }}>
-                  <h1
-                    style={{
-                      margin: '0 0 8px 0',
-                      fontSize: '1.85rem',
-                      fontWeight: 800,
-                      color: '#ff4b72', // Coral Rose headline from image
-                      letterSpacing: '-0.02em',
-                    }}
-                  >
-                    Well begun is half done
-                  </h1>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748b' }}>
-                    Complete the following steps to sell
-                  </p>
-                </div>
-
-                {/* Right: 3 Gradient Step Cards */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    flexWrap: 'wrap',
-                    flex: '2 1 600px',
-                    justifyContent: 'flex-end',
-                  }}
-                >
-                  {/* Step 1: Certification */}
-                  <div
-                    style={{
-                      flex: '1 1 180px',
-                      minWidth: '180px',
-                      maxWidth: '220px',
-                      borderRadius: '16px',
-                      background: 'linear-gradient(135deg, #ff6b8b 0%, #ff8e9b 100%)',
-                      color: '#ffffff',
-                      padding: '16px 18px',
-                      boxShadow: '0 8px 20px rgba(255, 107, 139, 0.28)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      minHeight: '84px',
-                      position: 'relative',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '0.88rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
-                        1.certification
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowCertificationModal(true)}
-                        style={{
-                          background: '#ffffff',
-                          color: '#0f172a',
-                          border: 'none',
-                          borderRadius: '16px',
-                          padding: '3px 12px',
-                          fontSize: '0.74rem',
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                          transition: 'transform 0.1s ease',
-                        }}
-                      >
-                        GO
-                      </button>
-                    </div>
-                    <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.92)', lineHeight: 1.25 }}>
-                      Upload qualification information
-                    </span>
-                  </div>
-
-                  {/* Step 2: Upload a product */}
-                  <div
-                    style={{
-                      flex: '1 1 180px',
-                      minWidth: '180px',
-                      maxWidth: '220px',
-                      borderRadius: '16px',
-                      background: 'linear-gradient(135deg, #4facfe 0%, #00c6ff 100%)',
-                      color: '#ffffff',
-                      padding: '16px 18px',
-                      boxShadow: '0 8px 20px rgba(79, 172, 254, 0.28)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      minHeight: '84px',
-                      position: 'relative',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '0.88rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
-                        2.Upload a product
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowProductUploadModal(true)}
-                        style={{
-                          background: '#ffffff',
-                          color: '#0f172a',
-                          border: 'none',
-                          borderRadius: '16px',
-                          padding: '3px 12px',
-                          fontSize: '0.74rem',
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                          transition: 'transform 0.1s ease',
-                        }}
-                      >
-                        GO
-                      </button>
-                    </div>
-                    <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.92)', lineHeight: 1.25 }}>
-                      Fill in product information
-                    </span>
-                  </div>
-
-                  {/* Step 3: Open for sale */}
-                  <div
-                    style={{
-                      flex: '1 1 180px',
-                      minWidth: '180px',
-                      maxWidth: '220px',
-                      borderRadius: '16px',
-                      background: 'linear-gradient(135deg, #a18cd1 0%, #c394fc 100%)',
-                      color: '#ffffff',
-                      padding: '16px 18px',
-                      boxShadow: '0 8px 20px rgba(161, 140, 209, 0.28)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      minHeight: '84px',
-                      position: 'relative',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '0.88rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
-                        3.Open for sale
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowSalesChannelModal(true)}
-                        style={{
-                          background: '#ffffff',
-                          color: '#0f172a',
-                          border: 'none',
-                          borderRadius: '16px',
-                          padding: '3px 12px',
-                          fontSize: '0.74rem',
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                          transition: 'transform 0.1s ease',
-                        }}
-                      >
-                        GO
-                      </button>
-                    </div>
-                    <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.92)', lineHeight: 1.25 }}>
-                      Choose to open any sales channel
-                    </span>
-                  </div>
-                </div>
+          {/* 4 Summary KPI Cards (Mandated Section 1) */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gap: '16px',
+            }}
+          >
+            {/* 1. Monthly Rent */}
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #f1f5f9',
+                borderRadius: '18px',
+                padding: '22px 24px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Monthly Rent
+                </span>
+                <CreditCard size={18} color="#2563eb" />
               </div>
-
-              {/* SECTION 2: "Today's data" */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>
-                    Today's data
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => setDashboardMode('residence')}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#ff4b72',
-                      fontSize: '0.86rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    More
-                  </button>
-                </div>
-
-                {/* Top 4 Colorful Metric Cards with Circular Badge Icons */}
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-                    gap: '16px',
-                  }}
-                >
-                  {/* Card 1: Payment amount (Pastel Pink) */}
-                  <div
-                    style={{
-                      background: '#fff0f3',
-                      border: '1px solid #ffe4ea',
-                      borderRadius: '18px',
-                      padding: '22px 24px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
-                        Payment amount
-                      </div>
-                      <div style={{ fontSize: '1.95rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                        8,992
-                      </div>
-                      <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
-                        Yesterday 8638
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '50%',
-                        background: '#ff4b72',
-                        color: '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 800,
-                        fontSize: '1.15rem',
-                        boxShadow: '0 4px 12px rgba(255, 75, 114, 0.3)',
-                        flexShrink: 0,
-                      }}
-                    >
-                      ¥
-                    </div>
-                  </div>
-
-                  {/* Card 2: Payment order (Pastel Blue) */}
-                  <div
-                    style={{
-                      background: '#eff6ff',
-                      border: '1px solid #dbeafe',
-                      borderRadius: '18px',
-                      padding: '22px 24px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
-                        Payment order
-                      </div>
-                      <div style={{ fontSize: '1.95rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                        793
-                      </div>
-                      <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
-                        Yesterday 753
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '50%',
-                        background: '#3b82f6',
-                        color: '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <FileText size={20} />
-                    </div>
-                  </div>
-
-                  {/* Card 3: Paying customer (Pastel Purple) */}
-                  <div
-                    style={{
-                      background: '#f5f3ff',
-                      border: '1px solid #ede9fe',
-                      borderRadius: '18px',
-                      padding: '22px 24px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
-                        Paying customer
-                      </div>
-                      <div style={{ fontSize: '1.95rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                        280
-                      </div>
-                      <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
-                        Yesterday 320
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '50%',
-                        background: '#8b5cf6',
-                        color: '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Users size={20} />
-                    </div>
-                  </div>
-
-                  {/* Card 4: Pending orders (Pastel Mint Green) */}
-                  <div
-                    style={{
-                      background: '#ecfdf5',
-                      border: '1px solid #d1fae5',
-                      borderRadius: '18px',
-                      padding: '22px 24px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
-                        Pending orders
-                      </div>
-                      <div style={{ fontSize: '1.95rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                        480
-                      </div>
-                      <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
-                        Yesterday 470
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '50%',
-                        background: '#10b981',
-                        color: '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Truck size={20} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom 4 Clean White Metric Cards */}
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-                    gap: '16px',
-                  }}
-                >
-                  <div style={{ background: '#ffffff', border: '1px solid #f1f4fb', borderRadius: '18px', padding: '22px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.01)' }}>
-                    <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
-                      Live stream viewers
-                    </div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                      23,466
-                    </div>
-                    <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
-                      Yesterday 22089
-                    </div>
-                  </div>
-
-                  <div style={{ background: '#ffffff', border: '1px solid #f1f4fb', borderRadius: '18px', padding: '22px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.01)' }}>
-                    <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
-                      New attention
-                    </div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                      4,890
-                    </div>
-                    <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
-                      Yesterday 3800
-                    </div>
-                  </div>
-
-                  <div style={{ background: '#ffffff', border: '1px solid #f1f4fb', borderRadius: '18px', padding: '22px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.01)' }}>
-                    <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
-                      Cumulative attention
-                    </div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                      135,743
-                    </div>
-                    <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
-                      Yesterday 130493
-                    </div>
-                  </div>
-
-                  <div style={{ background: '#ffffff', border: '1px solid #f1f4fb', borderRadius: '18px', padding: '22px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.01)' }}>
-                    <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
-                      Number of orders
-                    </div>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                      5,249
-                    </div>
-                    <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
-                      Yesterday 4680
-                    </div>
-                  </div>
-                </div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', marginTop: '8px', letterSpacing: '-0.02em' }}>
+                {fmt(tenancy.monthlyRent)}
               </div>
-
-              {/* SECTION 3: "Operations Assistant" */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>
-                    Operations Assistant
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedAssistantTile({
-                        title: 'All Operations Assistant Tools',
-                        subtitle: 'Comprehensive Property & Store Capabilities',
-                        details: 'Access live broadcast, mini program deployment, referral network, and automated marketing tools.',
-                        actionText: 'Explore All Tools',
-                        icon: 'sparkles',
-                      });
-                    }}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#ff4b72',
-                      fontSize: '0.86rem',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    More
-                  </button>
-                </div>
-
-                {/* 8 Action Tiles (2 rows x 4 columns) */}
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                    gap: '16px',
-                  }}
-                >
-                  {/* Tile 1: Small telecast live */}
-                  <div
-                    onClick={() => {
-                      setSelectedAssistantTile({
-                        title: 'Small telecast live',
-                        subtitle: 'Live sales in WeChat / Virtual Walkthrough',
-                        details: 'Broadcast live HD walkthroughs of available penthouse units and scheduled maintenance demonstrations directly to registered residents and prospects.',
-                        actionText: 'Launch Live Telecast',
-                        icon: 'tv',
-                      });
-                    }}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #f1f4fb',
-                      borderRadius: '16px',
-                      padding: '18px 20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '14px',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
-                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '12px',
-                        background: '#fff0f3',
-                        color: '#ff4b72',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Tv size={20} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
-                        Small telecast live
-                      </div>
-                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
-                        Live sales in WeChat
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Tile 2: Mini Program Store */}
-                  <div
-                    onClick={() => {
-                      setSelectedAssistantTile({
-                        title: 'Mini Program Store',
-                        subtitle: 'WeChat Mini Program Store / Resident Portal',
-                        details: 'Enable seamless one-tap tenant payments, guest gate clearances, and amenity booking directly from mobile WeChat / WhatsApp mini apps.',
-                        actionText: 'Open Mini Program Config',
-                        icon: 'smartphone',
-                      });
-                    }}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #f1f4fb',
-                      borderRadius: '16px',
-                      padding: '18px 20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '14px',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
-                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '12px',
-                        background: '#ecfdf5',
-                        color: '#10b981',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Smartphone size={20} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
-                        Mini Program Store
-                      </div>
-                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
-                        WeChat Mini Program Store
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Tile 3: Distribution market */}
-                  <div
-                    onClick={() => {
-                      setSelectedAssistantTile({
-                        title: 'Distribution market',
-                        subtitle: 'One-click promotion & Multi-channel Syndication',
-                        details: 'Syndicate your property listings to leading rental portals and referral brokers with automated inventory sync and lease commission tracking.',
-                        actionText: 'Manage Distribution Channels',
-                        icon: 'share',
-                      });
-                    }}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #f1f4fb',
-                      borderRadius: '16px',
-                      padding: '18px 20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '14px',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
-                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '12px',
-                        background: '#eff6ff',
-                        color: '#3b82f6',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Share2 size={20} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
-                        Distribution market
-                      </div>
-                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
-                        One-click promotion
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Tile 4: Coupon */}
-                  <div
-                    onClick={() => {
-                      setSelectedAssistantTile({
-                        title: 'Coupon',
-                        subtitle: 'Store marketing essentials & Rent Credits',
-                        details: 'Issue early-payment discounts, move-in fee vouchers, and parking concession coupons with automated ledger balancing.',
-                        actionText: 'Generate Coupon Code',
-                        icon: 'tag',
-                      });
-                    }}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #f1f4fb',
-                      borderRadius: '16px',
-                      padding: '18px 20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '14px',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
-                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '12px',
-                        background: '#fff0f3',
-                        color: '#ff4b72',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Tag size={20} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
-                        Coupon
-                      </div>
-                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
-                        Store marketing essentials
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Tile 5: Store construction */}
-                  <div
-                    onClick={() => {
-                      setSelectedAssistantTile({
-                        title: 'Store construction',
-                        subtitle: 'Custom branding & Portal Themes',
-                        details: 'Customize tenant portal layouts, color palettes, custom subdomains, and legal agreement templates with real-time preview.',
-                        actionText: 'Customize Portal Theme',
-                        icon: 'store',
-                      });
-                    }}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #f1f4fb',
-                      borderRadius: '16px',
-                      padding: '18px 20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '14px',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
-                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '12px',
-                        background: '#eff6ff',
-                        color: '#3b82f6',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Store size={20} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
-                        Store construction
-                      </div>
-                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
-                        Can be customized
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Tile 6: Promoting ads */}
-                  <div
-                    onClick={() => {
-                      setSelectedAssistantTile({
-                        title: 'Promoting ads',
-                        subtitle: 'WeChat billion-level exposure & Meta Ads',
-                        details: 'Deploy AI-optimized digital billboard ads across search and social channels to fill vacant units 3x faster with qualified tenants.',
-                        actionText: 'Launch Ad Campaign',
-                        icon: 'megaphone',
-                      });
-                    }}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #f1f4fb',
-                      borderRadius: '16px',
-                      padding: '18px 20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '14px',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
-                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '12px',
-                        background: '#fff0f3',
-                        color: '#ff4b72',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Megaphone size={20} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
-                        Promoting ads
-                      </div>
-                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
-                        WeChat billion-level exposure
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Tile 7: Promotion rebate */}
-                  <div
-                    onClick={() => {
-                      setSelectedAssistantTile({
-                        title: 'Promotion rebate',
-                        subtitle: 'Help you sell goods / Tenant Referrals',
-                        details: 'Incentivize existing tenants to refer friends and colleagues with verified rent rebate discounts upon lease execution.',
-                        actionText: 'Set Referral Rebates',
-                        icon: 'award',
-                      });
-                    }}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #f1f4fb',
-                      borderRadius: '16px',
-                      padding: '18px 20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '14px',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
-                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '12px',
-                        background: '#fff0f3',
-                        color: '#ff4b72',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Award size={20} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
-                        Promotion rebate
-                      </div>
-                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
-                        Help you sell goods
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Tile 8: Asset Management */}
-                  <div
-                    onClick={() => {
-                      setSelectedAssistantTile({
-                        title: 'Asset Management',
-                        subtitle: 'Income and withdrawal / Escrow Management',
-                        details: 'Automated M-Pesa B2C disbursements, landlord rent remittances, security deposit trust fund yields, and audit-ready financial statements.',
-                        actionText: 'Open Asset Dashboard',
-                        icon: 'wallet',
-                      });
-                    }}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #f1f4fb',
-                      borderRadius: '16px',
-                      padding: '18px 20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '14px',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
-                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '12px',
-                        background: '#ecfdf5',
-                        color: '#10b981',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Wallet size={20} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
-                        Asset Management
-                      </div>
-                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
-                        Income and withdrawal
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                Plus {fmt(tenancy.serviceCharge)} estate service charge
               </div>
-            </>
-          )}
+            </div>
 
-          {/* MODE 2: Residence Overview (Tenancy, Balance & Maintenance) */}
-          {dashboardMode === 'residence' && (
-            <>
-              {/* Welcome Residence Banner */}
-              <div
-                style={{
-                  background: '#ffffff',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '20px',
-                  padding: '24px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '16px',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-                }}
-              >
+            {/* 2. Outstanding Balance */}
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #f1f5f9',
+                borderRadius: '18px',
+                padding: '22px 24px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Outstanding Balance
+                </span>
+                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#059669', background: '#ecfdf5', padding: '2px 8px', borderRadius: '10px' }}>
+                  Verified
+                </span>
+              </div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#059669', marginTop: '8px', letterSpacing: '-0.02em' }}>
+                {fmt(tenancy.outstandingBalance)}
+              </div>
+              <div style={{ fontSize: '0.76rem', color: '#059669', marginTop: '4px', fontWeight: 500 }}>
+                ✓ Account verified & up to date (Zero arrears)
+              </div>
+            </div>
+
+            {/* 3. Next Due Date */}
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #f1f5f9',
+                borderRadius: '18px',
+                padding: '22px 24px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Next Due Date
+                </span>
+                <Calendar size={18} color="#d97706" />
+              </div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', marginTop: '8px', letterSpacing: '-0.02em' }}>
+                {tenancy.nextDueDate}
+              </div>
+              <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                Paybill <strong>{tenancy.paybillNumber}</strong> &bull; Acc: <strong>{tenancy.accountNumber}</strong>
+              </div>
+            </div>
+
+            {/* 4. Lease Status */}
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #f1f5f9',
+                borderRadius: '18px',
+                padding: '22px 24px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Lease Status
+                </span>
+                <ShieldCheck size={18} color="#10b981" />
+              </div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#10b981', marginTop: '8px', letterSpacing: '-0.02em' }}>
+                {tenancy.leaseStatus}
+              </div>
+              <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                Expires {tenancy.leaseExpires} (in 38 days)
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Stats Line Chart & Building Condition (Image 3 Modern Real Estate Layout) */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: '16px',
+            }}
+          >
+            {/* Quick Stats Chart Card */}
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #f1f5f9',
+                borderRadius: '18px',
+                padding: '22px 24px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#ff4b72', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      Tenant Self-Service Portal
+                  <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                    Quick Stats
+                  </h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px', fontSize: '0.74rem' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#0f172a', fontWeight: 600 }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0f172a' }} />
+                      Income / Verified Rent
                     </span>
-                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#cbd5e1' }} />
-                    <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{tenancy.propertyName} · {tenancy.unitNumber}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#94a3b8' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#cbd5e1' }} />
+                      Maintenance & Utilities
+                    </span>
                   </div>
-                  <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#131726', margin: 0, letterSpacing: '-0.02em' }}>
-                    Welcome back, {tenancy.tenantName}
-                  </h1>
-                  <p style={{ margin: '6px 0 0 0', fontSize: '0.88rem', color: '#64748b' }}>
-                    {tenancy.location} · {tenancy.town} &bull; Tenancy Status: <strong style={{ color: '#059669' }}>{tenancy.leaseStatus}</strong>
-                  </p>
+                </div>
+                <span style={{ fontSize: '0.74rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '3px 8px', color: '#64748b' }}>
+                  2026 Season &or;
+                </span>
+              </div>
+
+              {/* SVG Trend Graph matching screenshot */}
+              <div style={{ position: 'relative', height: '100px', width: '100%', marginTop: '6px' }}>
+                <svg viewBox="0 0 400 100" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                  <line x1="0" y1="20" x2="400" y2="20" stroke="#f1f5f9" strokeWidth="1" />
+                  <line x1="0" y1="50" x2="400" y2="50" stroke="#f1f5f9" strokeWidth="1" />
+                  <line x1="0" y1="80" x2="400" y2="80" stroke="#f1f5f9" strokeWidth="1" />
+
+                  <path
+                    d="M 10,65 Q 80,45 150,70 T 280,50 T 390,30"
+                    fill="none"
+                    stroke="#cbd5e1"
+                    strokeWidth="2"
+                    strokeDasharray="3 3"
+                  />
+
+                  <path
+                    d="M 10,75 Q 80,60 160,30 T 280,65 T 390,20"
+                    fill="none"
+                    stroke="#0f172a"
+                    strokeWidth="2.5"
+                  />
+
+                  <circle cx="210" cy="38" r="4.5" fill="#0f172a" stroke="#ffffff" strokeWidth="2" />
+                </svg>
+
+                {/* Floating Tooltip Pill */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '4px',
+                    left: '52%',
+                    background: '#0f172a',
+                    color: '#ffffff',
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
+                    transform: 'translateX(-50%)',
+                  }}
+                >
+                  Settled: {fmt(27500)}
                 </div>
               </div>
 
-              {/* 4 Summary KPI Cards */}
-              <div
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#94a3b8', marginTop: '6px' }}>
+                <span>Jan</span>
+                <span>Apr</span>
+                <span>Jul</span>
+                <span>Oct</span>
+                <span>Dec</span>
+              </div>
+            </div>
+
+            {/* Building Condition Card matching screenshot */}
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #f1f5f9',
+                borderRadius: '18px',
+                padding: '22px 24px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                  Building Condition
+                </h3>
+                <span style={{ fontSize: '0.72rem', color: '#059669', background: '#ecfdf5', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                  Estate Operational
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem', color: '#475569', marginBottom: '4px' }}>
+                    <span>On repairement progress</span>
+                    <strong style={{ color: '#0f172a' }}>23</strong>
+                  </div>
+                  <div style={{ height: '7px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: '85%', height: '100%', background: '#0f172a', borderRadius: '4px' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem', color: '#475569', marginBottom: '4px' }}>
+                    <span>Awaiting for repairement</span>
+                    <strong style={{ color: '#0f172a' }}>12</strong>
+                  </div>
+                  <div style={{ height: '7px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: '45%', height: '100%', background: '#0f172a', borderRadius: '4px' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem', color: '#475569', marginBottom: '4px' }}>
+                    <span>On request</span>
+                    <strong style={{ color: '#0f172a' }}>8</strong>
+                  </div>
+                  <div style={{ height: '7px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: '28%', height: '100%', background: '#0f172a', borderRadius: '4px' }} />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '12px' }}>
+                <Link
+                  to="/portal/maintenance"
+                  style={{
+                    display: 'block',
+                    textAlign: 'center',
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    padding: '7px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    color: '#0f172a',
+                    textDecoration: 'none',
+                  }}
+                >
+                  Maintenance Details
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions (Mandated Section 1) */}
+          <div
+            style={{
+              background: '#ffffff',
+              border: '1px solid #f1f5f9',
+              borderRadius: '18px',
+              padding: '20px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '14px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles size={16} color="#2563eb" />
+              <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>
+                Quick Actions:
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setShowPayModal(true)}
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                  gap: '16px',
+                  background: '#2563eb',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '8px 16px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 8px rgba(37, 99, 235, 0.2)',
                 }}
               >
-                <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-                  <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-                    Monthly Rent
-                  </div>
-                  <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#131726', marginTop: '6px' }}>
-                    {fmt(tenancy.monthlyRent)}
-                  </div>
-                  <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
-                    Plus {fmt(tenancy.serviceCharge)} estate service charge
-                  </div>
-                </div>
+                <CreditCard size={14} />
+                <span>Pay Rent / View Instructions</span>
+              </button>
 
-                <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-                  <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-                    Outstanding Balance
-                  </div>
-                  <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#059669', marginTop: '6px' }}>
-                    {fmt(tenancy.outstandingBalance)}
-                  </div>
-                  <div style={{ fontSize: '0.76rem', color: '#059669', marginTop: '4px' }}>
-                    ✓ Account verified & up to date
-                  </div>
-                </div>
+              <button
+                type="button"
+                onClick={() => setShowMaintenanceModal(true)}
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  color: '#0f172a',
+                  borderRadius: '10px',
+                  padding: '8px 16px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Wrench size={14} color="#0284c7" />
+                <span>Submit Maintenance Request</span>
+              </button>
 
-                <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-                  <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-                    Next Due Date
-                  </div>
-                  <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#131726', marginTop: '6px' }}>
-                    {tenancy.nextDueDate}
-                  </div>
-                  <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
-                    Safaricom Paybill {tenancy.paybillNumber}
-                  </div>
-                </div>
+              <Link
+                to="/portal/lease"
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  color: '#0f172a',
+                  borderRadius: '10px',
+                  padding: '8px 16px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <FileText size={14} color="#059669" />
+                <span>View Lease</span>
+              </Link>
 
-                <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-                  <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-                    Active Maintenance
-                  </div>
-                  <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#ff4b72', marginTop: '6px' }}>
-                    {maintenanceTickets.filter((t) => t.status === 'IN_PROGRESS' || t.status === 'SUBMITTED').length} Open
-                  </div>
-                  <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
-                    REQ-0492: Assigned to Caretaker
-                  </div>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => handleOpenReceipt()}
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  color: '#0f172a',
+                  borderRadius: '10px',
+                  padding: '8px 16px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Download size={14} color="#64748b" />
+                <span>Download Receipt</span>
+              </button>
 
-              {/* Quick Action Shortcuts */}
+              <Link
+                to="/portal/messages"
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  color: '#0f172a',
+                  borderRadius: '10px',
+                  padding: '8px 16px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <MessageSquare size={14} color="#7c3aed" />
+                <span>Contact Property Manager</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Two-Column Main Dashboard Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(440px, 1fr))', gap: '24px' }}>
+            {/* LEFT COLUMN: Upcoming Rent Payment & Recent Activity */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Upcoming Rent Payment Card */}
               <div
                 style={{
                   background: '#ffffff',
                   border: '1px solid #f1f5f9',
-                  borderRadius: '16px',
-                  padding: '18px 24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: '12px',
+                  borderRadius: '20px',
+                  padding: '24px',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
                 }}
               >
-                <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155' }}>
-                  Quick Navigation Shortcuts:
-                </span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                  <Link
-                    to="/portal/payments"
-                    style={{
-                      textDecoration: 'none',
-                      background: '#f8fafc',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      padding: '7px 14px',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      color: '#1e293b',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+                    Upcoming Rent Payment
+                  </h3>
+                  <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#2563eb', background: '#eff6ff', padding: '3px 10px', borderRadius: '12px' }}>
+                    Due: 1 Dec 2026
+                  </span>
+                </div>
+
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ color: '#64748b', fontSize: '0.84rem' }}>Monthly Rent (Unit A-204)</span>
+                    <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.84rem' }}>{fmt(tenancy.monthlyRent)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ color: '#64748b', fontSize: '0.84rem' }}>Estate Service Charge</span>
+                    <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.84rem' }}>{fmt(tenancy.serviceCharge)}</span>
+                  </div>
+                  <div style={{ height: '1px', background: '#e2e8f0', margin: '8px 0' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.88rem' }}>Total Next Payment</span>
+                    <span style={{ fontWeight: 800, color: '#2563eb', fontSize: '1.05rem' }}>{fmt(tenancy.monthlyRent + tenancy.serviceCharge)}</span>
+                  </div>
+                </div>
+
+                {/* Verified Payment Instructions */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.82rem', color: '#475569' }}>
+                  <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '2px' }}>Official Payment Channels:</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', background: '#ffffff', border: '1px solid #e2e8f0', padding: '8px 12px', borderRadius: '8px' }}>
+                    <span>Safaricom M-Pesa Paybill:</span>
+                    <strong style={{ color: '#0f172a' }}>{tenancy.paybillNumber}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', background: '#ffffff', border: '1px solid #e2e8f0', padding: '8px 12px', borderRadius: '8px' }}>
+                    <span>Account Number / Reference:</span>
+                    <strong style={{ color: '#0f172a' }}>{tenancy.accountNumber}</strong>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowPayModal(true)}
+                    style={{ flex: 1, background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '10px', padding: '10px', fontSize: '0.84rem', fontWeight: 700, cursor: 'pointer' }}
                   >
-                    <CreditCard size={14} color="#ff4b72" />
-                    <span>Rent & Payments</span>
-                  </Link>
-                  <Link
-                    to="/portal/maintenance"
-                    style={{
-                      textDecoration: 'none',
-                      background: '#f8fafc',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      padding: '7px 14px',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      color: '#1e293b',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
+                    Pay via M-Pesa Prompt
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowMissingPayModal(true)}
+                    style={{ background: '#f8fafc', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '10px 14px', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}
                   >
-                    <Wrench size={14} color="#0284c7" />
-                    <span>Maintenance Requests</span>
-                  </Link>
-                  <Link
-                    to="/portal/lease"
-                    style={{
-                      textDecoration: 'none',
-                      background: '#f8fafc',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      padding: '7px 14px',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      color: '#1e293b',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
-                  >
-                    <FileText size={14} color="#059669" />
-                    <span>My Lease</span>
-                  </Link>
-                  <Link
-                    to="/portal/documents"
-                    style={{
-                      textDecoration: 'none',
-                      background: '#f8fafc',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      padding: '7px 14px',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      color: '#1e293b',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
-                  >
-                    <FolderLock size={14} color="#64748b" />
-                    <span>Documents</span>
-                  </Link>
-                  <Link
-                    to="/portal/messages"
-                    style={{
-                      textDecoration: 'none',
-                      background: '#f8fafc',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      padding: '7px 14px',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      color: '#1e293b',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
-                  >
-                    <MessageSquare size={14} color="#7c3aed" />
-                    <span>Talk to Management</span>
-                  </Link>
+                    Submit Code
+                  </button>
                 </div>
               </div>
-            </>
-          )}
+
+              {/* Recent Payment Activity Card */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #f1f5f9',
+                  borderRadius: '20px',
+                  padding: '24px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+                    Recent Payment Activity
+                  </h3>
+                  <Link to="/portal/payments" style={{ fontSize: '0.78rem', color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>
+                    View All History
+                  </Link>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#0f172a' }}>Rent & Service Charge (Nov 2026)</div>
+                      <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px' }}>
+                        1 Nov 2026 &bull; M-Pesa Ref: <strong>QKH782910X</strong>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>{fmt(27500)}</div>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#10b981', background: '#ecfdf5', padding: '2px 6px', borderRadius: '8px' }}>
+                        Paid
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#0f172a' }}>Water Utility Consumption</div>
+                      <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px' }}>
+                        15 Oct 2026 &bull; Ref: <strong>WTR-MTR-204</strong>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>{fmt(1586)}</div>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#10b981', background: '#ecfdf5', padding: '2px 6px', borderRadius: '8px' }}>
+                        Paid
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN: Maintenance Tracker & Announcements */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Maintenance Request Status Card (Mandated Question 4) */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #f1f5f9',
+                  borderRadius: '20px',
+                  padding: '24px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+                    Maintenance Request Status
+                  </h3>
+                  <Link to="/portal/maintenance" style={{ fontSize: '0.78rem', color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>
+                    All Tickets (3)
+                  </Link>
+                </div>
+
+                {/* Active Ticket Banner */}
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <div>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#2563eb' }}>REQ-0492 &bull; Plumbing</span>
+                      <h4 style={{ margin: '2px 0 4px 0', fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>
+                        Kitchen sink mixer tap leaking
+                      </h4>
+                      <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
+                        Assigned to: <strong>Peter Kariuki (Lead Caretaker)</strong>
+                      </div>
+                    </div>
+                    <span style={{ background: '#ccfbf1', color: '#0f766e', fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: '10px' }}>
+                      In Progress
+                    </span>
+                  </div>
+
+                  {/* 6-Stage Progress Stepper */}
+                  <div style={{ marginTop: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative' }}>
+                      {['Submitted', 'Under Review', 'Assigned', 'In Progress', 'Resolved', 'Closed'].map((stage, idx) => {
+                        const isDone = idx < 3;
+                        const isCurrent = idx === 3;
+                        return (
+                          <div key={stage} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, position: 'relative' }}>
+                            <div
+                              style={{
+                                width: '20px',
+                                height: '20px',
+                                borderRadius: '50%',
+                                background: isDone ? '#10b981' : isCurrent ? '#2563eb' : '#e2e8f0',
+                                color: '#ffffff',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.65rem',
+                                fontWeight: 800,
+                                zIndex: 2,
+                              }}
+                            >
+                              {isDone ? '✓' : idx + 1}
+                            </div>
+                            <span style={{ fontSize: '0.62rem', fontWeight: isCurrent ? 700 : 500, color: isCurrent ? '#2563eb' : '#64748b', marginTop: '4px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                              {stage}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Scheduled visit: Tomorrow 10:00 AM</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowMaintenanceModal(true)}
+                    style={{ background: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', borderRadius: '8px', padding: '6px 14px', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    + Report Another Issue
+                  </button>
+                </div>
+              </div>
+
+              {/* Lease Expiry Reminder & Renewal Card */}
+              <div
+                style={{
+                  background: '#fefce8',
+                  border: '1px solid #fef08a',
+                  borderRadius: '18px',
+                  padding: '20px 24px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                    <Calendar size={14} color="#ca8a04" />
+                    <strong style={{ fontSize: '0.86rem', color: '#854d0e' }}>Lease Expiry Notice</strong>
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: '#a16207' }}>
+                    Your annual lease for Unit A-204 expires on <strong>31 Dec 2026</strong> (38 days remaining).
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowRenewalModal(true)}
+                    style={{ background: '#ca8a04', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '0.76rem', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    Request Renewal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowVacateModal(true)}
+                    style={{ background: '#ffffff', color: '#854d0e', border: '1px solid #fde047', borderRadius: '8px', padding: '6px 12px', fontSize: '0.76rem', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Notice to Vacate
+                  </button>
+                </div>
+              </div>
+
+              {/* Recent Announcements */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #f1f5f9',
+                  borderRadius: '20px',
+                  padding: '24px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+                    Estate Announcements
+                  </h3>
+                  <Bell size={16} color="#64748b" />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.82rem' }}>
+                  <div style={{ padding: '12px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '2px' }}>Water Tank Cleaning & Service</div>
+                    <div style={{ color: '#64748b', fontSize: '0.76rem' }}>
+                      Scheduled maintenance this Saturday 28 Nov from 9:00 AM to 1:00 PM. Backup pumps active.
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '12px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '2px' }}>Holiday Gate Access Protocol</div>
+                    <div style={{ color: '#64748b', fontSize: '0.76rem' }}>
+                      Pre-register visiting guests via the portal or concierge line for prompt security clearance.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -3021,122 +2660,767 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       )}
 
       {/* =========================================================================
-          SECTION 3: MY LEASE
+          SECTION 3: MY LEASE & TENANT DETAILS (IMAGE 1 & 2 PROPEASY DESIGN)
       ========================================================================== */}
       {currentView === 'lease' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#131726', margin: 0, letterSpacing: '-0.02em' }}>
-              My Lease Agreement
-            </h1>
-            <p style={{ margin: '4px 0 0 0', fontSize: '0.86rem', color: '#64748b' }}>
-              Authoritative terms, escrow deposit account, and renewal management.
-            </p>
+          {/* Breadcrumb row matching reference screenshot */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <Link
+                to="/portal/dashboard"
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  padding: '6px 14px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  color: '#475569',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span>&larr; Back</span>
+              </Link>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#64748b' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Home size={13} color="#64748b" />
+                  <span>Tenants</span>
+                </span>
+                <span>/</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#2563eb', fontWeight: 600 }}>
+                  <FileText size={13} color="#2563eb" />
+                  <span>Tenant Details</span>
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.78rem', color: '#64748b' }}>Currency:</span>
+              <button
+                type="button"
+                onClick={() => setCurrencyMode(currencyMode === 'KES' ? 'USD' : 'KES')}
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '4px 10px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  color: '#2563eb',
+                  cursor: 'pointer',
+                }}
+              >
+                {currencyMode === 'USD' ? 'USD ($)' : 'KES (Shillings)'}
+              </button>
+            </div>
           </div>
 
+          {/* Tenant Details Header Bar */}
           <div
             style={{
               background: '#ffffff',
               border: '1px solid #e2e8f0',
               borderRadius: '16px',
-              padding: '24px',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '20px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+              padding: '20px 24px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '16px',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
             }}
           >
             <div>
-              <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Demised Premises</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
-                {tenancy.propertyName}
-              </div>
-              <div style={{ fontSize: '0.84rem', color: '#475569', marginTop: '2px' }}>
-                {tenancy.unitNumber} ({tenancy.unitType}) &bull; Parking P-204
-              </div>
+              <h1 style={{ fontSize: '1.65rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+                Tenant Details
+              </h1>
+              <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>
+                {tenancy.propertyName} &bull; {tenancy.unitNumber} &bull; Lease Ref: <strong>{tenancy.leaseReference}</strong>
+              </p>
             </div>
 
-            <div>
-              <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Lease Reference</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
-                {tenancy.leaseReference}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+              {/* Rent Details Pill matching screenshot */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.84rem', color: '#64748b' }}>Rent Details :</span>
+                <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
+                  {fmt(tenancy.monthlyRent)}/month
+                </span>
+                <span
+                  style={{
+                    background: '#ecfdf5',
+                    color: '#059669',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    border: '1px solid #a7f3d0',
+                  }}
+                >
+                  Paid
+                </span>
               </div>
-              <div style={{ fontSize: '0.84rem', color: '#059669', fontWeight: 700, marginTop: '2px' }}>
-                ● {tenancy.leaseStatus}
-              </div>
-            </div>
 
-            <div>
-              <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Security Deposit in Trust</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
-                {fmt(tenancy.securityDeposit)}
-              </div>
-              <div style={{ fontSize: '0.84rem', color: '#64748b', marginTop: '2px' }}>
-                Segregated Escrow (Account 2100)
-              </div>
-            </div>
-
-            <div>
-              <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Term & Expiry</div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
-                {tenancy.leaseStart} to {tenancy.leaseExpires}
-              </div>
-              <div style={{ fontSize: '0.84rem', color: '#64748b', marginTop: '2px' }}>
-                30-day notice period required
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowVacateModal(true)}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    color: '#64748b',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Notice to Vacate
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowRenewalModal(true)}
+                  style={{
+                    background: '#2563eb',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 18px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
+                  }}
+                >
+                  <span>Proceed Application &rarr;</span>
+                </button>
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => setShowRenewalModal(true)}
-              style={{
-                background: '#f27a59',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '10px',
-                padding: '10px 20px',
-                fontSize: '0.86rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
-            >
-              Request Lease Renewal
-            </button>
-            <button
-              onClick={() => setShowVacateModal(true)}
+          {/* Two-Column PropEasy Layout */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))',
+              gap: '24px',
+              alignItems: 'start',
+            }}
+          >
+            {/* LEFT CARD: Courtney Henry Personal Details, Lease Agreement & Additional Details */}
+            <div
               style={{
                 background: '#ffffff',
-                color: '#dc2626',
-                border: '1px solid #fecaca',
-                borderRadius: '10px',
-                padding: '10px 20px',
-                fontSize: '0.86rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Submit Notice to Vacate
-            </button>
-            <button
-              onClick={() => handleDownloadFile('UnitFlow_Residential_Lease_A204.txt', `RESIDENTIAL LEASE AGREEMENT\nLandlord: ${tenancy.landlordName}\nTenant: ${tenancy.tenantName}\nUnit: ${tenancy.unitNumber}, ${tenancy.propertyName}\nRent: KES ${tenancy.monthlyRent}/month\nDeposit: KES ${tenancy.securityDeposit}\nStart: ${tenancy.leaseStart}\nExpiry: ${tenancy.leaseExpires}`)}
-              style={{
-                background: '#f8fafc',
-                color: '#334155',
-                border: '1px solid #cbd5e1',
-                borderRadius: '10px',
-                padding: '10px 18px',
-                fontSize: '0.86rem',
-                fontWeight: 600,
-                cursor: 'pointer',
+                border: '1px solid #e2e8f0',
+                borderRadius: '18px',
+                padding: '24px',
                 display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
+                flexDirection: 'column',
+                gap: '24px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
               }}
             >
-              <Download size={15} />
-              <span>Download Signed Lease</span>
-            </button>
+              {/* Profile Avatar & Name */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', paddingBottom: '16px', borderBottom: '1px solid #f1f5f9' }}>
+                <img
+                  src={tenancy.avatar}
+                  alt={tenancy.tenantName}
+                  style={{
+                    width: '74px',
+                    height: '74px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '3px solid #e2e8f0',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                  }}
+                />
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '10px 0 2px 0' }}>
+                  {tenancy.tenantName}
+                </h2>
+                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                  {tenancy.occupation} &bull; Verified Resident
+                </div>
+              </div>
+
+              {/* Personal Details */}
+              <div>
+                <h3 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0' }}>
+                  Personal Details
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', rowGap: '10px', fontSize: '0.84rem' }}>
+                  <span style={{ color: '#64748b' }}>Contact No. :</span>
+                  <strong style={{ color: '#0f172a' }}>{tenancy.phone}</strong>
+
+                  <span style={{ color: '#64748b' }}>Emergency No. :</span>
+                  <strong style={{ color: '#0f172a' }}>{tenancy.emergencyPhone}</strong>
+
+                  <span style={{ color: '#64748b' }}>Email Id :</span>
+                  <strong style={{ color: '#0f172a' }}>{tenancy.email}</strong>
+
+                  <span style={{ color: '#64748b' }}>Current Address :</span>
+                  <strong style={{ color: '#0f172a' }}>{tenancy.currentAddress}</strong>
+
+                  <span style={{ color: '#64748b' }}>Occupation :</span>
+                  <strong style={{ color: '#0f172a' }}>{tenancy.occupation}</strong>
+                </div>
+              </div>
+
+              {/* Lease Agreement */}
+              <div style={{ paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+                <h3 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0' }}>
+                  Lease Agreement
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', rowGap: '10px', fontSize: '0.84rem', marginBottom: '14px' }}>
+                  <span style={{ color: '#64748b' }}>Start Date :</span>
+                  <strong style={{ color: '#0f172a' }}>{tenancy.leaseStart}</strong>
+
+                  <span style={{ color: '#64748b' }}>End Date :</span>
+                  <strong style={{ color: '#0f172a' }}>{tenancy.leaseExpires}</strong>
+
+                  <span style={{ color: '#64748b' }}>Payment terms :</span>
+                  <strong style={{ color: '#0f172a' }}>Monthly (Due 1st of month)</strong>
+                </div>
+
+                <div style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '6px' }}>
+                  Lease document :
+                </div>
+                {/* Downloadable PDF Card matching screenshot */}
+                <div
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    padding: '12px 14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div
+                      style={{
+                        width: '34px',
+                        height: '34px',
+                        borderRadius: '8px',
+                        background: '#fee2e2',
+                        color: '#ef4444',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 800,
+                        fontSize: '0.75rem',
+                      }}
+                    >
+                      PDF
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a' }}>
+                        Lease_document_Courtney.pdf
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>20 MB &bull; Signed & Verified</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadFile('Lease_document_Courtney.pdf', `LEASE AGREEMENT\nTenant: ${tenancy.tenantName}\nUnit: ${tenancy.unitNumber}\nPremises: ${tenancy.propertyName}\nTerm: ${tenancy.leaseStart} - ${tenancy.leaseExpires}\nRent: KES ${tenancy.monthlyRent}/month\nDeposit: KES ${tenancy.securityDeposit}`)}
+                      style={{
+                        background: '#ffffff',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '6px',
+                        padding: '6px',
+                        cursor: 'pointer',
+                        color: '#475569',
+                      }}
+                      title="Download PDF"
+                    >
+                      <Download size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => showToast('Opening Lease_document_Courtney.pdf in viewer...')}
+                      style={{
+                        background: '#ffffff',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '6px',
+                        padding: '6px',
+                        cursor: 'pointer',
+                        color: '#475569',
+                      }}
+                      title="View PDF"
+                    >
+                      <Eye size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Details */}
+              <div style={{ paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+                <h3 style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', margin: '0 0 12px 0' }}>
+                  Additional Details
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', rowGap: '10px', fontSize: '0.84rem' }}>
+                  <span style={{ color: '#64748b' }}>Guarantor Name :</span>
+                  <strong style={{ color: '#0f172a' }}>{tenancy.guarantorName}</strong>
+
+                  <span style={{ color: '#64748b' }}>Contact No. :</span>
+                  <strong style={{ color: '#0f172a' }}>{tenancy.emergencyPhone}</strong>
+
+                  <span style={{ color: '#64748b' }}>Allotted Parking :</span>
+                  <strong style={{ color: '#0f172a' }}>{tenancy.allottedParking}</strong>
+
+                  <span style={{ color: '#64748b' }}>Access Card No. :</span>
+                  <strong style={{ color: '#0f172a', fontFamily: 'monospace' }}>{tenancy.accessCardNo}</strong>
+
+                  <span style={{ color: '#64748b' }}>Occupation :</span>
+                  <strong style={{ color: '#0f172a' }}>{tenancy.occupation}</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT CARD: Tabs (Application, History, Documents, Notes) + Maintenance & Payment Tables */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Tabs Container matching screenshot */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '18px',
+                  padding: '20px 24px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                }}
+              >
+                {/* Tab Pill Headers */}
+                <div
+                  style={{
+                    display: 'flex',
+                    borderBottom: '1px solid #f1f5f9',
+                    paddingBottom: '12px',
+                    marginBottom: '18px',
+                    gap: '24px',
+                    overflowX: 'auto',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setLeaseTab('application')}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: leaseTab === 'application' ? '2px solid #2563eb' : '2px solid transparent',
+                      padding: '4px 0 8px 0',
+                      fontSize: '0.86rem',
+                      fontWeight: leaseTab === 'application' ? 700 : 500,
+                      color: leaseTab === 'application' ? '#2563eb' : '#64748b',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Application Details
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setLeaseTab('history')}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: leaseTab === 'history' ? '2px solid #2563eb' : '2px solid transparent',
+                      padding: '4px 0 8px 0',
+                      fontSize: '0.86rem',
+                      fontWeight: leaseTab === 'history' ? 700 : 500,
+                      color: leaseTab === 'history' ? '#2563eb' : '#64748b',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <span>Rental History</span>
+                    <span style={{ fontSize: '0.72rem', background: '#f1f5f9', padding: '1px 6px', borderRadius: '10px' }}>02</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setLeaseTab('documents')}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: leaseTab === 'documents' ? '2px solid #2563eb' : '2px solid transparent',
+                      padding: '4px 0 8px 0',
+                      fontSize: '0.86rem',
+                      fontWeight: leaseTab === 'documents' ? 700 : 500,
+                      color: leaseTab === 'documents' ? '#2563eb' : '#64748b',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <span>Documents</span>
+                    <span style={{ fontSize: '0.72rem', background: '#f1f5f9', padding: '1px 6px', borderRadius: '10px' }}>03</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setLeaseTab('notes')}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: leaseTab === 'notes' ? '2px solid #2563eb' : '2px solid transparent',
+                      padding: '4px 0 8px 0',
+                      fontSize: '0.86rem',
+                      fontWeight: leaseTab === 'notes' ? 700 : 500,
+                      color: leaseTab === 'notes' ? '#2563eb' : '#64748b',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Notes & Comments
+                  </button>
+                </div>
+
+                {/* Tab 1: Application Details (Image 1 reference) */}
+                {leaseTab === 'application' && (
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                      gap: '16px',
+                      fontSize: '0.84rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#64748b' }}>Application Date :</span>
+                        <strong style={{ color: '#0f172a' }}>{tenancy.applicationDate}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#64748b' }}>Desired Move-in Date :</span>
+                        <strong style={{ color: '#0f172a' }}>{tenancy.desiredMoveInDate}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#64748b' }}>Desired Lease Term :</span>
+                        <strong style={{ color: '#0f172a' }}>{tenancy.desiredLeaseTerm}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#64748b' }}>Marital Status :</span>
+                        <strong style={{ color: '#0f172a' }}>{tenancy.maritalStatus}</strong>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#64748b' }}>No. of Occupants :</span>
+                        <strong style={{ color: '#0f172a' }}>{tenancy.occupants}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#64748b' }}>Pet(s) :</span>
+                        <strong style={{ color: '#0f172a' }}>{tenancy.pets}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#64748b' }}>Car(s) :</span>
+                        <strong style={{ color: '#0f172a' }}>{tenancy.cars}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#64748b' }}>Monthly Income :</span>
+                        <strong style={{ color: '#059669' }}>{tenancy.monthlyIncome}</strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 2: Rental History */}
+                {leaseTab === 'history' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.84rem' }}>
+                    <div style={{ padding: '12px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <strong style={{ color: '#0f172a' }}>Silver Oak Residences, Ruiru (Unit B-12)</strong>
+                        <span style={{ fontSize: '0.72rem', background: '#ecfdf5', color: '#059669', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                          Verified &bull; 5.0 &#9733;
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                        Period: 2024 - 2025 &bull; Landlord: Oakridge Ltd &bull; Rent: $4,500/mo &bull; Deposit fully refunded
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '12px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <strong style={{ color: '#0f172a' }}>Westlands Heights, Nairobi (Apartment 402)</strong>
+                        <span style={{ fontSize: '0.72rem', background: '#ecfdf5', color: '#059669', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                          Verified &bull; 5.0 &#9733;
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                        Period: 2022 - 2024 &bull; Landlord: Apex Properties &bull; Rent: $4,200/mo &bull; Clean vacancy sign-off
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 3: Documents */}
+                {leaseTab === 'documents' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ color: '#ef4444', fontWeight: 800 }}>PDF</span>
+                        <div>
+                          <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a' }}>Signed_Lease_Agreement_Courtney.pdf</div>
+                          <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>20 MB &bull; Uploaded 21 June 2023</div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadFile('Signed_Lease_Agreement_Courtney.pdf', 'Official Lease Agreement')}
+                        style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '5px 10px', fontSize: '0.76rem', cursor: 'pointer' }}
+                      >
+                        Download
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ color: '#2563eb', fontWeight: 800 }}>PDF</span>
+                        <div>
+                          <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a' }}>National_Passport_Courtney_Henry.pdf</div>
+                          <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>2.4 MB &bull; Identity Verified</div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadFile('National_Passport_Courtney_Henry.pdf', 'Tenant ID Document')}
+                        style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '5px 10px', fontSize: '0.76rem', cursor: 'pointer' }}
+                      >
+                        Download
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ color: '#059669', fontWeight: 800 }}>PDF</span>
+                        <div>
+                          <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a' }}>Move_In_Inspection_Handover.pdf</div>
+                          <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>5.1 MB &bull; Counter-signed inventory</div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadFile('Move_In_Inspection_Handover.pdf', 'Move In Inspection Report')}
+                        style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '5px 10px', fontSize: '0.76rem', cursor: 'pointer' }}
+                      >
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab 4: Notes & Comments */}
+                {leaseTab === 'notes' && (
+                  <div style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.6 }}>
+                    <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '8px' }}>
+                      <strong style={{ color: '#0f172a' }}>Katherine Moss (Property Manager):</strong>
+                      <div>
+                        Employment confirmed at TechCorp UK. Full rent history verified. Security deposit of KES 25,000 received into statutory trust escrow Account 2100. Quiet hours acknowledged.
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Maintenance Requests Table matching screenshot 2 */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '18px',
+                  padding: '20px 24px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                  <h3 style={{ fontSize: '0.96rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                    Maintenance Requests
+                  </h3>
+                  <Link
+                    to="/portal/maintenance"
+                    style={{ fontSize: '0.78rem', color: '#2563eb', fontWeight: 700, textDecoration: 'none' }}
+                  >
+                    View All
+                  </Link>
+                </div>
+
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>
+                        <th style={{ padding: '8px 12px 8px 0', fontWeight: 600 }}>Date</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Issue Description</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Status</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Priority</th>
+                        <th style={{ padding: '8px 0 8px 12px', fontWeight: 600, textAlign: 'right' }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style={{ borderBottom: '1px solid #f8fafc' }}>
+                        <td style={{ padding: '10px 12px 10px 0', color: '#64748b' }}>23-06-20</td>
+                        <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0f172a' }}>Leaky faucet in kitchen</td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{ background: '#fef3c7', color: '#b45309', fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+                            Pending
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{ color: '#ef4444', fontWeight: 700, fontSize: '0.72rem' }}>High</span>
+                        </td>
+                        <td style={{ padding: '10px 0 10px 12px', textAlign: 'right' }}>
+                          <Link
+                            to="/portal/messages"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#2563eb', textDecoration: 'none' }}
+                          >
+                            <MessageSquare size={14} />
+                            <span>&rarr;</span>
+                          </Link>
+                        </td>
+                      </tr>
+
+                      <tr style={{ borderBottom: '1px solid #f8fafc' }}>
+                        <td style={{ padding: '10px 12px 10px 0', color: '#64748b' }}>23-06-20</td>
+                        <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0f172a' }}>Broken AC unit in bedroom</td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{ background: '#ecfdf5', color: '#059669', fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+                            In Progress
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{ color: '#64748b', fontWeight: 600, fontSize: '0.72rem' }}>Normal</span>
+                        </td>
+                        <td style={{ padding: '10px 0 10px 12px', textAlign: 'right' }}>
+                          <Link
+                            to="/portal/messages"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#2563eb', textDecoration: 'none' }}
+                          >
+                            <MessageSquare size={14} />
+                            <span>&rarr;</span>
+                          </Link>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td style={{ padding: '10px 12px 10px 0', color: '#64748b' }}>23-06-20</td>
+                        <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0f172a' }}>Broken garage door opener</td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{ background: '#fef3c7', color: '#b45309', fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+                            Pending
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{ color: '#64748b', fontWeight: 600, fontSize: '0.72rem' }}>Normal</span>
+                        </td>
+                        <td style={{ padding: '10px 0 10px 12px', textAlign: 'right' }}>
+                          <Link
+                            to="/portal/messages"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#2563eb', textDecoration: 'none' }}
+                          >
+                            <MessageSquare size={14} />
+                            <span>&rarr;</span>
+                          </Link>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Payment History Table matching screenshot 2 */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '18px',
+                  padding: '20px 24px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                  <h3 style={{ fontSize: '0.96rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                    Payment History
+                  </h3>
+                  <Link
+                    to="/portal/payments"
+                    style={{ fontSize: '0.78rem', color: '#2563eb', fontWeight: 700, textDecoration: 'none' }}
+                  >
+                    View All
+                  </Link>
+                </div>
+
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #f1f5f9', color: '#64748b' }}>
+                        <th style={{ padding: '8px 12px 8px 0', fontWeight: 600 }}>Date</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Amount</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Payment Method</th>
+                        <th style={{ padding: '8px 12px', fontWeight: 600 }}>Status</th>
+                        <th style={{ padding: '8px 0 8px 12px', fontWeight: 600, textAlign: 'right' }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style={{ borderBottom: '1px solid #f8fafc' }}>
+                        <td style={{ padding: '10px 12px 10px 0', color: '#64748b' }}>23-06-2024</td>
+                        <td style={{ padding: '10px 12px', fontWeight: 800, color: '#0f172a' }}>{fmt(25000, 5000)}</td>
+                        <td style={{ padding: '10px 12px', color: '#475569' }}>Online</td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{ background: '#fef3c7', color: '#b45309', fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+                            Overdue
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 0 10px 12px', textAlign: 'right' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenInvoice()}
+                            style={{ background: 'transparent', border: 'none', color: '#2563eb', fontWeight: 700, fontSize: '0.76rem', cursor: 'pointer' }}
+                          >
+                            View Invoice
+                          </button>
+                        </td>
+                      </tr>
+
+                      <tr>
+                        <td style={{ padding: '10px 12px 10px 0', color: '#64748b' }}>23-06-2024</td>
+                        <td style={{ padding: '10px 12px', fontWeight: 800, color: '#0f172a' }}>{fmt(25000, 5000)}</td>
+                        <td style={{ padding: '10px 12px', color: '#475569' }}>Check / M-Pesa</td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{ background: '#ecfdf5', color: '#059669', fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+                            Paid
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 0 10px 12px', textAlign: 'right' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenReceipt()}
+                            style={{ background: 'transparent', border: 'none', color: '#059669', fontWeight: 700, fontSize: '0.76rem', cursor: 'pointer' }}
+                          >
+                            🎟️ Receipt
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -3424,58 +3708,275 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       ========================================================================== */}
       {currentView === 'notifications' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* Header matching Resident Portal Image 1 */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
             <div>
               <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#131726', margin: 0, letterSpacing: '-0.02em' }}>
-                Notifications
+                Notification
               </h1>
               <p style={{ margin: '4px 0 0 0', fontSize: '0.86rem', color: '#64748b' }}>
-                Important tenancy updates, rent receipts, and estate maintenance notices.
+                Stay up to date with estate announcements, maintenance alerts, and rent receipts.
               </p>
             </div>
-            <button
-              onClick={() => showToast('All notifications marked as read.')}
-              style={{
-                background: '#ffffff',
-                border: '1px solid #cbd5e1',
-                borderRadius: '8px',
-                padding: '6px 14px',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                color: '#475569',
-                cursor: 'pointer',
-              }}
-            >
-              Mark all as read
-            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  padding: '6px 12px',
+                  fontSize: '0.82rem',
+                }}
+              >
+                <Search size={14} color="#94a3b8" />
+                <input
+                  type="text"
+                  placeholder="Search notifications..."
+                  style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.82rem', width: '160px' }}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => showToast('All notifications marked as read.')}
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  padding: '6px 14px',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  color: '#475569',
+                  cursor: 'pointer',
+                }}
+              >
+                Mark all as read
+              </button>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px 20px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f27a59', marginTop: '6px', flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#131726' }}>Rent payment confirmed (KES 27,500.00)</span>
-                  <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>1 Nov 2026</span>
-                </div>
-                <div style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '2px' }}>
-                  Safaricom Daraja C2B V2 (Ref QKH782910X) reconciled. Receipt RCP-2026-1101 is available in Documents.
-                </div>
-              </div>
-            </div>
+          {/* Filter Pills matching Resident Portal screenshot */}
+          <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '4px' }}>
+            {(['All', 'Messages', 'Alert', 'Announcements', 'Classifieds'] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setNotificationTab(tab)}
+                style={{
+                  background: notificationTab === tab ? '#2563eb' : '#ffffff',
+                  color: notificationTab === tab ? '#ffffff' : '#64748b',
+                  border: '1px solid',
+                  borderColor: notificationTab === tab ? '#2563eb' : '#e2e8f0',
+                  borderRadius: '20px',
+                  padding: '6px 16px',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
 
-            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px 20px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f27a59', marginTop: '6px', flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
+          {/* Notifications List */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {(notificationTab === 'All' || notificationTab === 'Announcements') && (
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '16px',
+                  padding: '20px 24px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#131726' }}>Maintenance ticket REQ-0492 dispatched</span>
-                  <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>21 Nov 2026</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '0.96rem', fontWeight: 800, color: '#0f172a' }}>
+                      Grab and Go Breakfast
+                    </span>
+                    <span
+                      style={{
+                        background: '#e0f2fe',
+                        color: '#0284c7',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                      }}
+                    >
+                      Announcements
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '0.76rem', color: '#94a3b8' }}>May 2, 2026 &bull; 11 AM</span>
                 </div>
-                <div style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '2px' }}>
-                  Technician Peter Kariuki assigned. Inspection scheduled tomorrow 10:00 AM - 12:00 PM.
+                <div style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5 }}>
+                  We will be serving chick-fil-a breakfast sandwiches, yogurt parfaits, fruits and refreshments! 11 AM at the central resident clubhouse.
+                </div>
+                <div style={{ marginTop: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => showToast('Opening event details...')}
+                    style={{ background: 'transparent', border: 'none', color: '#2563eb', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', padding: 0 }}
+                  >
+                    View All &rarr;
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
+
+            {(notificationTab === 'All' || notificationTab === 'Messages') && (
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '16px',
+                  padding: '20px 24px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '0.96rem', fontWeight: 800, color: '#0f172a' }}>
+                      Millenium Santa Monica &bull; Caretaker Inspection
+                    </span>
+                    <span
+                      style={{
+                        background: '#ffedd5',
+                        color: '#ea580c',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                      }}
+                    >
+                      Messages
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '0.76rem', color: '#94a3b8' }}>May 2, 2026 &bull; 11 AM</span>
+                </div>
+                <div style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5 }}>
+                  Tap cartridge replacement parts arrived. Lead caretaker Peter Kariuki is scheduled to visit Unit A-204 tomorrow between 10:00 AM and 12:00 PM.
+                </div>
+                <div style={{ marginTop: '4px' }}>
+                  <Link
+                    to="/portal/messages"
+                    style={{ color: '#2563eb', fontWeight: 700, fontSize: '0.78rem', textDecoration: 'none' }}
+                  >
+                    View Conversation &rarr;
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {(notificationTab === 'All' || notificationTab === 'Alert') && (
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '16px',
+                  padding: '20px 24px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '0.96rem', fontWeight: 800, color: '#0f172a' }}>
+                      Water Pressure for A/B Building
+                    </span>
+                    <span
+                      style={{
+                        background: '#fee2e2',
+                        color: '#dc2626',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                      }}
+                    >
+                      Alert
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '0.76rem', color: '#94a3b8' }}>May 2, 2026 &bull; 11 AM</span>
+                </div>
+                <div style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5 }}>
+                  Routine pump servicing scheduled between 2:00 PM and 4:00 PM today. Rooftop gravity tanks remain full with steady flow during the maintenance window.
+                </div>
+                <div style={{ marginTop: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => showToast('Water pressure status: 100% normal')}
+                    style={{ background: 'transparent', border: 'none', color: '#2563eb', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', padding: 0 }}
+                  >
+                    View Status &rarr;
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {(notificationTab === 'All' || notificationTab === 'Classifieds') && (
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '16px',
+                  padding: '20px 24px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '0.96rem', fontWeight: 800, color: '#0f172a' }}>
+                      Birthday Party & Social Evening
+                    </span>
+                    <span
+                      style={{
+                        background: '#f3e8ff',
+                        color: '#9333ea',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                      }}
+                    >
+                      Classifieds
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '0.76rem', color: '#94a3b8' }}>May 2, 2026 &bull; 11 AM</span>
+                </div>
+                <div style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5 }}>
+                  We are celebrating at the rooftop pavilion this Saturday evening! Residents and friends welcome to join for music and drinks.
+                </div>
+                <div style={{ marginTop: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => showToast('RSVP logged')}
+                    style={{ background: 'transparent', border: 'none', color: '#2563eb', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', padding: 0 }}
+                  >
+                    RSVP / View &rarr;
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
