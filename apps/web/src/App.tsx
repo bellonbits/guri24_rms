@@ -295,22 +295,22 @@ export const App: React.FC = () => {
                 </AuthGuard>
               }
             >
-              <Route index element={<Navigate to="/portal/tenants" replace />} />
-              <Route path="tenants" element={<TenantPortalPage view="tenants" />} />
-              <Route path="tenants/details" element={<TenantPortalPage view="tenants" />} />
-              <Route path="tenants/:id" element={<TenantPortalPage view="tenants" />} />
-              <Route path="properties" element={<TenantPortalPage view="properties" />} />
-              <Route path="financials" element={<TenantPortalPage view="financials" />} />
+              <Route index element={<Navigate to="/portal/dashboard" replace />} />
               <Route path="dashboard" element={<TenantPortalPage view="dashboard" />} />
-              <Route path="payments" element={<TenantPortalPage view="financials" />} />
-              <Route path="lease" element={<TenantPortalPage view="properties" />} />
+              <Route path="overview" element={<TenantPortalPage view="dashboard" />} />
+              <Route path="payments" element={<TenantPortalPage view="payments" />} />
+              <Route path="financials" element={<TenantPortalPage view="payments" />} />
+              <Route path="rent-payments" element={<TenantPortalPage view="payments" />} />
+              <Route path="lease" element={<TenantPortalPage view="lease" />} />
+              <Route path="properties" element={<TenantPortalPage view="lease" />} />
               <Route path="maintenance" element={<TenantPortalPage view="maintenance" />} />
               <Route path="documents" element={<TenantPortalPage view="documents" />} />
-              <Route path="notifications" element={<TenantPortalPage view="tenants" />} />
-              <Route path="messages" element={<TenantPortalPage view="tenants" />} />
-              <Route path="support" element={<TenantPortalPage view="tenants" />} />
-              <Route path="profile" element={<TenantPortalPage view="tenants" />} />
-              <Route path="settings" element={<TenantPortalPage view="settings" />} />
+              <Route path="messages" element={<TenantPortalPage view="messages" />} />
+              <Route path="notifications" element={<TenantPortalPage view="notifications" />} />
+              <Route path="profile" element={<TenantPortalPage view="profile" />} />
+              <Route path="settings" element={<TenantPortalPage view="profile" />} />
+              <Route path="tenants" element={<TenantPortalPage view="dashboard" />} />
+              <Route path="tenants/*" element={<TenantPortalPage view="dashboard" />} />
             </Route>
 
             {/* 404 Unknown Route Fallback */}
