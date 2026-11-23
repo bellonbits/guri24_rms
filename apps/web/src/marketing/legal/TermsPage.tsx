@@ -5,13 +5,13 @@ export const TermsPage: React.FC = () => {
   return (
     <LegalLayout
       title="Terms & Conditions of Service"
-      subtitle="Standard software-as-a-service agreement governing the use of Guri24 RMS."
+      subtitle="Standard software-as-a-service agreement governing the use of Unit Flow."
       lastUpdated="November 20, 2026"
       version="2.4"
     >
       <h2>1. Acceptance of Terms</h2>
       <p>
-        These Terms and Conditions ("Terms") constitute a legally binding agreement between Guri24 Rental Management Ltd ("Guri24", "we", "us", or "our"), a company incorporated in the Republic of Kenya, and the individual or legal entity ("Customer", "Organization", "you") registering for, accessing, or using the Guri24 Rental Management SaaS Platform.
+        These Terms and Conditions ("Terms") constitute a legally binding agreement between Unit Flow Technologies Ltd ("Unit Flow", "we", "us", or "our"), a company incorporated in the Republic of Kenya, and the individual or legal entity ("Customer", "Organization", "you") registering for, accessing, or using the Unit Flow Property Management SaaS Platform.
       </p>
 
       <h2>2. Definitions & Interpretation</h2>
@@ -22,7 +22,7 @@ export const TermsPage: React.FC = () => {
         <strong>"Customer Data"</strong> means all electronic data, property records, lease terms, tenant information, financial balances, and documents submitted to or generated within the Customer's isolated workspace.
       </p>
       <p>
-        <strong>"Service"</strong> means the cloud-hosted Guri24 Residential Management System, including the web portal, APIs, M-Pesa integration connector, and background processing workers.
+        <strong>"Service"</strong> means the cloud-hosted Unit Flow Residential Management System, including the web portal, APIs, M-Pesa integration connector, and background processing workers.
       </p>
 
       <h2>3. Account Creation & Organization Registration</h2>
@@ -47,22 +47,22 @@ export const TermsPage: React.FC = () => {
 
       <h2>6. Customer Data Ownership & Intellectual Property</h2>
       <p>
-        As between Guri24 and Customer, Customer retains all right, title, and interest in and to all Customer Data. Guri24 acquires no ownership rights over tenant records, leases, or ledger entries. Guri24 retains all intellectual property rights in the software architecture, user interfaces, documentation, and underlying proprietary algorithms.
+        As between Unit Flow and Customer, Customer retains all right, title, and interest in and to all Customer Data. Unit Flow acquires no ownership rights over tenant records, leases, or ledger entries. Unit Flow retains all intellectual property rights in the software architecture, user interfaces, documentation, and underlying proprietary algorithms.
       </p>
 
       <h2>7. Financial Integrations & Payment Gateway Disclaimer</h2>
       <p>
-        Guri24 facilitates technical communication with payment networks (such as Safaricom Daraja M-Pesa and commercial bank statement parsers). Guri24 is not a bank, deposit-taking institution, or payment processor. Tenant security deposits held under Account 2100 remain the direct fiduciary responsibility of the Customer.
+        Unit Flow facilitates technical communication with payment networks (such as Safaricom Daraja M-Pesa and commercial bank statement parsers). Unit Flow is not a bank, deposit-taking institution, or payment processor. Tenant security deposits held under Account 2100 remain the direct fiduciary responsibility of the Customer.
       </p>
 
       <h2>8. AI Functionality & Limitations</h2>
       <p>
-        The Guri24 AI Assistant uses authorized, organization-scoped records to generate summaries and calculations. AI outputs are advisory tools to assist management and do not constitute certified public accounting or legal opinions.
+        The Unit Flow AI Assistant uses authorized, organization-scoped records to generate summaries and calculations. AI outputs are advisory tools to assist management and do not constitute certified public accounting or legal opinions.
       </p>
 
       <h2>9. Limitation of Liability & Governing Law</h2>
       <p>
-        To the maximum extent permitted by applicable law, in no event shall Guri24 be liable for indirect, incidental, or consequential damages. These Terms shall be governed by and construed in accordance with the substantive laws of the Republic of Kenya.
+        To the maximum extent permitted by applicable law, in no event shall Unit Flow be liable for indirect, incidental, or consequential damages. These Terms shall be governed by and construed in accordance with the substantive laws of the Republic of Kenya.
       </p>
     </LegalLayout>
   );

@@ -12,7 +12,7 @@ export const SubscriptionBillingPage: React.FC = () => {
       <section style={{ marginBottom: '32px' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#021429', marginBottom: '12px' }}>1. Subscription Tiers & Billing Structure</h2>
         <p style={{ color: '#475569', lineHeight: 1.7, marginBottom: '12px' }}>
-          Guri24 RMS provides subscription-based software access tailored to real estate portfolios. Subscription tiers (Starter, Growth, Scale, and Enterprise) are priced on a predictable monthly or discounted annual cadence, calibrated by managed unit count and enabled enterprise features.
+          Unit Flow provides subscription-based software access tailored to real estate portfolios. Subscription tiers (Starter, Growth, Scale, and Enterprise) are priced on a predictable monthly or discounted annual cadence, calibrated by managed unit count and enabled enterprise features.
         </p>
         <p style={{ color: '#475569', lineHeight: 1.7 }}>
           All active units registered within your organization’s properties count towards your billing tier threshold. Adding properties or units that exceed your contracted tier will prompt an automated notification and prorated tier adjustment.

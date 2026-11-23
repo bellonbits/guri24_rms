@@ -11,7 +11,7 @@ export const LegalOverviewPage: React.FC = () => {
     { to: '/legal/data-protection', title: 'Data Protection Architecture', desc: 'Alignment with the Kenya Data Protection Act 2019 and ODPC guidelines.', icon: Lock },
     { to: '/legal/acceptable-use', title: 'Acceptable Use Policy', desc: 'Rules prohibiting fraud, unauthorized scraping, abuse, and platform misuse.', icon: AlertCircle },
     { to: '/legal/subscription-and-billing', title: 'Subscription & Billing Policy', desc: 'Rules governing plans, renewal, cancellation, upgrades, and refunds.', icon: Scale },
-    { to: '/legal/data-processing', title: 'Data Processing Agreement (DPA)', desc: 'Standard contractual clauses for Guri24 acting as Data Processor.', icon: FileText },
+    { to: '/legal/data-processing', title: 'Data Processing Agreement (DPA)', desc: 'Standard contractual clauses for Unit Flow acting as Data Processor.', icon: FileText },
     { to: '/security', title: 'Security Architecture', desc: 'Technical overview of tenant isolation, encryption, and audit logging.', icon: Shield },
     { to: '/accessibility', title: 'Accessibility Statement', desc: 'Commitment to WCAG AA accessibility, keyboard navigation, and screen reader labels.', icon: FileText },
   ];
@@ -27,7 +27,7 @@ export const LegalOverviewPage: React.FC = () => {
             Legal & Compliance Center
           </h1>
           <p style={{ fontSize: '1.05rem', color: BRAND_TOKENS.colors.slateSubtle, maxWidth: '640px', margin: '0 auto' }}>
-            Transparent legal agreements, security disclosures, and privacy policies governing the Guri24 Rental Management platform.
+            Transparent legal agreements, security disclosures, and privacy policies governing the Unit Flow Property Management platform.
           </p>
         </div>
 

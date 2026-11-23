@@ -7,7 +7,7 @@ export const CookiePolicyPage: React.FC = () => {
   return (
     <LegalLayout
       title="Cookie Policy"
-      subtitle="Detailed technical inventory of cookies and local storage tokens utilized by Guri24."
+      subtitle="Detailed technical inventory of cookies and local storage tokens utilized by Unit Flow."
       lastUpdated="November 20, 2026"
       version="1.4"
     >
@@ -16,7 +16,7 @@ export const CookiePolicyPage: React.FC = () => {
         Cookies and similar storage technologies (including browser LocalStorage and SessionStorage) are small data files placed on your device when you visit websites. They enable session security, remember user preferences, and help us analyze aggregated website performance.
       </p>
 
-      <h2>2. Why Guri24 Uses Cookies</h2>
+      <h2>2. Why Unit Flow Uses Cookies</h2>
       <p>
         We use cookies strictly to operate our multi-tenant SaaS platform securely, maintain authenticated staff and tenant sessions, and improve navigation efficiency.
       </p>

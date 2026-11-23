@@ -115,6 +115,10 @@ export const App: React.FC = () => {
             <Route path="/legal" element={<MarketingLayout><LegalOverviewPage /></MarketingLayout>} />
             <Route path="/legal/terms" element={<MarketingLayout><TermsPage /></MarketingLayout>} />
             <Route path="/legal/privacy" element={<MarketingLayout><PrivacyPolicyPage /></MarketingLayout>} />
+            <Route path="/privacy" element={<MarketingLayout><PrivacyPolicyPage /></MarketingLayout>} />
+            <Route path="/terms" element={<MarketingLayout><TermsPage /></MarketingLayout>} />
+            <Route path="/terms-of-use" element={<MarketingLayout><TermsPage /></MarketingLayout>} />
+            <Route path="/terms-of-service" element={<MarketingLayout><TermsPage /></MarketingLayout>} />
             <Route path="/legal/cookies" element={<MarketingLayout><CookiePolicyPage /></MarketingLayout>} />
             <Route path="/legal/data-protection" element={<MarketingLayout><DataProtectionPage /></MarketingLayout>} />
             <Route path="/legal/acceptable-use" element={<MarketingLayout><AcceptableUsePage /></MarketingLayout>} />

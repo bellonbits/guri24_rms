@@ -5,13 +5,13 @@ export const PrivacyPolicyPage: React.FC = () => {
   return (
     <LegalLayout
       title="Privacy Policy"
-      subtitle="Comprehensive data processing notice for Guri24 RMS property management platform."
+      subtitle="Comprehensive data processing notice for Unit Flow property management platform."
       lastUpdated="November 20, 2026"
       version="2.1"
     >
       <h2>1. Introduction & Scope</h2>
       <p>
-        Guri24 Rental Management Ltd ("Guri24", "we", "our") is dedicated to protecting the privacy of our customer organizations, property administrators, staff users, and tenants. This Privacy Policy details how we collect, process, store, and safeguard personal data within the Guri24 SaaS platform in compliance with the <strong>Kenya Data Protection Act, 2019 (KDPA)</strong> and international privacy standards.
+        Unit Flow Technologies Ltd ("Unit Flow", "we", "our") is dedicated to protecting the privacy of our customer organizations, property administrators, staff users, and tenants. This Privacy Policy details how we collect, process, store, and safeguard personal data within the Unit Flow SaaS platform in compliance with the <strong>Kenya Data Protection Act, 2019 (KDPA)</strong> and international privacy standards.
       </p>
 
       <h2>2. Roles of Parties: Controller vs. Processor</h2>
@@ -20,10 +20,10 @@ export const PrivacyPolicyPage: React.FC = () => {
       </p>
       <ul>
         <li>
-          <strong>Guri24 as Data Controller:</strong> We act as the Data Controller with respect to account registration data, administrative contact information, billing records, and technical telemetry collected directly from customer administrators.
+          <strong>Unit Flow as Data Controller:</strong> We act as the Data Controller with respect to account registration data, administrative contact information, billing records, and technical telemetry collected directly from customer administrators.
         </li>
         <li>
-          <strong>Customer as Data Controller / Guri24 as Data Processor:</strong> The customer organization (landlord, property manager, or real estate firm) acts as the Data Controller regarding tenant personal information, lease terms, rent billing schedules, and maintenance records uploaded into the platform. Guri24 acts strictly as a Data Processor executing instructions on the customer's behalf.
+          <strong>Customer as Data Controller / Unit Flow as Data Processor:</strong> The customer organization (landlord, property manager, or real estate firm) acts as the Data Controller regarding tenant personal information, lease terms, rent billing schedules, and maintenance records uploaded into the platform. Unit Flow acts strictly as a Data Processor executing instructions on the customer's behalf.
         </li>
       </ul>
 
@@ -55,7 +55,7 @@ export const PrivacyPolicyPage: React.FC = () => {
 
       <h2>5. Multi-Tenant Data Isolation & Security Measures</h2>
       <p>
-        Data submitted to Guri24 is isolated logically via PostgreSQL row-level security and strict organization context verification. We employ TLS 1.3 encryption in transit, AES-256 encryption at rest, regular automated backups, and rate-limited API firewalls.
+        Data submitted to Unit Flow is isolated logically via PostgreSQL row-level security and strict organization context verification. We employ TLS 1.3 encryption in transit, AES-256 encryption at rest, regular automated backups, and rate-limited API firewalls.
       </p>
 
       <h2>6. Data Subject Rights (KDPA 2019)</h2>

@@ -12,7 +12,7 @@ export const AccessibilityPage: React.FC = () => {
       <section style={{ marginBottom: '32px' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#021429', marginBottom: '12px' }}>1. Accessibility Commitment</h2>
         <p style={{ color: '#475569', lineHeight: 1.7, marginBottom: '12px' }}>
-          Guri24 is committed to ensuring digital accessibility for people of all abilities. We continuously improve the user experience for everyone and apply relevant accessibility standards across our public portal and core property management applications.
+          Unit Flow is committed to ensuring digital accessibility for people of all abilities. We continuously improve the user experience for everyone and apply relevant accessibility standards across our public portal and core property management applications.
         </p>
         <p style={{ color: '#475569', lineHeight: 1.7 }}>
           Our design tokens and user interfaces aim to satisfy the Web Content Accessibility Guidelines (WCAG) 2.1 Level AA conformance criteria.
@@ -33,7 +33,7 @@ export const AccessibilityPage: React.FC = () => {
       <section style={{ marginBottom: '32px' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#021429', marginBottom: '12px' }}>3. Feedback & Contact</h2>
         <p style={{ color: '#475569', lineHeight: 1.7 }}>
-          We welcome your feedback on the accessibility of Guri24 RMS. If you encounter accessibility barriers on any part of our platform or need materials in an alternative format, please contact our Accessibility Coordinator at{' '}
+          We welcome your feedback on the accessibility of Unit Flow. If you encounter accessibility barriers on any part of our platform or need materials in an alternative format, please contact our Accessibility Coordinator at{' '}
           <a href="mailto:accessibility@guri24.com" style={{ color: '#0057FC', fontWeight: 600, textDecoration: 'none' }}>
             accessibility@guri24.com
           </a>.

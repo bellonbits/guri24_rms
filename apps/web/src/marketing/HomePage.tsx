@@ -782,13 +782,13 @@ export const HomePage: React.FC = () => {
               }}
             >
               <SparklesIcon style={{ width: '15px', height: '15px', color: '#2563EB' }} />
-              <span>Smart Property Management Platform</span>
+              <span>One platform. Every property. Complete control.</span>
             </div>
 
             <h1
               className="tt-hero-title"
               style={{
-                fontSize: '54px',
+                fontSize: '52px',
                 fontWeight: 800,
                 color: '#0F172A',
                 letterSpacing: '-0.035em',
@@ -796,8 +796,8 @@ export const HomePage: React.FC = () => {
                 margin: '0 auto',
               }}
             >
-              Data-Driven Decisions <br />
-              <span style={{ color: '#0F172A' }}>Powered by AI</span>
+              Your Properties Should Work for You. <br />
+              <span style={{ color: '#2563EB' }}>Not the Other Way Around.</span>
             </h1>
 
             <p
@@ -805,24 +805,38 @@ export const HomePage: React.FC = () => {
                 marginTop: '18px',
                 fontSize: '16px',
                 color: '#475569',
-                lineHeight: 1.6,
-                maxWidth: '620px',
+                lineHeight: 1.65,
+                maxWidth: '680px',
                 marginLeft: 'auto',
                 marginRight: 'auto',
                 fontWeight: 500,
               }}
             >
-              Effortlessly analyze large portfolios, uncover rental trends, automate M-Pesa collections, and make better property decisions in minutes.
+              Managing rental properties can quickly become overwhelming. Rent follow-ups, tenant calls, lease documents, maintenance requests and financial records can turn every day into a list of tasks you never seem to finish.
+            </p>
+            <p
+              style={{
+                marginTop: '10px',
+                fontSize: '15px',
+                color: '#1E293B',
+                lineHeight: 1.6,
+                maxWidth: '680px',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                fontWeight: 600,
+              }}
+            >
+              Unit Flow brings everything together, giving you more control, better visibility and more time to grow your property business.
             </p>
 
-            {/* Dual Pill CTA Buttons matching Relink */}
+            {/* Dual Pill CTA Buttons */}
             <div style={{ marginTop: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
               <Link
                 to="/signup"
                 className="tt-btn-blue"
                 style={{ fontSize: '14px', padding: '13px 34px' }}
               >
-                Try for free
+                Get Started
               </Link>
               <button
                 onClick={() => setDemoModalOpen(true)}
@@ -843,8 +857,12 @@ export const HomePage: React.FC = () => {
                 }}
               >
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981', display: 'inline-block' }} />
-                Schedule a Demo
+                Book a Demo
               </button>
+            </div>
+
+            <div style={{ marginTop: '14px', fontSize: '12px', fontWeight: 600, color: '#64748B' }}>
+              One platform. Every property. Complete control.
             </div>
           </div>
 
@@ -1240,7 +1258,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* =========================================================================
-          SECTION 2: "THE RENTAL OPERATIONS CHALLENGE EVERY LANDLORD FACES" (RELINK 3-CARD LAYOUT)
+          SECTION 2: THE PROBLEM ("IT STARTS WITH ONE PROPERTY")
       ========================================================================== */}
       <section style={{ padding: '80px 24px', backgroundColor: '#FFFFFF' }}>
         <div className="tt-container">
@@ -1254,15 +1272,18 @@ export const HomePage: React.FC = () => {
               marginBottom: '48px',
             }}
           >
-            <div style={{ maxWidth: '640px' }}>
+            <div style={{ maxWidth: '680px' }}>
               <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#2563EB', marginBottom: '8px' }}>
-                Why UnitFlow
+                The Problem
               </div>
-              <h2 style={{ fontSize: '36px', fontWeight: 800, color: '#0F172A', margin: '0 0 12px 0', letterSpacing: '-0.025em' }}>
-                The Rental Operations Challenge Every Landlord Faces
+              <h2 style={{ fontSize: '38px', fontWeight: 800, color: '#0F172A', margin: '0 0 14px 0', letterSpacing: '-0.025em' }}>
+                It Starts with One Property.
               </h2>
-              <p style={{ fontSize: '15px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
-                Turning scattered property operations into predictable cash flow is a challenge for every landlord and estate. UnitFlow simplifies workflows, enabling faster, smarter decisions.
+              <p style={{ fontSize: '15px', color: '#475569', lineHeight: 1.7, margin: '0 0 10px 0' }}>
+                You buy or manage your first rental property. Things seem manageable.
+              </p>
+              <p style={{ fontSize: '15px', color: '#64748B', lineHeight: 1.7, margin: 0 }}>
+                You know your tenants, remember their rent dates and keep track of payments in a notebook or spreadsheet.
               </p>
             </div>
             <div>
@@ -1289,15 +1310,16 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* 3 Challenge Cards Grid (Matching Relink: Light, Blue Gradient Center, Light) */}
+          {/* 3 Story Cards Grid: The Progression */}
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
               gap: '24px',
+              marginBottom: '32px',
             }}
           >
-            {/* Card 1: Portfolio Fragmentation */}
+            {/* Stage 1: Then You Grow */}
             <motion.div
               whileHover={{ y: -6, scale: 1.015 }}
               transition={{ type: 'spring', stiffness: 280, damping: 20 }}
@@ -1326,19 +1348,20 @@ export const HomePage: React.FC = () => {
                     marginBottom: '20px',
                   }}
                 >
-                  <ArrowUpRightIcon style={{ width: '20px', height: '20px' }} />
+                  <ArrowTrendingUpIcon style={{ width: '20px', height: '20px' }} />
                 </div>
                 <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: '0 0 10px 0' }}>
-                  Portfolio Fragmentation
+                  Then You Grow.
                 </h3>
-                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: '0 0 24px 0' }}>
-                  Managing units across spreadsheets, WhatsApp messages, and physical paper is overwhelming. Disconnected records make tracking arrears and tenant histories tedious.
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.7, margin: 0 }}>
+                  You acquire more units. More tenants move in. Some pay late. Others report maintenance issues. Lease agreements need renewing.
                 </p>
               </div>
 
               {/* Embedded Mini UI Widget */}
               <div
                 style={{
+                  marginTop: '24px',
                   backgroundColor: '#FFFFFF',
                   borderRadius: '16px',
                   padding: '16px',
@@ -1347,18 +1370,18 @@ export const HomePage: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#64748B', marginBottom: '12px' }}>
-                  <span>Occupancy Growth</span>
-                  <span style={{ color: '#2563EB' }}>+18.4%</span>
+                  <span>Portfolio Growth</span>
+                  <span style={{ color: '#2563EB' }}>+82 Units Added</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '48px' }}>
-                  {[35, 45, 40, 60, 50, 75, 70, 94].map((v, i) => (
-                    <div key={i} style={{ flex: 1, backgroundColor: i === 7 ? '#2563EB' : '#E2E8F0', height: `${v}%`, borderRadius: '4px' }} />
+                  {[12, 24, 38, 52, 68, 85, 110, 142].map((v, i) => (
+                    <div key={i} style={{ flex: 1, backgroundColor: i === 7 ? '#2563EB' : '#E2E8F0', height: `${(v / 142) * 100}%`, borderRadius: '4px' }} />
                   ))}
                 </div>
               </div>
             </motion.div>
 
-            {/* Card 2: Time-Consuming Manual Reconciliations (FEATURED BLUE CARD) */}
+            {/* Stage 2: Receipts Get Misplaced (FEATURED BLUE CARD) */}
             <motion.div
               whileHover={{ y: -6, scale: 1.02 }}
               transition={{ type: 'spring', stiffness: 280, damping: 20 }}
@@ -1387,19 +1410,20 @@ export const HomePage: React.FC = () => {
                     marginBottom: '20px',
                   }}
                 >
-                  <ArrowUpRightIcon style={{ width: '20px', height: '20px' }} />
+                  <DocumentTextIcon style={{ width: '20px', height: '20px' }} />
                 </div>
                 <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#FFFFFF', margin: '0 0 10px 0' }}>
-                  Time-Consuming Manual Workflows
+                  Receipts Get Misplaced.
                 </h3>
-                <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.6, margin: '0 0 24px 0' }}>
-                  Teams spend hours on manual M-Pesa statement matching and tracking delayed tenant payments. We automate these steps, freeing up your time to focus on strategic growth.
+                <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.9)', lineHeight: 1.7, margin: 0 }}>
+                  You spend hours checking messages, updating spreadsheets and trying to understand how much your properties actually earn.
                 </p>
               </div>
 
               {/* Embedded Mini UI Widget */}
               <div
                 style={{
+                  marginTop: '24px',
                   backgroundColor: '#FFFFFF',
                   borderRadius: '16px',
                   padding: '16px',
@@ -1408,16 +1432,19 @@ export const HomePage: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', fontWeight: 700, color: '#64748B', marginBottom: '8px' }}>
-                  <span>Rent Collection - Analysis</span>
-                  <span style={{ fontSize: '14px', fontWeight: 900, color: '#2563EB' }}>452 Units</span>
+                  <span>Dispersed Records</span>
+                  <span style={{ fontSize: '13px', fontWeight: 900, color: '#DC2626' }}>5+ Separate Apps</span>
                 </div>
-                <div style={{ width: '100%', height: '8px', backgroundColor: '#EFF6FF', borderRadius: '9999px', overflow: 'hidden' }}>
-                  <div style={{ width: '94%', height: '100%', backgroundColor: '#2563EB', borderRadius: '9999px' }} />
+                <div style={{ display: 'flex', gap: '6px', fontSize: '10px', color: '#64748B' }}>
+                  <span style={{ padding: '3px 8px', backgroundColor: '#F1F5F9', borderRadius: '6px' }}>WhatsApp</span>
+                  <span style={{ padding: '3px 8px', backgroundColor: '#F1F5F9', borderRadius: '6px' }}>Excel</span>
+                  <span style={{ padding: '3px 8px', backgroundColor: '#F1F5F9', borderRadius: '6px' }}>Receipts</span>
+                  <span style={{ padding: '3px 8px', backgroundColor: '#F1F5F9', borderRadius: '6px' }}>SMS</span>
                 </div>
               </div>
             </motion.div>
 
-            {/* Card 3: Missed Business Insights */}
+            {/* Stage 3: The Struggle */}
             <motion.div
               whileHover={{ y: -6, scale: 1.015 }}
               transition={{ type: 'spring', stiffness: 280, damping: 20 }}
@@ -1446,19 +1473,20 @@ export const HomePage: React.FC = () => {
                     marginBottom: '20px',
                   }}
                 >
-                  <ArrowUpRightIcon style={{ width: '20px', height: '20px' }} />
+                  <WrenchScrewdriverIcon style={{ width: '20px', height: '20px' }} />
                 </div>
                 <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: '0 0 10px 0' }}>
-                  Missed Business Insights
+                  The Management Struggle.
                 </h3>
-                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: '0 0 24px 0' }}>
-                  Without the right double-entry tools, crucial arrears and lease expiry trends go unnoticed. Our platform turns raw tenancy data into actionable financial intelligence.
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.7, margin: 0 }}>
+                  Suddenly, managing properties becomes more difficult than growing them. Rent follow-ups and uncoordinated repairs consume your time.
                 </p>
               </div>
 
               {/* Embedded Mini UI Widget */}
               <div
                 style={{
+                  marginTop: '24px',
                   backgroundColor: '#FFFFFF',
                   borderRadius: '16px',
                   padding: '16px',
@@ -1466,307 +1494,385 @@ export const HomePage: React.FC = () => {
                   boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#64748B', marginBottom: '12px' }}>
-                  <span>Net Operating Income (NOI)</span>
-                  <span style={{ color: '#059669' }}>+KES 184K</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#64748B', marginBottom: '8px' }}>
+                  <span>Unresolved Admin Friction</span>
+                  <span style={{ color: '#DC2626' }}>High</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '48px' }}>
-                  {[25, 30, 45, 55, 50, 70, 85, 96].map((v, i) => (
-                    <div key={i} style={{ flex: 1, backgroundColor: i === 7 ? '#059669' : '#E2E8F0', height: `${v}%`, borderRadius: '4px' }} />
-                  ))}
+                <div style={{ width: '100%', height: '8px', backgroundColor: '#FEE2E2', borderRadius: '9999px', overflow: 'hidden' }}>
+                  <div style={{ width: '82%', height: '100%', backgroundColor: '#EF4444', borderRadius: '9999px' }} />
                 </div>
               </div>
             </motion.div>
           </div>
-        </div>
-      </section>
 
-      {/* =========================================================================
-          SECTION 3: 3 ALTERNATING PASTEL FEATURE CARDS WITH FRAMER 3D DEPTH
-      ========================================================================== */}
-      <section id="features" style={{ padding: '0 24px 80px 24px' }}>
-        <div className="tt-container" style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          {/* ---------------- CARD 1: SOFT BLUE BANNER (SARAH'S PROPERTY DASHBOARD) ---------------- */}
-          <motion.div
-            whileHover={{ y: -5, scale: 1.01 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 20 }}
-            className="tt-feature-banner"
-            style={{
-              backgroundColor: '#EFF6FF',
-              borderRadius: '28px',
-              padding: '36px 40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '40px',
-              boxShadow: '0 4px 20px rgba(37,99,235,0.04)',
-            }}
-          >
-            {/* Left Content */}
-            <div style={{ flex: 1 }}>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '4px 12px',
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '9999px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: '#2563EB',
-                  marginBottom: '14px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                }}
-              >
-                <UsersIcon style={{ width: '13px', height: '13px' }} />
-                <span>Know your tenants better</span>
-              </div>
-              <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#0F172A', margin: '0 0 12px 0' }}>
-                Audience Growth & Analysis
-              </h2>
-              <p style={{ fontSize: '14px', color: '#475569', lineHeight: 1.6, margin: '0 0 24px 0', maxWidth: '440px' }}>
-                Track your occupancy growth in real-time and analyze demographics, payment behaviors, and lease terms. Understand who your tenants are and optimize your agreements based on verified data.
-              </p>
-              <button onClick={() => setDemoModalOpen(true)} className="tt-btn-blue" style={{ fontSize: '13px', padding: '10px 22px' }}>
-                Book a demo
-              </button>
-            </div>
-
-            {/* Right Embedded 3D Card with Property Manager Dashboard Image */}
-            <motion.div
-              whileHover={{ rotateY: -3, scale: 1.02 }}
-              className="tt-feature-banner-right"
-              style={{
-                width: '460px',
-                borderRadius: '20px',
-                overflow: 'hidden',
-                boxShadow: '0 16px 36px rgba(0,0,0,0.08)',
-                border: '1px solid #CBD5E1',
-                backgroundColor: '#FFFFFF',
-                transformStyle: 'preserve-3d',
-              }}
-            >
-              <img
-                src="/property-manager-dashboard.jpg"
-                alt="Property Manager Live Console"
-                style={{ width: '100%', height: 'auto', display: 'block' }}
-              />
-            </motion.div>
-          </motion.div>
-
-          {/* ---------------- CARD 2: SOFT PEACH BANNER (SLEEK CAMPAIGN & METRIC HUD) ---------------- */}
-          <motion.div
-            whileHover={{ y: -5, scale: 1.01 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 20 }}
-            className="tt-feature-banner"
-            style={{
-              backgroundColor: '#FFF5EB',
-              borderRadius: '28px',
-              padding: '36px 40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '40px',
-              boxShadow: '0 4px 20px rgba(249,115,22,0.04)',
-            }}
-          >
-            {/* Left Content */}
-            <div style={{ flex: 1 }}>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '4px 12px',
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '9999px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: '#EA580C',
-                  marginBottom: '14px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                }}
-              >
-                <ChartBarIcon style={{ width: '13px', height: '13px' }} />
-                <span>Drive deeper transparency</span>
-              </div>
-              <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#0F172A', margin: '0 0 12px 0' }}>
-                Improving Collections with Metrics Analysis
-              </h2>
-              <p style={{ fontSize: '14px', color: '#475569', lineHeight: 1.6, margin: '0 0 24px 0', maxWidth: '440px' }}>
-                Enhance your rental performance with detailed metrics on on-time collections, arrears aging, and deposit liabilities. Discover which units generate the most consistent returns.
-              </p>
-              <button onClick={() => setDemoModalOpen(true)} className="tt-btn-blue" style={{ fontSize: '13px', padding: '10px 22px' }}>
-                Book a demo
-              </button>
-            </div>
-
-            {/* Right Embedded 3D Card with Sleek Console Mockup */}
-            <motion.div
-              whileHover={{ rotateY: -3, scale: 1.02 }}
-              className="tt-feature-banner-right"
-              style={{
-                width: '460px',
-                borderRadius: '20px',
-                overflow: 'hidden',
-                boxShadow: '0 16px 36px rgba(0,0,0,0.08)',
-                border: '1px solid #CBD5E1',
-                backgroundColor: '#FFFFFF',
-                transformStyle: 'preserve-3d',
-              }}
-            >
-              <img
-                src="/sleek-console-mockup.jpg"
-                alt="Sleek Metric Performance Console"
-                style={{ width: '100%', height: 'auto', display: 'block' }}
-              />
-            </motion.div>
-          </motion.div>
-
-          {/* ---------------- CARD 3: SOFT LAVENDER BANNER (ISOMETRIC 3D CARDS) ---------------- */}
-          <motion.div
-            whileHover={{ y: -5, scale: 1.01 }}
-            transition={{ type: 'spring', stiffness: 280, damping: 20 }}
-            className="tt-feature-banner"
-            style={{
-              backgroundColor: '#FAF5FF',
-              borderRadius: '28px',
-              padding: '36px 40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '40px',
-              boxShadow: '0 4px 20px rgba(147,51,234,0.04)',
-            }}
-          >
-            {/* Left Content */}
-            <div style={{ flex: 1 }}>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '4px 12px',
-                  backgroundColor: '#FFFFFF',
-                  borderRadius: '9999px',
-                  fontSize: '11px',
-                  fontWeight: 700,
-                  color: '#9333EA',
-                  marginBottom: '14px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                }}
-              >
-                <BanknotesIcon style={{ width: '13px', height: '13px' }} />
-                <span>Turn vacancies into revenue</span>
-              </div>
-              <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#0F172A', margin: '0 0 12px 0' }}>
-                Monetization and Financial Management
-              </h2>
-              <p style={{ fontSize: '14px', color: '#475569', lineHeight: 1.6, margin: '0 0 24px 0', maxWidth: '440px' }}>
-                Manage your listings and maximize rental yield. UnitFlow helps you track invoices, verify automated M-Pesa C2B receipts, and unlock the full earning potential of your property portfolio.
-              </p>
-              <button onClick={() => setDemoModalOpen(true)} className="tt-btn-blue" style={{ fontSize: '13px', padding: '10px 22px' }}>
-                Book a demo
-              </button>
-            </div>
-
-            {/* Right Embedded 3D Card with Isometric 3D Cards */}
-            <motion.div
-              whileHover={{ rotateY: -3, scale: 1.02 }}
-              className="tt-feature-banner-right"
-              style={{
-                width: '460px',
-                borderRadius: '20px',
-                overflow: 'hidden',
-                boxShadow: '0 16px 36px rgba(0,0,0,0.08)',
-                border: '1px solid #CBD5E1',
-                backgroundColor: '#FFFFFF',
-                transformStyle: 'preserve-3d',
-              }}
-            >
-              <img
-                src="/isometric-3d-cards.jpg"
-                alt="Isometric 3D Monthly Summaries"
-                style={{ width: '100%', height: 'auto', display: 'block' }}
-              />
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 4: "GET MORE VALUE FROM YOUR TOOLS" (4-GRID HEROICONS)
-      ========================================================================== */}
-      <section style={{ padding: '60px 24px', backgroundColor: '#FAFCFF', borderTop: '1px solid #F1F5F9' }}>
-        <div className="tt-container">
-          <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 48px auto' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', marginBottom: '8px' }}>
-              Our Features
-            </div>
-            <h2 style={{ fontSize: '32px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-              Get more value from your tools
-            </h2>
-            <p style={{ fontSize: '14px', color: '#64748B', marginTop: '10px' }}>
-              Connect your properties, connect your team. With Daraja C2B already built-in, your team's favorite tools are just a click away.
-            </p>
-          </div>
-
+          {/* Section 2 Callout Punchline Banner */}
           <div
-            className="tt-four-grid"
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '32px 48px',
-              maxWidth: '880px',
+              padding: '24px 32px',
+              backgroundColor: '#F1F5F9',
+              borderRadius: '20px',
+              border: '1px solid #E2E8F0',
+              textAlign: 'center',
+              maxWidth: '820px',
               margin: '0 auto',
             }}
           >
-            <div>
-              <div style={{ width: '34px', height: '34px', borderRadius: '10px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-                <BanknotesIcon style={{ width: '18px', height: '18px' }} />
-              </div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>Monetization Tools</h3>
-              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
-                Increase your rental earnings potential. Track all unit performance, manage payments, and make data-driven decisions to improve your NOI.
-              </p>
-            </div>
+            <p style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.01em' }}>
+              The problem isn't your properties. It's having to manage everything separately.
+            </p>
+          </div>
+        </div>
+      </section>
 
-            <div>
-              <div style={{ width: '34px', height: '34px', borderRadius: '10px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-                <ChartBarIcon style={{ width: '18px', height: '18px' }} />
-              </div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>User-Friendly Dashboard</h3>
-              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
-                All your data in one place. With UnitFlow's intuitive interface, view and oversee an organized and visually clear dashboard for easy analysis.
-              </p>
+      {/* =========================================================================
+          SECTION 3: THE TURNING POINT ("THERE IS A BETTER WAY TO MANAGE RENTALS")
+      ========================================================================== */}
+      <section style={{ padding: '80px 24px', backgroundColor: '#F8FAFC', borderTop: '1px solid #E2E8F0' }}>
+        <div className="tt-container">
+          <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 48px auto' }}>
+            <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#2563EB', marginBottom: '8px' }}>
+              The Turning Point
             </div>
+            <h2 style={{ fontSize: '38px', fontWeight: 800, color: '#0F172A', margin: '0 0 14px 0', letterSpacing: '-0.025em' }}>
+              There is a better way to manage rentals.
+            </h2>
+            <p style={{ fontSize: '16px', color: '#475569', lineHeight: 1.6, margin: 0, fontWeight: 500 }}>
+              Imagine opening one platform and immediately knowing:
+            </p>
+          </div>
 
-            <div>
-              <div style={{ width: '34px', height: '34px', borderRadius: '10px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-                <SparklesIcon style={{ width: '18px', height: '18px' }} />
-              </div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>Real-Time Insights</h3>
-              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
-                Stay up to date with your property performance. UnitFlow provides real-time rent tracking to react quickly to charges and tenant balances.
-              </p>
+          {/* 7 Core Visibility Points Grid */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '16px',
+              maxWidth: '1000px',
+              margin: '0 auto 40px auto',
+            }}
+          >
+            {[
+              'Which properties and units you manage.',
+              'Which units are occupied or vacant.',
+              'Which tenants have paid and who still owes rent.',
+              'Which leases are expiring.',
+              'Which maintenance requests need attention.',
+              'How much rent you have collected.',
+              'How your property business is performing.',
+            ].map((point, index) => (
+              <motion.div
+                key={index}
+                whileHover={{ y: -3, scale: 1.01 }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  padding: '18px 22px',
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '16px',
+                  border: '1px solid #E2E8F0',
+                  boxShadow: '0 2px 8px rgba(15,23,42,0.03)',
+                }}
+              >
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: '#EFF6FF',
+                    color: '#2563EB',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <CheckCircleIcon style={{ width: '20px', height: '20px' }} />
+                </div>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: '#1E293B', lineHeight: 1.5 }}>
+                  {point}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Turning Point Conclusion Banner */}
+          <div
+            style={{
+              textAlign: 'center',
+              maxWidth: '680px',
+              margin: '0 auto',
+              padding: '24px',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '20px',
+              border: '1px solid #DBEAFE',
+              boxShadow: '0 8px 24px rgba(37,99,235,0.06)',
+            }}
+          >
+            <div style={{ fontSize: '15px', color: '#64748B', fontWeight: 600, marginBottom: '6px' }}>
+              No scattered spreadsheets. No unnecessary back-and-forth. No guessing.
             </div>
-
-            <div>
-              <div style={{ width: '34px', height: '34px', borderRadius: '10px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-                <UsersIcon style={{ width: '18px', height: '18px' }} />
-              </div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>Audience Deep Dive</h3>
-              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.5, margin: 0 }}>
-                Understand your tenants on a deeper level. Access detailed demographic and lease analytics to refine your tenant retention and marketing.
-              </p>
+            <div style={{ fontSize: '18px', fontWeight: 800, color: '#2563EB' }}>
+              That is what Unit Flow is built to deliver.
             </div>
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          SECTION: HOW IT WORKS ("GET STARTED IN 3 EASY STEPS")
+          SECTION 4: THE SOLUTION ("EVERYTHING CONNECTED. EVERYTHING UNDER CONTROL.")
+      ========================================================================== */}
+      <section id="features" style={{ padding: '80px 24px', backgroundColor: '#FFFFFF' }}>
+        <div className="tt-container">
+          <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 56px auto' }}>
+            <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#2563EB', marginBottom: '8px' }}>
+              The Solution
+            </div>
+            <h2 style={{ fontSize: '38px', fontWeight: 800, color: '#0F172A', margin: '0 0 14px 0', letterSpacing: '-0.025em' }}>
+              Everything Connected. Everything Under Control.
+            </h2>
+            <p style={{ fontSize: '16px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+              Unit Flow gives you one organized place to manage your entire rental operation.
+            </p>
+          </div>
+
+          {/* 8 Feature Cards Grid (4x2 on desktop) */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '24px',
+              maxWidth: '1140px',
+              margin: '0 auto',
+            }}
+          >
+            {[
+              {
+                title: 'Property Management',
+                desc: 'Manage buildings, properties and individual units from one central workspace.',
+                icon: <BuildingOffice2Icon style={{ width: '22px', height: '22px' }} />,
+                color: '#2563EB',
+                bg: '#EFF6FF',
+              },
+              {
+                title: 'Tenant Management',
+                desc: 'Keep tenant information, contact details, tenancy records and documents organized.',
+                icon: <UsersIcon style={{ width: '22px', height: '22px' }} />,
+                color: '#059669',
+                bg: '#ECFDF5',
+              },
+              {
+                title: 'Lease Management',
+                desc: 'Track agreements, rental periods, renewals, expirations and tenancy status.',
+                icon: <DocumentCheckIcon style={{ width: '22px', height: '22px' }} />,
+                color: '#7C3AED',
+                bg: '#F5F3FF',
+              },
+              {
+                title: 'Rent Collection',
+                desc: 'Monitor rent schedules, payments, outstanding balances and collection activity.',
+                icon: <BanknotesIcon style={{ width: '22px', height: '22px' }} />,
+                color: '#2563EB',
+                bg: '#EFF6FF',
+              },
+              {
+                title: 'Maintenance Management',
+                desc: 'Record maintenance requests, assign work and follow progress until issues are resolved.',
+                icon: <WrenchScrewdriverIcon style={{ width: '22px', height: '22px' }} />,
+                color: '#EA580C',
+                bg: '#FFF7ED',
+              },
+              {
+                title: 'Financial Management',
+                desc: 'Understand income, expenses, balances and financial performance through organized records.',
+                icon: <ChartBarIcon style={{ width: '22px', height: '22px' }} />,
+                color: '#0891B2',
+                bg: '#ECFEFF',
+              },
+              {
+                title: 'Document Intelligence',
+                desc: 'Upload documents and use OCR to extract information, reducing manual data entry while keeping important records accessible.',
+                icon: <DocumentMagnifyingGlassIcon style={{ width: '22px', height: '22px' }} />,
+                color: '#4F46E5',
+                bg: '#EEF2FF',
+              },
+              {
+                title: 'AI Property Assistant',
+                desc: 'Get help understanding property information, finding insights and navigating your property operations.',
+                icon: <SparklesIcon style={{ width: '22px', height: '22px' }} />,
+                color: '#D97706',
+                bg: '#FEF3C7',
+              },
+            ].map((feat, i) => (
+              <motion.div
+                key={i}
+                whileHover={{ y: -6, scale: 1.02 }}
+                transition={{ type: 'spring', stiffness: 280, damping: 20 }}
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '20px',
+                  border: '1px solid #E2E8F0',
+                  padding: '28px 24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '14px',
+                  boxShadow: '0 4px 18px rgba(0,0,0,0.03)',
+                }}
+              >
+                <div
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '12px',
+                    backgroundColor: feat.bg,
+                    color: feat.color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {feat.icon}
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                  {feat.title}
+                </h3>
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.65, margin: 0 }}>
+                  {feat.desc}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 5: THE TRANSFORMATION ("FROM CONSTANTLY CHASING TASKS TO MANAGING WITH CONFIDENCE")
+      ========================================================================== */}
+      <section style={{ padding: '80px 24px', backgroundColor: '#F8FAFC', borderTop: '1px solid #E2E8F0' }}>
+        <div className="tt-container">
+          <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 48px auto' }}>
+            <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#2563EB', marginBottom: '8px' }}>
+              The Transformation
+            </div>
+            <h2 style={{ fontSize: '38px', fontWeight: 800, color: '#0F172A', margin: '0 0 14px 0', letterSpacing: '-0.025em' }}>
+              From constantly chasing tasks to managing with confidence.
+            </h2>
+            <p style={{ fontSize: '16px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+              See what changes when your entire portfolio lives in one coherent operating system.
+            </p>
+          </div>
+
+          {/* Two-Column Comparison Card */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: '28px',
+              maxWidth: '960px',
+              margin: '0 auto 36px auto',
+            }}
+          >
+            {/* Before Unit Flow */}
+            <div
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '24px',
+                border: '1.5px solid #FEE2E2',
+                padding: '36px 32px',
+                boxShadow: '0 4px 16px rgba(239,68,68,0.04)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'inline-block',
+                  padding: '4px 12px',
+                  backgroundColor: '#FEF2F2',
+                  color: '#DC2626',
+                  borderRadius: '9999px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  marginBottom: '20px',
+                }}
+              >
+                Before Unit Flow
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {[
+                  'Rent tracking across spreadsheets and notebooks.',
+                  'Constant tenant payment follow-ups.',
+                  'Difficulty locating lease agreements.',
+                  'Maintenance requests scattered across messages.',
+                  'Limited visibility into property performance.',
+                  'Time-consuming manual reporting.',
+                ].map((item, idx) => (
+                  <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '14px', color: '#475569', lineHeight: 1.5 }}>
+                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#FEE2E2', color: '#DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
+                      <XMarkIcon style={{ width: '13px', height: '13px' }} />
+                    </div>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* With Unit Flow */}
+            <div
+              style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '24px',
+                border: '1.5px solid #DBEAFE',
+                padding: '36px 32px',
+                boxShadow: '0 8px 24px rgba(37,99,235,0.08)',
+              }}
+            >
+              <div
+                style={{
+                  display: 'inline-block',
+                  padding: '4px 12px',
+                  backgroundColor: '#EFF6FF',
+                  color: '#2563EB',
+                  borderRadius: '9999px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  marginBottom: '20px',
+                }}
+              >
+                With Unit Flow
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {[
+                  'Organized property and unit records.',
+                  'Clear rent collection visibility.',
+                  'Accessible tenant and lease information.',
+                  'Centralized maintenance tracking.',
+                  'Better financial visibility.',
+                  'Reports and insights to support decisions.',
+                ].map((item, idx) => (
+                  <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '14px', color: '#0F172A', fontWeight: 600, lineHeight: 1.5 }}>
+                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
+                      <CheckIcon style={{ width: '13px', height: '13px' }} />
+                    </div>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+              Spend less time managing scattered information and more time growing your property business.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 6: HOW IT WORKS ("GET YOUR PROPERTY BUSINESS ORGANIZED.")
       ========================================================================== */}
       <section id="how-it-works" style={{ padding: '80px 24px', backgroundColor: '#FFFFFF' }}>
         <div className="tt-container">
@@ -1774,11 +1880,11 @@ export const HomePage: React.FC = () => {
             <div style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
               How It Works
             </div>
-            <h2 style={{ fontSize: '34px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
-              Get Started In Just 3 Easy Steps
+            <h2 style={{ fontSize: '38px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
+              Get Your Property Business Organized.
             </h2>
             <p style={{ fontSize: '15px', color: '#64748B', marginTop: '12px', lineHeight: 1.6 }}>
-              Streamline your rental operations with a guided onboarding experience designed for speed, clarity, and complete operational control.
+              A clean, sequential pathway to take complete control of your rental portfolio.
             </p>
           </div>
 
@@ -1812,364 +1918,229 @@ export const HomePage: React.FC = () => {
               />
             </motion.div>
 
-            {/* Right: 3 Sequential Step Cards */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <motion.div
-                whileHover={{ x: 6 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                style={{
-                  padding: '24px',
-                  borderRadius: '18px',
-                  backgroundColor: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  display: 'flex',
-                  gap: '18px',
-                  alignItems: 'flex-start',
-                }}
-              >
-                <div
+            {/* Right: 4 Sequential Step Cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              {[
+                {
+                  step: '01',
+                  title: 'Set Up Your Properties',
+                  desc: 'Add your buildings, properties and rental units.',
+                  color: '#2563EB',
+                  bg: '#EFF6FF',
+                },
+                {
+                  step: '02',
+                  title: 'Organize Your Tenants',
+                  desc: 'Register tenants, assign units and maintain their tenancy records.',
+                  color: '#7C3AED',
+                  bg: '#F5F3FF',
+                },
+                {
+                  step: '03',
+                  title: 'Manage Your Operations',
+                  desc: 'Handle leases, rent collection, maintenance and documents from one workspace.',
+                  color: '#059669',
+                  bg: '#ECFDF5',
+                },
+                {
+                  step: '04',
+                  title: 'Understand Your Performance',
+                  desc: 'Use reports, analytics and AI-assisted insights to make informed decisions.',
+                  color: '#EA580C',
+                  bg: '#FFF7ED',
+                },
+              ].map((stepItem, idx) => (
+                <motion.div
+                  key={idx}
+                  whileHover={{ x: 6 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                   style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '12px',
-                    backgroundColor: '#EFF6FF',
-                    color: '#2563EB',
+                    padding: '22px 24px',
+                    borderRadius: '18px',
+                    backgroundColor: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 800,
-                    fontSize: '15px',
-                    flexShrink: 0,
+                    gap: '18px',
+                    alignItems: 'flex-start',
                   }}
                 >
-                  01
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
-                    Simple & Fast Portfolio Setup
-                  </h3>
-                  <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
-                    Add buildings, floors, and rental units in minutes. Set rent amounts, security deposits, and utilities with customizable billing cycles.
-                  </p>
-                </div>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ x: 6 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                style={{
-                  padding: '24px',
-                  borderRadius: '18px',
-                  backgroundColor: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  display: 'flex',
-                  gap: '18px',
-                  alignItems: 'flex-start',
-                }}
-              >
-                <div
-                  style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '12px',
-                    backgroundColor: '#F5F3FF',
-                    color: '#7C3AED',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 800,
-                    fontSize: '15px',
-                    flexShrink: 0,
-                  }}
-                >
-                  02
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
-                    Work Together Effortlessly
-                  </h3>
-                  <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
-                    Invite property managers, caretakers, and accountants with granular RBAC permissions. Register tenants and activate digital leases seamlessly.
-                  </p>
-                </div>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ x: 6 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                style={{
-                  padding: '24px',
-                  borderRadius: '18px',
-                  backgroundColor: '#F8FAFC',
-                  border: '1px solid #E2E8F0',
-                  display: 'flex',
-                  gap: '18px',
-                  alignItems: 'flex-start',
-                }}
-              >
-                <div
-                  style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '12px',
-                    backgroundColor: '#ECFDF5',
-                    color: '#059669',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 800,
-                    fontSize: '15px',
-                    flexShrink: 0,
-                  }}
-                >
-                  03
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
-                    Monitor Collections & Growth
-                  </h3>
-                  <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
-                    Collect rent automatically via Safaricom Daraja C2B Paybill 1343073. View live payment matching, arrears aging, and double-entry ledgers instantly.
-                  </p>
-                </div>
-              </motion.div>
+                  <div
+                    style={{
+                      width: '38px',
+                      height: '38px',
+                      borderRadius: '12px',
+                      backgroundColor: stepItem.bg,
+                      color: stepItem.color,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: '15px',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {stepItem.step}
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>
+                      {stepItem.title}
+                    </h3>
+                    <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+                      {stepItem.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          SECTION: ABOUT US ("BUILT FOR THE PEOPLE WHO MANAGE PROPERTIES")
+          SECTION 7: WHO IS UNIT FLOW FOR?
       ========================================================================== */}
       <section id="about" style={{ padding: '80px 24px', backgroundColor: '#FAFCFF', borderTop: '1px solid #F1F5F9' }}>
         <div className="tt-container">
           <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 48px auto' }}>
             <div style={{ fontSize: '11px', fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
-              About Us
+              Who It's For
             </div>
-            <h2 style={{ fontSize: '34px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
-              Built for the People Who Manage Properties
+            <h2 style={{ fontSize: '38px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
+              Who Is Unit Flow For?
             </h2>
-            <p style={{ fontSize: '15px', color: '#64748B', marginTop: '12px', lineHeight: 1.6 }}>
-              UnitFlow brings property owners, managers, accountants, and tenants together through one connected, intelligent property management platform designed for Kenyan real estate.
+            <p style={{ fontSize: '16px', color: '#64748B', marginTop: '12px', lineHeight: 1.6 }}>
+              Whether you manage a few rental units or an expanding property portfolio, Unit Flow helps you stay organized.
             </p>
-
-            {/* Audience Badges */}
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                justifyContent: 'center',
-                gap: '10px',
-                marginTop: '24px',
-              }}
-            >
-              {[
-                'Property Owners',
-                'Property Managers',
-                'Real Estate Companies',
-                'Landlords',
-                'Residential Estates',
-              ].map((badge, i) => (
-                <span
-                  key={i}
-                  style={{
-                    padding: '6px 16px',
-                    backgroundColor: '#EFF6FF',
-                    color: '#2563EB',
-                    borderRadius: '9999px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    border: '1px solid #DBEAFE',
-                  }}
-                >
-                  {badge}
-                </span>
-              ))}
-            </div>
           </div>
 
-          {/* 3 Core Value Cards */}
+          {/* 5 Audience Cards Grid */}
           <div
-            className="tt-about-grid"
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
               gap: '24px',
               maxWidth: '1080px',
               margin: '0 auto',
             }}
           >
-            <motion.div
-              whileHover={{ y: -6, scale: 1.02 }}
-              transition={{ type: 'spring', stiffness: 280, damping: 20 }}
-              style={{
-                padding: '32px 24px',
-                borderRadius: '20px',
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #E2E8F0',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-              }}
-            >
-              <div
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '12px',
-                  backgroundColor: '#EFF6FF',
-                  color: '#2563EB',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '18px',
-                }}
-              >
-                <BuildingOfficeIcon style={{ width: '22px', height: '22px' }} />
-              </div>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: '0 0 10px 0' }}>
-                Kenya Real Estate Ready
-              </h3>
-              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
-                Crafted specifically for the nuances of local property administration—from single apartment blocks to sprawling gated communities with localized tenancy conventions.
-              </p>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -6, scale: 1.02 }}
-              transition={{ type: 'spring', stiffness: 280, damping: 20 }}
-              style={{
-                padding: '32px 24px',
-                borderRadius: '20px',
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #E2E8F0',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-              }}
-            >
-              <div
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '12px',
-                  backgroundColor: '#ECFDF5',
-                  color: '#059669',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '18px',
-                }}
-              >
-                <DevicePhoneMobileIcon style={{ width: '22px', height: '22px' }} />
-              </div>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: '0 0 10px 0' }}>
-                Automated Daraja C2B
-              </h3>
-              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
-                Instant real-time payment matching on Paybill 1343073. Eliminate counterfeit MPESA messages, missed rent allocations, and hours of tedious spreadsheet reconciliation.
-              </p>
-            </motion.div>
-
-            <motion.div
-              whileHover={{ y: -6, scale: 1.02 }}
-              transition={{ type: 'spring', stiffness: 280, damping: 20 }}
-              style={{
-                padding: '32px 24px',
-                borderRadius: '20px',
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #E2E8F0',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-              }}
-            >
-              <div
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '12px',
-                  backgroundColor: '#F5F3FF',
-                  color: '#7C3AED',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '18px',
-                }}
-              >
-                <ShieldCheckIcon style={{ width: '22px', height: '22px' }} />
-              </div>
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0F172A', margin: '0 0 10px 0' }}>
-                Bank-Grade Accounting
-              </h3>
-              <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
-                Double-entry financial records ensure Debits == Credits. Security deposits post strictly to liability accounts, keeping your NOI and audit reports 100% compliant.
-              </p>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 5: CUSTOMER TESTIMONIALS (SOFT SKY BLUE CONTAINER)
-      ========================================================================== */}
-      <section style={{ padding: '60px 24px', backgroundColor: '#EBF5FF' }}>
-        <div className="tt-container">
-          <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 40px auto' }}>
-            <h2 style={{ fontSize: '32px', fontWeight: 800, color: '#0F172A', margin: 0 }}>Customer testimonials</h2>
-            <p style={{ fontSize: '14px', color: '#64748B', marginTop: '8px' }}>
-              What Kenyan landlords, estate executives and property managers say about UnitFlow.
-            </p>
-          </div>
-
-          <div
-            className="tt-testimonials-grid"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '20px',
-              maxWidth: '880px',
-              margin: '0 auto',
-            }}
-          >
             {[
               {
-                quote: "UnitFlow has helped me finally understand my property cashflow on a deeper level. The automated Daraja C2B reconciliation means no more missing payment slips.",
-                name: "Kristin Watson",
-                role: "Residential Estate Landlord",
+                role: 'Landlords',
+                desc: 'Take control of your rental properties without relying on scattered records.',
+                icon: <BuildingOfficeIcon style={{ width: '22px', height: '22px' }} />,
+                bg: '#EFF6FF',
+                color: '#2563EB',
               },
               {
-                quote: "Before using UnitFlow, we struggled to make sense of all the data across my properties. Now, everything is in one place, and invoices are automatically matched.",
-                name: "Jerome Bell",
-                role: "Property Manager, Nairobi",
+                role: 'Property Owners',
+                desc: 'Understand how your investments are performing.',
+                icon: <ArrowTrendingUpIcon style={{ width: '22px', height: '22px' }} />,
+                bg: '#ECFDF5',
+                color: '#059669',
               },
               {
-                quote: "I love how easy it is to manage 50+ units with UnitFlow. The real-time insights are incredibly useful, and I've already seen improvements in collection speed.",
-                name: "Theresa Webb",
-                role: "Commercial Property Executive",
+                role: 'Property Managers',
+                desc: 'Manage multiple properties, tenants and daily operations more efficiently.',
+                icon: <UsersIcon style={{ width: '22px', height: '22px' }} />,
+                bg: '#F5F3FF',
+                color: '#7C3AED',
               },
               {
-                quote: "UnitFlow has completely transformed how I oversee my portfolio. Automated notifications have cut tenant arrears in half since month one.",
-                name: "Bessie Cooper",
-                role: "Real Estate Operations Lead",
+                role: 'Real Estate Companies',
+                desc: 'Bring property management processes into one connected platform.',
+                icon: <BuildingOffice2Icon style={{ width: '22px', height: '22px' }} />,
+                bg: '#FEF3C7',
+                color: '#D97706',
               },
-            ].map((t, i) => (
-              <div key={i} style={{ backgroundColor: '#FFFFFF', borderRadius: '18px', padding: '24px', boxShadow: '0 4px 14px rgba(0,0,0,0.03)' }}>
-                <p style={{ fontSize: '13px', color: '#334155', lineHeight: 1.6, margin: '0 0 16px 0' }}>"{t.quote}"</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '9999px', backgroundColor: '#DBEAFE', color: '#1D4ED8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '11px' }}>
-                    {t.name[0]}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>{t.name}</div>
-                    <div style={{ fontSize: '11px', color: '#64748B' }}>{t.role}</div>
-                  </div>
+              {
+                role: 'Residential Estates',
+                desc: 'Organize units, tenants, maintenance and rental operations.',
+                icon: <BuildingLibraryIcon style={{ width: '22px', height: '22px' }} />,
+                bg: '#F1F5F9',
+                color: '#0F172A',
+              },
+            ].map((aud, i) => (
+              <motion.div
+                key={i}
+                whileHover={{ y: -6, scale: 1.02 }}
+                transition={{ type: 'spring', stiffness: 280, damping: 20 }}
+                style={{
+                  padding: '30px 24px',
+                  borderRadius: '20px',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #E2E8F0',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
+                <div
+                  style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '12px',
+                    backgroundColor: aud.bg,
+                    color: aud.color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {aud.icon}
                 </div>
-              </div>
+                <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                  {aud.role}
+                </h3>
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: 1.6, margin: 0 }}>
+                  {aud.desc}
+                </p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          SECTION 6: "CHOOSE YOUR PLAN" (RELINK PRICING TIERS)
+          SECTION 8: THE BIGGER PICTURE ("YOUR PROPERTIES ARE AN INVESTMENT. MANAGE THEM LIKE ONE.")
       ========================================================================== */}
-      <section id="pricing" style={{ padding: '80px 24px', backgroundColor: '#FFFFFF' }}>
+      <section style={{ padding: '80px 24px', backgroundColor: '#FFFFFF' }}>
+        <div className="tt-container">
+          <div
+            style={{
+              maxWidth: '880px',
+              margin: '0 auto',
+              backgroundColor: '#EFF6FF',
+              borderRadius: '28px',
+              padding: '48px 40px',
+              border: '1px solid #DBEAFE',
+              boxShadow: '0 12px 32px rgba(37,99,235,0.06)',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#2563EB', marginBottom: '12px' }}>
+              The Bigger Picture
+            </div>
+            <h2 style={{ fontSize: '36px', fontWeight: 800, color: '#0F172A', margin: '0 0 20px 0', letterSpacing: '-0.025em' }}>
+              Your properties are an investment. Manage them like one.
+            </h2>
+            <p style={{ fontSize: '16px', color: '#334155', lineHeight: 1.7, margin: '0 0 16px 0', fontWeight: 500 }}>
+              Property management is more than collecting rent. It is about protecting your investment, maintaining good tenant relationships, making informed financial decisions and building a property business that can grow.
+            </p>
+            <p style={{ fontSize: '16px', color: '#2563EB', lineHeight: 1.7, margin: '0 0 20px 0', fontWeight: 700 }}>
+              Unit Flow gives you the tools and visibility to do that.
+            </p>
+            <p style={{ fontSize: '15px', color: '#64748B', lineHeight: 1.7, margin: 0 }}>
+              Your next property shouldn't mean twice the paperwork, twice the stress and twice the follow-ups. <strong style={{ color: '#0F172A' }}>It should mean growth.</strong>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION: "CHOOSE YOUR PLAN" (RELINK PRICING TIERS)
+      ========================================================================== */}
+      <section id="pricing" style={{ padding: '80px 24px', backgroundColor: '#FAFCFF', borderTop: '1px solid #F1F5F9' }}>
         <div className="tt-container">
           <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 48px auto' }}>
             <h2 style={{ fontSize: '36px', fontWeight: 800, color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
@@ -2218,7 +2189,7 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* 3 Tall Pricing Cards matching Relink Reference */}
+          {/* 3 Tall Pricing Cards */}
           <div
             className="tt-pricing-grid"
             style={{
@@ -2231,168 +2202,113 @@ export const HomePage: React.FC = () => {
           >
             {/* Card 1: Basic */}
             <motion.div
-              whileHover={{ y: -6, scale: 1.015 }}
-              transition={{ type: 'spring', stiffness: 280, damping: 20 }}
+              whileHover={{ y: -6 }}
               style={{
                 backgroundColor: '#FFFFFF',
                 borderRadius: '24px',
                 border: '1px solid #E2E8F0',
-                padding: '36px 30px',
+                padding: '36px 28px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                boxShadow: '0 4px 18px rgba(0,0,0,0.02)',
               }}
             >
               <div>
-                <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', border: '1px solid #E2E8F0' }}>
-                  <BuildingOfficeIcon style={{ width: '18px', height: '18px', color: '#64748B' }} />
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>Basic</div>
+                <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 20px 0', lineHeight: 1.5 }}>
+                  For individual landlords managing up to 10 units.
+                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
+                  <span style={{ fontSize: '38px', fontWeight: 900, color: '#0F172A' }}>KES 0</span>
+                  <span style={{ fontSize: '13px', color: '#64748B' }}>/ month</span>
                 </div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>Basic</div>
-                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px', lineHeight: 1.5 }}>A simple solution for individual property owners & solo landlords.</div>
-                <div style={{ fontSize: '36px', fontWeight: 900, color: '#0F172A', marginTop: '20px' }}>
-                  KES 0 <span style={{ fontSize: '13px', fontWeight: 500, color: '#64748B' }}>/ month</span>
-                </div>
-
-                <div style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px', color: '#475569' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> Up to 10 units</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> Real-time rent collection tracking</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> Automated SMS payment receipts</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> Tenant contact directory</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> Standard community support</div>
-                </div>
+                <div style={{ height: '1px', backgroundColor: '#F1F5F9', marginBottom: '24px' }} />
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px', color: '#475569' }}>
+                  <li style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><CheckIcon style={{ width: '16px', height: '16px', color: '#2563EB' }} /> Up to 10 rental units</li>
+                  <li style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><CheckIcon style={{ width: '16px', height: '16px', color: '#2563EB' }} /> Digital lease creation</li>
+                  <li style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><CheckIcon style={{ width: '16px', height: '16px', color: '#2563EB' }} /> Standard invoice generation</li>
+                  <li style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><CheckIcon style={{ width: '16px', height: '16px', color: '#2563EB' }} /> Community support</li>
+                </ul>
               </div>
-
-              <Link
-                to="/signup"
-                style={{
-                  marginTop: '32px',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  padding: '12px 0',
-                  width: '100%',
-                  borderRadius: '9999px',
-                  border: '1px solid #CBD5E1',
-                  backgroundColor: '#FFFFFF',
-                  color: '#0F172A',
-                  textAlign: 'center',
-                  textDecoration: 'none',
-                  display: 'block',
-                  transition: 'all 0.15s ease',
-                }}
-              >
+              <Link to="/signup" className="tt-btn-blue" style={{ marginTop: '32px', textAlign: 'center', backgroundColor: '#F1F5F9', color: '#0F172A', boxShadow: 'none' }}>
                 Get Started
               </Link>
             </motion.div>
 
-            {/* Card 2: Pro (Center Featured Blue Card in Relink) */}
+            {/* Card 2: Pro (FEATURED) */}
             <motion.div
-              whileHover={{ y: -8, scale: 1.025 }}
-              transition={{ type: 'spring', stiffness: 280, damping: 20 }}
+              whileHover={{ y: -8, scale: 1.02 }}
               style={{
-                backgroundColor: '#F0F7FF',
+                backgroundColor: '#EFF6FF',
                 borderRadius: '24px',
                 border: '2px solid #2563EB',
-                padding: '36px 30px',
+                padding: '36px 28px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 position: 'relative',
-                boxShadow: '0 16px 40px rgba(37,99,235,0.15)',
+                boxShadow: '0 16px 36px rgba(37,99,235,0.12)',
               }}
             >
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #BFDBFE' }}>
-                    <SparklesIcon style={{ width: '18px', height: '18px', color: '#2563EB' }} />
-                  </div>
-                  <span style={{ fontSize: '10px', fontWeight: 800, backgroundColor: '#2563EB', color: '#FFFFFF', padding: '3px 10px', borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    Most Popular
-                  </span>
-                </div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>Pro</div>
-                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px', lineHeight: 1.5 }}>Comprehensive operations for residential estates & managers.</div>
-                <div style={{ fontSize: '36px', fontWeight: 900, color: '#0F172A', marginTop: '20px' }}>
-                  {billingCycle === 'monthly' ? 'KES 4,500' : 'KES 3,600'} <span style={{ fontSize: '13px', fontWeight: 500, color: '#64748B' }}>/ month</span>
-                </div>
-
-                <div style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px', color: '#334155' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> Unlimited units & buildings</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> Automated Daraja C2B V2 (Paybill 1343073)</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> Double-entry ledger (DR == CR)</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> Multi-role RBAC (Caretakers & Accountants)</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> AI Property Assistant & Insights</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> Priority dedicated support</div>
-                </div>
+              <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', backgroundColor: '#2563EB', color: '#FFFFFF', padding: '3px 12px', borderRadius: '9999px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                Most Popular
               </div>
-
-              <Link
-                to="/signup"
-                className="tt-btn-blue"
-                style={{
-                  marginTop: '32px',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  padding: '12px 0',
-                  width: '100%',
-                  borderRadius: '9999px',
-                }}
-              >
+              <div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>Pro</div>
+                <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 20px 0', lineHeight: 1.5 }}>
+                  For active landlords & growing property companies.
+                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
+                  <span style={{ fontSize: '38px', fontWeight: 900, color: '#0F172A' }}>{billingCycle === 'monthly' ? 'KES 4,500' : 'KES 3,600'}</span>
+                  <span style={{ fontSize: '13px', color: '#64748B' }}>/ month</span>
+                </div>
+                <div style={{ height: '1px', backgroundColor: '#DBEAFE', marginBottom: '24px' }} />
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px', color: '#1E293B' }}>
+                  <li style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><CheckIcon style={{ width: '16px', height: '16px', color: '#2563EB' }} /> Up to 150 units</li>
+                  <li style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><CheckIcon style={{ width: '16px', height: '16px', color: '#2563EB' }} /> Automated M-Pesa C2B (1343073)</li>
+                  <li style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><CheckIcon style={{ width: '16px', height: '16px', color: '#2563EB' }} /> Double-entry financial ledger</li>
+                  <li style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><CheckIcon style={{ width: '16px', height: '16px', color: '#2563EB' }} /> SMS & WhatsApp automated reminders</li>
+                  <li style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><CheckIcon style={{ width: '16px', height: '16px', color: '#2563EB' }} /> AI Assistant & OCR extraction</li>
+                </ul>
+              </div>
+              <Link to="/signup" className="tt-btn-blue" style={{ marginTop: '32px', textAlign: 'center' }}>
                 Get Started
               </Link>
             </motion.div>
 
             {/* Card 3: Enterprise */}
             <motion.div
-              whileHover={{ y: -6, scale: 1.015 }}
-              transition={{ type: 'spring', stiffness: 280, damping: 20 }}
+              whileHover={{ y: -6 }}
               style={{
                 backgroundColor: '#FFFFFF',
                 borderRadius: '24px',
                 border: '1px solid #E2E8F0',
-                padding: '36px 30px',
+                padding: '36px 28px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                boxShadow: '0 4px 18px rgba(0,0,0,0.02)',
               }}
             >
               <div>
-                <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', border: '1px solid #E2E8F0' }}>
-                  <ShieldCheckIcon style={{ width: '18px', height: '18px', color: '#64748B' }} />
+                <div style={{ fontSize: '16px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>Enterprise</div>
+                <p style={{ fontSize: '12px', color: '#64748B', margin: '0 0 20px 0', lineHeight: 1.5 }}>
+                  For commercial developments & large multi-estates.
+                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
+                  <span style={{ fontSize: '38px', fontWeight: 900, color: '#0F172A' }}>Custom</span>
                 </div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A' }}>Enterprise</div>
-                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '4px', lineHeight: 1.5 }}>Tailored infrastructure for large property firms & corporations.</div>
-                <div style={{ fontSize: '36px', fontWeight: 900, color: '#0F172A', marginTop: '20px' }}>
-                  KES 12,000 <span style={{ fontSize: '13px', fontWeight: 500, color: '#64748B' }}>/ month</span>
-                </div>
-
-                <div style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px', color: '#475569' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> Unlimited portfolios & multi-org tenancy</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> Dedicated account manager & SLA</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> KRA iTax & Custom ERP API access</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> Bank direct feeds (KCB, Equity, Co-op)</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><CheckIcon style={{ width: '15px', height: '15px', color: '#2563EB', flexShrink: 0 }} /> On-site staff training & onboarding</div>
-                </div>
+                <div style={{ height: '1px', backgroundColor: '#F1F5F9', marginBottom: '24px' }} />
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px', color: '#475569' }}>
+                  <li style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><CheckIcon style={{ width: '16px', height: '16px', color: '#2563EB' }} /> Unlimited properties & units</li>
+                  <li style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><CheckIcon style={{ width: '16px', height: '16px', color: '#2563EB' }} /> Dedicated C2B shortcode integration</li>
+                  <li style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><CheckIcon style={{ width: '16px', height: '16px', color: '#2563EB' }} /> Custom ERP & KRA eTIMS sync</li>
+                  <li style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><CheckIcon style={{ width: '16px', height: '16px', color: '#2563EB' }} /> 24/7 dedicated account manager & SLA</li>
+                </ul>
               </div>
-
-              <button
-                onClick={() => setDemoModalOpen(true)}
-                style={{
-                  marginTop: '32px',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  padding: '12px 0',
-                  width: '100%',
-                  borderRadius: '9999px',
-                  border: '1px solid #CBD5E1',
-                  backgroundColor: '#FFFFFF',
-                  color: '#0F172A',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                Get Started
+              <button onClick={() => setDemoModalOpen(true)} className="tt-btn-blue" style={{ marginTop: '32px', textAlign: 'center', backgroundColor: '#0F172A', color: '#FFFFFF', boxShadow: 'none' }}>
+                Contact Sales
               </button>
             </motion.div>
           </div>
@@ -2400,181 +2316,85 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* =========================================================================
-          SECTION 7: FREQUENTLY ASKED QUESTIONS (RELINK 2-COLUMN ACCORDION)
+          SECTION 9: FINAL CTA ("READY TO TAKE CONTROL?")
       ========================================================================== */}
-      <section style={{ padding: '80px 24px', backgroundColor: '#FAFCFF', borderTop: '1px solid #F1F5F9' }}>
+      <section style={{ padding: '80px 24px', backgroundColor: '#FFFFFF' }}>
         <div className="tt-container">
           <div
+            className="tt-sky-newsletter-card"
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(280px, 360px) 1fr',
-              gap: '64px',
-              maxWidth: '1060px',
-              margin: '0 auto',
-            }}
-          >
-            {/* Left Column: Heading & Contact CTA */}
-            <div>
-              <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#2563EB', marginBottom: '8px' }}>
-                FAQs
-              </div>
-              <h2 style={{ fontSize: '36px', fontWeight: 800, color: '#0F172A', margin: '0 0 16px 0', letterSpacing: '-0.025em' }}>
-                Frequently Asked Questions
-              </h2>
-              <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6, margin: '0 0 24px 0' }}>
-                Need help or have questions about UnitFlow? Reach out to our dedicated real estate support team anytime.
-              </p>
-              <button
-                onClick={() => setDemoModalOpen(true)}
-                className="tt-btn-blue"
-                style={{ fontSize: '13px', padding: '10px 22px' }}
-              >
-                Contact us
-              </button>
-            </div>
-
-            {/* Right Column: Interactive Accordion List */}
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {[
-                {
-                  q: 'What types of properties can I manage on UnitFlow?',
-                  a: 'UnitFlow supports individual residential apartments, standalone villas, commercial retail centers, mixed-use buildings, and multi-estate developments across Kenya.',
-                },
-                {
-                  q: 'How does Safaricom M-Pesa C2B Paybill 1343073 integration work?',
-                  a: 'Tenants pay directly using Paybill 1343073 and their unit number as the account. Our instant Daraja C2B webhook validates the payment, matches it against pending invoices, and issues automated SMS receipts.',
-                },
-                {
-                  q: 'How secure is our financial, lease, and tenant data?',
-                  a: 'We enforce bank-grade security standards with strict organization isolation, AES-256 encryption at rest, double-entry financial invariants (Debits == Credits), and granular role-based access control (RBAC).',
-                },
-                {
-                  q: "What's the difference between Basic, Pro, and Enterprise plans?",
-                  a: 'Basic is tailored for individual landlords with up to 10 units. Pro unlocks automated M-Pesa C2B Paybill reconciliation, multi-role RBAC, and AI insights. Enterprise delivers custom ERP integrations and SLA guarantees.',
-                },
-                {
-                  q: 'How does UnitFlow support KRA iTax withholding tax compliance?',
-                  a: 'UnitFlow automatically computes rental withholding taxes, generates audit-ready monthly summaries, and exports standardized reports ready for submission to the KRA iTax portal.',
-                },
-              ].map((faq, index) => {
-                const isOpen = openFaqIndex === index;
-                return (
-                  <div
-                    key={index}
-                    style={{
-                      borderBottom: '1px solid #E2E8F0',
-                      padding: '20px 0',
-                    }}
-                  >
-                    <button
-                      onClick={() => setOpenFaqIndex(isOpen ? null : index)}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        width: '100%',
-                        background: 'none',
-                        border: 'none',
-                        textAlign: 'left',
-                        padding: 0,
-                        cursor: 'pointer',
-                        color: '#0F172A',
-                      }}
-                    >
-                      <span style={{ fontSize: '15px', fontWeight: 700, paddingRight: '16px' }}>{faq.q}</span>
-                      <motion.div
-                        animate={{ rotate: isOpen ? 180 : 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <ChevronDownIcon style={{ width: '18px', height: '18px', color: '#64748B' }} />
-                      </motion.div>
-                    </button>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        transition={{ duration: 0.2 }}
-                        style={{ marginTop: '12px', fontSize: '13px', color: '#64748B', lineHeight: 1.6 }}
-                      >
-                        {faq.a}
-                      </motion.div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 8: PRE-FOOTER "JOIN OUR NEWSLETTER" CLOUD BANNER (RELINK AESTHETIC)
-      ========================================================================== */}
-      <section style={{ padding: '40px 24px 80px 24px', backgroundColor: '#FFFFFF' }}>
-        <div
-          className="tt-container"
-          style={{
-            backgroundImage: "url('/hero-sky-clouds.jpg')",
-            backgroundPosition: 'center',
-            backgroundSize: 'cover',
-            borderRadius: '28px',
-            padding: '56px 40px',
-            position: 'relative',
-            overflow: 'hidden',
-            boxShadow: '0 20px 50px rgba(37,99,235,0.1)',
-          }}
-        >
-          {/* Subtle gradient overlay to keep text high contrast */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(90deg, rgba(239, 246, 255, 0.95) 0%, rgba(239, 246, 255, 0.85) 60%, rgba(255, 255, 255, 0.5) 100%)',
-              zIndex: 1,
-            }}
-          />
-
-          <div
-            style={{
-              position: 'relative',
-              zIndex: 10,
+              borderRadius: '28px',
+              padding: '56px 48px',
+              backgroundImage: 'url(/hero-sky-clouds.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              boxShadow: '0 20px 50px rgba(37,99,235,0.14)',
+              border: '1px solid rgba(255, 255, 255, 0.8)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: '40px',
               flexWrap: 'wrap',
+              position: 'relative',
+              overflow: 'hidden',
             }}
           >
-            <div style={{ maxWidth: '520px' }}>
+            {/* Soft glass overlay */}
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundColor: 'rgba(255, 255, 255, 0.88)',
+                backdropFilter: 'blur(8px)',
+                zIndex: 1,
+              }}
+            />
+
+            {/* Left Content */}
+            <div style={{ maxWidth: '560px', position: 'relative', zIndex: 2 }}>
               <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#2563EB', marginBottom: '8px' }}>
-                Stay Informed
+                Ready to Take Control?
               </div>
-              <h2 style={{ fontSize: '34px', fontWeight: 800, color: '#0F172A', margin: '0 0 12px 0', letterSpacing: '-0.025em' }}>
-                Join Our Newsletter
+              <h2 style={{ fontSize: '40px', fontWeight: 800, color: '#0F172A', margin: '0 0 16px 0', letterSpacing: '-0.025em', lineHeight: 1.2 }}>
+                Stop Managing Properties the Hard Way.
               </h2>
-              <p style={{ fontSize: '14px', color: '#475569', lineHeight: 1.6, margin: '0 0 24px 0' }}>
-                Turning property data into insights is a challenge for every business. Our platform simplifies rental processes, enabling faster, smarter decisions.
+              <p style={{ fontSize: '15px', color: '#475569', lineHeight: 1.7, margin: '0 0 28px 0' }}>
+                Bring your properties, tenants, leases, rent collection and operations together with Unit Flow. Start building a more organized and manageable property business today.
               </p>
-              <div style={{ display: 'flex', gap: '8px', maxWidth: '420px' }}>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  style={{
-                    flex: 1,
-                    padding: '12px 18px',
-                    borderRadius: '9999px',
-                    border: '1px solid #CBD5E1',
-                    fontSize: '13px',
-                    backgroundColor: '#FFFFFF',
-                    outline: 'none',
-                  }}
-                />
-                <button
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                <Link
+                  to="/signup"
                   className="tt-btn-blue"
-                  style={{ fontSize: '13px', padding: '12px 24px', flexShrink: 0 }}
+                  style={{ fontSize: '14px', padding: '13px 32px' }}
                 >
-                  Contact Us
+                  Get Started
+                </Link>
+                <button
+                  onClick={() => setDemoModalOpen(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    backgroundColor: '#0F172A',
+                    color: '#FFFFFF',
+                    borderRadius: '9999px',
+                    padding: '13px 26px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(15, 23, 42, 0.18)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981', display: 'inline-block' }} />
+                  Book a Demo
                 </button>
+              </div>
+
+              <div style={{ marginTop: '16px', fontSize: '13px', fontWeight: 700, color: '#2563EB' }}>
+                Unit Flow — Property management, brought together.
               </div>
             </div>
 
@@ -2589,20 +2409,22 @@ export const HomePage: React.FC = () => {
                 padding: '24px',
                 boxShadow: '0 16px 36px rgba(15, 23, 42, 0.08)',
                 border: '1px solid rgba(226, 232, 240, 0.8)',
+                position: 'relative',
+                zIndex: 2,
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>Portfolio Analytics</span>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A' }}>Unit Flow Console</span>
                 <span style={{ fontSize: '11px', fontWeight: 700, color: '#10B981', backgroundColor: '#ECFDF5', padding: '2px 8px', borderRadius: '9999px' }}>Live</span>
               </div>
-              <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', marginBottom: '4px' }}>KES 184,620</div>
-              <div style={{ fontSize: '11px', color: '#64748B', marginBottom: '16px' }}>Monthly collections across 186 units</div>
+              <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A', marginBottom: '4px' }}>One Connected Hub</div>
+              <div style={{ fontSize: '11px', color: '#64748B', marginBottom: '16px' }}>Properties • Tenants • Leases • Collections</div>
               <div style={{ width: '100%', height: '8px', backgroundColor: '#EFF6FF', borderRadius: '9999px', overflow: 'hidden' }}>
-                <div style={{ width: '94.1%', height: '100%', backgroundColor: '#2563EB', borderRadius: '9999px' }} />
+                <div style={{ width: '100%', height: '100%', backgroundColor: '#2563EB', borderRadius: '9999px' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: '#64748B', marginTop: '8px' }}>
-                <span>Occupancy Rate</span>
-                <span style={{ color: '#2563EB' }}>94.1%</span>
+                <span>Operations Synced</span>
+                <span style={{ color: '#2563EB' }}>100% Complete</span>
               </div>
             </motion.div>
           </div>
@@ -2610,7 +2432,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* =========================================================================
-          SECTION 8: MIDNIGHT DARK FOOTER WITH GIANT WATERMARK (MATCHING TRENDTIDE)
+          SECTION 10: MIDNIGHT DARK FOOTER
       ========================================================================== */}
       <footer
         style={{
@@ -2637,33 +2459,34 @@ export const HomePage: React.FC = () => {
             whiteSpace: 'nowrap',
           }}
         >
-          UnitFlow
+          Unit Flow
         </div>
 
         <div className="tt-container" style={{ position: 'relative', zIndex: 10 }}>
           <div
             className="tt-footer-content"
             style={{
-              display: 'flex',
-              justifyContent: 'space-between',
+              display: 'grid',
+              gridTemplateColumns: '1.4fr 1fr 1fr 1fr 1fr',
+              gap: '32px',
               paddingBottom: '48px',
               borderBottom: '1px solid #1E293B',
             }}
           >
-            {/* Left Column with Logo */}
-            <div style={{ maxWidth: '320px' }}>
+            {/* Left Column with Logo & Tagline */}
+            <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
                 <img
                   src="/logo.png"
-                  alt="UnitFlow"
+                  alt="Unit Flow"
                   style={{ width: '32px', height: '32px', objectFit: 'contain', borderRadius: '8px' }}
                 />
                 <span style={{ fontSize: '20px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
-                  Unit<span style={{ color: '#3B82F6' }}>Flow</span>
+                  Unit <span style={{ color: '#3B82F6' }}>Flow</span>
                 </span>
               </div>
               <div style={{ fontSize: '13px', color: '#94A3B8', lineHeight: 1.6 }}>
-                The intelligent property management platform designed for Kenyan landlords, estate executives, and property managers.
+                Everything you need to manage your rental properties, tenants and daily operations in one place.
               </div>
               <div style={{ fontSize: '11px', color: '#64748B', marginTop: '16px', fontWeight: 600 }}>
                 Follow Us
@@ -2675,49 +2498,60 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Center Menu Links */}
+            {/* Column 1: Platform */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
-              <a href="#how-it-works" style={{ textDecoration: 'none', color: '#E2E8F0' }}>How it works</a>
-              <a href="#about" style={{ textDecoration: 'none', color: '#E2E8F0' }}>About Us</a>
+              <div style={{ fontSize: '13px', fontWeight: 800, color: '#FFFFFF', marginBottom: '4px' }}>Platform</div>
               <a href="#features" style={{ textDecoration: 'none', color: '#E2E8F0' }}>Features</a>
-              <a href="#pricing" style={{ textDecoration: 'none', color: '#E2E8F0' }}>Pricing</a>
+              <Link to="/features/property-management" style={{ textDecoration: 'none', color: '#94A3B8' }}>Property Management</Link>
+              <Link to="/features/tenant-management" style={{ textDecoration: 'none', color: '#94A3B8' }}>Tenant Management</Link>
+              <Link to="/features/rent-collection" style={{ textDecoration: 'none', color: '#94A3B8' }}>Rent Collection</Link>
+              <Link to="/features/maintenance" style={{ textDecoration: 'none', color: '#94A3B8' }}>Maintenance</Link>
+              <Link to="/features/analytics" style={{ textDecoration: 'none', color: '#94A3B8' }}>Analytics</Link>
             </div>
 
-            {/* Right Newsletter Column */}
-            <div style={{ maxWidth: '320px' }}>
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF' }}>Subscribe</div>
-              <p style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>
-                Join our newsletter to stay up to date on features and releases.
-              </p>
-              <div style={{ display: 'flex', gap: '6px', marginTop: '12px' }}>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  style={{
-                    backgroundColor: '#1E293B',
-                    border: '1px solid #334155',
-                    borderRadius: '8px',
-                    padding: '8px 12px',
-                    fontSize: '12px',
-                    color: '#FFFFFF',
-                    flex: 1,
-                  }}
-                />
-                <button
-                  className="tt-btn-blue"
-                  style={{ fontSize: '12px', padding: '8px 16px', borderRadius: '8px' }}
-                >
-                  Subscribe
-                </button>
-              </div>
+            {/* Column 2: Company */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 800, color: '#FFFFFF', marginBottom: '4px' }}>Company</div>
+              <a href="#about" style={{ textDecoration: 'none', color: '#E2E8F0' }}>About Unit Flow</a>
+              <Link to="/contact" style={{ textDecoration: 'none', color: '#94A3B8' }}>Contact</Link>
+              <button
+                type="button"
+                onClick={() => setDemoModalOpen(true)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  fontSize: '13px',
+                  color: '#94A3B8',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                }}
+              >
+                Book a Demo
+              </button>
+            </div>
+
+            {/* Column 3: Support */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 800, color: '#FFFFFF', marginBottom: '4px' }}>Support</div>
+              <Link to="/support" style={{ textDecoration: 'none', color: '#94A3B8' }}>Help Center</Link>
+              <Link to="/support/contact" style={{ textDecoration: 'none', color: '#94A3B8' }}>Get Support</Link>
+            </div>
+
+            {/* Column 4: Legal */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 800, color: '#FFFFFF', marginBottom: '4px' }}>Legal</div>
+              <Link to="/legal/privacy" style={{ textDecoration: 'none', color: '#94A3B8' }}>Privacy Policy</Link>
+              <Link to="/legal/terms" style={{ textDecoration: 'none', color: '#94A3B8' }}>Terms of Service</Link>
+              <Link to="/legal/terms" style={{ textDecoration: 'none', color: '#94A3B8' }}>Terms of Use</Link>
             </div>
           </div>
 
-          <div style={{ paddingTop: '24px', display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748B' }}>
-            <div>© 2026 UnitFlow. All rights reserved.</div>
+          <div style={{ paddingTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#64748B' }}>
+            <div>Copyright © 2026 Unit Flow. All rights reserved.</div>
             <div style={{ display: 'flex', gap: '16px' }}>
-              <span>Privacy Policy</span>
-              <span>Terms of Use</span>
+              <Link to="/legal/privacy" style={{ color: '#64748B', textDecoration: 'none' }}>Privacy Policy</Link>
+              <Link to="/legal/terms" style={{ color: '#64748B', textDecoration: 'none' }}>Terms of Use</Link>
             </div>
           </div>
         </div>
