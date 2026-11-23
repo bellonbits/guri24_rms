@@ -836,7 +836,7 @@ export const PlatformAdminPage: React.FC<PlatformAdminPageProps> = ({ view }) =>
                 Internal Microservice Mesh & Integration Boundaries
               </h2>
               <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
-                Real-time operational status of containerized services and external gateways across the Guri24 RMS topology
+                Real-time operational status of containerized services and external gateways across the Unit Flow topology
               </p>
             </div>
 

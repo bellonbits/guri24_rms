@@ -179,10 +179,10 @@ export const PlatformLayout: React.FC = () => {
           </div>
           <div>
             <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a', letterSpacing: '-0.2px' }}>
-              Guri24 RMS
+              Unit Flow
             </div>
             <div style={{ fontSize: '0.68rem', color: '#0284c7', fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase' }}>
-              Multi-Tenant Controls
+              Platform Super Admin
             </div>
           </div>
         </div>
@@ -250,7 +250,28 @@ export const PlatformLayout: React.FC = () => {
             }}
           >
             <ArrowLeft size={14} color="#64748b" />
-            <span>Return to Tenant App</span>
+            <span>Organization Portal</span>
+          </Link>
+          <Link
+            to="/portal/dashboard"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '8px 12px',
+              borderRadius: '6px',
+              fontSize: '0.8rem',
+              color: '#4f46e5',
+              background: '#eef2ff',
+              border: '1px solid #c7d2fe',
+              textDecoration: 'none',
+              fontWeight: 600,
+              boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+            }}
+          >
+            <ExternalLink size={14} color="#4f46e5" />
+            <span>Tenant Portal</span>
           </Link>
 
           {/* Minimal Administrator Badge */}
@@ -339,7 +360,7 @@ export const PlatformLayout: React.FC = () => {
         >
           {/* Breadcrumb line */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#64748b' }}>
-            <span style={{ color: '#0284c7', fontWeight: 600 }}>Guri24 RMS</span>
+            <span style={{ color: '#0284c7', fontWeight: 600 }}>Unit Flow</span>
             <ChevronRight size={13} color="#cbd5e1" />
             <span style={{ color: '#64748b', fontWeight: 500 }}>Multi-Tenant Controls</span>
             <ChevronRight size={13} color="#cbd5e1" />

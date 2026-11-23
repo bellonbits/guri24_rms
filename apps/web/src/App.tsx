@@ -25,6 +25,8 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { AcceptInvitationPage } from './pages/AcceptInvitationPage';
 import { PlatformLayout } from './layouts/PlatformLayout';
 import { PlatformAdminPage } from './pages/PlatformAdminPage';
+import { TenantLayout } from './layouts/TenantLayout';
+import { TenantPortalPage } from './pages/tenant/TenantPortalPage';
 
 // Marketing SaaS Architecture
 import { MarketingLayout } from './marketing/MarketingLayout';
@@ -282,6 +284,28 @@ export const App: React.FC = () => {
               <Route path="integrations" element={<PlatformAdminPage view="integrations" />} />
               <Route path="audit-logs" element={<PlatformAdminPage view="audit-logs" />} />
               <Route path="system-health" element={<PlatformAdminPage view="system-health" />} />
+            </Route>
+
+            {/* 14. Unit Flow Tenant Portal (Dedicated Self-Service Environment) */}
+            <Route
+              path="/portal"
+              element={
+                <AuthGuard>
+                  <TenantLayout />
+                </AuthGuard>
+              }
+            >
+              <Route index element={<Navigate to="/portal/dashboard" replace />} />
+              <Route path="dashboard" element={<TenantPortalPage view="dashboard" />} />
+              <Route path="payments" element={<TenantPortalPage view="payments" />} />
+              <Route path="lease" element={<TenantPortalPage view="lease" />} />
+              <Route path="maintenance" element={<TenantPortalPage view="maintenance" />} />
+              <Route path="documents" element={<TenantPortalPage view="documents" />} />
+              <Route path="notifications" element={<TenantPortalPage view="notifications" />} />
+              <Route path="messages" element={<TenantPortalPage view="messages" />} />
+              <Route path="support" element={<TenantPortalPage view="support" />} />
+              <Route path="profile" element={<TenantPortalPage view="profile" />} />
+              <Route path="settings" element={<TenantPortalPage view="settings" />} />
             </Route>
 
             {/* 404 Unknown Route Fallback */}

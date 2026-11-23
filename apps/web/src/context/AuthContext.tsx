@@ -21,8 +21,8 @@ interface AuthContextType {
 
 const DEFAULT_ORG: Organization = {
   id: 'org-guri24-001',
-  name: 'Guri24 Rental Management Ltd',
-  slug: 'guri24-rental-management',
+  name: 'Unit Flow Property Management Ltd',
+  slug: 'unit-flow-property-management',
   organization_type: 'PROPERTY_MANAGEMENT_COMPANY',
   kra_pin: '',
   contact_email: '',

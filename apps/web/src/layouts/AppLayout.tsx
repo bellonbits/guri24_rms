@@ -307,6 +307,32 @@ export const AppLayout: React.FC = () => {
           </div>
         )}
 
+        {/* Tenant Self-Service Portal Link */}
+        <div style={{ padding: '0 12px 10px 12px' }}>
+          <Link
+            to="/portal/dashboard"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#eef2ff',
+              color: '#4f46e5',
+              border: '1px solid #c7d2fe',
+              borderRadius: '8px',
+              padding: '8px 12px',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <HomeIcon style={{ width: 14, height: 14, color: '#4f46e5' }} />
+              <span>Tenant Portal</span>
+            </div>
+            <span style={{ fontSize: '0.7rem', color: '#6366f1' }}>&rarr;</span>
+          </Link>
+        </div>
+
         {/* Organization & Profile Switcher Card */}
         <div
           className="sidebar-profile-card"
