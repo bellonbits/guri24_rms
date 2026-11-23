@@ -40,6 +40,21 @@ import {
   ChevronDown,
   RefreshCw,
   Building,
+  Tv,
+  Video,
+  ShoppingBag,
+  Store,
+  Tag,
+  Truck,
+  Users,
+  DollarSign,
+  Megaphone,
+  Award,
+  Wallet,
+  Percent,
+  BarChart3,
+  Share2,
+  Sliders,
 } from 'lucide-react';
 
 interface TenantPortalPageProps {
@@ -715,6 +730,19 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
+  // Modern Operations Dashboard States (Reference Screenshot)
+  const [dashboardMode, setDashboardMode] = useState<'operations' | 'residence'>('operations');
+  const [showCertificationModal, setShowCertificationModal] = useState(false);
+  const [showProductUploadModal, setShowProductUploadModal] = useState(false);
+  const [showSalesChannelModal, setShowSalesChannelModal] = useState(false);
+  const [selectedAssistantTile, setSelectedAssistantTile] = useState<{
+    title: string;
+    subtitle: string;
+    details: string;
+    actionText: string;
+    icon: string;
+  } | null>(null);
+
   // Ticket Receipt Data
   const [activeReceipt, setActiveReceipt] = useState({
     ticketId: '0120077398910288',
@@ -897,56 +925,65 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       )}
 
       {/* =========================================================================
-          SECTION 1: OVERVIEW DASHBOARD
+          SECTION 1: OVERVIEW DASHBOARD (REFERENCE SCREENSHOT DESIGN)
       ========================================================================== */}
       {currentView === 'dashboard' && (
-        <>
-          {/* Welcome Residence Banner */}
-          <div
-            style={{
-              background: '#ffffff',
-              border: '1px solid #e2e8f0',
-              borderRadius: '20px',
-              padding: '24px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '16px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-            }}
-          >
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f27a59', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Tenant Self-Service Portal
-                </span>
-                <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#cbd5e1' }} />
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{tenancy.propertyName} · {tenancy.unitNumber}</span>
-              </div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#131726', margin: 0, letterSpacing: '-0.02em' }}>
-                Welcome back, {tenancy.tenantName}
-              </h1>
-              <p style={{ margin: '6px 0 0 0', fontSize: '0.88rem', color: '#64748b' }}>
-                {tenancy.location} · {tenancy.town} &bull; Tenancy Status: <strong style={{ color: '#059669' }}>{tenancy.leaseStatus}</strong>
-              </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+          {/* Header Switcher & Controls */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', gap: '6px', background: '#ffffff', padding: '4px', borderRadius: '12px', border: '1px solid #edf0f7', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+              <button
+                type="button"
+                onClick={() => setDashboardMode('operations')}
+                style={{
+                  border: 'none',
+                  background: dashboardMode === 'operations' ? '#fff0f3' : 'transparent',
+                  color: dashboardMode === 'operations' ? '#ff4b72' : '#64748b',
+                  fontWeight: dashboardMode === 'operations' ? 700 : 500,
+                  fontSize: '0.84rem',
+                  padding: '7px 16px',
+                  borderRadius: '9px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                Operations Dashboard
+              </button>
+              <button
+                type="button"
+                onClick={() => setDashboardMode('residence')}
+                style={{
+                  border: 'none',
+                  background: dashboardMode === 'residence' ? '#fff0f3' : 'transparent',
+                  color: dashboardMode === 'residence' ? '#ff4b72' : '#64748b',
+                  fontWeight: dashboardMode === 'residence' ? 700 : 500,
+                  fontSize: '0.84rem',
+                  padding: '7px 16px',
+                  borderRadius: '9px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                Residence Overview
+              </button>
             </div>
 
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 onClick={() => handleOpenReceipt()}
                 style={{
-                  background: '#f8fafc',
-                  color: '#334155',
-                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#475569',
+                  border: '1px solid #edf0f7',
                   borderRadius: '10px',
-                  padding: '9px 16px',
-                  fontSize: '0.84rem',
+                  padding: '8px 16px',
+                  fontSize: '0.82rem',
                   fontWeight: 600,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
                 }}
               >
                 <span>🎟️ Latest Receipt</span>
@@ -954,18 +991,18 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               <button
                 onClick={() => handleOpenInvoice()}
                 style={{
-                  background: '#f27a59',
+                  background: 'linear-gradient(135deg, #ff5b79 0%, #ff758c 100%)',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '10px',
-                  padding: '9px 18px',
-                  fontSize: '0.84rem',
+                  padding: '8px 18px',
+                  fontSize: '0.82rem',
                   fontWeight: 700,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 4px 15px rgba(242, 122, 89, 0.25)',
+                  boxShadow: '0 4px 14px rgba(255, 91, 121, 0.25)',
                 }}
               >
                 <span>📄 Preview Invoice</span>
@@ -973,180 +1010,1097 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
             </div>
           </div>
 
-          {/* 4 Summary KPI Cards */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '16px',
-            }}
-          >
-            <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-              <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-                Monthly Rent
-              </div>
-              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#131726', marginTop: '6px' }}>
-                {fmt(tenancy.monthlyRent)}
-              </div>
-              <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
-                Plus {fmt(tenancy.serviceCharge)} estate service charge
-              </div>
-            </div>
+          {/* MODE 1: Operations Dashboard matching Reference Screenshot */}
+          {dashboardMode === 'operations' && (
+            <>
+              {/* TOP ONBOARDING CARD: "Well begun is half done" */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  borderRadius: '24px',
+                  padding: '28px 32px',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
+                  border: '1px solid #f1f4fb',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '24px',
+                }}
+              >
+                {/* Left Text */}
+                <div style={{ minWidth: '260px', flex: '1 1 280px' }}>
+                  <h1
+                    style={{
+                      margin: '0 0 8px 0',
+                      fontSize: '1.85rem',
+                      fontWeight: 800,
+                      color: '#ff4b72', // Coral Rose headline from image
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
+                    Well begun is half done
+                  </h1>
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748b' }}>
+                    Complete the following steps to sell
+                  </p>
+                </div>
 
-            <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-              <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-                Outstanding Balance
-              </div>
-              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#059669', marginTop: '6px' }}>
-                {fmt(tenancy.outstandingBalance)}
-              </div>
-              <div style={{ fontSize: '0.76rem', color: '#059669', marginTop: '4px' }}>
-                ✓ Account verified & up to date
-              </div>
-            </div>
+                {/* Right: 3 Gradient Step Cards */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    flexWrap: 'wrap',
+                    flex: '2 1 600px',
+                    justifyContent: 'flex-end',
+                  }}
+                >
+                  {/* Step 1: Certification */}
+                  <div
+                    style={{
+                      flex: '1 1 180px',
+                      minWidth: '180px',
+                      maxWidth: '220px',
+                      borderRadius: '16px',
+                      background: 'linear-gradient(135deg, #ff6b8b 0%, #ff8e9b 100%)',
+                      color: '#ffffff',
+                      padding: '16px 18px',
+                      boxShadow: '0 8px 20px rgba(255, 107, 139, 0.28)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: '84px',
+                      position: 'relative',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.88rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
+                        1.certification
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowCertificationModal(true)}
+                        style={{
+                          background: '#ffffff',
+                          color: '#0f172a',
+                          border: 'none',
+                          borderRadius: '16px',
+                          padding: '3px 12px',
+                          fontSize: '0.74rem',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                          transition: 'transform 0.1s ease',
+                        }}
+                      >
+                        GO
+                      </button>
+                    </div>
+                    <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.92)', lineHeight: 1.25 }}>
+                      Upload qualification information
+                    </span>
+                  </div>
 
-            <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-              <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-                Next Due Date
-              </div>
-              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#131726', marginTop: '6px' }}>
-                {tenancy.nextDueDate}
-              </div>
-              <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
-                Safaricom Paybill {tenancy.paybillNumber}
-              </div>
-            </div>
+                  {/* Step 2: Upload a product */}
+                  <div
+                    style={{
+                      flex: '1 1 180px',
+                      minWidth: '180px',
+                      maxWidth: '220px',
+                      borderRadius: '16px',
+                      background: 'linear-gradient(135deg, #4facfe 0%, #00c6ff 100%)',
+                      color: '#ffffff',
+                      padding: '16px 18px',
+                      boxShadow: '0 8px 20px rgba(79, 172, 254, 0.28)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: '84px',
+                      position: 'relative',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.88rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
+                        2.Upload a product
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowProductUploadModal(true)}
+                        style={{
+                          background: '#ffffff',
+                          color: '#0f172a',
+                          border: 'none',
+                          borderRadius: '16px',
+                          padding: '3px 12px',
+                          fontSize: '0.74rem',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                          transition: 'transform 0.1s ease',
+                        }}
+                      >
+                        GO
+                      </button>
+                    </div>
+                    <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.92)', lineHeight: 1.25 }}>
+                      Fill in product information
+                    </span>
+                  </div>
 
-            <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-              <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-                Active Maintenance
+                  {/* Step 3: Open for sale */}
+                  <div
+                    style={{
+                      flex: '1 1 180px',
+                      minWidth: '180px',
+                      maxWidth: '220px',
+                      borderRadius: '16px',
+                      background: 'linear-gradient(135deg, #a18cd1 0%, #c394fc 100%)',
+                      color: '#ffffff',
+                      padding: '16px 18px',
+                      boxShadow: '0 8px 20px rgba(161, 140, 209, 0.28)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: '84px',
+                      position: 'relative',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.88rem', fontWeight: 700, letterSpacing: '-0.01em' }}>
+                        3.Open for sale
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowSalesChannelModal(true)}
+                        style={{
+                          background: '#ffffff',
+                          color: '#0f172a',
+                          border: 'none',
+                          borderRadius: '16px',
+                          padding: '3px 12px',
+                          fontSize: '0.74rem',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                          transition: 'transform 0.1s ease',
+                        }}
+                      >
+                        GO
+                      </button>
+                    </div>
+                    <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.92)', lineHeight: 1.25 }}>
+                      Choose to open any sales channel
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#f27a59', marginTop: '6px' }}>
-                {maintenanceTickets.filter((t) => t.status === 'IN_PROGRESS' || t.status === 'SUBMITTED').length} Open
-              </div>
-              <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
-                REQ-0492: Assigned to Caretaker
-              </div>
-            </div>
-          </div>
 
-          {/* Quick Action Shortcuts */}
-          <div
-            style={{
-              background: '#ffffff',
-              border: '1px solid #f1f5f9',
-              borderRadius: '16px',
-              padding: '18px 24px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '12px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-            }}
-          >
-            <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155' }}>
-              Quick Navigation Shortcuts:
-            </span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-              <Link
-                to="/portal/payments"
+              {/* SECTION 2: "Today's data" */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>
+                    Today's data
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => setDashboardMode('residence')}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#ff4b72',
+                      fontSize: '0.86rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    More
+                  </button>
+                </div>
+
+                {/* Top 4 Colorful Metric Cards with Circular Badge Icons */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+                    gap: '16px',
+                  }}
+                >
+                  {/* Card 1: Payment amount (Pastel Pink) */}
+                  <div
+                    style={{
+                      background: '#fff0f3',
+                      border: '1px solid #ffe4ea',
+                      borderRadius: '18px',
+                      padding: '22px 24px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
+                        Payment amount
+                      </div>
+                      <div style={{ fontSize: '1.95rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                        8,992
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
+                        Yesterday 8638
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '50%',
+                        background: '#ff4b72',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 800,
+                        fontSize: '1.15rem',
+                        boxShadow: '0 4px 12px rgba(255, 75, 114, 0.3)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      ¥
+                    </div>
+                  </div>
+
+                  {/* Card 2: Payment order (Pastel Blue) */}
+                  <div
+                    style={{
+                      background: '#eff6ff',
+                      border: '1px solid #dbeafe',
+                      borderRadius: '18px',
+                      padding: '22px 24px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
+                        Payment order
+                      </div>
+                      <div style={{ fontSize: '1.95rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                        793
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
+                        Yesterday 753
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '50%',
+                        background: '#3b82f6',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <FileText size={20} />
+                    </div>
+                  </div>
+
+                  {/* Card 3: Paying customer (Pastel Purple) */}
+                  <div
+                    style={{
+                      background: '#f5f3ff',
+                      border: '1px solid #ede9fe',
+                      borderRadius: '18px',
+                      padding: '22px 24px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
+                        Paying customer
+                      </div>
+                      <div style={{ fontSize: '1.95rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                        280
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
+                        Yesterday 320
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '50%',
+                        background: '#8b5cf6',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Users size={20} />
+                    </div>
+                  </div>
+
+                  {/* Card 4: Pending orders (Pastel Mint Green) */}
+                  <div
+                    style={{
+                      background: '#ecfdf5',
+                      border: '1px solid #d1fae5',
+                      borderRadius: '18px',
+                      padding: '22px 24px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
+                        Pending orders
+                      </div>
+                      <div style={{ fontSize: '1.95rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                        480
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
+                        Yesterday 470
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '50%',
+                        background: '#10b981',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Truck size={20} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom 4 Clean White Metric Cards */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+                    gap: '16px',
+                  }}
+                >
+                  <div style={{ background: '#ffffff', border: '1px solid #f1f4fb', borderRadius: '18px', padding: '22px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.01)' }}>
+                    <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
+                      Live stream viewers
+                    </div>
+                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                      23,466
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
+                      Yesterday 22089
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#ffffff', border: '1px solid #f1f4fb', borderRadius: '18px', padding: '22px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.01)' }}>
+                    <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
+                      New attention
+                    </div>
+                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                      4,890
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
+                      Yesterday 3800
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#ffffff', border: '1px solid #f1f4fb', borderRadius: '18px', padding: '22px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.01)' }}>
+                    <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
+                      Cumulative attention
+                    </div>
+                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                      135,743
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
+                      Yesterday 130493
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#ffffff', border: '1px solid #f1f4fb', borderRadius: '18px', padding: '22px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.01)' }}>
+                    <div style={{ fontSize: '0.86rem', color: '#64748b', fontWeight: 500, marginBottom: '8px' }}>
+                      Number of orders
+                    </div>
+                    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                      5,249
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '8px' }}>
+                      Yesterday 4680
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 3: "Operations Assistant" */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>
+                    Operations Assistant
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedAssistantTile({
+                        title: 'All Operations Assistant Tools',
+                        subtitle: 'Comprehensive Property & Store Capabilities',
+                        details: 'Access live broadcast, mini program deployment, referral network, and automated marketing tools.',
+                        actionText: 'Explore All Tools',
+                        icon: 'sparkles',
+                      });
+                    }}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#ff4b72',
+                      fontSize: '0.86rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    More
+                  </button>
+                </div>
+
+                {/* 8 Action Tiles (2 rows x 4 columns) */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                    gap: '16px',
+                  }}
+                >
+                  {/* Tile 1: Small telecast live */}
+                  <div
+                    onClick={() => {
+                      setSelectedAssistantTile({
+                        title: 'Small telecast live',
+                        subtitle: 'Live sales in WeChat / Virtual Walkthrough',
+                        details: 'Broadcast live HD walkthroughs of available penthouse units and scheduled maintenance demonstrations directly to registered residents and prospects.',
+                        actionText: 'Launch Live Telecast',
+                        icon: 'tv',
+                      });
+                    }}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #f1f4fb',
+                      borderRadius: '16px',
+                      padding: '18px 20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '12px',
+                        background: '#fff0f3',
+                        color: '#ff4b72',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Tv size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
+                        Small telecast live
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
+                        Live sales in WeChat
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tile 2: Mini Program Store */}
+                  <div
+                    onClick={() => {
+                      setSelectedAssistantTile({
+                        title: 'Mini Program Store',
+                        subtitle: 'WeChat Mini Program Store / Resident Portal',
+                        details: 'Enable seamless one-tap tenant payments, guest gate clearances, and amenity booking directly from mobile WeChat / WhatsApp mini apps.',
+                        actionText: 'Open Mini Program Config',
+                        icon: 'smartphone',
+                      });
+                    }}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #f1f4fb',
+                      borderRadius: '16px',
+                      padding: '18px 20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '12px',
+                        background: '#ecfdf5',
+                        color: '#10b981',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Smartphone size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
+                        Mini Program Store
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
+                        WeChat Mini Program Store
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tile 3: Distribution market */}
+                  <div
+                    onClick={() => {
+                      setSelectedAssistantTile({
+                        title: 'Distribution market',
+                        subtitle: 'One-click promotion & Multi-channel Syndication',
+                        details: 'Syndicate your property listings to leading rental portals and referral brokers with automated inventory sync and lease commission tracking.',
+                        actionText: 'Manage Distribution Channels',
+                        icon: 'share',
+                      });
+                    }}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #f1f4fb',
+                      borderRadius: '16px',
+                      padding: '18px 20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '12px',
+                        background: '#eff6ff',
+                        color: '#3b82f6',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Share2 size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
+                        Distribution market
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
+                        One-click promotion
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tile 4: Coupon */}
+                  <div
+                    onClick={() => {
+                      setSelectedAssistantTile({
+                        title: 'Coupon',
+                        subtitle: 'Store marketing essentials & Rent Credits',
+                        details: 'Issue early-payment discounts, move-in fee vouchers, and parking concession coupons with automated ledger balancing.',
+                        actionText: 'Generate Coupon Code',
+                        icon: 'tag',
+                      });
+                    }}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #f1f4fb',
+                      borderRadius: '16px',
+                      padding: '18px 20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '12px',
+                        background: '#fff0f3',
+                        color: '#ff4b72',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Tag size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
+                        Coupon
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
+                        Store marketing essentials
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tile 5: Store construction */}
+                  <div
+                    onClick={() => {
+                      setSelectedAssistantTile({
+                        title: 'Store construction',
+                        subtitle: 'Custom branding & Portal Themes',
+                        details: 'Customize tenant portal layouts, color palettes, custom subdomains, and legal agreement templates with real-time preview.',
+                        actionText: 'Customize Portal Theme',
+                        icon: 'store',
+                      });
+                    }}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #f1f4fb',
+                      borderRadius: '16px',
+                      padding: '18px 20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '12px',
+                        background: '#eff6ff',
+                        color: '#3b82f6',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Store size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
+                        Store construction
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
+                        Can be customized
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tile 6: Promoting ads */}
+                  <div
+                    onClick={() => {
+                      setSelectedAssistantTile({
+                        title: 'Promoting ads',
+                        subtitle: 'WeChat billion-level exposure & Meta Ads',
+                        details: 'Deploy AI-optimized digital billboard ads across search and social channels to fill vacant units 3x faster with qualified tenants.',
+                        actionText: 'Launch Ad Campaign',
+                        icon: 'megaphone',
+                      });
+                    }}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #f1f4fb',
+                      borderRadius: '16px',
+                      padding: '18px 20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '12px',
+                        background: '#fff0f3',
+                        color: '#ff4b72',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Megaphone size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
+                        Promoting ads
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
+                        WeChat billion-level exposure
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tile 7: Promotion rebate */}
+                  <div
+                    onClick={() => {
+                      setSelectedAssistantTile({
+                        title: 'Promotion rebate',
+                        subtitle: 'Help you sell goods / Tenant Referrals',
+                        details: 'Incentivize existing tenants to refer friends and colleagues with verified rent rebate discounts upon lease execution.',
+                        actionText: 'Set Referral Rebates',
+                        icon: 'award',
+                      });
+                    }}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #f1f4fb',
+                      borderRadius: '16px',
+                      padding: '18px 20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '12px',
+                        background: '#fff0f3',
+                        color: '#ff4b72',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Award size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
+                        Promotion rebate
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
+                        Help you sell goods
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tile 8: Asset Management */}
+                  <div
+                    onClick={() => {
+                      setSelectedAssistantTile({
+                        title: 'Asset Management',
+                        subtitle: 'Income and withdrawal / Escrow Management',
+                        details: 'Automated M-Pesa B2C disbursements, landlord rent remittances, security deposit trust fund yields, and audit-ready financial statements.',
+                        actionText: 'Open Asset Dashboard',
+                        icon: 'wallet',
+                      });
+                    }}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #f1f4fb',
+                      borderRadius: '16px',
+                      padding: '18px 20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '12px',
+                        background: '#ecfdf5',
+                        color: '#10b981',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Wallet size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
+                        Asset Management
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
+                        Income and withdrawal
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* MODE 2: Residence Overview (Tenancy, Balance & Maintenance) */}
+          {dashboardMode === 'residence' && (
+            <>
+              {/* Welcome Residence Banner */}
+              <div
                 style={{
-                  textDecoration: 'none',
-                  background: '#f8fafc',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  padding: '7px 14px',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  color: '#1e293b',
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '20px',
+                  padding: '24px',
                   display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  gap: '6px',
+                  flexWrap: 'wrap',
+                  gap: '16px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
                 }}
               >
-                <CreditCard size={14} color="#f27a59" />
-                <span>Rent & Payments</span>
-              </Link>
-              <Link
-                to="/portal/maintenance"
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#ff4b72', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      Tenant Self-Service Portal
+                    </span>
+                    <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#cbd5e1' }} />
+                    <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{tenancy.propertyName} · {tenancy.unitNumber}</span>
+                  </div>
+                  <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#131726', margin: 0, letterSpacing: '-0.02em' }}>
+                    Welcome back, {tenancy.tenantName}
+                  </h1>
+                  <p style={{ margin: '6px 0 0 0', fontSize: '0.88rem', color: '#64748b' }}>
+                    {tenancy.location} · {tenancy.town} &bull; Tenancy Status: <strong style={{ color: '#059669' }}>{tenancy.leaseStatus}</strong>
+                  </p>
+                </div>
+              </div>
+
+              {/* 4 Summary KPI Cards */}
+              <div
                 style={{
-                  textDecoration: 'none',
-                  background: '#f8fafc',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  padding: '7px 14px',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  color: '#1e293b',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                  gap: '16px',
                 }}
               >
-                <Wrench size={14} color="#0284c7" />
-                <span>Maintenance Requests</span>
-              </Link>
-              <Link
-                to="/portal/lease"
+                <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                  <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    Monthly Rent
+                  </div>
+                  <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#131726', marginTop: '6px' }}>
+                    {fmt(tenancy.monthlyRent)}
+                  </div>
+                  <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                    Plus {fmt(tenancy.serviceCharge)} estate service charge
+                  </div>
+                </div>
+
+                <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                  <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    Outstanding Balance
+                  </div>
+                  <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#059669', marginTop: '6px' }}>
+                    {fmt(tenancy.outstandingBalance)}
+                  </div>
+                  <div style={{ fontSize: '0.76rem', color: '#059669', marginTop: '4px' }}>
+                    ✓ Account verified & up to date
+                  </div>
+                </div>
+
+                <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                  <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    Next Due Date
+                  </div>
+                  <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#131726', marginTop: '6px' }}>
+                    {tenancy.nextDueDate}
+                  </div>
+                  <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                    Safaricom Paybill {tenancy.paybillNumber}
+                  </div>
+                </div>
+
+                <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                  <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                    Active Maintenance
+                  </div>
+                  <div style={{ fontSize: '1.65rem', fontWeight: 800, color: '#ff4b72', marginTop: '6px' }}>
+                    {maintenanceTickets.filter((t) => t.status === 'IN_PROGRESS' || t.status === 'SUBMITTED').length} Open
+                  </div>
+                  <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                    REQ-0492: Assigned to Caretaker
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Action Shortcuts */}
+              <div
                 style={{
-                  textDecoration: 'none',
-                  background: '#f8fafc',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  padding: '7px 14px',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  color: '#1e293b',
+                  background: '#ffffff',
+                  border: '1px solid #f1f5f9',
+                  borderRadius: '16px',
+                  padding: '18px 24px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
                 }}
               >
-                <FileText size={14} color="#059669" />
-                <span>My Lease</span>
-              </Link>
-              <Link
-                to="/portal/documents"
-                style={{
-                  textDecoration: 'none',
-                  background: '#f8fafc',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  padding: '7px 14px',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  color: '#1e293b',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                <FolderLock size={14} color="#64748b" />
-                <span>Documents</span>
-              </Link>
-              <Link
-                to="/portal/messages"
-                style={{
-                  textDecoration: 'none',
-                  background: '#f8fafc',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  padding: '7px 14px',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  color: '#1e293b',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                <MessageSquare size={14} color="#7c3aed" />
-                <span>Talk to Management</span>
-              </Link>
-            </div>
-          </div>
-        </>
+                <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155' }}>
+                  Quick Navigation Shortcuts:
+                </span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  <Link
+                    to="/portal/payments"
+                    style={{
+                      textDecoration: 'none',
+                      background: '#f8fafc',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      padding: '7px 14px',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      color: '#1e293b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <CreditCard size={14} color="#ff4b72" />
+                    <span>Rent & Payments</span>
+                  </Link>
+                  <Link
+                    to="/portal/maintenance"
+                    style={{
+                      textDecoration: 'none',
+                      background: '#f8fafc',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      padding: '7px 14px',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      color: '#1e293b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <Wrench size={14} color="#0284c7" />
+                    <span>Maintenance Requests</span>
+                  </Link>
+                  <Link
+                    to="/portal/lease"
+                    style={{
+                      textDecoration: 'none',
+                      background: '#f8fafc',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      padding: '7px 14px',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      color: '#1e293b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <FileText size={14} color="#059669" />
+                    <span>My Lease</span>
+                  </Link>
+                  <Link
+                    to="/portal/documents"
+                    style={{
+                      textDecoration: 'none',
+                      background: '#f8fafc',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      padding: '7px 14px',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      color: '#1e293b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <FolderLock size={14} color="#64748b" />
+                    <span>Documents</span>
+                  </Link>
+                  <Link
+                    to="/portal/messages"
+                    style={{
+                      textDecoration: 'none',
+                      background: '#f8fafc',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      padding: '7px 14px',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      color: '#1e293b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <MessageSquare size={14} color="#7c3aed" />
+                    <span>Talk to Management</span>
+                  </Link>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       )}
 
       {/* =========================================================================
@@ -3556,6 +4510,328 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 style={{ background: '#f27a59', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '9px 20px', fontWeight: 700, cursor: 'pointer' }}
               >
                 Submit Reference
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* =========================================================================
+          STEP 1: CERTIFICATION & KYC MODAL
+      ========================================================================== */}
+      {showCertificationModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: '20px',
+          }}
+        >
+          <div style={{ background: '#ffffff', borderRadius: '24px', maxWidth: '500px', width: '100%', padding: '32px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: '#fff0f3', color: '#ff4b72', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Shield size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>1. Certification & KYC</h3>
+                  <div style={{ fontSize: '0.74rem', color: '#94a3b8' }}>Upload qualification information</div>
+                </div>
+              </div>
+              <button onClick={() => setShowCertificationModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.86rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 20px 0' }}>
+              Verify your identity, national ID / passport, and employment documents to complete compliance certification for tenancy.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              <div style={{ padding: '14px', border: '1px dashed #cbd5e1', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <FileText size={18} color="#ff4b72" />
+                  <div>
+                    <div style={{ fontSize: '0.84rem', fontWeight: 600, color: '#0f172a' }}>National ID / Passport</div>
+                    <div style={{ fontSize: '0.72rem', color: '#10b981' }}>✓ Verified (Amina Wanjiku)</div>
+                  </div>
+                </div>
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#10b981', background: '#ecfdf5', padding: '3px 8px', borderRadius: '10px' }}>Done</span>
+              </div>
+
+              <div style={{ padding: '14px', border: '1px dashed #cbd5e1', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <FileText size={18} color="#3b82f6" />
+                  <div>
+                    <div style={{ fontSize: '0.84rem', fontWeight: 600, color: '#0f172a' }}>KRA PIN Certificate</div>
+                    <div style={{ fontSize: '0.72rem', color: '#10b981' }}>✓ A012984920X Attached</div>
+                  </div>
+                </div>
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#10b981', background: '#ecfdf5', padding: '3px 8px', borderRadius: '10px' }}>Done</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setShowCertificationModal(false)}
+                style={{ background: '#f1f5f9', border: 'none', borderRadius: '10px', padding: '10px 18px', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCertificationModal(false);
+                  showToast('Qualification documents re-verified & certified.');
+                }}
+                style={{ background: 'linear-gradient(135deg, #ff6b8b 0%, #ff8e9b 100%)', color: '#ffffff', border: 'none', borderRadius: '10px', padding: '10px 22px', fontSize: '0.84rem', fontWeight: 700, cursor: 'pointer' }}
+              >
+                Save & Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          STEP 2: UPLOAD A PRODUCT / RENT COMMITMENT MODAL
+      ========================================================================== */}
+      {showProductUploadModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: '20px',
+          }}
+        >
+          <div style={{ background: '#ffffff', borderRadius: '24px', maxWidth: '500px', width: '100%', padding: '32px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: '#eff6ff', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ShoppingBag size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>2. Upload a Product / Unit</h3>
+                  <div style={{ fontSize: '0.74rem', color: '#94a3b8' }}>Fill in product information</div>
+                </div>
+              </div>
+              <button onClick={() => setShowProductUploadModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.86rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 20px 0' }}>
+              Configure unit amenities, monthly rental schedule, and optional parking slots or storage units assigned to your lease agreement.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  Assigned Unit
+                </label>
+                <input
+                  type="text"
+                  readOnly
+                  value="Greenview Apartments · Unit A-204"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#f8fafc', fontSize: '0.86rem', fontWeight: 600 }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                    Monthly Rate
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value="KES 25,000 / month"
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#f8fafc', fontSize: '0.86rem', fontWeight: 600 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                    Billing Cycle
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value="1st of Every Month"
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#f8fafc', fontSize: '0.86rem', fontWeight: 600 }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setShowProductUploadModal(false)}
+                style={{ background: '#f1f5f9', border: 'none', borderRadius: '10px', padding: '10px 18px', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowProductUploadModal(false);
+                  showToast('Unit and rental parameters synchronized.');
+                }}
+                style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00c6ff 100%)', color: '#ffffff', border: 'none', borderRadius: '10px', padding: '10px 22px', fontSize: '0.84rem', fontWeight: 700, cursor: 'pointer' }}
+              >
+                Confirm Product
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          STEP 3: OPEN FOR SALE / SALES CHANNELS & ACCESS MODAL
+      ========================================================================== */}
+      {showSalesChannelModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: '20px',
+          }}
+        >
+          <div style={{ background: '#ffffff', borderRadius: '24px', maxWidth: '500px', width: '100%', padding: '32px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: '#f5f3ff', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Store size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>3. Open for Sale & Channels</h3>
+                  <div style={{ fontSize: '0.74rem', color: '#94a3b8' }}>Choose to open any sales channel</div>
+                </div>
+              </div>
+              <button onClick={() => setShowSalesChannelModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.86rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 20px 0' }}>
+              Activate sales channels and resident digital access: WeChat mini program, mobile web portal, digital gate pass, and community board.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+              <div style={{ padding: '12px 16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.86rem', fontWeight: 600, color: '#0f172a' }}>Online Rent Collection (M-Pesa / Card)</span>
+                <span style={{ color: '#10b981', fontWeight: 700, fontSize: '0.78rem' }}>● Active</span>
+              </div>
+              <div style={{ padding: '12px 16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.86rem', fontWeight: 600, color: '#0f172a' }}>WeChat & WhatsApp Resident Channel</span>
+                <span style={{ color: '#10b981', fontWeight: 700, fontSize: '0.78rem' }}>● Active</span>
+              </div>
+              <div style={{ padding: '12px 16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.86rem', fontWeight: 600, color: '#0f172a' }}>Smart Door Access & Keypad Pass</span>
+                <span style={{ color: '#10b981', fontWeight: 700, fontSize: '0.78rem' }}>● Synced</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setShowSalesChannelModal(false)}
+                style={{ background: '#f1f5f9', border: 'none', borderRadius: '10px', padding: '10px 18px', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSalesChannelModal(false);
+                  showToast('All sales channels and resident digital passes enabled!');
+                }}
+                style={{ background: 'linear-gradient(135deg, #a18cd1 0%, #c394fc 100%)', color: '#ffffff', border: 'none', borderRadius: '10px', padding: '10px 22px', fontSize: '0.84rem', fontWeight: 700, cursor: 'pointer' }}
+              >
+                Confirm Channels
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          OPERATIONS ASSISTANT TILE DETAILS MODAL
+      ========================================================================== */}
+      {selectedAssistantTile && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            padding: '20px',
+          }}
+        >
+          <div style={{ background: '#ffffff', borderRadius: '24px', maxWidth: '480px', width: '100%', padding: '32px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fff0f3', color: '#ff4b72', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Sparkles size={22} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>
+                    {selectedAssistantTile.title}
+                  </h3>
+                  <div style={{ fontSize: '0.76rem', color: '#94a3b8' }}>
+                    {selectedAssistantTile.subtitle}
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => setSelectedAssistantTile(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.88rem', color: '#475569', lineHeight: 1.55, margin: '0 0 24px 0' }}>
+              {selectedAssistantTile.details}
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setSelectedAssistantTile(null)}
+                style={{ background: '#f1f5f9', border: 'none', borderRadius: '10px', padding: '10px 18px', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const action = selectedAssistantTile.actionText;
+                  setSelectedAssistantTile(null);
+                  showToast(`${action} activated successfully!`);
+                }}
+                style={{ background: 'linear-gradient(135deg, #ff5b79 0%, #ff758c 100%)', color: '#ffffff', border: 'none', borderRadius: '10px', padding: '10px 22px', fontSize: '0.84rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(255, 91, 121, 0.25)' }}
+              >
+                {selectedAssistantTile.actionText}
               </button>
             </div>
           </div>

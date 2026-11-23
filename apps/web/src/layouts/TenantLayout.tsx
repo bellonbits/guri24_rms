@@ -1,24 +1,31 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  CreditCard,
+  Home,
+  Tv,
+  Store,
+  ShoppingBag,
   FileText,
-  Wrench,
-  FolderLock,
-  MessageSquare,
+  BarChart2,
+  DollarSign,
+  Grid,
+  Settings,
   Bell,
   User,
   LogOut,
   Building,
-  Home,
   CheckCircle2,
   ExternalLink,
   Menu,
   X,
   PanelLeftClose,
   PanelLeft,
-  ChevronRight,
+  ChevronDown,
+  Sparkles,
+  CreditCard,
+  Wrench,
+  FolderLock,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -30,65 +37,64 @@ export const TenantLayout: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(2);
 
-  // Exact 8 Tenant Navigation Items recommended in Section 9:
-  // Overview, Rent & Payments, My Lease, Maintenance, Documents, Messages, Notifications, My Profile
+  // Exact Navigation Items matching the new modern UI in the reference screenshot:
+  // Home, Live, Shop, Commodity, Order, Data, Assets, Application, Set up
   const navItems = [
     {
       to: '/portal/dashboard',
       aliases: ['/portal', '/portal/overview', '/portal/home'],
-      label: 'Overview',
-      sublabel: 'Your tenancy at a glance',
-      icon: <LayoutDashboard size={18} />,
+      label: 'Home',
+      icon: <Home size={18} />,
     },
     {
-      to: '/portal/payments',
-      aliases: ['/portal/financials', '/portal/rent-payments'],
-      label: 'Rent & Payments',
-      sublabel: 'Balances, payment history and receipts',
-      icon: <CreditCard size={18} />,
+      to: '/portal/live',
+      aliases: ['/portal/smart-home', '/portal/residence'],
+      label: 'Live',
+      icon: <Tv size={18} />,
+    },
+    {
+      to: '/portal/properties',
+      aliases: ['/portal/shop', '/portal/units'],
+      label: 'Shop',
+      hasDropdown: true,
+      icon: <Store size={18} />,
     },
     {
       to: '/portal/lease',
-      aliases: ['/portal/apartment', '/portal/properties'],
-      label: 'My Lease',
-      sublabel: 'Agreements and renewal requests',
+      aliases: ['/portal/commodity', '/portal/apartment'],
+      label: 'Commodity',
+      icon: <ShoppingBag size={18} />,
+    },
+    {
+      to: '/portal/payments',
+      aliases: ['/portal/order', '/portal/rent-payments', '/portal/financials'],
+      label: 'Order',
       icon: <FileText size={18} />,
     },
     {
-      to: '/portal/maintenance',
-      aliases: ['/portal/services'],
-      label: 'Maintenance',
-      sublabel: 'Report and track issues',
-      icon: <Wrench size={18} />,
+      to: '/portal/analytics',
+      aliases: ['/portal/data', '/portal/ledger'],
+      label: 'Data',
+      icon: <BarChart2 size={18} />,
     },
     {
       to: '/portal/documents',
-      aliases: [],
-      label: 'Documents',
-      sublabel: 'Your rental documents',
-      icon: <FolderLock size={18} />,
+      aliases: ['/portal/assets', '/portal/deposit'],
+      label: 'Assets',
+      icon: <DollarSign size={18} />,
     },
     {
-      to: '/portal/messages',
-      aliases: ['/portal/community'],
-      label: 'Messages',
-      sublabel: 'Talk to property management',
-      icon: <MessageSquare size={18} />,
-    },
-    {
-      to: '/portal/notifications',
-      aliases: ['/portal/notification'],
-      label: 'Notifications',
-      sublabel: 'Important updates and reminders',
-      icon: <Bell size={18} />,
-      badge: unreadNotifications > 0 ? unreadNotifications : undefined,
+      to: '/portal/maintenance',
+      aliases: ['/portal/application', '/portal/services', '/portal/messages'],
+      label: 'Application',
+      hasDropdown: true,
+      icon: <Grid size={18} />,
     },
     {
       to: '/portal/profile',
-      aliases: ['/portal/account', '/portal/settings'],
-      label: 'My Profile',
-      sublabel: 'Personal details and account security',
-      icon: <User size={18} />,
+      aliases: ['/portal/setup', '/portal/settings', '/portal/account'],
+      label: 'Set up',
+      icon: <Settings size={18} />,
     },
   ];
 
@@ -106,17 +112,15 @@ export const TenantLayout: React.FC = () => {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  })
-    .format(new Date())
-    .toUpperCase();
+  }).format(new Date());
 
   return (
     <div
       style={{
         minHeight: '100vh',
         width: '100%',
-        background: '#f8fafc',
-        color: '#0f172a',
+        background: '#f4f6fc', // Soft light lavender-tinted background from reference screenshot
+        color: '#1e293b',
         fontFamily:
           '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         display: 'flex',
@@ -129,19 +133,20 @@ export const TenantLayout: React.FC = () => {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(15, 23, 42, 0.5)',
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'blur(4px)',
             zIndex: 45,
           }}
           className="md:hidden"
         />
       )}
 
-      {/* Full Page Left Sidebar */}
+      {/* Modern Light Clean Sidebar matching Reference Screenshot */}
       <aside
         style={{
-          width: isSidebarCollapsed ? '76px' : '260px',
-          background: '#131726', // Professional dark navy
-          color: '#ffffff',
+          width: isSidebarCollapsed ? '76px' : '220px',
+          background: '#ffffff',
+          color: '#475569',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -150,17 +155,18 @@ export const TenantLayout: React.FC = () => {
           bottom: 0,
           left: 0,
           zIndex: 50,
+          borderRight: '1px solid #edf0f7',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
           transition: 'width 0.2s ease, transform 0.2s ease',
         }}
         className={`md:flex ${isMobileMenuOpen ? 'flex' : 'hidden'}`}
       >
         <div>
-          {/* Top Brand Header */}
+          {/* Top Brand Logo / Header */}
           <div
             style={{
-              height: '68px',
+              height: '72px',
               padding: '0 20px',
-              borderBottom: '1px solid #1e2438',
               display: 'flex',
               alignItems: 'center',
               justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
@@ -173,7 +179,6 @@ export const TenantLayout: React.FC = () => {
                 alignItems: 'center',
                 gap: '10px',
                 textDecoration: 'none',
-                color: '#ffffff',
               }}
             >
               <div
@@ -181,40 +186,40 @@ export const TenantLayout: React.FC = () => {
                   width: '36px',
                   height: '36px',
                   borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #f27a59 0%, #ff5722 100%)',
+                  background: 'linear-gradient(135deg, #ff5b79 0%, #ff758c 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#ffffff',
                   fontWeight: 800,
-                  fontSize: '1.1rem',
-                  boxShadow: '0 4px 12px rgba(242, 122, 89, 0.35)',
+                  fontSize: '1.05rem',
+                  boxShadow: '0 4px 12px rgba(255, 91, 121, 0.3)',
                   flexShrink: 0,
                 }}
               >
-                RP
+                UF
               </div>
               {!isSidebarCollapsed && (
                 <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
                   <div
                     style={{
-                      fontSize: '1.15rem',
+                      fontSize: '1.1rem',
                       fontWeight: 800,
                       letterSpacing: '-0.02em',
-                      color: '#ffffff',
+                      color: '#0f172a',
                     }}
                   >
-                    resident
+                    Unit Flow
                   </div>
                   <div
                     style={{
-                      fontSize: '1.05rem',
-                      fontWeight: 500,
-                      color: '#f27a59',
-                      letterSpacing: '0.01em',
+                      fontSize: '0.74rem',
+                      fontWeight: 600,
+                      color: '#ff5b79',
+                      letterSpacing: '0.02em',
                     }}
                   >
-                    portal
+                    Resident Portal
                   </div>
                 </div>
               )}
@@ -225,10 +230,10 @@ export const TenantLayout: React.FC = () => {
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 style={{
                   background: 'transparent',
-                  border: '1px solid #1e2438',
+                  border: 'none',
                   borderRadius: '6px',
-                  width: '26px',
-                  height: '26px',
+                  width: '24px',
+                  height: '24px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -238,34 +243,10 @@ export const TenantLayout: React.FC = () => {
                 }}
                 title="Collapse sidebar"
               >
-                <PanelLeftClose size={14} />
+                <PanelLeftClose size={15} />
               </button>
             )}
           </div>
-
-          {/* Current Residence Summary */}
-          {!isSidebarCollapsed && (
-            <div style={{ padding: '16px 16px 8px 16px' }}>
-              <div
-                style={{
-                  background: '#1a2035',
-                  border: '1px solid #28304c',
-                  borderRadius: '10px',
-                  padding: '10px 12px',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                  <Home size={13} color="#38bdf8" />
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f8fafc' }}>
-                    Greenview Apartments
-                  </span>
-                </div>
-                <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                  Block A &bull; Unit A-204 &bull; Ruiru
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Navigation Links */}
           <nav
@@ -273,7 +254,7 @@ export const TenantLayout: React.FC = () => {
               padding: '12px 14px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '4px',
+              gap: '6px',
             }}
           >
             {navItems.map((item) => {
@@ -287,40 +268,31 @@ export const TenantLayout: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '12px',
-                    padding: isSidebarCollapsed ? '10px' : '9px 12px',
-                    borderRadius: '8px',
-                    fontSize: '0.86rem',
-                    fontWeight: active ? 600 : 500,
-                    color: active ? '#f27a59' : '#94a3b8',
-                    background: active ? 'rgba(242, 122, 89, 0.12)' : 'transparent',
+                    padding: isSidebarCollapsed ? '10px' : '10px 14px',
+                    borderRadius: '12px',
+                    fontSize: '0.9rem',
+                    fontWeight: active ? 700 : 500,
+                    color: active ? '#ff4b72' : '#64748b', // Coral Pink accent matching image
+                    background: active ? '#fff0f3' : 'transparent',
                     textDecoration: 'none',
-                    justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+                    justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
                     transition: 'all 0.15s ease',
-                    position: 'relative',
                   }}
                   title={isSidebarCollapsed ? item.label : undefined}
                 >
-                  <span style={{ color: active ? '#f27a59' : '#94a3b8', flexShrink: 0 }}>
-                    {item.icon}
-                  </span>
-                  {!isSidebarCollapsed && (
-                    <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {item.label}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ color: active ? '#ff4b72' : '#94a3b8', flexShrink: 0 }}>
+                      {item.icon}
                     </span>
-                  )}
-                  {!isSidebarCollapsed && item.badge && (
-                    <span
-                      style={{
-                        background: '#f27a59',
-                        color: '#ffffff',
-                        fontSize: '0.68rem',
-                        fontWeight: 700,
-                        borderRadius: '10px',
-                        padding: '1px 6px',
-                      }}
-                    >
-                      {item.badge}
-                    </span>
+                    {!isSidebarCollapsed && (
+                      <span style={{ whiteSpace: 'nowrap' }}>
+                        {item.label}
+                      </span>
+                    )}
+                  </div>
+
+                  {!isSidebarCollapsed && item.hasDropdown && (
+                    <ChevronDown size={14} color={active ? '#ff4b72' : '#cbd5e1'} />
                   )}
                 </Link>
               );
@@ -329,7 +301,7 @@ export const TenantLayout: React.FC = () => {
         </div>
 
         {/* Bottom Switcher / Sign Out */}
-        <div style={{ padding: '16px', borderTop: '1px solid #1e2438' }}>
+        <div style={{ padding: '16px', borderTop: '1px solid #f1f5f9' }}>
           {!isSidebarCollapsed && (
             <Link
               to="/app/dashboard"
@@ -338,17 +310,17 @@ export const TenantLayout: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '8px 12px',
-                borderRadius: '6px',
-                background: '#1a2035',
-                border: '1px solid #28304c',
-                color: '#94a3b8',
+                borderRadius: '8px',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                color: '#64748b',
                 fontSize: '0.74rem',
                 fontWeight: 600,
                 textDecoration: 'none',
                 marginBottom: '10px',
               }}
             >
-              <span>Property Manager Portal</span>
+              <span>Property Console</span>
               <ExternalLink size={12} color="#94a3b8" />
             </Link>
           )}
@@ -384,7 +356,7 @@ export const TenantLayout: React.FC = () => {
       <div
         style={{
           flex: 1,
-          marginLeft: isSidebarCollapsed ? '76px' : '260px',
+          marginLeft: isSidebarCollapsed ? '76px' : '220px',
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
@@ -396,26 +368,23 @@ export const TenantLayout: React.FC = () => {
         {/* Full-Width Top Header Bar */}
         <header
           style={{
-            height: '68px',
-            background: '#ffffff',
-            borderBottom: '1px solid #e2e8f0',
-            position: 'sticky',
-            top: 0,
-            zIndex: 30,
+            height: '72px',
+            background: 'transparent',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '0 32px',
           }}
         >
-          {/* Left: Hamburger + Today's Date & Greeting from Section 11 */}
+          {/* Left: Mobile Toggle & Breadcrumb */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden"
               style={{
-                background: 'transparent',
-                border: 'none',
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
                 color: '#0f172a',
                 cursor: 'pointer',
                 padding: '6px',
@@ -424,43 +393,17 @@ export const TenantLayout: React.FC = () => {
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
 
-            <div>
-              <div
-                style={{
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  color: '#64748b',
-                  letterSpacing: '0.06em',
-                }}
-              >
-                {todayFormatted}
-              </div>
-              <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>
-                Good morning, {currentUserSession?.user?.name ? currentUserSession.user.name.split(' ')[0] : 'John'}
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem', color: '#64748b' }}>
+              <span style={{ fontWeight: 600, color: '#0f172a' }}>Resident Portal</span>
+              <span>/</span>
+              <span style={{ color: '#ff4b72', fontWeight: 600 }}>Overview</span>
             </div>
           </div>
 
-          {/* Right: Quick Status, Notifications Bell, Profile Avatar */}
+          {/* Right: Date, Status, Notifications Bell, Profile Avatar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-            {/* Active Tenancy Pill */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: '#ecfdf5',
-                color: '#059669',
-                border: '1px solid #a7f3d0',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-              }}
-              className="hidden sm:flex"
-            >
-              <CheckCircle2 size={13} color="#059669" />
-              <span>Active Lease &bull; Rent Current</span>
+            <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 500 }} className="hidden md:block">
+              {todayFormatted}
             </div>
 
             {/* Notification Bell */}
@@ -478,6 +421,7 @@ export const TenantLayout: React.FC = () => {
                 justifyContent: 'center',
                 color: '#475569',
                 textDecoration: 'none',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
               }}
               title="Notifications"
             >
@@ -491,7 +435,7 @@ export const TenantLayout: React.FC = () => {
                     width: '7px',
                     height: '7px',
                     borderRadius: '50%',
-                    background: '#ef4444',
+                    background: '#ff4b72',
                   }}
                 />
               )}
@@ -506,40 +450,38 @@ export const TenantLayout: React.FC = () => {
                 gap: '10px',
                 textDecoration: 'none',
                 color: 'inherit',
+                background: '#ffffff',
+                padding: '4px 12px 4px 4px',
+                borderRadius: '24px',
+                border: '1px solid #edf0f7',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
               }}
             >
-              <div
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80"
+                alt="Amina Wanjiku"
                 style={{
-                  width: '38px',
-                  height: '38px',
+                  width: '32px',
+                  height: '32px',
                   borderRadius: '50%',
-                  background: '#eff6ff',
-                  color: '#2563eb',
-                  fontWeight: 700,
-                  fontSize: '0.9rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '1.5px solid #bfdbfe',
+                  objectFit: 'cover',
                 }}
-              >
-                JM
-              </div>
+              />
               <div className="hidden sm:block" style={{ lineHeight: 1.2 }}>
-                <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a' }}>
-                  {currentUserSession?.user?.name || 'John Maina'}
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }}>
+                  {currentUserSession?.user?.name || 'Amina Wanjiku'}
                 </div>
-                <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Unit A-204</div>
+                <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Unit A-204</div>
               </div>
             </Link>
           </div>
         </header>
 
-        {/* Full-Page Main Content View (no artificial cards or peach padding) */}
+        {/* Full-Page Main Content View */}
         <main
           style={{
             flex: 1,
-            padding: '32px',
+            padding: '24px 32px 40px 32px',
             maxWidth: '1440px',
             width: '100%',
             margin: '0 auto',
