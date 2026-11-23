@@ -295,16 +295,21 @@ export const App: React.FC = () => {
                 </AuthGuard>
               }
             >
-              <Route index element={<Navigate to="/portal/dashboard" replace />} />
+              <Route index element={<Navigate to="/portal/tenants" replace />} />
+              <Route path="tenants" element={<TenantPortalPage view="tenants" />} />
+              <Route path="tenants/details" element={<TenantPortalPage view="tenants" />} />
+              <Route path="tenants/:id" element={<TenantPortalPage view="tenants" />} />
+              <Route path="properties" element={<TenantPortalPage view="properties" />} />
+              <Route path="financials" element={<TenantPortalPage view="financials" />} />
               <Route path="dashboard" element={<TenantPortalPage view="dashboard" />} />
-              <Route path="payments" element={<TenantPortalPage view="payments" />} />
-              <Route path="lease" element={<TenantPortalPage view="lease" />} />
+              <Route path="payments" element={<TenantPortalPage view="financials" />} />
+              <Route path="lease" element={<TenantPortalPage view="properties" />} />
               <Route path="maintenance" element={<TenantPortalPage view="maintenance" />} />
               <Route path="documents" element={<TenantPortalPage view="documents" />} />
-              <Route path="notifications" element={<TenantPortalPage view="notifications" />} />
-              <Route path="messages" element={<TenantPortalPage view="messages" />} />
-              <Route path="support" element={<TenantPortalPage view="support" />} />
-              <Route path="profile" element={<TenantPortalPage view="profile" />} />
+              <Route path="notifications" element={<TenantPortalPage view="tenants" />} />
+              <Route path="messages" element={<TenantPortalPage view="tenants" />} />
+              <Route path="support" element={<TenantPortalPage view="tenants" />} />
+              <Route path="profile" element={<TenantPortalPage view="tenants" />} />
               <Route path="settings" element={<TenantPortalPage view="settings" />} />
             </Route>
 

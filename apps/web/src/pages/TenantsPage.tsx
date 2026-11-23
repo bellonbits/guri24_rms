@@ -138,67 +138,307 @@ export const TenantsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Tenant Detail Banner if :id provided */}
+      {/* Tenant Detail Modal / Inline View matching reference design */}
       {activeDetailTenant && (
         <div
           style={{
             background: '#ffffff',
             border: '1px solid #e2e8f0',
-            borderRadius: '12px',
-            padding: '20px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+            borderRadius: '20px',
+            padding: '28px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px',
+            gap: '24px',
+            marginBottom: '24px',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div
-                className="profile-avatar"
-                style={{ inlineSize: '42px', blockSize: '42px', fontSize: '0.95rem' }}
-              >
-                {activeDetailTenant.full_name.slice(0, 2).toUpperCase()}
+          {/* Header row from reference screenshot */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: '#0f172a' }}>
+                Tenant Details
+              </h2>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Rent Details :</span>
+                <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
+                  {activeTenantLease ? formatKes(activeTenantLease.monthly_rent_kes) + '/month' : '$5000/month'}
+                </span>
+                <span
+                  style={{
+                    background: '#ecfdf5',
+                    color: '#10b981',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    padding: '3px 8px',
+                    borderRadius: '12px',
+                  }}
+                >
+                  Paid
+                </span>
               </div>
-              <div>
-                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
-                  {activeDetailTenant.full_name}
-                </h2>
-                <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                  Tenant ID: {activeDetailTenant.id} &bull; Kenyan MSISDN: {activeDetailTenant.phone}
+              <Link to="/app/tenants" className="btn-outline" style={{ textDecoration: 'none', padding: '6px 14px', borderRadius: '8px' }}>
+                Close
+              </Link>
+            </div>
+          </div>
+
+          {/* Two-Column Grid matching Screenshot 2 */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(0, 1fr)', gap: '24px' }}>
+            {/* LEFT COLUMN: Personal Details, Lease Agreement, Additional Details */}
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #f1f5f9',
+                borderRadius: '16px',
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px',
+              }}
+            >
+              {/* Profile Header */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <img
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80"
+                  alt={activeDetailTenant.full_name}
+                  style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '2px solid #e2e8f0',
+                  }}
+                />
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
+                    {activeDetailTenant.full_name}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Personal Details Section */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>Personal Details</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 20px', fontSize: '0.82rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Contact No. :</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>{activeDetailTenant.phone}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Emergency No. :</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>+44 9999 999 999</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Email Id :</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>{activeDetailTenant.email || 'courtneyh@gmail.com'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Current Address :</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a', textAlign: 'right' }}>9865 Aurore Expressway</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Occupation :</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>Sr. UX/UI Designer</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ height: '1px', background: '#f1f5f9' }} />
+
+              {/* Lease Agreement Section */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>Lease Agreement</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px 20px', fontSize: '0.82rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: '#64748b' }}>Start Date :</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>
+                      {activeTenantLease?.start_date || '21 June 2023'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <span style={{ color: '#64748b' }}>Lease document :</span>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        padding: '6px 10px',
+                      }}
+                    >
+                      <FileText size={15} color="#ef4444" />
+                      <div style={{ lineHeight: 1.1 }}>
+                        <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#0f172a', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          Lease_document_Courtney.pdf
+                        </div>
+                        <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>20 MB</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>End Date :</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>
+                      {activeTenantLease?.end_date || '21 June 2024'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Payment terms :</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>Monthly</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ height: '1px', background: '#f1f5f9' }} />
+
+              {/* Additional Details Section */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>Additional Details</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 20px', fontSize: '0.82rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Guarantor Name :</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>Alexa Joseph</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Contact No. :</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>+44 9999 999 999</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Allotted Parking :</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>02</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Access Card No. :</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>9834Y65</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Occupation :</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>Sr. UX/UI Designer</span>
+                  </div>
                 </div>
               </div>
             </div>
-            <Link to="/app/tenants" className="btn-outline" style={{ textDecoration: 'none' }}>
-              Close
-            </Link>
-          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginTop: '10px' }}>
-            <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
-              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>National ID (Kenyan Law)</div>
-              <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#0f172a' }}>
-                {activeDetailTenant.id_number ? maskNationalId(activeDetailTenant.id_number) : 'Not Provided'}
+            {/* RIGHT COLUMN: Maintenance Requests & Payment History */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Maintenance Requests Card */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #f1f5f9',
+                  borderRadius: '16px',
+                  padding: '20px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                  <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>
+                    Maintenance Requests
+                  </h4>
+                  <Link to="/app/maintenance" style={{ fontSize: '0.78rem', color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>
+                    View All
+                  </Link>
+                </div>
+
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.76rem' }}>
+                  <thead>
+                    <tr style={{ color: '#64748b', textAlign: 'left', borderBottom: '1px solid #f1f5f9' }}>
+                      <th style={{ padding: '6px 4px', fontWeight: 500 }}>Date</th>
+                      <th style={{ padding: '6px 4px', fontWeight: 500 }}>Issue Description</th>
+                      <th style={{ padding: '6px 4px', fontWeight: 500 }}>Status</th>
+                      <th style={{ padding: '6px 4px', fontWeight: 500 }}>Priority</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ borderBottom: '1px solid #f8fafc' }}>
+                      <td style={{ padding: '10px 4px', color: '#64748b' }}>23-06-20</td>
+                      <td style={{ padding: '10px 4px', color: '#0f172a', fontWeight: 500 }}>Leaky faucet in kitchen</td>
+                      <td style={{ padding: '10px 4px' }}>
+                        <span style={{ background: '#fef3c7', color: '#d97706', padding: '2px 6px', borderRadius: '10px', fontWeight: 600, fontSize: '0.7rem' }}>
+                          Pending
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px 4px', color: '#ef4444', fontWeight: 600 }}>High</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid #f8fafc' }}>
+                      <td style={{ padding: '10px 4px', color: '#64748b' }}>23-06-20</td>
+                      <td style={{ padding: '10px 4px', color: '#0f172a', fontWeight: 500 }}>Broken AC unit in bedroom</td>
+                      <td style={{ padding: '10px 4px' }}>
+                        <span style={{ background: '#ccfbf1', color: '#0f766e', padding: '2px 6px', borderRadius: '10px', fontWeight: 600, fontSize: '0.7rem' }}>
+                          In Progress
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px 4px', color: '#64748b' }}>Normal</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '10px 4px', color: '#64748b' }}>23-06-20</td>
+                      <td style={{ padding: '10px 4px', color: '#0f172a', fontWeight: 500 }}>Broken garage door opener</td>
+                      <td style={{ padding: '10px 4px' }}>
+                        <span style={{ background: '#fef3c7', color: '#d97706', padding: '2px 6px', borderRadius: '10px', fontWeight: 600, fontSize: '0.7rem' }}>
+                          Pending
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px 4px', color: '#64748b' }}>Normal</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-            </div>
 
-            <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
-              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Active Lease</div>
-              <div style={{ fontWeight: 600, fontSize: '0.95rem', color: activeTenantLease ? '#16a34a' : '#94a3b8' }}>
-                {activeTenantLease ? `Unit ${orgUnits.find((u) => u.id === activeTenantLease.unit_id)?.unit_number || '—'}` : 'No Active Lease'}
-              </div>
-            </div>
+              {/* Payment History Card */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #f1f5f9',
+                  borderRadius: '16px',
+                  padding: '20px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                  <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>
+                    Payment History
+                  </h4>
+                  <Link to="/app/rent-collection" style={{ fontSize: '0.78rem', color: '#2563eb', fontWeight: 600, textDecoration: 'none' }}>
+                    View All
+                  </Link>
+                </div>
 
-            <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
-              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Monthly Commitment</div>
-              <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#0f172a' }}>
-                {activeTenantLease ? formatKes(activeTenantLease.monthly_rent_kes) : 'KES 0.00'}
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.76rem' }}>
+                  <thead>
+                    <tr style={{ color: '#64748b', textAlign: 'left', borderBottom: '1px solid #f1f5f9' }}>
+                      <th style={{ padding: '6px 4px', fontWeight: 500 }}>Date</th>
+                      <th style={{ padding: '6px 4px', fontWeight: 500 }}>Amount</th>
+                      <th style={{ padding: '6px 4px', fontWeight: 500 }}>Payment Method</th>
+                      <th style={{ padding: '6px 4px', fontWeight: 500 }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ borderBottom: '1px solid #f8fafc' }}>
+                      <td style={{ padding: '10px 4px', color: '#64748b' }}>23-06-2024</td>
+                      <td style={{ padding: '10px 4px', fontWeight: 700, color: '#0f172a' }}>$5000</td>
+                      <td style={{ padding: '10px 4px', color: '#475569' }}>Online</td>
+                      <td style={{ padding: '10px 4px' }}>
+                        <span style={{ background: '#fef3c7', color: '#d97706', padding: '2px 6px', borderRadius: '10px', fontWeight: 600, fontSize: '0.7rem' }}>
+                          Overdue
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '10px 4px', color: '#64748b' }}>23-06-2024</td>
+                      <td style={{ padding: '10px 4px', fontWeight: 700, color: '#0f172a' }}>$5000</td>
+                      <td style={{ padding: '10px 4px', color: '#475569' }}>Check</td>
+                      <td style={{ padding: '10px 4px', color: '#10b981', fontWeight: 600 }}>Paid</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
         </div>
       )}
-
       {/* Main Table Card */}
       {isApplicationsView ? (
         <section className="surface-card" style={{ textAlign: 'center', padding: '48px 16px' }}>

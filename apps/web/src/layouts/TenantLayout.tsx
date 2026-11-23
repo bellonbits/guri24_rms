@@ -1,471 +1,366 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  CreditCard,
-  FileText,
-  Wrench,
-  FolderLock,
-  Bell,
-  MessageSquare,
-  HelpCircle,
+  LayoutGrid,
+  Home,
   User,
+  CreditCard,
+  Wrench,
+  FileText,
   Settings,
   LogOut,
+  Bell,
+  PanelLeftClose,
+  PanelLeft,
+  ChevronLeft,
   Menu,
   X,
-  Building2,
-  Home,
-  ShieldCheck,
-  ChevronRight,
   ExternalLink,
-  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const TenantLayout: React.FC = () => {
-  const { currentUserSession, currentUserRole, logout } = useAuth();
+  const { currentUserSession, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(2);
 
+  // Exact navigation items from user reference screenshots
   const navItems = [
-    { to: '/portal/dashboard', label: 'My Dashboard', icon: <LayoutDashboard size={18} /> },
-    { to: '/portal/payments', label: 'Rent & Payments', icon: <CreditCard size={18} /> },
-    { to: '/portal/lease', label: 'My Lease', icon: <FileText size={18} /> },
-    { to: '/portal/maintenance', label: 'Maintenance Requests', icon: <Wrench size={18} /> },
-    { to: '/portal/documents', label: 'My Documents', icon: <FolderLock size={18} /> },
-    {
-      to: '/portal/notifications',
-      label: 'Notifications',
-      icon: <Bell size={18} />,
-      badge: unreadCount > 0 ? unreadCount : undefined,
-    },
-    { to: '/portal/messages', label: 'Messages & Support', icon: <MessageSquare size={18} /> },
-    { to: '/portal/profile', label: 'My Profile', icon: <User size={18} /> },
-    { to: '/portal/settings', label: 'Account Settings', icon: <Settings size={18} /> },
+    { to: '/portal/dashboard', label: 'Dashboard', icon: <LayoutGrid size={18} /> },
+    { to: '/portal/properties', label: 'Properties', icon: <Home size={18} /> },
+    { to: '/portal/tenants', label: 'Tenants', icon: <User size={18} /> },
+    { to: '/portal/financials', label: 'Financials', icon: <CreditCard size={18} /> },
+    { to: '/portal/maintenance', label: 'Maintenance', icon: <Wrench size={18} /> },
+    { to: '/portal/documents', label: 'Documents', icon: <FileText size={18} /> },
+    { to: '/portal/settings', label: 'Settings', icon: <Settings size={18} /> },
   ];
+
+  // Helper to determine active state
+  const isItemActive = (to: string) => {
+    if (to === '/portal/tenants') {
+      return (
+        location.pathname === '/portal/tenants' ||
+        location.pathname.startsWith('/portal/tenants/') ||
+        location.pathname === '/portal' ||
+        location.pathname === '/portal/profile'
+      );
+    }
+    if (to === '/portal/financials') {
+      return location.pathname === '/portal/financials' || location.pathname === '/portal/payments';
+    }
+    if (to === '/portal/properties') {
+      return location.pathname === '/portal/properties' || location.pathname === '/portal/lease';
+    }
+    return location.pathname === to;
+  };
 
   return (
     <div
       style={{
-        display: 'flex',
         minHeight: '100vh',
-        background: '#f8fafc',
-        color: '#0f172a',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        background: '#eef2f6',
+        padding: '16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
       }}
     >
-      {/* Sidebar - Desktop */}
-      <aside
+      {/* Floating Application Shell Container (Rounded card from screenshot) */}
+      <div
         style={{
-          width: '260px',
+          width: '100%',
+          maxWidth: '1440px',
+          minHeight: 'calc(100vh - 32px)',
           background: '#ffffff',
-          borderRight: '1px solid #e2e8f0',
+          borderRadius: '24px',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.04)',
+          border: '1px solid rgba(226, 232, 240, 0.8)',
           display: 'flex',
-          flexDirection: 'column',
-          position: 'fixed',
-          top: 0,
-          bottom: 0,
-          left: 0,
-          zIndex: 40,
+          overflow: 'hidden',
+          position: 'relative',
         }}
-        className="hidden md:flex"
       >
-        {/* Brand Header */}
-        <div
+        {/* Left Sidebar */}
+        <aside
           style={{
-            padding: '20px',
-            borderBottom: '1px solid #e2e8f0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Link
-            to="/portal/dashboard"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              textDecoration: 'none',
-              color: '#0f172a',
-            }}
-          >
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                background: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
-                fontWeight: 800,
-                fontSize: '1.1rem',
-                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
-              }}
-            >
-              U
-            </div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-                Unit Flow
-              </div>
-              <div
-                style={{
-                  fontSize: '0.7rem',
-                  fontWeight: 600,
-                  color: '#4f46e5',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                }}
-              >
-                Tenant Portal
-              </div>
-            </div>
-          </Link>
-        </div>
-
-        {/* Assigned Property & Unit Summary Card */}
-        <div style={{ padding: '16px 16px 8px 16px' }}>
-          <div
-            style={{
-              background: '#f1f5f9',
-              borderRadius: '12px',
-              padding: '12px',
-              border: '1px solid #e2e8f0',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <Home size={14} style={{ color: '#4f46e5' }} />
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1e293b' }}>
-                Riverside Heights
-              </span>
-            </div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Unit B-402 &bull; 2-Bedroom</div>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                marginTop: '6px',
-                background: '#ecfdf5',
-                color: '#059669',
-                fontSize: '0.68rem',
-                fontWeight: 600,
-                padding: '2px 6px',
-                borderRadius: '4px',
-              }}
-            >
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
-              Active Tenancy
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation Links */}
-        <nav
-          style={{
-            flex: 1,
-            padding: '12px',
-            overflowY: 'auto',
+            width: isSidebarCollapsed ? '72px' : '220px',
+            background: '#ffffff',
+            borderRight: '1px solid #f1f5f9',
             display: 'flex',
             flexDirection: 'column',
-            gap: '4px',
+            justifyContent: 'space-between',
+            padding: '24px 16px',
+            transition: 'width 0.2s ease',
+            flexShrink: 0,
           }}
+          className="hidden md:flex"
         >
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
-            return (
+          {/* Brand & Collapse Header */}
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
+                marginBottom: '32px',
+                padding: '0 4px',
+              }}
+            >
               <Link
-                key={item.to}
-                to={item.to}
+                to="/portal/tenants"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  fontSize: '0.86rem',
-                  fontWeight: isActive ? 600 : 500,
-                  color: isActive ? '#4f46e5' : '#475569',
-                  background: isActive ? '#eff6ff' : 'transparent',
+                  gap: '10px',
                   textDecoration: 'none',
-                  transition: 'all 0.15s ease',
+                  color: '#0f172a',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ color: isActive ? '#4f46e5' : '#64748b' }}>{item.icon}</span>
-                  <span>{item.label}</span>
+                {/* PropEasy / Unit Flow Badge Icon */}
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    background: '#2563eb',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ffffff',
+                    boxShadow: '0 4px 10px rgba(37, 99, 235, 0.3)',
+                    flexShrink: 0,
+                  }}
+                >
+                  <Home size={18} />
                 </div>
-                {item.badge && (
+                {!isSidebarCollapsed && (
                   <span
                     style={{
-                      background: '#ef4444',
-                      color: '#ffffff',
-                      fontSize: '0.68rem',
-                      fontWeight: 700,
-                      borderRadius: '10px',
-                      padding: '2px 7px',
+                      fontSize: '1.15rem',
+                      fontWeight: 800,
+                      letterSpacing: '-0.02em',
+                      color: '#1e3a8a',
                     }}
                   >
-                    {item.badge}
+                    Unit Flow
                   </span>
                 )}
               </Link>
-            );
-          })}
-        </nav>
 
-        {/* Environment Switcher Links (for staff previewing or testing) */}
-        <div style={{ padding: '12px', borderTop: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <div style={{ fontSize: '0.68rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', paddingLeft: '4px' }}>
-            Environment Access
+              {!isSidebarCollapsed && (
+                <button
+                  onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '6px',
+                    width: '24px',
+                    height: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#64748b',
+                    padding: 0,
+                  }}
+                  title="Collapse sidebar"
+                >
+                  <PanelLeftClose size={14} />
+                </button>
+              )}
+            </div>
+
+            {/* Nav list */}
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {navItems.map((item) => {
+                const active = isItemActive(item.to);
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: isSidebarCollapsed ? '10px' : '10px 14px',
+                      borderRadius: '10px',
+                      fontSize: '0.88rem',
+                      fontWeight: active ? 600 : 500,
+                      color: active ? '#2563eb' : '#475569',
+                      background: active ? '#eff6ff' : 'transparent',
+                      textDecoration: 'none',
+                      justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span style={{ color: active ? '#2563eb' : '#64748b', flexShrink: 0 }}>
+                      {item.icon}
+                    </span>
+                    {!isSidebarCollapsed && <span>{item.label}</span>}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
-          <Link
-            to="/app/dashboard"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '6px 8px',
-              borderRadius: '6px',
-              fontSize: '0.75rem',
-              color: '#334155',
-              background: '#f8fafc',
-              textDecoration: 'none',
-              border: '1px solid #e2e8f0',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Building2 size={13} style={{ color: '#0284c7' }} />
-              <span>Property Manager Portal</span>
-            </div>
-            <ChevronRight size={13} style={{ color: '#94a3b8' }} />
-          </Link>
 
-          {currentUserRole === 'SAAS_SUPER_ADMINISTRATOR' && (
-            <Link
-              to="/platform/dashboard"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '6px 8px',
-                borderRadius: '6px',
-                fontSize: '0.75rem',
-                color: '#38bdf8',
-                background: '#090d16',
-                textDecoration: 'none',
-                border: '1px solid #1e293b',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <ShieldCheck size={13} style={{ color: '#38bdf8' }} />
-                <span>Platform Super Admin</span>
-              </div>
-              <ChevronRight size={13} style={{ color: '#64748b' }} />
-            </Link>
-          )}
-        </div>
-
-        {/* User Footer */}
-        <div
-          style={{
-            padding: '12px 16px',
-            borderTop: '1px solid #e2e8f0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            background: '#ffffff',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: '#e0e7ff',
-                color: '#4338ca',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-              }}
-            >
-              {currentUserSession?.user?.name ? currentUserSession.user.name[0].toUpperCase() : 'T'}
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  color: '#0f172a',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {currentUserSession?.user?.name || 'David Maina (Tenant)'}
-              </div>
-              <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Verified Tenant</div>
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              logout();
-              navigate('/');
-            }}
-            title="Sign Out"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#64748b',
-              cursor: 'pointer',
-              padding: '6px',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <div style={{ flex: 1, marginLeft: '260px', display: 'flex', flexDirection: 'column' }} className="tenant-main-wrap">
-        {/* Top Header */}
-        <header
-          style={{
-            height: '60px',
-            background: '#ffffff',
-            borderBottom: '1px solid #e2e8f0',
-            position: 'sticky',
-            top: 0,
-            zIndex: 30,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 24px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Bottom Log Out */}
+          <div>
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden"
+              onClick={() => {
+                logout();
+                navigate('/');
+              }}
               style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: isSidebarCollapsed ? '10px' : '10px 14px',
+                borderRadius: '10px',
+                fontSize: '0.86rem',
+                fontWeight: 500,
+                color: '#64748b',
                 background: 'transparent',
                 border: 'none',
-                color: '#0f172a',
                 cursor: 'pointer',
-                padding: '6px',
+                justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
               }}
             >
-              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              <LogOut size={16} />
+              {!isSidebarCollapsed && <span>Log Out</span>}
             </button>
-            <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>
-              Tenancy Self-Service Portal
-            </div>
           </div>
+        </aside>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {/* Quick Rent Status Pill */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '20px',
-                padding: '4px 12px',
-                fontSize: '0.78rem',
-              }}
-            >
-              <span style={{ color: '#64748b' }}>Current Balance:</span>
-              <strong style={{ color: '#059669' }}>KES 0.00</strong>
+        {/* Main Content Pane */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowY: 'auto' }}>
+          {/* Top Bar matching screenshot */}
+          <header
+            style={{
+              padding: '24px 32px 16px 32px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              background: '#ffffff',
+            }}
+          >
+            <div>
+              <h1
+                style={{
+                  fontSize: '1.45rem',
+                  fontWeight: 800,
+                  color: '#0f172a',
+                  margin: '0 0 10px 0',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                Tenants
+              </h1>
+
+              {/* Breadcrumb line from screenshot */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.78rem' }}>
+                <button
+                  onClick={() => navigate(-1)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '6px',
+                    padding: '3px 8px',
+                    fontSize: '0.75rem',
+                    color: '#475569',
+                    cursor: 'pointer',
+                    fontWeight: 500,
+                  }}
+                >
+                  <ChevronLeft size={13} />
+                  <span>Back</span>
+                </button>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b' }}>
+                  <Home size={12} color="#64748b" />
+                  <Link
+                    to="/portal/tenants"
+                    style={{ color: '#64748b', textDecoration: 'none', fontWeight: 500 }}
+                  >
+                    Tenants
+                  </Link>
+                  <span>/</span>
+                  <Home size={12} color="#2563eb" />
+                  <span style={{ color: '#2563eb', fontWeight: 600 }}>Tenant Details</span>
+                </div>
+              </div>
             </div>
 
-            <Link
-              to="/portal/notifications"
-              style={{
-                position: 'relative',
-                color: '#64748b',
-                padding: '6px',
-                borderRadius: '8px',
-                textDecoration: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Bell size={18} />
-              {unreadCount > 0 && (
+            {/* Right Profile & Notifications */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              {/* Notification Bell */}
+              <button
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  border: '1px solid #f1f5f9',
+                  background: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#475569',
+                  cursor: 'pointer',
+                  position: 'relative',
+                }}
+              >
+                <Bell size={18} />
                 <span
                   style={{
                     position: 'absolute',
-                    top: '4px',
-                    right: '4px',
-                    width: '8px',
-                    height: '8px',
+                    top: '8px',
+                    right: '9px',
+                    width: '6px',
+                    height: '6px',
                     borderRadius: '50%',
                     background: '#ef4444',
                   }}
                 />
-              )}
-            </Link>
+              </button>
 
-            <Link
-              to="/portal/profile"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                textDecoration: 'none',
-                color: 'inherit',
-              }}
-            >
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  background: '#e0e7ff',
-                  color: '#4338ca',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                DM
+              {/* Profile Avatar & Info from screenshot (Courtney Henry) */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <img
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80"
+                  alt="Courtney Henry"
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '1.5px solid #e2e8f0',
+                  }}
+                />
+                <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
+                  <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a' }}>
+                    Courtney Henry
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                    courtney@example.com
+                  </div>
+                </div>
               </div>
-            </Link>
-          </div>
-        </header>
+            </div>
+          </header>
 
-        {/* Content View */}
-        <main style={{ flex: 1, padding: '24px', maxWidth: '1280px', width: '100%', margin: '0 auto' }}>
-          <Outlet />
-        </main>
+          {/* Child Page Content */}
+          <main style={{ flex: 1, padding: '0 32px 32px 32px' }}>
+            <Outlet />
+          </main>
+        </div>
       </div>
-
-      <style>{`
-        @media (max-width: 768px) {
-          .tenant-main-wrap {
-            margin-left: 0 !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };
