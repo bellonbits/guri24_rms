@@ -951,14 +951,14 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 <div style={{ fontSize: '1.05rem', fontWeight: 800, letterSpacing: '0.08em' }}>
                   {tenantName}
                 </div>
-                <div style={{ fontSize: '0.82rem', color: '#94a3b8', letterSpacing: '0.12em', marginTop: '4px' }}>
-                  •••• •••• •••• {activeUnit?.unit_number || 'Unassigned'}
+                <div style={{ fontSize: '0.82rem', color: '#94a3b8', letterSpacing: '0.04em', marginTop: '4px' }}>
+                  {activeUnit?.unit_number ? `Unit Ref: ${activeUnit.unit_number}` : 'Account Ref: Pending Lease'}
                 </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.74rem', color: '#94a3b8', zIndex: 1 }}>
                 <span>Unit: {activeUnit?.unit_number || 'Unassigned'}</span>
-                <span>Active 2026</span>
+                <span>{activeLease ? (activeLease.end_date ? `Expires ${activeLease.end_date}` : 'Active Lease') : 'No Active Lease'}</span>
               </div>
             </div>
 
@@ -1271,9 +1271,14 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     transition: 'background 0.15s ease',
                   }}
                 >
-                  <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#0f172a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.88rem', flexShrink: 0 }}>
-                    UF
-                  </div>
+                  <img
+                    src="/logo.png"
+                    alt="Unit Flow Desk"
+                    style={{ width: '42px', height: '42px', borderRadius: '10px', objectFit: 'contain', flexShrink: 0 }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/logo-256.png';
+                    }}
+                  />
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1305,9 +1310,14 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#0f172a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                    UF
-                  </div>
+                  <img
+                    src="/logo.png"
+                    alt="Unit Flow Desk"
+                    style={{ width: '40px', height: '40px', borderRadius: '10px', objectFit: 'contain' }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/logo-256.png';
+                    }}
+                  />
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ fontSize: '0.94rem', fontWeight: 800, color: '#0f172a' }}>
@@ -2158,22 +2168,19 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               {/* Header: Logo left, Contact right */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div
+                  <img
+                    src="/logo.png"
+                    alt="Unit Flow"
                     style={{
                       width: '40px',
                       height: '40px',
                       borderRadius: '10px',
-                      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                      color: '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 900,
-                      fontSize: '1.2rem',
+                      objectFit: 'contain',
                     }}
-                  >
-                    UF
-                  </div>
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/logo-256.png';
+                    }}
+                  />
                   <div>
                     <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>{currentOrg.name}</div>
                     <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Unit Flow Property Management</div>

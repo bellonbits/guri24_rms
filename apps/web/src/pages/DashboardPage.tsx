@@ -7,6 +7,7 @@ import {
   MoreHorizontal,
   Wrench,
   DollarSign,
+  BanknotesIcon,
   TrendingUp,
   CheckCircle2,
   Clock,
@@ -40,25 +41,22 @@ export const DashboardPage: React.FC = () => {
   // Active View Mode: 'portfolio' (Image 1) or 'smart-home' (Image 2)
   const [activeTab, setActiveTab] = useState<'portfolio' | 'smart-home'>('portfolio');
 
-  // Currency View Mode: USD vs KES
-  const [currencyMode, setCurrencyMode] = useState<'USD' | 'KES'>('USD');
+  // Currency View Mode: KES by default
+  const [currencyMode, setCurrencyMode] = useState<'USD' | 'KES'>('KES');
 
-  // Currency Formatter
+  // Currency Formatter: KES as default
   const fmt = (amountUsd: number, amountKes?: number) => {
-    if (currencyMode === 'KES') {
-      const val = amountKes !== undefined ? amountKes : amountUsd * 130;
-      return `KES ${Math.round(val).toLocaleString()}`;
+    if (currencyMode === 'USD') {
+      const val = amountUsd !== undefined ? amountUsd : (amountKes || 0) / 130;
+      return `$${Math.round(val).toLocaleString()}`;
     }
-    return `$${amountUsd.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+    const val = amountKes !== undefined ? amountKes : amountUsd * 130;
+    return `KES ${Math.round(val).toLocaleString()}`;
   };
 
   // Quick Stats Time Filter
-  const [quickStatsTimeframe, setQuickStatsTimeframe] = useState('Last 5 years');
-  const [activeChartPoint, setActiveChartPoint] = useState<{ year: string; income: number; expense: number } | null>({
-    year: '2020',
-    income: 407778,
-    expense: 215400,
-  });
+  const [quickStatsTimeframe, setQuickStatsTimeframe] = useState('2026 Monthly');
+  const [activeChartPoint, setActiveChartPoint] = useState<{ label: string; income: number; expense: number } | null>(null);
 
   // Search & Filter for My Units
   const [unitSearch, setUnitSearch] = useState('');
@@ -145,29 +143,44 @@ export const DashboardPage: React.FC = () => {
   }, [state.maintenanceRequests]);
 
   // Messages derived from real communications/maintenance alerts
-  const liveMessages = useMemo(() => {
-    const list: any[] = [];
-    (state.maintenanceRequests || []).slice(0, 5).forEach((m, idx) => {
-      list.push({
+  const staffMessages = useMemo(() => {
+    return [];
+  }, []);
+
+  const tenantMessages = useMemo(() => {
+    return (state.maintenanceRequests || []).slice(0, 5).map((m, idx) => {
+      const name = m.tenant_name || 'Resident';
+      const initials = name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+      return {
         id: `maint-${m.id || idx}`,
         category: 'customers',
-        name: m.tenant_name || 'Resident',
-        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120&q=80',
+        name,
+        initials,
         text: `Maintenance Ticket #${(m.id || '').slice(0, 8)}: ${m.title || m.description || 'Request submitted'}`,
         time: m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent',
         unread: m.status === 'SUBMITTED' || m.status === 'OPEN',
-      });
+      };
     });
-    return list;
   }, [state.maintenanceRequests]);
 
-  const activeMessages = liveMessages;
+  const activeMessages = messageCategory === 'agents' ? staffMessages : tenantMessages;
+
+  const unreadNotificationsCount = 0;
+  const unreadMessagesCount = tenantMessages.filter((m) => m.unread).length;
+
+  const hasFinancialActivity = totalRevenueKes > 0 || totalMaintenanceKes > 0;
 
   // Quick Stats Spline Chart
   const splineData = [
-    { year: '2024', x: 20, yIncome: 140, yExpense: 110, income: totalRevenueUsd * 0.4, expense: totalMaintenanceUsd * 0.3 },
-    { year: '2025', x: 190, yIncome: 90, yExpense: 95, income: totalRevenueUsd * 0.7, expense: totalMaintenanceUsd * 0.6 },
-    { year: '2026', x: 370, yIncome: 30, yExpense: 70, income: totalRevenueUsd, expense: totalMaintenanceUsd },
+    { year: 'Q1', x: 20, yIncome: 130, yExpense: 120, income: totalRevenueKes * 0.2, expense: totalMaintenanceKes * 0.2 },
+    { year: 'Q2', x: 130, yIncome: 100, yExpense: 110, income: totalRevenueKes * 0.4, expense: totalMaintenanceKes * 0.4 },
+    { year: 'Q3', x: 250, yIncome: 70, yExpense: 90, income: totalRevenueKes * 0.7, expense: totalMaintenanceKes * 0.7 },
+    { year: 'Q4', x: 370, yIncome: 30, yExpense: 70, income: totalRevenueKes, expense: totalMaintenanceKes },
   ];
 
   return (
@@ -287,25 +300,31 @@ export const DashboardPage: React.FC = () => {
 
           {/* Currency Toggle */}
           <button
-            onClick={() => setCurrencyMode(currencyMode === 'USD' ? 'KES' : 'USD')}
+            onClick={() => {
+              const next = currencyMode === 'KES' ? 'USD' : 'KES';
+              setCurrencyMode(next);
+              showToast(`Reporting currency set to ${next}`);
+            }}
             style={{
-              background: '#ffffff',
+              background: currencyMode === 'KES' ? '#0f172a' : '#ffffff',
+              color: currencyMode === 'KES' ? '#ffffff' : '#334155',
               border: '1px solid #e2e8f0',
               borderRadius: '20px',
               padding: '6px 14px',
               fontSize: '0.76rem',
               fontWeight: 700,
-              color: '#334155',
               cursor: 'pointer',
+              transition: 'all 0.15s ease',
             }}
+            title="Toggle between KES and USD reporting"
           >
-            {currencyMode === 'USD' ? '$ USD' : 'KES (KSh)'}
+            {currencyMode === 'KES' ? 'KES (Default)' : '$ USD'}
           </button>
 
-          {/* Notification Bell with red badge */}
+          {/* Notification Bell */}
           <div style={{ position: 'relative' }}>
             <button
-              onClick={() => showToast('2 unread notifications.')}
+              onClick={() => showToast(unreadNotificationsCount > 0 ? `${unreadNotificationsCount} unread notification${unreadNotificationsCount > 1 ? 's' : ''}.` : 'No unread notifications.')}
               style={{
                 background: '#ffffff',
                 border: '1px solid #e2e8f0',
@@ -321,24 +340,26 @@ export const DashboardPage: React.FC = () => {
             >
               <Bell size={17} />
             </button>
-            <span
-              style={{
-                position: 'absolute',
-                top: '4px',
-                right: '4px',
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: '#ef4444',
-                border: '2px solid #ffffff',
-              }}
-            />
+            {unreadNotificationsCount > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: '4px',
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: '#ef4444',
+                  border: '2px solid #ffffff',
+                }}
+              />
+            )}
           </div>
 
-          {/* Message bubble with red badge */}
+          {/* Message bubble */}
           <div style={{ position: 'relative' }}>
             <button
-              onClick={() => showToast('5 agent messages awaiting response.')}
+              onClick={() => showToast(unreadMessagesCount > 0 ? `${unreadMessagesCount} unread message${unreadMessagesCount > 1 ? 's' : ''}.` : 'No unread messages.')}
               style={{
                 background: '#ffffff',
                 border: '1px solid #e2e8f0',
@@ -354,18 +375,20 @@ export const DashboardPage: React.FC = () => {
             >
               <MessageSquare size={17} />
             </button>
-            <span
-              style={{
-                position: 'absolute',
-                top: '4px',
-                right: '4px',
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: '#ef4444',
-                border: '2px solid #ffffff',
-              }}
-            />
+            {unreadMessagesCount > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: '4px',
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: '#ef4444',
+                  border: '2px solid #ffffff',
+                }}
+              />
+            )}
           </div>
 
           {/* User profile avatar and label */}
@@ -443,7 +466,7 @@ export const DashboardPage: React.FC = () => {
                       color: '#0f172a',
                     }}
                   >
-                    <DollarSign size={14} />
+                    <BanknotesIcon size={14} />
                   </div>
                   <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155' }}>
                     Total Revenue
@@ -577,84 +600,92 @@ export const DashboardPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Interactive Smooth Spline Chart */}
-              <div style={{ position: 'relative', width: '100%', height: '110px', margin: '6px 0' }}>
-                {/* Floating Tooltip matching Image 1 */}
-                {activeChartPoint && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '0px',
-                      left: '46%',
-                      transform: 'translateX(-50%)',
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      padding: '4px 8px',
-                      boxShadow: '0 4px 14px rgba(0,0,0,0.08)',
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      color: '#0f172a',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      zIndex: 10,
-                    }}
-                  >
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#0f172a' }} />
-                    <span>Income {fmt(activeChartPoint.income)}</span>
+              {/* Financial Activity Chart or Honest Empty State */}
+              {!hasFinancialActivity ? (
+                <div style={{ height: '110px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', background: '#f8fafc', borderRadius: '14px', padding: '16px', margin: '6px 0', border: '1px dashed #e2e8f0' }}>
+                  <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f172a' }}>
+                    No financial activity recorded yet
                   </div>
-                )}
+                  <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '4px', maxWidth: '300px' }}>
+                    Verified rent collections and maintenance vouchers will populate your financial trend curve in {currencyMode}.
+                  </div>
+                </div>
+              ) : (
+                <div style={{ position: 'relative', width: '100%', height: '110px', margin: '6px 0' }}>
+                  {activeChartPoint && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '0px',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        padding: '4px 8px',
+                        boxShadow: '0 4px 14px rgba(0,0,0,0.08)',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        color: '#0f172a',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        zIndex: 10,
+                      }}
+                    >
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#0f172a' }} />
+                      <span>{activeChartPoint.label}: Income {fmt(activeChartPoint.income / 130, activeChartPoint.income)}</span>
+                    </div>
+                  )}
 
-                <svg viewBox="0 0 390 140" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                  {/* Grid Lines */}
-                  <line x1="0" y1="20" x2="390" y2="20" stroke="#f1f5f9" strokeDasharray="3 3" />
-                  <line x1="0" y1="55" x2="390" y2="55" stroke="#f1f5f9" strokeDasharray="3 3" />
-                  <line x1="0" y1="90" x2="390" y2="90" stroke="#f1f5f9" strokeDasharray="3 3" />
-                  <line x1="0" y1="125" x2="390" y2="125" stroke="#f1f5f9" />
+                  <svg viewBox="0 0 390 140" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                    {/* Grid Lines */}
+                    <line x1="0" y1="20" x2="390" y2="20" stroke="#f1f5f9" strokeDasharray="3 3" />
+                    <line x1="0" y1="55" x2="390" y2="55" stroke="#f1f5f9" strokeDasharray="3 3" />
+                    <line x1="0" y1="90" x2="390" y2="90" stroke="#f1f5f9" strokeDasharray="3 3" />
+                    <line x1="0" y1="125" x2="390" y2="125" stroke="#f1f5f9" />
 
-                  {/* Gray Expense Smooth Curve */}
-                  <path
-                    d="M 20 110 C 60 120, 140 100, 190 90 C 240 80, 270 95, 300 85 C 330 75, 350 80, 370 70"
-                    fill="none"
-                    stroke="#cbd5e1"
-                    strokeWidth="2"
-                  />
-
-                  {/* Black Income Spline Curve matching Image 1 */}
-                  <path
-                    d="M 20 140 C 60 80, 140 60, 190 50 C 240 40, 270 120, 310 110 C 340 100, 355 40, 370 30"
-                    fill="none"
-                    stroke="#0f172a"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                  />
-
-                  {/* Active Tooltip Dot */}
-                  <circle cx="190" cy="50" r="4.5" fill="#0f172a" stroke="#ffffff" strokeWidth="2" />
-
-                  {/* Clickable hotspots */}
-                  {splineData.map((pt) => (
-                    <circle
-                      key={pt.year}
-                      cx={pt.x}
-                      cy={pt.yIncome}
-                      r="12"
-                      fill="transparent"
-                      cursor="pointer"
-                      onClick={() => setActiveChartPoint(pt)}
+                    {/* Expense Curve */}
+                    <path
+                      d="M 20 120 C 130 115, 250 95, 370 70"
+                      fill="none"
+                      stroke="#cbd5e1"
+                      strokeWidth="2"
                     />
-                  ))}
-                </svg>
-              </div>
 
-              {/* X-axis years */}
+                    {/* Income Curve */}
+                    <path
+                      d="M 20 130 C 130 100, 250 70, 370 30"
+                      fill="none"
+                      stroke="#0f172a"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                    />
+
+                    {/* Data Points */}
+                    {splineData.map((pt) => (
+                      <circle
+                        key={pt.year}
+                        cx={pt.x}
+                        cy={pt.yIncome}
+                        r="5"
+                        fill="#0f172a"
+                        stroke="#ffffff"
+                        strokeWidth="2"
+                        cursor="pointer"
+                        onClick={() => setActiveChartPoint({ label: pt.year, income: pt.income, expense: pt.expense })}
+                      />
+                    ))}
+                  </svg>
+                </div>
+              )}
+
+              {/* X-axis labels */}
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: '#94a3b8' }}>
-                <span>2018</span>
-                <span>2019</span>
-                <span>2020</span>
-                <span>2021</span>
-                <span>2022</span>
+                <span>Q1 2026</span>
+                <span>Q2 2026</span>
+                <span>Q3 2026</span>
+                <span>Q4 2026</span>
               </div>
             </div>
 
@@ -969,7 +1000,7 @@ export const DashboardPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Staff Desk
+                  Staff Desk {staffMessages.length > 0 ? `(${staffMessages.length})` : ''}
                 </button>
                 <button
                   onClick={() => setMessageCategory('customers')}
@@ -984,7 +1015,7 @@ export const DashboardPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Tenants {activeMessages.length > 0 ? `(${activeMessages.length})` : ''}
+                  Tenants {tenantMessages.length > 0 ? `(${tenantMessages.length})` : ''}
                 </button>
               </div>
 
@@ -1003,10 +1034,12 @@ export const DashboardPage: React.FC = () => {
                   >
                     <ChatBubbleLeftRightIcon size={28} color="#94a3b8" style={{ margin: '0 auto 8px auto' }} />
                     <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>
-                      No new messages
+                      {messageCategory === 'agents' ? 'No staff messages' : 'No tenant inquiries'}
                     </div>
                     <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
-                      Tenant inquiries and maintenance notifications will appear here.
+                      {messageCategory === 'agents'
+                        ? 'Internal communications with property managers will appear here.'
+                        : 'Maintenance requests and messages submitted by residents will appear here.'}
                     </div>
                   </div>
                 ) : (
@@ -1024,11 +1057,23 @@ export const DashboardPage: React.FC = () => {
                         transition: 'background 0.15s ease',
                       }}
                     >
-                      <img
-                        src={m.avatar}
-                        alt={m.name}
-                        style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
-                      />
+                      <div
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          background: '#0f172a',
+                          color: '#ffffff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 800,
+                          fontSize: '0.84rem',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {m.initials || 'TR'}
+                      </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                           <span style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f172a' }}>
@@ -1334,13 +1379,13 @@ export const DashboardPage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b', fontSize: '0.82rem', fontWeight: 600 }}>
-                <DollarSign size={15} color="#0f172a" />
+                <BanknotesIcon size={15} color="#0f172a" />
                 <span>Cost Estimate</span>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', margin: '14px 0 10px 0' }}>
-                <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#0f172a' }}>{fmt(450, 25000)}</span>
-                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>This Month</span>
+                <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#0f172a' }}>{fmt(totalMaintenanceUsd, totalMaintenanceKes)}</span>
+                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Live Operations</span>
               </div>
 
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#fef2f2', color: '#dc2626', fontSize: '0.74rem', fontWeight: 700, padding: '3px 8px', borderRadius: '12px' }}>
