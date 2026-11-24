@@ -19,7 +19,7 @@ import {
   FileText,
   AlertCircle,
   RefreshCw,
-} from 'lucide-react';
+} from '../../../components/heroicons';
 import { apiClient } from '../../../lib/apiClient';
 import type { Property, Unit, Lease } from '../../../types';
 

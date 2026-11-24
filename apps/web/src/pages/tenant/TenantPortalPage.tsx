@@ -41,7 +41,7 @@ import {
   DollarSign,
   Zap,
   Sparkles,
-} from 'lucide-react';
+} from '../../components/heroicons';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../lib/apiClient';
 import type { Property, Unit, Lease, Invoice, Payment, MaintenanceRequest, DocumentItem, NotificationDelivery } from '../../types';

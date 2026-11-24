@@ -11,7 +11,7 @@ import {
   Search,
   RefreshCw,
   Building,
-} from 'lucide-react';
+} from '../../../components/heroicons';
 import { apiClient } from '../../../lib/apiClient';
 
 interface AnnouncementsViewProps {

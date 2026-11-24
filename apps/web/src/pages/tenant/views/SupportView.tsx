@@ -16,7 +16,7 @@ import {
   ChevronRight,
   User,
   ArrowLeft,
-} from 'lucide-react';
+} from '../../../components/heroicons';
 
 interface SupportViewProps {
   onBack?: () => void;

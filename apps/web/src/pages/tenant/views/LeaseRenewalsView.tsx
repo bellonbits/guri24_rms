@@ -11,7 +11,7 @@ import {
   ShieldAlert,
   Info,
   RefreshCw,
-} from 'lucide-react';
+} from '../../../components/heroicons';
 import { apiClient } from '../../../lib/apiClient';
 import type { Lease } from '../../../types';
 

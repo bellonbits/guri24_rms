@@ -17,7 +17,7 @@ import {
   MessageSquare,
   AlertCircle,
   RefreshCw,
-} from 'lucide-react';
+} from '../../../components/heroicons';
 import { apiClient } from '../../../lib/apiClient';
 import type { MaintenanceRequest, Property, Unit } from '../../../types';
 

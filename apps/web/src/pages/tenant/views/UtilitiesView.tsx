@@ -17,7 +17,7 @@ import {
   ChevronRight,
   ArrowUpRight,
   Sparkles,
-} from 'lucide-react';
+} from '../../../components/heroicons';
 
 interface UtilitiesViewProps {
   onBack?: () => void;

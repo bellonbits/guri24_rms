@@ -31,7 +31,7 @@ import {
   AlertCircle,
   HelpCircle,
   Search,
-} from 'lucide-react';
+} from '../components/heroicons';
 import { useAuth } from '../context/AuthContext';
 import { apiClient } from '../lib/apiClient';
 

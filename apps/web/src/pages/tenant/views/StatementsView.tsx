@@ -12,7 +12,7 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   RefreshCw,
-} from 'lucide-react';
+} from '../../../components/heroicons';
 import { apiClient } from '../../../lib/apiClient';
 import type { Invoice, Payment } from '../../../types';
 

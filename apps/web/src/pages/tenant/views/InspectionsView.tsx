@@ -14,7 +14,7 @@ import {
   Calendar,
   RefreshCw,
   AlertCircle,
-} from 'lucide-react';
+} from '../../../components/heroicons';
 import { apiClient } from '../../../lib/apiClient';
 import type { InspectionRecord } from '../../../types';
 
