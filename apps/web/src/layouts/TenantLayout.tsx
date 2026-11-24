@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -21,6 +21,13 @@ import {
   ChevronRight,
   ShieldCheck,
   Calendar,
+  ClipboardCheck,
+  Megaphone,
+  Zap,
+  LifeBuoy,
+  Settings,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -30,78 +37,166 @@ export const TenantLayout: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [unreadNotifications, setUnreadNotifications] = useState(2);
+  const [unreadNotifications, setUnreadNotifications] = useState(3);
+  const [showTenancyDropdown, setShowTenancyDropdown] = useState(false);
 
-  // Exact 8 Tenant Navigation Items mandated in Section 9:
-  // 1. Overview — Your tenancy at a glance
-  // 2. Rent & Payments — Balances, payment history and receipts
-  // 3. My Lease — Agreements and renewal requests
-  // 4. Maintenance — Report and track issues
-  // 5. Documents — Your rental documents
-  // 6. Messages — Talk to property management
-  // 7. Notifications — Important updates and reminders
-  // 8. My Profile — Personal details and account security
-  const navItems = [
+  // Available Active Tenancies for Multi-Tenancy Switcher
+  const tenancies = [
+    {
+      id: 'tenancy-greenview',
+      propertyName: 'Greenview Luxury Residences',
+      unitNumber: 'Unit A-204',
+      block: 'Block A',
+      location: 'Ruiru, Kiambu',
+      status: 'Active Lease',
+      rent: 25000,
+      badgeColor: '#10b981',
+    },
+    {
+      id: 'tenancy-silveroak',
+      propertyName: 'Silver Oak Apartments',
+      unitNumber: 'Unit B-12',
+      block: 'Block B',
+      location: 'Westlands, Nairobi',
+      status: 'Active Lease',
+      rent: 32000,
+      badgeColor: '#0ea5e9',
+    },
+  ];
+
+  const [activeTenancyId, setActiveTenancyId] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('unitflow_active_tenancy_id');
+      if (saved && (saved === 'tenancy-greenview' || saved === 'tenancy-silveroak')) {
+        return saved;
+      }
+    } catch {}
+    return 'tenancy-greenview';
+  });
+
+  const activeTenancy = tenancies.find((t) => t.id === activeTenancyId) || tenancies[0];
+
+  const handleSelectTenancy = (id: string) => {
+    setActiveTenancyId(id);
+    localStorage.setItem('unitflow_active_tenancy_id', id);
+    setShowTenancyDropdown(false);
+    window.dispatchEvent(new CustomEvent('unitflow_tenancy_switched', { detail: { tenancyId: id } }));
+  };
+
+  // Unit Flow — Complete Primary Navigation
+  const primaryNavItems = [
     {
       to: '/portal/dashboard',
       aliases: ['/portal', '/portal/overview', '/portal/home'],
-      label: 'Overview',
-      sublabel: 'Your tenancy at a glance',
-      icon: <LayoutDashboard size={19} />,
+      label: 'Dashboard',
+      sublabel: 'Tenancy at a glance',
+      icon: <LayoutDashboard size={18} />,
+    },
+    {
+      to: '/portal/properties',
+      aliases: ['/portal/properties/', '/portal/apartment'],
+      label: 'My Properties',
+      sublabel: 'Units & amenities',
+      icon: <Building size={18} />,
     },
     {
       to: '/portal/payments',
-      aliases: ['/portal/financials', '/portal/rent-payments', '/portal/order'],
+      aliases: ['/portal/financials', '/portal/rent-payments', '/portal/payments/'],
       label: 'Rent & Payments',
-      sublabel: 'Balances, payment history and receipts',
-      icon: <CreditCard size={19} />,
+      sublabel: 'C2B V2 verified receipts',
+      icon: <CreditCard size={18} />,
+    },
+    {
+      to: '/portal/statements',
+      aliases: ['/portal/statements/'],
+      label: 'Rent Statements',
+      sublabel: 'Authoritative double-entry',
+      icon: <FileText size={18} />,
     },
     {
       to: '/portal/lease',
-      aliases: ['/portal/apartment', '/portal/properties', '/portal/commodity'],
+      aliases: ['/portal/lease/documents', '/portal/lease/renewals', '/portal/renewals'],
       label: 'My Lease',
-      sublabel: 'Agreements and renewal requests',
-      icon: <FileText size={19} />,
+      sublabel: 'Agreements & renewals',
+      icon: <Home size={18} />,
+    },
+    {
+      to: '/portal/inspections',
+      aliases: ['/portal/inspections/'],
+      label: 'Move-in / Move-out',
+      sublabel: 'Inspection checklists',
+      icon: <ClipboardCheck size={18} />,
     },
     {
       to: '/portal/maintenance',
-      aliases: ['/portal/services', '/portal/application'],
+      aliases: ['/portal/maintenance/new', '/portal/maintenance/'],
       label: 'Maintenance',
-      sublabel: 'Report and track issues',
-      icon: <Wrench size={19} />,
+      sublabel: 'Report & track repairs',
+      icon: <Wrench size={18} />,
     },
     {
       to: '/portal/documents',
-      aliases: ['/portal/assets'],
+      aliases: ['/portal/documents/'],
       label: 'Documents',
-      sublabel: 'Your rental documents',
-      icon: <FolderLock size={19} />,
+      sublabel: 'Private rental vault',
+      icon: <FolderLock size={18} />,
     },
     {
       to: '/portal/messages',
       aliases: ['/portal/community'],
       label: 'Messages',
-      sublabel: 'Talk to property management',
-      icon: <MessageSquare size={19} />,
+      sublabel: 'Contact property staff',
+      icon: <MessageSquare size={18} />,
+    },
+    {
+      to: '/portal/announcements',
+      aliases: ['/portal/announcements/'],
+      label: 'Announcements',
+      sublabel: 'Estate notices & alerts',
+      icon: <Megaphone size={18} />,
     },
     {
       to: '/portal/notifications',
       aliases: ['/portal/notification'],
       label: 'Notifications',
-      sublabel: 'Important updates and reminders',
-      icon: <Bell size={19} />,
+      sublabel: 'Reminders & updates',
+      icon: <Bell size={18} />,
       badge: unreadNotifications > 0 ? unreadNotifications : undefined,
     },
     {
-      to: '/portal/profile',
-      aliases: ['/portal/account', '/portal/settings', '/portal/setup'],
-      label: 'My Profile',
-      sublabel: 'Personal details and account security',
-      icon: <User size={19} />,
+      to: '/portal/utilities',
+      aliases: ['/portal/services'],
+      label: 'Utilities & Services',
+      sublabel: 'Water & power meters',
+      icon: <Zap size={18} />,
+    },
+    {
+      to: '/portal/support',
+      aliases: ['/portal/support/'],
+      label: 'Support',
+      sublabel: 'Disputes & enquiries',
+      icon: <LifeBuoy size={18} />,
     },
   ];
 
-  const isNavActive = (item: typeof navItems[0]) => {
+  const accountNavItems = [
+    {
+      to: '/portal/profile',
+      aliases: ['/portal/account'],
+      label: 'My Profile',
+      sublabel: 'Masked identity & contacts',
+      icon: <User size={18} />,
+    },
+    {
+      to: '/portal/settings',
+      aliases: ['/portal/settings/'],
+      label: 'Account Settings',
+      sublabel: 'Security, MFA & notices',
+      icon: <Settings size={18} />,
+    },
+  ];
+
+  const isNavActive = (item: { to: string; aliases: string[] }) => {
     if (location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)) {
       return true;
     }
@@ -182,7 +277,7 @@ export const TenantLayout: React.FC = () => {
         }}
         className={`md:flex ${isMobileMenuOpen ? 'flex' : 'hidden'}`}
       >
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
           {/* Top Brand Header */}
           <div
             style={{
@@ -192,6 +287,7 @@ export const TenantLayout: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
+              flexShrink: 0,
             }}
           >
             <Link
@@ -272,54 +368,99 @@ export const TenantLayout: React.FC = () => {
             )}
           </div>
 
-          {/* Current Residence Summary (Immediate answer to "Where am I staying?") */}
+          {/* Current Residence Summary & Tenancy Switcher Trigger */}
           {!isSidebarCollapsed && (
-            <div style={{ padding: '16px 16px 8px 16px' }}>
+            <div style={{ padding: '14px 14px 6px 14px', flexShrink: 0 }}>
               <div
+                onClick={() => setShowTenancyDropdown(!showTenancyDropdown)}
                 style={{
                   background: 'rgba(30, 41, 59, 0.7)',
                   border: '1px solid #334155',
                   borderRadius: '12px',
-                  padding: '12px 14px',
+                  padding: '10px 12px',
+                  cursor: 'pointer',
+                  transition: 'background 0.15s ease',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
                     <Home size={13} color="#38bdf8" />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#f8fafc' }}>
-                      Greenview Apartments
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {activeTenancy.propertyName}
                     </span>
                   </div>
-                  <span
-                    style={{
-                      fontSize: '0.66rem',
-                      fontWeight: 700,
-                      color: '#10b981',
-                      background: 'rgba(16, 185, 129, 0.15)',
-                      padding: '2px 6px',
-                      borderRadius: '8px',
-                    }}
-                  >
-                    Active
-                  </span>
+                  <ChevronDown size={13} color="#94a3b8" />
                 </div>
-                <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                  Block A &bull; Unit A-204 &bull; Ruiru
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem', color: '#94a3b8' }}>
+                  <span>{activeTenancy.unitNumber} &bull; {activeTenancy.location}</span>
+                  <span style={{ color: activeTenancy.badgeColor, fontWeight: 700 }}>● Active</span>
                 </div>
               </div>
+
+              {/* Multi-Tenancy Switcher Dropdown */}
+              {showTenancyDropdown && (
+                <div
+                  style={{
+                    marginTop: '6px',
+                    background: '#1e293b',
+                    border: '1px solid #475569',
+                    borderRadius: '10px',
+                    padding: '6px',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                  }}
+                >
+                  <div style={{ fontSize: '0.66rem', fontWeight: 700, color: '#94a3b8', padding: '4px 8px', textTransform: 'uppercase' }}>
+                    Switch Active Tenancy
+                  </div>
+                  {tenancies.map((t) => (
+                    <div
+                      key={t.id}
+                      onClick={() => handleSelectTenancy(t.id)}
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: '6px',
+                        background: t.id === activeTenancyId ? '#2563eb' : 'transparent',
+                        color: t.id === activeTenancyId ? '#ffffff' : '#cbd5e1',
+                        fontSize: '0.74rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 700 }}>{t.propertyName}</div>
+                        <div style={{ fontSize: '0.68rem', opacity: 0.85 }}>{t.unitNumber} &bull; {t.location}</div>
+                      </div>
+                      {t.id === activeTenancyId && <Check size={14} color="#ffffff" />}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
-          {/* Recommended Tenant Navigation (Section 9) */}
+          {/* Scrollable Navigation List */}
           <nav
             style={{
-              padding: '12px 14px',
+              padding: '8px 12px 16px 12px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '4px',
+              gap: '2px',
+              overflowY: 'auto',
+              flex: 1,
             }}
           >
-            {navItems.map((item) => {
+            {/* Group 1: MY ACCOUNT */}
+            {!isSidebarCollapsed && (
+              <div style={{ fontSize: '0.66rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '8px 8px 4px 8px' }}>
+                My Account
+              </div>
+            )}
+            {primaryNavItems.map((item) => {
               const active = isNavActive(item);
               return (
                 <Link
@@ -329,10 +470,10 @@ export const TenantLayout: React.FC = () => {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '12px',
-                    padding: isSidebarCollapsed ? '10px' : '9px 12px',
-                    borderRadius: '10px',
-                    fontSize: '0.86rem',
+                    gap: '10px',
+                    padding: isSidebarCollapsed ? '9px' : '7px 10px',
+                    borderRadius: '8px',
+                    fontSize: '0.82rem',
                     fontWeight: active ? 600 : 500,
                     color: active ? '#ffffff' : '#94a3b8',
                     background: active ? '#2563eb' : 'transparent',
@@ -347,12 +488,9 @@ export const TenantLayout: React.FC = () => {
                     {item.icon}
                   </span>
                   {!isSidebarCollapsed && (
-                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, lineHeight: 1.2 }}>
-                      <span style={{ fontSize: '0.86rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, lineHeight: 1.15 }}>
+                      <span style={{ fontSize: '0.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {item.label}
-                      </span>
-                      <span style={{ fontSize: '0.68rem', color: active ? '#bfdbfe' : '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {item.sublabel}
                       </span>
                     </div>
                   )}
@@ -361,10 +499,10 @@ export const TenantLayout: React.FC = () => {
                       style={{
                         background: '#ef4444',
                         color: '#ffffff',
-                        fontSize: '0.68rem',
+                        fontSize: '0.66rem',
                         fontWeight: 700,
                         borderRadius: '10px',
-                        padding: '1px 7px',
+                        padding: '1px 6px',
                       }}
                     >
                       {item.badge}
@@ -373,58 +511,101 @@ export const TenantLayout: React.FC = () => {
                 </Link>
               );
             })}
-          </nav>
-        </div>
 
-        {/* Bottom Switcher / Sign Out */}
-        <div style={{ padding: '16px', borderTop: '1px solid #1e293b' }}>
-          {!isSidebarCollapsed && (
-            <Link
-              to="/app/dashboard"
+            {/* Group 2: ACCOUNT */}
+            {!isSidebarCollapsed && (
+              <div style={{ fontSize: '0.66rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '14px 8px 4px 8px' }}>
+                Account
+              </div>
+            )}
+            {accountNavItems.map((item) => {
+              const active = isNavActive(item);
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: isSidebarCollapsed ? '9px' : '7px 10px',
+                    borderRadius: '8px',
+                    fontSize: '0.82rem',
+                    fontWeight: active ? 600 : 500,
+                    color: active ? '#ffffff' : '#94a3b8',
+                    background: active ? '#2563eb' : 'transparent',
+                    textDecoration: 'none',
+                    justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
+                    transition: 'all 0.15s ease',
+                  }}
+                  title={isSidebarCollapsed ? `${item.label} — ${item.sublabel}` : undefined}
+                >
+                  <span style={{ color: active ? '#ffffff' : '#94a3b8', flexShrink: 0 }}>
+                    {item.icon}
+                  </span>
+                  {!isSidebarCollapsed && (
+                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0, lineHeight: 1.15 }}>
+                      <span style={{ fontSize: '0.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {item.label}
+                      </span>
+                    </div>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Bottom Switcher / Sign Out */}
+          <div style={{ padding: '12px', borderTop: '1px solid #1e293b', flexShrink: 0 }}>
+            {!isSidebarCollapsed && (
+              <Link
+                to="/app/dashboard"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '7px 10px',
+                  borderRadius: '6px',
+                  background: 'rgba(30, 41, 59, 0.6)',
+                  border: '1px solid #334155',
+                  color: '#94a3b8',
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  marginBottom: '8px',
+                }}
+              >
+                <span>Staff Management Console</span>
+                <ExternalLink size={12} color="#94a3b8" />
+              </Link>
+            )}
+
+            <button
+              onClick={() => {
+                logout();
+                navigate('/');
+              }}
               style={{
+                width: '100%',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                background: 'rgba(30, 41, 59, 0.6)',
-                border: '1px solid #334155',
+                gap: '8px',
+                padding: isSidebarCollapsed ? '8px' : '6px 10px',
+                borderRadius: '6px',
+                fontSize: '0.8rem',
+                fontWeight: 500,
                 color: '#94a3b8',
-                fontSize: '0.74rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-                marginBottom: '10px',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
               }}
             >
-              <span>Property Manager Console</span>
-              <ExternalLink size={12} color="#94a3b8" />
-            </Link>
-          )}
-
-          <button
-            onClick={() => {
-              logout();
-              navigate('/');
-            }}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: isSidebarCollapsed ? '10px' : '8px 12px',
-              borderRadius: '8px',
-              fontSize: '0.84rem',
-              fontWeight: 500,
-              color: '#94a3b8',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
-            }}
-          >
-            <LogOut size={16} />
-            {!isSidebarCollapsed && <span>Sign Out</span>}
-          </button>
+              <LogOut size={15} />
+              {!isSidebarCollapsed && <span>Sign Out</span>}
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -489,8 +670,78 @@ export const TenantLayout: React.FC = () => {
             </div>
           </div>
 
-          {/* Right: Quick Status, Notifications Bell, Profile Avatar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+          {/* Right: Tenancy Switcher Dropdown, Notifications Bell, Profile Avatar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            {/* Top Bar Property/Tenancy Selector */}
+            <div style={{ position: 'relative' }}>
+              <button
+                type="button"
+                onClick={() => setShowTenancyDropdown(!showTenancyDropdown)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#f8fafc',
+                  color: '#0f172a',
+                  border: '1px solid #cbd5e1',
+                  padding: '5px 12px',
+                  borderRadius: '20px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                <Home size={13} color="#2563eb" />
+                <span>{activeTenancy.propertyName} &bull; {activeTenancy.unitNumber}</span>
+                <ChevronDown size={13} color="#64748b" />
+              </button>
+
+              {showTenancyDropdown && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: '6px',
+                    background: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '12px',
+                    padding: '8px',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                    minWidth: '260px',
+                    zIndex: 60,
+                  }}
+                >
+                  <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', padding: '4px 8px', textTransform: 'uppercase' }}>
+                    Select Active Tenancy
+                  </div>
+                  {tenancies.map((t) => (
+                    <div
+                      key={t.id}
+                      onClick={() => handleSelectTenancy(t.id)}
+                      style={{
+                        padding: '8px 10px',
+                        borderRadius: '8px',
+                        background: t.id === activeTenancyId ? '#eff6ff' : '#ffffff',
+                        border: t.id === activeTenancyId ? '1px solid #bfdbfe' : '1px solid transparent',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginTop: '4px',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }}>{t.propertyName}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{t.unitNumber} &bull; {t.location}</div>
+                      </div>
+                      {t.id === activeTenancyId && <Check size={14} color="#2563eb" />}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Active Tenancy Pill */}
             <div
               style={{
@@ -505,7 +756,7 @@ export const TenantLayout: React.FC = () => {
                 fontSize: '0.75rem',
                 fontWeight: 600,
               }}
-              className="hidden sm:flex"
+              className="hidden lg:flex"
             >
               <CheckCircle2 size={13} color="#059669" />
               <span>Active Lease &bull; Rent Current</span>
@@ -590,14 +841,6 @@ export const TenantLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
-
-      <style>{`
-        @media (max-width: 768px) {
-          .tenant-fullpage-main {
-            margin-left: 0 !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };

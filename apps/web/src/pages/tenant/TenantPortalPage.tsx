@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { PropertiesView } from './views/PropertiesView';
+import { StatementsView } from './views/StatementsView';
+import { LeaseRenewalsView } from './views/LeaseRenewalsView';
+import { InspectionsView } from './views/InspectionsView';
+import { AnnouncementsView } from './views/AnnouncementsView';
+import { UtilitiesView } from './views/UtilitiesView';
+import { SupportView } from './views/SupportView';
+import { SettingsView } from './views/SettingsView';
+import { MaintenanceViews } from './views/MaintenanceViews';
+import { AuthViews } from './views/AuthViews';
 import {
   CreditCard,
   FileText,
@@ -59,57 +69,41 @@ import {
 } from 'lucide-react';
 
 interface TenantPortalPageProps {
-  view?:
-    | 'dashboard'
-    | 'payments'
-    | 'lease'
-    | 'maintenance'
-    | 'documents'
-    | 'messages'
-    | 'notifications'
-    | 'profile'
-    | 'community'
-    | 'apartment'
-    | 'services'
-    | 'account'
-    | 'home';
+  view?: string;
 }
 
 export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { paymentId, requestId, ticketId } = useParams<{ paymentId?: string; requestId?: string; ticketId?: string }>();
 
   // Resolve current view from prop or route
   const currentView = useMemo(() => {
-    if (view === 'payments' || view === 'financials') return 'payments';
-    if (view === 'lease' || view === 'apartment' || view === 'properties') return 'lease';
-    if (view === 'maintenance' || view === 'services') return 'maintenance';
-    if (view === 'documents') return 'documents';
-    if (view === 'messages' || view === 'community') return 'messages';
-    if (view === 'notifications' || view === 'notification') return 'notifications';
-    if (view === 'profile' || view === 'account' || view === 'settings') return 'profile';
-    if (view === 'dashboard' || view === 'home') return 'dashboard';
-
-    if (location.pathname.includes('/payments') || location.pathname.includes('/financials')) {
-      return 'payments';
-    }
-    if (location.pathname.includes('/lease') || location.pathname.includes('/apartment') || location.pathname.includes('/properties')) {
-      return 'lease';
-    }
-    if (location.pathname.includes('/maintenance') || location.pathname.includes('/services')) {
-      return 'maintenance';
-    }
-    if (location.pathname.includes('/documents')) {
-      return 'documents';
-    }
-    if (location.pathname.includes('/messages') || location.pathname.includes('/community')) {
-      return 'messages';
-    }
-    if (location.pathname.includes('/notifications') || location.pathname.includes('/notification')) {
-      return 'notifications';
-    }
-    if (location.pathname.includes('/profile') || location.pathname.includes('/account') || location.pathname.includes('/settings')) {
-      return 'profile';
-    }
+    if (view) return view;
+    const path = location.pathname.toLowerCase();
+    if (path.includes('/properties')) return 'properties';
+    if (path.includes('/statements')) return 'statements';
+    if (path.includes('/lease/renewals') || path.includes('/renewals')) return 'lease-renewals';
+    if (path.includes('/inspections')) return 'inspections';
+    if (path.includes('/maintenance/new')) return 'maintenance-new';
+    if (path.includes('/maintenance/')) return 'maintenance-detail';
+    if (path.includes('/maintenance')) return 'maintenance';
+    if (path.includes('/announcements')) return 'announcements';
+    if (path.includes('/utilities') || path.includes('/services')) return 'utilities';
+    if (path.includes('/support')) return 'support';
+    if (path.includes('/settings')) return 'settings';
+    if (path.includes('/login')) return 'login';
+    if (path.includes('/invitation')) return 'invitation';
+    if (path.includes('/verify')) return 'verify';
+    if (path.includes('/forgot-password')) return 'forgot-password';
+    if (path.includes('/reset-password')) return 'reset-password';
+    if (path.includes('/welcome')) return 'welcome';
+    if (path.includes('/payments') || path.includes('/financials')) return 'payments';
+    if (path.includes('/lease') || path.includes('/apartment')) return 'lease';
+    if (path.includes('/documents')) return 'documents';
+    if (path.includes('/messages') || path.includes('/community')) return 'messages';
+    if (path.includes('/notifications') || path.includes('/notification')) return 'notifications';
+    if (path.includes('/profile') || path.includes('/account')) return 'profile';
     return 'dashboard';
   }, [view, location.pathname]);
 
@@ -181,6 +175,30 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       // ignore
     }
   }, [tenancy]);
+
+  // Listen for tenancy switch events from topbar/sidebar selector
+  useEffect(() => {
+    const handleTenancySwitched = (e: any) => {
+      if (e.detail) {
+        setTenancy((prev: any) => ({
+          ...prev,
+          propertyName: e.detail.name,
+          unitNumber: e.detail.unit,
+          block: e.detail.block,
+          town: e.detail.town,
+          monthlyRent: e.detail.rentKes,
+          monthlyRentUsd: e.detail.rentUsd,
+          outstandingBalance: e.detail.balanceKes,
+          nextDueDate: e.detail.nextDue,
+          leaseStatus: e.detail.status,
+          accountNumber: e.detail.unit.replace(/[^a-zA-Z0-9]/g, '').toUpperCase(),
+        }));
+        showToast(`Switched active tenancy to ${e.detail.name} · ${e.detail.unit}`);
+      }
+    };
+    window.addEventListener('unitflow_tenancy_switched', handleTenancySwitched);
+    return () => window.removeEventListener('unitflow_tenancy_switched', handleTenancySwitched);
+  }, []);
 
   // Tab state for My Lease / Tenant Details screen (matching PropEasy reference)
   const [leaseTab, setLeaseTab] = useState<'application' | 'history' | 'documents' | 'notes'>('application');
@@ -4117,6 +4135,72 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
             </div>
           </form>
         </div>
+      )}
+
+      {/* =========================================================================
+          SECTION 9: SUBVIEWS & SPECIALIZED SELF-SERVICE PAGES
+      ========================================================================== */}
+      {currentView === 'properties' && (
+        <PropertiesView onBack={() => navigate('/portal/dashboard')} showToast={showToast} />
+      )}
+
+      {currentView === 'statements' && (
+        <StatementsView onBack={() => navigate('/portal/payments')} showToast={showToast} />
+      )}
+
+      {currentView === 'lease-renewals' && (
+        <LeaseRenewalsView onBack={() => navigate('/portal/lease')} showToast={showToast} />
+      )}
+
+      {currentView === 'inspections' && (
+        <InspectionsView onBack={() => navigate('/portal/dashboard')} showToast={showToast} />
+      )}
+
+      {currentView === 'announcements' && (
+        <AnnouncementsView onBack={() => navigate('/portal/dashboard')} showToast={showToast} />
+      )}
+
+      {currentView === 'utilities' && (
+        <UtilitiesView onBack={() => navigate('/portal/dashboard')} showToast={showToast} />
+      )}
+
+      {currentView === 'support' && (
+        <SupportView onBack={() => navigate('/portal/dashboard')} showToast={showToast} ticketIdParam={ticketId} />
+      )}
+
+      {currentView === 'settings' && (
+        <SettingsView onBack={() => navigate('/portal/profile')} showToast={showToast} />
+      )}
+
+      {currentView === 'maintenance-new' && (
+        <MaintenanceViews
+          mode="new"
+          onBack={() => navigate('/portal/maintenance')}
+          showToast={showToast}
+          onNavigateDetail={(id) => navigate(`/portal/maintenance/${id}`)}
+        />
+      )}
+
+      {currentView === 'maintenance-detail' && (
+        <MaintenanceViews
+          mode="detail"
+          requestId={requestId}
+          onBack={() => navigate('/portal/maintenance')}
+          showToast={showToast}
+        />
+      )}
+
+      {(currentView === 'login' ||
+        currentView === 'invitation' ||
+        currentView === 'verify' ||
+        currentView === 'forgot-password' ||
+        currentView === 'reset-password' ||
+        currentView === 'welcome') && (
+        <AuthViews
+          mode={currentView as any}
+          onNavigate={(route) => navigate(route)}
+          showToast={showToast}
+        />
       )}
 
       {/* =========================================================================

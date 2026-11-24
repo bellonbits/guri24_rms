@@ -803,30 +803,16 @@ export const HomePage: React.FC = () => {
             <p
               style={{
                 marginTop: '18px',
-                fontSize: '16px',
+                fontSize: '17px',
                 color: '#475569',
-                lineHeight: 1.65,
+                lineHeight: 1.6,
                 maxWidth: '680px',
                 marginLeft: 'auto',
                 marginRight: 'auto',
                 fontWeight: 500,
               }}
             >
-              Managing rental properties can quickly become overwhelming. Rent follow-ups, tenant calls, lease documents, maintenance requests and financial records can turn every day into a list of tasks you never seem to finish.
-            </p>
-            <p
-              style={{
-                marginTop: '10px',
-                fontSize: '15px',
-                color: '#1E293B',
-                lineHeight: 1.6,
-                maxWidth: '680px',
-                marginLeft: 'auto',
-                marginRight: 'auto',
-                fontWeight: 600,
-              }}
-            >
-              Unit Flow brings everything together, giving you more control, better visibility and more time to grow your property business.
+              Unit Flow brings everything together — giving you complete control, full visibility, and more time to grow your property business.
             </p>
 
             {/* Dual Pill CTA Buttons */}

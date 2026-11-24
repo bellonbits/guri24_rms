@@ -295,22 +295,61 @@ export const App: React.FC = () => {
               <Route path="dashboard" element={<TenantPortalPage view="dashboard" />} />
               <Route path="overview" element={<TenantPortalPage view="dashboard" />} />
               <Route path="home" element={<TenantPortalPage view="dashboard" />} />
+
+              {/* My Properties & Detail */}
+              <Route path="properties" element={<TenantPortalPage view="properties" />} />
+              <Route path="properties/:propertyId" element={<TenantPortalPage view="properties" />} />
+
+              {/* Rent & Payments */}
               <Route path="payments" element={<TenantPortalPage view="payments" />} />
+              <Route path="payments/:paymentId" element={<TenantPortalPage view="payments" />} />
               <Route path="financials" element={<TenantPortalPage view="payments" />} />
               <Route path="rent-payments" element={<TenantPortalPage view="payments" />} />
+              <Route path="statements" element={<TenantPortalPage view="statements" />} />
+
+              {/* My Lease & Subpages */}
               <Route path="lease" element={<TenantPortalPage view="lease" />} />
-              <Route path="apartment" element={<TenantPortalPage view="lease" />} />
-              <Route path="properties" element={<TenantPortalPage view="lease" />} />
+              <Route path="lease/documents" element={<TenantPortalPage view="lease" />} />
+              <Route path="lease/renewals" element={<TenantPortalPage view="lease-renewals" />} />
+              <Route path="renewals" element={<TenantPortalPage view="lease-renewals" />} />
+
+              {/* Inspections (Move-in / Move-out) */}
+              <Route path="inspections" element={<TenantPortalPage view="inspections" />} />
+
+              {/* Maintenance */}
               <Route path="maintenance" element={<TenantPortalPage view="maintenance" />} />
-              <Route path="services" element={<TenantPortalPage view="maintenance" />} />
+              <Route path="maintenance/new" element={<TenantPortalPage view="maintenance-new" />} />
+              <Route path="maintenance/:requestId" element={<TenantPortalPage view="maintenance-detail" />} />
+
+              {/* Documents & Communication */}
               <Route path="documents" element={<TenantPortalPage view="documents" />} />
               <Route path="messages" element={<TenantPortalPage view="messages" />} />
               <Route path="community" element={<TenantPortalPage view="messages" />} />
+              <Route path="announcements" element={<TenantPortalPage view="announcements" />} />
               <Route path="notifications" element={<TenantPortalPage view="notifications" />} />
               <Route path="notification" element={<TenantPortalPage view="notifications" />} />
+
+              {/* Utilities & Support */}
+              <Route path="utilities" element={<TenantPortalPage view="utilities" />} />
+              <Route path="services" element={<TenantPortalPage view="utilities" />} />
+              <Route path="support" element={<TenantPortalPage view="support" />} />
+              <Route path="support/:ticketId" element={<TenantPortalPage view="support" />} />
+
+              {/* Account */}
               <Route path="profile" element={<TenantPortalPage view="profile" />} />
               <Route path="account" element={<TenantPortalPage view="profile" />} />
-              <Route path="settings" element={<TenantPortalPage view="profile" />} />
+              <Route path="settings" element={<TenantPortalPage view="settings" />} />
+
+              {/* Authentication & Onboarding */}
+              <Route path="login" element={<TenantPortalPage view="login" />} />
+              <Route path="invitation/:token" element={<TenantPortalPage view="invitation" />} />
+              <Route path="verify" element={<TenantPortalPage view="verify" />} />
+              <Route path="forgot-password" element={<TenantPortalPage view="forgot-password" />} />
+              <Route path="reset-password" element={<TenantPortalPage view="reset-password" />} />
+              <Route path="welcome" element={<TenantPortalPage view="welcome" />} />
+
+              {/* Legacy Aliases */}
+              <Route path="apartment" element={<TenantPortalPage view="properties" />} />
               <Route path="tenants" element={<TenantPortalPage view="dashboard" />} />
               <Route path="tenants/*" element={<TenantPortalPage view="dashboard" />} />
             </Route>
