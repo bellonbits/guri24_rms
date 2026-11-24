@@ -47,6 +47,7 @@ export interface CommunityPost {
   authorHandle: string;
   authorRole: 'RESIDENT' | 'MANAGEMENT';
   authorLocation: string; // e.g., 'Block A · 2nd Floor'
+  authorAvatar?: string;
   timeAgo: string;
   timestamp: number;
   content: string;
@@ -61,10 +62,49 @@ export interface CommunityPost {
     id: string;
     authorName: string;
     authorLocation: string;
+    authorAvatar?: string;
     timeAgo: string;
     content: string;
   }[];
 }
+
+// Client-side high-quality image compressor (produces lightweight base64 data URLs)
+const compressImageFile = (file: File, maxDim = 1200, quality = 0.85): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(reader.result as string);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl);
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+};
 
 // Strictly detect and purge legacy mock / demo posts or any post with emojis
 const isMockOrEmojiPost = (p: any): boolean => {
@@ -175,8 +215,53 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
   // Composer / Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newPostText, setNewPostText] = useState('');
-  const [newPostMediaUrl, setNewPostMediaUrl] = useState('');
   const [newPostTag, setNewPostTag] = useState('General');
+
+  // User Profile Photo & Post Attachment State
+  const AVATAR_KEY = `unitflow_resident_avatar_${currentOrg?.id || 'live'}`;
+  const profileFileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const postFileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const [residentAvatar, setResidentAvatar] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(AVATAR_KEY) || null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [selectedPostPhoto, setSelectedPostPhoto] = useState<string | null>(null);
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState<boolean>(false);
+
+  const handleProfileAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImageFile(file, 400, 0.9);
+      setResidentAvatar(compressed);
+      try {
+        localStorage.setItem(AVATAR_KEY, compressed);
+      } catch {}
+      notify('Profile photo updated successfully.');
+    } catch {
+      notify('Unable to process photo. Please choose an image file.');
+    }
+  };
+
+  const handlePostPhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsProcessingPhoto(true);
+    try {
+      const compressed = await compressImageFile(file, 1200, 0.85);
+      setSelectedPostPhoto(compressed);
+      notify('Photo attached. Ready to publish.');
+    } catch {
+      notify('Could not load photo. Please try a different image.');
+    } finally {
+      setIsProcessingPhoto(false);
+    }
+  };
 
   // Comment Box Open State: { [postId]: boolean }
   const [openCommentPostId, setOpenCommentPostId] = useState<string | null>(null);
@@ -189,11 +274,11 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
   // Submit New Post (Strictly zero emojis)
   const handleCreatePost = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPostText.trim()) return;
+    if (!newPostText.trim() && !selectedPostPhoto) return;
 
     // Check if user accidentally pasted emojis, strip them cleanly
     const sanitizedText = newPostText.replace(/\p{Extended_Pictographic}/gu, '').trim();
-    if (!sanitizedText) {
+    if (!sanitizedText && !selectedPostPhoto) {
       notify('Please enter post text without emojis.');
       return;
     }
@@ -206,11 +291,12 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
       authorHandle: residentHandle,
       authorRole: isMgmt ? 'MANAGEMENT' : 'RESIDENT',
       authorLocation: residentLocation,
+      authorAvatar: residentAvatar || undefined,
       timeAgo: 'Just now',
       timestamp: Date.now(),
       content: sanitizedText,
       tag: newPostTag,
-      mediaUrl: newPostMediaUrl.trim() || undefined,
+      mediaUrl: selectedPostPhoto || undefined,
       isOfficial: isMgmt,
       likes: 0,
       isLiked: false,
@@ -221,7 +307,8 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
 
     setPosts([post, ...posts]);
     setNewPostText('');
-    setNewPostMediaUrl('');
+    setSelectedPostPhoto(null);
+    if (postFileInputRef.current) postFileInputRef.current.value = '';
     setNewPostTag('General');
     setShowCreateModal(false);
     notify('Post published to verified residence feed.');
@@ -392,9 +479,21 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
               gap: '12px',
             }}
           >
+            {/* Hidden file input for resident profile avatar */}
+            <input
+              type="file"
+              ref={profileFileInputRef}
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleProfileAvatarChange}
+            />
+
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div
+                onClick={() => profileFileInputRef.current?.click()}
+                title="Click to change your profile photo"
                 style={{
+                  position: 'relative',
                   width: '46px',
                   height: '46px',
                   borderRadius: '50%',
@@ -406,9 +505,20 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
                   fontWeight: 800,
                   fontSize: '1rem',
                   flexShrink: 0,
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                  border: '2px solid #e2e8f0',
                 }}
               >
-                {residentName.slice(0, 2).toUpperCase()}
+                {residentAvatar ? (
+                  <img
+                    src={residentAvatar}
+                    alt={residentName}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  residentName.slice(0, 2).toUpperCase()
+                )}
               </div>
 
               <div style={{ minWidth: 0, flex: 1 }}>
@@ -634,9 +744,18 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
                           justifyContent: 'center',
                           fontWeight: 800,
                           fontSize: '0.94rem',
+                          overflow: 'hidden',
                         }}
                       >
-                        {residentName.slice(0, 2).toUpperCase()}
+                        {residentAvatar ? (
+                          <img
+                            src={residentAvatar}
+                            alt={residentName}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          residentName.slice(0, 2).toUpperCase()
+                        )}
                       </div>
                     </div>
 
@@ -824,9 +943,18 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
                               fontWeight: 800,
                               fontSize: '0.82rem',
                               flexShrink: 0,
+                              overflow: 'hidden',
                             }}
                           >
-                            {post.authorName.slice(0, 2).toUpperCase()}
+                            {(post.authorAvatar || (post.authorName === residentName ? residentAvatar : undefined)) ? (
+                              <img
+                                src={post.authorAvatar || (post.authorName === residentName ? residentAvatar! : '')}
+                                alt={post.authorName}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              />
+                            ) : (
+                              post.authorName.slice(0, 2).toUpperCase()
+                            )}
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
@@ -1022,9 +1150,18 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
                                       fontSize: '0.72rem',
                                       fontWeight: 800,
                                       flexShrink: 0,
+                                      overflow: 'hidden',
                                     }}
                                   >
-                                    {c.authorName.slice(0, 2).toUpperCase()}
+                                    {(c.authorAvatar || (c.authorName === residentName ? residentAvatar : undefined)) ? (
+                                      <img
+                                        src={c.authorAvatar || (c.authorName === residentName ? residentAvatar! : '')}
+                                        alt={c.authorName}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                      />
+                                    ) : (
+                                      c.authorName.slice(0, 2).toUpperCase()
+                                    )}
                                   </div>
                                   <div style={{ background: '#ffffff', borderRadius: '12px', padding: '8px 12px', flex: 1, border: '1px solid #e2e8f0' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1284,8 +1421,36 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', padding: '16px 0' }}>
               <div style={{ background: '#f8fafc', borderRadius: '24px', border: '1px solid #e2e8f0', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#0f172a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800 }}>
-                    {residentName.slice(0, 2).toUpperCase()}
+                  <div
+                    onClick={() => profileFileInputRef.current?.click()}
+                    title="Click to change profile photo"
+                    style={{
+                      position: 'relative',
+                      width: '56px',
+                      height: '56px',
+                      borderRadius: '50%',
+                      background: '#0f172a',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.2rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      border: '2px solid #e2e8f0',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {residentAvatar ? (
+                      <img
+                        src={residentAvatar}
+                        alt={residentName}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      residentName.slice(0, 2).toUpperCase()
+                    )}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1293,8 +1458,30 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
                       <SolidCheckCircleIcon size={18} color="#2563eb" />
                     </div>
                     <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{residentHandle}</div>
-                    <div style={{ fontSize: '0.76rem', color: '#16a34a', fontWeight: 700, marginTop: '2px' }}>
-                      {residentLocation} &bull; Verified Member
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                      <button
+                        type="button"
+                        onClick={() => profileFileInputRef.current?.click()}
+                        style={{
+                          background: '#eff6ff',
+                          color: '#2563eb',
+                          border: '1px solid #bfdbfe',
+                          borderRadius: '12px',
+                          padding: '3px 10px',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <Camera size={13} />
+                        <span>{residentAvatar ? 'Change Photo' : 'Upload Photo'}</span>
+                      </button>
+                      <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 700 }}>
+                        {residentLocation} &bull; Verified
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1701,8 +1888,16 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#0f172a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.8rem' }}>
-                  {residentName.slice(0, 2).toUpperCase()}
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#0f172a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.8rem', overflow: 'hidden' }}>
+                  {residentAvatar ? (
+                    <img
+                      src={residentAvatar}
+                      alt={residentName}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    residentName.slice(0, 2).toUpperCase()
+                  )}
                 </div>
                 <div>
                   <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>{residentName}</div>
@@ -1739,52 +1934,96 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
                 }}
               />
 
-              {/* Photo Attachment URL */}
+              {/* Photo Attachment: Upload from Device (NOT URLs) */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                  Attach Photo (Optional Image URL)
-                </label>
                 <input
-                  type="url"
-                  placeholder="e.g. /hero-luxury-architecture.jpg or image web URL"
-                  value={newPostMediaUrl}
-                  onChange={(e) => setNewPostMediaUrl(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '10px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.82rem',
-                    outline: 'none',
-                  }}
+                  type="file"
+                  ref={postFileInputRef}
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handlePostPhotoSelect}
                 />
-              </div>
 
-              {/* Quick Presets */}
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '0.72rem', color: '#64748b', alignSelf: 'center' }}>Presets:</span>
-                {[
-                  { label: 'Garden & Pool', url: '/hero-luxury-architecture.jpg' },
-                  { label: 'Building Exterior', url: '/hero-apex-architecture.jpg' },
-                ].map((preset) => (
-                  <button
-                    key={preset.label}
-                    type="button"
-                    onClick={() => setNewPostMediaUrl(preset.url)}
+                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  Attach Photo (Upload from Device)
+                </label>
+
+                {!selectedPostPhoto ? (
+                  <div
+                    onClick={() => postFileInputRef.current?.click()}
                     style={{
-                      background: newPostMediaUrl === preset.url ? '#eff6ff' : '#f8fafc',
-                      color: newPostMediaUrl === preset.url ? '#2563eb' : '#475569',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '12px',
-                      padding: '3px 8px',
-                      fontSize: '0.72rem',
-                      fontWeight: 600,
+                      border: '2px dashed #cbd5e1',
+                      borderRadius: '16px',
+                      padding: '16px',
+                      textAlign: 'center',
                       cursor: 'pointer',
+                      background: '#f8fafc',
+                      transition: 'all 0.15s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '6px',
                     }}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#2563eb')}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#cbd5e1')}
                   >
-                    {preset.label}
-                  </button>
-                ))}
+                    <div
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '50%',
+                        background: '#eff6ff',
+                        color: '#2563eb',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Camera size={18} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }}>
+                        {isProcessingPhoto ? 'Processing photo...' : 'Upload Photo from Device'}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>
+                        Click to select an image from your device (PNG, JPG, WebP)
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                    <img
+                      src={selectedPostPhoto}
+                      alt="Upload preview"
+                      style={{ width: '100%', maxHeight: '220px', objectFit: 'cover', display: 'block' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedPostPhoto(null);
+                        if (postFileInputRef.current) postFileInputRef.current.value = '';
+                      }}
+                      style={{
+                        position: 'absolute',
+                        top: '8px',
+                        right: '8px',
+                        width: '26px',
+                        height: '26px',
+                        borderRadius: '50%',
+                        background: 'rgba(15, 23, 42, 0.75)',
+                        color: '#ffffff',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                      }}
+                      title="Remove photo"
+                    >
+                      <X size={15} />
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Category Tag */}

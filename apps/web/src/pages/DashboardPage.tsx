@@ -236,6 +236,15 @@ export const DashboardPage: React.FC = () => {
 
   const hasFinancialActivity = totalRevenueKes > 0 || totalMaintenanceKes > 0;
 
+  // Real resident avatar uploaded by user
+  const residentAvatar = useMemo(() => {
+    try {
+      return localStorage.getItem(`unitflow_resident_avatar_${currentOrg?.id || 'live'}`) || null;
+    } catch {
+      return null;
+    }
+  }, [currentOrg?.id]);
+
   // Quick Stats Spline Chart
   const splineData = [
     { year: 'Q1', x: 20, yIncome: 130, yExpense: 120, income: totalRevenueKes * 0.2, expense: totalMaintenanceKes * 0.2 },
@@ -790,14 +799,23 @@ export const DashboardPage: React.FC = () => {
                   fontSize: '0.84rem',
                   fontWeight: 700,
                   flexShrink: 0,
+                  overflow: 'hidden',
                 }}
               >
-                {(currentUserSession?.name || currentOrg?.name || 'Admin')
-                  .split(' ')
-                  .map((n) => n[0])
-                  .join('')
-                  .toUpperCase()
-                  .slice(0, 2)}
+                {residentAvatar ? (
+                  <img
+                    src={residentAvatar}
+                    alt="Profile"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  (currentUserSession?.name || currentOrg?.name || 'Admin')
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2)
+                )}
               </div>
               <div>
                 <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
