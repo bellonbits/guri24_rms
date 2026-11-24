@@ -9,13 +9,29 @@ import * as SolidIcons from '@heroicons/react/24/solid';
  * - className & standard SVG props
  */
 function createHeroicon(IconComponent: React.ComponentType<any>) {
-  const Wrapped = React.forwardRef<SVGSVGElement, any>(({ size, color, style, className, ...props }, ref) => {
+  const Wrapped = React.forwardRef<SVGSVGElement, any>(({ size = 20, color, style, className, ...props }, ref) => {
+    const s = typeof size === 'number' ? size : parseInt(String(size), 10) || 20;
     const computedStyle: React.CSSProperties = {
-      ...(size ? { width: `${size}px`, height: `${size}px`, flexShrink: 0 } : {}),
+      width: `${s}px`,
+      height: `${s}px`,
+      minWidth: `${s}px`,
+      minHeight: `${s}px`,
+      flexShrink: 0,
+      display: 'inline-block',
+      verticalAlign: 'middle',
       ...(color ? { color } : {}),
       ...style,
     };
-    return <IconComponent ref={ref} style={computedStyle} className={className} {...props} />;
+    return (
+      <IconComponent
+        ref={ref}
+        width={s}
+        height={s}
+        style={computedStyle}
+        className={className}
+        {...props}
+      />
+    );
   });
   Wrapped.displayName = IconComponent.displayName || 'Heroicon';
   return Wrapped;
@@ -25,6 +41,7 @@ function createHeroicon(IconComponent: React.ComponentType<any>) {
 // Standard Heroicons (heroicons.com)
 // ---------------------------------------------------------------------------
 export const Squares2X2Icon = createHeroicon(OutlineIcons.Squares2X2Icon);
+export const SolidCheckCircleIcon = createHeroicon(SolidIcons.CheckCircleIcon);
 export const BuildingOffice2Icon = createHeroicon(OutlineIcons.BuildingOffice2Icon);
 export const BuildingOfficeIcon = createHeroicon(OutlineIcons.BuildingOfficeIcon);
 export const CreditCardIcon = createHeroicon(OutlineIcons.CreditCardIcon);
@@ -106,10 +123,12 @@ export const FlagIcon = createHeroicon(OutlineIcons.FlagIcon);
 export const UserGroupIcon = createHeroicon(OutlineIcons.UserGroupIcon);
 export const TagIcon = createHeroicon(OutlineIcons.TagIcon);
 export const ShoppingBagIcon = createHeroicon(OutlineIcons.ShoppingBagIcon);
+export const TrashIcon = createHeroicon(OutlineIcons.TrashIcon);
 
 // ---------------------------------------------------------------------------
 // Named aliases mapping standard semantic names to official Heroicons
 // ---------------------------------------------------------------------------
+export const Trash = TrashIcon;
 export const Heart = HeartIcon;
 export const Bookmark = BookmarkIcon;
 export const Repeat = ArrowPathRoundedSquareIcon;

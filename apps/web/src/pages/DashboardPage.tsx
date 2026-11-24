@@ -179,7 +179,7 @@ export const DashboardPage: React.FC = () => {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', minHeight: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px', minHeight: '100%', background: '#ffffff' }}>
       {/* Toast Notification */}
       {toastMessage && (
         <div
@@ -461,7 +461,7 @@ export const DashboardPage: React.FC = () => {
                       color: '#0f172a',
                     }}
                   >
-                    <BanknotesIcon size={14} />
+                    <BanknotesIcon size={16} />
                   </div>
                   <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155' }}>
                     Total Revenue
@@ -515,7 +515,7 @@ export const DashboardPage: React.FC = () => {
                       color: '#0f172a',
                     }}
                   >
-                    <Wrench size={14} />
+                    <Wrench size={16} />
                   </div>
                   <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155' }}>
                     Maintenance Cost
@@ -1105,7 +1105,7 @@ export const DashboardPage: React.FC = () => {
       )}
 
       {/* =========================================================================
-          VIEW 2: SMART RESIDENCE — PRIVATE RESIDENT COMMUNITY (X / TWITTER STYLE)
+          VIEW 2: SMART RESIDENCE — PRIVATE RESIDENTIAL COMMUNITY (X STYLE)
       ========================================================================== */}
       {activeTab === 'smart-home' && (
         <SmartResidenceCommunity
@@ -1242,8 +1242,6 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
       )}
-
-
 
       {/* Responsive Grid Styles */}
       <style>{`

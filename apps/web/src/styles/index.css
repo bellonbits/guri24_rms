@@ -69,12 +69,12 @@
     --motion-duration-hover: 300ms;
 
     /* Flat Backgrounds - Zero gradients in backgrounds per SKILL.md B4 */
-    --bg-outer: #f2f4f7;
-    --bg-shell: #f8f9fb;
-    --bg-sidebar: #f7f8fa;
+    --bg-outer: #ffffff;
+    --bg-shell: #ffffff;
+    --bg-sidebar: #ffffff;
     --bg-surface: #ffffff;
-    --bg-subtle: #f3f4f6;
-    --bg-hover: #eef0f4;
+    --bg-subtle: #f8fafc;
+    --bg-hover: #f1f5f9;
 
     --text-primary: #111827;
     --text-secondary: #4b5563;
@@ -2016,9 +2016,10 @@
     background: #2563eb;
   }
 
-  /* Extra workspace bottom padding to guarantee clearance above bottom nav bar */
+  /* Workspace background clean white */
   .workspace {
-    padding-bottom: calc(76px + env(safe-area-inset-bottom, 16px)) !important;
+    background: #ffffff;
+    padding-bottom: 32px;
   }
 
   /* Responsive Topbar layout on mobile */

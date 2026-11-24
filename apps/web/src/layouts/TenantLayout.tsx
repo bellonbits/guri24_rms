@@ -306,7 +306,7 @@ export const TenantLayout: React.FC = () => {
       style={{
         minHeight: '100vh',
         width: '100%',
-        background: '#f8fafc',
+        background: '#ffffff',
         color: '#0f172a',
         fontFamily:
           '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -774,7 +774,7 @@ export const TenantLayout: React.FC = () => {
               type="button"
               onClick={handleToggleNavigation}
               style={{
-                background: '#f8fafc',
+                background: '#ffffff',
                 border: '1px solid #e2e8f0',
                 borderRadius: '10px',
                 width: '38px',
@@ -831,7 +831,7 @@ export const TenantLayout: React.FC = () => {
                 padding: '9px 14px 9px 38px',
                 borderRadius: '20px',
                 border: '1px solid #e2e8f0',
-                background: '#f8fafc',
+                background: '#ffffff',
                 fontSize: '0.82rem',
                 outline: 'none',
                 color: '#0f172a',
@@ -861,7 +861,7 @@ export const TenantLayout: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  background: '#f8fafc',
+                  background: '#ffffff',
                   color: '#0f172a',
                   border: '1px solid #cbd5e1',
                   padding: '5px 12px',
