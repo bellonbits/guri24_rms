@@ -26,7 +26,9 @@ import {
   Check,
   X,
   Sparkles,
-} from 'lucide-react';
+  BuildingOffice2Icon,
+  ChatBubbleLeftRightIcon,
+} from '../components/heroicons';
 import { useAuth } from '../context/AuthContext';
 import { useRms } from '../context/RmsContext';
 
@@ -81,91 +83,30 @@ export const DashboardPage: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Real Units List matching Image 1
-  const unitsData = [
-    {
-      id: 'unit-1',
-      name: 'Riche Luxury Mansion',
-      status: 'VACANT',
-      address: 'St. Constitution Drive 21, West',
-      size: '6x8 m²',
-      bedrooms: 4,
-      bathrooms: 2,
-      image: '/hero-luxury-architecture.jpg',
-      priceUsd: 4800,
-      priceKes: 624000,
-      type: 'Luxury Villa',
-    },
-    {
-      id: 'unit-2',
-      name: 'Vista Horizon Residences',
-      status: 'RENTED',
-      address: 'Independence Boulevard St. 15',
-      size: '12x8 m²',
-      bedrooms: 4,
-      bathrooms: 5,
-      image: '/modern-organic-balconies.jpg',
-      priceUsd: 3200,
-      priceKes: 416000,
-      type: 'Penthouse Apartment',
-    },
-    {
-      id: 'unit-3',
-      name: 'Coastal Breeze Homes',
-      status: 'RENTED',
-      address: 'Redwood Road St. 15 Broadway',
-      size: '6x6 m²',
-      bedrooms: 2,
-      bathrooms: 2,
-      image: '/featured_nairobi_apartment.jpg',
-      priceUsd: 1950,
-      priceKes: 253500,
-      type: 'Modern Brick Townhouse',
-    },
-    {
-      id: 'unit-4',
-      name: 'Urban Obsidian Plaza',
-      status: 'RENTED',
-      address: 'Ruiru Gateway Avenue 10',
-      size: '10x8 m²',
-      bedrooms: 3,
-      bathrooms: 3,
-      image: '/hero-apex-architecture.jpg',
-      priceUsd: 2600,
-      priceKes: 338000,
-      type: 'Commercial & Loft',
-    },
-    {
-      id: 'unit-5',
-      name: 'Azure Horizon Villa',
-      status: 'VACANT',
-      address: 'Coast Marina Boulevard 4',
-      size: '15x12 m²',
-      bedrooms: 5,
-      bathrooms: 5,
-      image: '/luxury-pool-villa.jpg',
-      priceUsd: 5900,
-      priceKes: 767000,
-      type: 'Infinity Pool Estate',
-    },
-    {
-      id: 'unit-6',
-      name: 'Minimalist Sky Residences',
-      status: 'RENTED',
-      address: 'Westlands Ring Road 8',
-      size: '8x6 m²',
-      bedrooms: 2,
-      bathrooms: 2,
-      image: '/luxury-minimalist-living.jpg',
-      priceUsd: 2100,
-      priceKes: 273000,
-      type: 'Modern Studio Suite',
-    },
-  ];
+  // Live Units derived strictly from authoritative database records
+  const liveUnits = useMemo(() => {
+    return (state.units || []).map((u) => {
+      const prop = (state.properties || []).find((p) => p.id === u.property_id);
+      return {
+        id: u.id,
+        name: u.unit_number ? `${prop?.name || 'Property'} — Unit ${u.unit_number}` : (prop?.name || 'Unit'),
+        unitNumber: u.unit_number,
+        status: (u.status === 'OCCUPIED' || u.status === 'RENTED') ? 'RENTED' : 'VACANT',
+        address: prop?.address || prop?.location || 'Assigned Residence',
+        size: u.square_meters ? `${u.square_meters} m²` : (u.unit_type || 'Standard Suite'),
+        bedrooms: u.bedrooms || (u.unit_type?.toLowerCase().includes('bed') ? parseInt(u.unit_type) || 1 : 1),
+        bathrooms: u.bathrooms || 1,
+        image: prop?.cover_image_url || '/hero-luxury-architecture.jpg',
+        priceUsd: Math.round((Number(u.rent_amount) || 0) / 130),
+        priceKes: Number(u.rent_amount) || 0,
+        type: u.unit_type || 'Residential Unit',
+      };
+    });
+  }, [state.units, state.properties]);
 
   // Filtered Units
   const filteredUnits = useMemo(() => {
-    return unitsData.filter((u) => {
+    return liveUnits.filter((u) => {
       const matchSearch =
         u.name.toLowerCase().includes(unitSearch.toLowerCase()) ||
         u.address.toLowerCase().includes(unitSearch.toLowerCase());
@@ -173,89 +114,60 @@ export const DashboardPage: React.FC = () => {
         unitStatusFilter === 'ALL' || u.status === unitStatusFilter;
       return matchSearch && matchStatus;
     });
-  }, [unitsData, unitSearch, unitStatusFilter]);
+  }, [liveUnits, unitSearch, unitStatusFilter]);
 
-  // Messages matching Image 1
-  const messagesData = {
-    agents: [
-      {
-        id: 1,
-        name: 'Sofya Citra',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
-        text: 'Hey Emir!, aku punya kabar bagus nih...',
-        time: '12.30',
-        unread: true,
-      },
-      {
-        id: 2,
-        name: 'Haliza Caca',
-        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&h=120&q=80',
-        text: 'Iyaa, nanti aku yang proses buat tand...',
-        time: '11.40',
-        unread: false,
-      },
-      {
-        id: 3,
-        name: 'Kim Do Gi',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80',
-        text: 'Sorry sir, how about the price we gav...',
-        time: '11.03',
-        unread: false,
-      },
-      {
-        id: 4,
-        name: 'Azizah Salma',
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&h=120&q=80',
-        text: 'Emir, bisa tolong sediain waktu buat...',
-        time: '09.08',
-        unread: false,
-      },
-      {
-        id: 5,
-        name: 'Nathan Drake',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80',
-        text: 'Haha okay, have a nice day! sans aja',
-        time: '08.41',
-        unread: false,
-      },
-    ],
-    customers: [
-      {
-        id: 6,
-        name: 'Amina Wanjiku',
+  // Authoritative Financial & Operational metrics
+  const totalRevenueKes = useMemo(() => {
+    return (state.payments || []).reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
+  }, [state.payments]);
+  const totalRevenueUsd = Math.round(totalRevenueKes / 130);
+
+  const totalMaintenanceKes = useMemo(() => {
+    return (state.maintenanceRequests || []).reduce((acc, m) => acc + (Number(m.actual_cost || m.estimated_cost) || 0), 0);
+  }, [state.maintenanceRequests]);
+  const totalMaintenanceUsd = Math.round(totalMaintenanceKes / 130);
+
+  // Maintenance counts & dynamic bar percentages
+  const maintenanceCounts = useMemo(() => {
+    const inProgress = (state.maintenanceRequests || []).filter((r) => ['IN_PROGRESS', 'SCHEDULED'].includes(r.status)).length;
+    const awaiting = (state.maintenanceRequests || []).filter((r) => ['SUBMITTED', 'TRIAGED', 'APPROVED', 'OPEN'].includes(r.status)).length;
+    const onRequest = (state.maintenanceRequests || []).filter((r) => ['PENDING', 'ESTIMATED'].includes(r.status)).length;
+    const total = inProgress + awaiting + onRequest;
+    return {
+      inProgress,
+      awaiting,
+      onRequest,
+      total,
+      inProgressPct: total > 0 ? Math.round((inProgress / total) * 100) : 0,
+      awaitingPct: total > 0 ? Math.round((awaiting / total) * 100) : 0,
+      onRequestPct: total > 0 ? Math.round((onRequest / total) * 100) : 0,
+    };
+  }, [state.maintenanceRequests]);
+
+  // Messages derived from real communications/maintenance alerts
+  const liveMessages = useMemo(() => {
+    const list: any[] = [];
+    (state.maintenanceRequests || []).slice(0, 5).forEach((m, idx) => {
+      list.push({
+        id: `maint-${m.id || idx}`,
+        category: 'customers',
+        name: m.tenant_name || 'Resident',
         avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&h=120&q=80',
-        text: 'Payment ref QKH782910X verified for Unit A-204.',
-        time: 'Yesterday',
-        unread: true,
-      },
-      {
-        id: 7,
-        name: 'Brian Mwangi',
-        avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=120&h=120&q=80',
-        text: 'Requested parking tag replacement for P-102.',
-        time: '2 days ago',
-        unread: false,
-      },
-      {
-        id: 8,
-        name: 'Grace Muthoni',
-        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=120&h=120&q=80',
-        text: 'Lease renewal countersigned successfully.',
-        time: '3 days ago',
-        unread: false,
-      },
-    ],
-  };
+        text: `Maintenance Ticket #${(m.id || '').slice(0, 8)}: ${m.title || m.description || 'Request submitted'}`,
+        time: m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent',
+        unread: m.status === 'SUBMITTED' || m.status === 'OPEN',
+      });
+    });
+    return list;
+  }, [state.maintenanceRequests]);
 
-  const activeMessages = messagesData[messageCategory];
+  const activeMessages = liveMessages;
 
-  // Quick Stats Spline Chart Years
+  // Quick Stats Spline Chart
   const splineData = [
-    { year: '2018', x: 20, yIncome: 140, yExpense: 110, income: 180500, expense: 95000 },
-    { year: '2019', x: 100, yIncome: 80, yExpense: 120, income: 295000, expense: 145000 },
-    { year: '2020', x: 190, yIncome: 50, yExpense: 90, income: 407778, expense: 215400 },
-    { year: '2021', x: 280, yIncome: 110, yExpense: 85, income: 240000, expense: 190000 },
-    { year: '2022', x: 370, yIncome: 30, yExpense: 70, income: 512000, expense: 280000 },
+    { year: '2024', x: 20, yIncome: 140, yExpense: 110, income: totalRevenueUsd * 0.4, expense: totalMaintenanceUsd * 0.3 },
+    { year: '2025', x: 190, yIncome: 90, yExpense: 95, income: totalRevenueUsd * 0.7, expense: totalMaintenanceUsd * 0.6 },
+    { year: '2026', x: 370, yIncome: 30, yExpense: 70, income: totalRevenueUsd, expense: totalMaintenanceUsd },
   ];
 
   return (
@@ -458,17 +370,33 @@ export const DashboardPage: React.FC = () => {
 
           {/* User profile avatar and label */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80"
-              alt="User"
-              style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover' }}
-            />
+            <div
+              style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                background: '#0f172a',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.84rem',
+                fontWeight: 700,
+              }}
+            >
+              {(currentUserSession?.name || currentOrg?.name || 'Admin')
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .toUpperCase()
+                .slice(0, 2)}
+            </div>
             <div>
               <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0f172a' }}>
-                {currentUserSession?.name || 'Emir Abiyyu'}
+                {currentUserSession?.name || currentOrg?.name || 'Administrator'}
               </div>
               <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                Admin
+                {currentUserSession?.role || 'Admin'}
               </div>
             </div>
           </div>
@@ -522,7 +450,7 @@ export const DashboardPage: React.FC = () => {
                   </span>
                 </div>
                 <button
-                  onClick={() => showToast('Total Revenue details: $926,293 / KES 120,418,090')}
+                  onClick={() => showToast(`Total Revenue details: ${fmt(totalRevenueUsd, totalRevenueKes)}`)}
                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
                 >
                   <MoreHorizontal size={16} />
@@ -531,13 +459,15 @@ export const DashboardPage: React.FC = () => {
 
               <div style={{ margin: '18px 0 10px 0' }}>
                 <div style={{ fontSize: '2.1rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-                  {fmt(926293)}
+                  {fmt(totalRevenueUsd, totalRevenueKes)}
                 </div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem' }}>
-                <span style={{ fontWeight: 800, color: '#0f172a' }}>+28%</span>
-                <span style={{ color: '#64748b' }}>From the last week</span>
+                <span style={{ fontWeight: 800, color: '#0f172a' }}>
+                  {(state.payments || []).length > 0 ? `${(state.payments || []).length} Payments` : 'Live Ledger'}
+                </span>
+                <span style={{ color: '#64748b' }}>Authoritative records</span>
               </div>
             </div>
 
@@ -574,7 +504,7 @@ export const DashboardPage: React.FC = () => {
                   </span>
                 </div>
                 <button
-                  onClick={() => showToast('Maintenance Cost details: $480,097')}
+                  onClick={() => showToast(`Maintenance Cost details: ${fmt(totalMaintenanceUsd, totalMaintenanceKes)}`)}
                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
                 >
                   <MoreHorizontal size={16} />
@@ -583,13 +513,15 @@ export const DashboardPage: React.FC = () => {
 
               <div style={{ margin: '18px 0 10px 0' }}>
                 <div style={{ fontSize: '2.1rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-                  {fmt(480097)}
+                  {fmt(totalMaintenanceUsd, totalMaintenanceKes)}
                 </div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem' }}>
-                <span style={{ fontWeight: 800, color: '#0f172a' }}>+15%</span>
-                <span style={{ color: '#64748b' }}>From the last week</span>
+                <span style={{ fontWeight: 800, color: '#0f172a' }}>
+                  {maintenanceCounts.total > 0 ? `${maintenanceCounts.total} Work Orders` : '0 Active Orders'}
+                </span>
+                <span style={{ color: '#64748b' }}>From maintenance log</span>
               </div>
             </div>
 
@@ -755,30 +687,30 @@ export const DashboardPage: React.FC = () => {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem', marginBottom: '4px' }}>
                     <span style={{ color: '#334155', fontWeight: 600 }}>On repairement progress</span>
-                    <span style={{ fontWeight: 800, color: '#0f172a' }}>23</span>
+                    <span style={{ fontWeight: 800, color: '#0f172a' }}>{maintenanceCounts.inProgress}</span>
                   </div>
                   <div style={{ height: '7px', borderRadius: '4px', background: '#f1f5f9', overflow: 'hidden' }}>
-                    <div style={{ width: '85%', height: '100%', background: '#0f172a', borderRadius: '4px' }} />
+                    <div style={{ width: `${maintenanceCounts.inProgressPct}%`, height: '100%', background: '#0f172a', borderRadius: '4px', transition: 'width 0.3s ease' }} />
                   </div>
                 </div>
 
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem', marginBottom: '4px' }}>
                     <span style={{ color: '#334155', fontWeight: 600 }}>Awaiting for repairment</span>
-                    <span style={{ fontWeight: 800, color: '#0f172a' }}>12</span>
+                    <span style={{ fontWeight: 800, color: '#0f172a' }}>{maintenanceCounts.awaiting}</span>
                   </div>
                   <div style={{ height: '7px', borderRadius: '4px', background: '#f1f5f9', overflow: 'hidden' }}>
-                    <div style={{ width: '55%', height: '100%', background: '#0f172a', borderRadius: '4px' }} />
+                    <div style={{ width: `${maintenanceCounts.awaitingPct}%`, height: '100%', background: '#0f172a', borderRadius: '4px', transition: 'width 0.3s ease' }} />
                   </div>
                 </div>
 
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem', marginBottom: '4px' }}>
                     <span style={{ color: '#334155', fontWeight: 600 }}>On request</span>
-                    <span style={{ fontWeight: 800, color: '#0f172a' }}>8</span>
+                    <span style={{ fontWeight: 800, color: '#0f172a' }}>{maintenanceCounts.onRequest}</span>
                   </div>
                   <div style={{ height: '7px', borderRadius: '4px', background: '#f1f5f9', overflow: 'hidden' }}>
-                    <div style={{ width: '32%', height: '100%', background: '#0f172a', borderRadius: '4px' }} />
+                    <div style={{ width: `${maintenanceCounts.onRequestPct}%`, height: '100%', background: '#0f172a', borderRadius: '4px', transition: 'width 0.3s ease' }} />
                   </div>
                 </div>
               </div>
@@ -828,7 +760,7 @@ export const DashboardPage: React.FC = () => {
                     My Units
                   </h2>
                   <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
-                    You have 287 active units
+                    {liveUnits.length > 0 ? `You have ${liveUnits.length} active units` : 'No units registered yet'}
                   </div>
                 </div>
 
@@ -891,84 +823,119 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               {/* Units Grid (3 Columns) */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-                  gap: '18px',
-                }}
-              >
-                {filteredUnits.map((u) => (
-                  <div
-                    key={u.id}
-                    onClick={() => setSelectedUnit(u)}
+              {filteredUnits.length === 0 ? (
+                <div
+                  style={{
+                    padding: '48px 24px',
+                    textAlign: 'center',
+                    background: '#f8fafc',
+                    borderRadius: '16px',
+                    border: '1px dashed #cbd5e1',
+                  }}
+                >
+                  <BuildingOffice2Icon size={36} color="#94a3b8" style={{ margin: '0 auto 12px auto' }} />
+                  <div style={{ fontSize: '0.96rem', fontWeight: 800, color: '#0f172a' }}>
+                    No units found
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px', maxWidth: '360px', margin: '4px auto 16px auto' }}>
+                    {unitSearch ? 'No units match your search query.' : 'Register properties and units in Properties & Units to manage them here.'}
+                  </div>
+                  <button
+                    onClick={() => navigate('/app/properties-units')}
                     style={{
-                      background: '#ffffff',
-                      borderRadius: '18px',
-                      overflow: 'hidden',
+                      background: '#0f172a',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '20px',
+                      padding: '8px 20px',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
                       cursor: 'pointer',
-                      border: '1px solid #f1f5f9',
-                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                     }}
                   >
-                    {/* Architectural Image */}
-                    <div style={{ position: 'relative', width: '100%', height: '144px', background: '#0f172a', overflow: 'hidden' }}>
-                      <img
-                        src={u.image}
-                        alt={u.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    </div>
+                    Manage Properties & Units
+                  </button>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+                    gap: '18px',
+                  }}
+                >
+                  {filteredUnits.map((u) => (
+                    <div
+                      key={u.id}
+                      onClick={() => setSelectedUnit(u)}
+                      style={{
+                        background: '#ffffff',
+                        borderRadius: '18px',
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        border: '1px solid #f1f5f9',
+                        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                      }}
+                    >
+                      {/* Architectural Image */}
+                      <div style={{ position: 'relative', width: '100%', height: '144px', background: '#0f172a', overflow: 'hidden' }}>
+                        <img
+                          src={u.image}
+                          alt={u.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </div>
 
-                    {/* Unit metadata */}
-                    <div style={{ padding: '14px 14px 16px 14px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                        <div style={{ fontSize: '0.94rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.25 }}>
-                          {u.name}
+                      {/* Unit metadata */}
+                      <div style={{ padding: '14px 14px 16px 14px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                          <div style={{ fontSize: '0.94rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.25 }}>
+                            {u.name}
+                          </div>
+                          {u.status === 'RENTED' ? (
+                            <span
+                              style={{
+                                background: '#0f172a',
+                                color: '#ffffff',
+                                fontSize: '0.68rem',
+                                fontWeight: 700,
+                                borderRadius: '20px',
+                                padding: '2px 8px',
+                                flexShrink: 0,
+                              }}
+                            >
+                              ● Rented
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                background: '#ffffff',
+                                color: '#64748b',
+                                border: '1px solid #e2e8f0',
+                                fontSize: '0.68rem',
+                                fontWeight: 700,
+                                borderRadius: '20px',
+                                padding: '2px 8px',
+                                flexShrink: 0,
+                              }}
+                            >
+                              ○ Vacant
+                            </span>
+                          )}
                         </div>
-                        {u.status === 'RENTED' ? (
-                          <span
-                            style={{
-                              background: '#0f172a',
-                              color: '#ffffff',
-                              fontSize: '0.68rem',
-                              fontWeight: 700,
-                              borderRadius: '20px',
-                              padding: '2px 8px',
-                              flexShrink: 0,
-                            }}
-                          >
-                            ● Rented
-                          </span>
-                        ) : (
-                          <span
-                            style={{
-                              background: '#ffffff',
-                              color: '#64748b',
-                              border: '1px solid #e2e8f0',
-                              fontSize: '0.68rem',
-                              fontWeight: 700,
-                              borderRadius: '20px',
-                              padding: '2px 8px',
-                              flexShrink: 0,
-                            }}
-                          >
-                            ○ Vacant
-                          </span>
-                        )}
-                      </div>
 
-                      <div style={{ fontSize: '0.74rem', color: '#94a3b8', margin: '4px 0 8px 0' }}>
-                        {u.address}
-                      </div>
+                        <div style={{ fontSize: '0.74rem', color: '#94a3b8', margin: '4px 0 8px 0' }}>
+                          {u.address}
+                        </div>
 
-                      <div style={{ fontSize: '0.74rem', color: '#475569', fontWeight: 600 }}>
-                        {u.size} &bull; {u.bedrooms} Bedrooms &bull; {u.bathrooms} Bathrooms
+                        <div style={{ fontSize: '0.74rem', color: '#475569', fontWeight: 600 }}>
+                          {u.size} &bull; {u.bedrooms} Bedrooms &bull; {u.bathrooms} Bathrooms
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Right: New Messages matching Image 1 */}
@@ -1002,7 +969,7 @@ export const DashboardPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Agents 5
+                  Staff Desk
                 </button>
                 <button
                   onClick={() => setMessageCategory('customers')}
@@ -1017,55 +984,76 @@ export const DashboardPage: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  Customers 3
+                  Tenants {activeMessages.length > 0 ? `(${activeMessages.length})` : ''}
                 </button>
               </div>
 
               {/* Message List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 }}>
-                {activeMessages.map((m) => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', flex: 1, minHeight: '160px', justifyContent: activeMessages.length === 0 ? 'center' : 'flex-start' }}>
+                {activeMessages.length === 0 ? (
                   <div
-                    key={m.id}
-                    onClick={() => showToast(`Opening chat with ${m.name}...`)}
                     style={{
-                      display: 'flex',
-                      gap: '12px',
-                      alignItems: 'center',
-                      cursor: 'pointer',
-                      padding: '6px 4px',
-                      borderRadius: '10px',
-                      transition: 'background 0.15s ease',
+                      padding: '36px 16px',
+                      textAlign: 'center',
+                      background: '#f8fafc',
+                      borderRadius: '16px',
+                      border: '1px dashed #e2e8f0',
+                      margin: 'auto 0',
                     }}
                   >
-                    <img
-                      src={m.avatar}
-                      alt={m.name}
-                      style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
-                    />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                        <span style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f172a' }}>
-                          {m.name}
-                        </span>
-                        <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                          {m.time}
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '0.76rem',
-                          color: '#64748b',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          marginTop: '2px',
-                        }}
-                      >
-                        {m.text}
-                      </div>
+                    <ChatBubbleLeftRightIcon size={28} color="#94a3b8" style={{ margin: '0 auto 8px auto' }} />
+                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>
+                      No new messages
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                      Tenant inquiries and maintenance notifications will appear here.
                     </div>
                   </div>
-                ))}
+                ) : (
+                  activeMessages.map((m) => (
+                    <div
+                      key={m.id}
+                      onClick={() => showToast(`Opening chat with ${m.name}...`)}
+                      style={{
+                        display: 'flex',
+                        gap: '12px',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        padding: '6px 4px',
+                        borderRadius: '10px',
+                        transition: 'background 0.15s ease',
+                      }}
+                    >
+                      <img
+                        src={m.avatar}
+                        alt={m.name}
+                        style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                      />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                          <span style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f172a' }}>
+                            {m.name}
+                          </span>
+                          <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                            {m.time}
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '0.76rem',
+                            color: '#64748b',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            marginTop: '2px',
+                          }}
+                        >
+                          {m.text}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
 
               <div style={{ borderTop: '1px solid #f8fafc', paddingTop: '16px', textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8' }}>

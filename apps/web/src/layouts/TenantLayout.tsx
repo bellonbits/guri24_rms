@@ -41,8 +41,25 @@ export const TenantLayout: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 1024 : false));
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [showTenancyDropdown, setShowTenancyDropdown] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleToggleNavigation = () => {
+    if (isMobile) {
+      setIsMobileMenuOpen((prev) => !prev);
+    } else {
+      setIsSidebarCollapsed((prev) => !prev);
+    }
+  };
 
   // Live Tenancies from Backend
   const [tenancies, setTenancies] = useState<any[]>([]);
@@ -303,7 +320,7 @@ export const TenantLayout: React.FC = () => {
       {/* Modern High-End Sidebar (Image 1, 2, 6, 7 Resident Portal Style) */}
       <aside
         style={{
-          width: isSidebarCollapsed ? '76px' : '260px',
+          width: isMobile ? '260px' : isSidebarCollapsed ? '76px' : '260px',
           background: '#101322', // Sleek resident portal dark navy
           color: '#ffffff',
           display: 'flex',
@@ -314,21 +331,23 @@ export const TenantLayout: React.FC = () => {
           bottom: 0,
           left: 0,
           zIndex: 50,
+          transform: isMobile ? (isMobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)') : 'none',
           transition: 'width 0.2s ease, transform 0.2s ease',
           borderRight: '1px solid rgba(255, 255, 255, 0.06)',
+          boxShadow: isMobile && isMobileMenuOpen ? '0 10px 40px rgba(0,0,0,0.5)' : 'none',
         }}
-        className={`md:flex ${isMobileMenuOpen ? 'flex' : 'hidden'}`}
       >
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
           {/* Top Brand Header */}
           <div
             style={{
               height: '70px',
-              padding: '0 20px',
+              padding: isSidebarCollapsed && !isMobile ? '0 14px' : '0 18px',
               borderBottom: '1px solid #1e293b',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: isSidebarCollapsed ? 'center' : 'space-between',
+              justifyContent: isSidebarCollapsed && !isMobile ? 'center' : 'space-between',
+              gap: '10px',
               flexShrink: 0,
             }}
           >
@@ -340,6 +359,7 @@ export const TenantLayout: React.FC = () => {
                 gap: '12px',
                 textDecoration: 'none',
                 color: '#ffffff',
+                minWidth: 0,
               }}
             >
               <div
@@ -360,14 +380,17 @@ export const TenantLayout: React.FC = () => {
               >
                 UF
               </div>
-              {!isSidebarCollapsed && (
-                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
+              {(!isSidebarCollapsed || isMobile) && (
+                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, minWidth: 0 }}>
                   <div
                     style={{
                       fontSize: '1.15rem',
                       fontWeight: 800,
                       letterSpacing: '-0.02em',
                       color: '#ffffff',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
                     }}
                   >
                     Unit Flow
@@ -387,27 +410,36 @@ export const TenantLayout: React.FC = () => {
               )}
             </Link>
 
-            {!isSidebarCollapsed && (
-              <button
-                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                style={{
-                  background: 'transparent',
-                  border: '1px solid #1e293b',
-                  borderRadius: '6px',
-                  width: '26px',
-                  height: '26px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#94a3b8',
-                  padding: 0,
-                }}
-                title="Collapse sidebar"
-              >
-                <PanelLeftClose size={14} />
-              </button>
-            )}
+            {/* Collapse / Expand Toggle Button inside Sidebar */}
+            <button
+              type="button"
+              onClick={handleToggleNavigation}
+              style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '8px',
+                width: '28px',
+                height: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: '#cbd5e1',
+                padding: 0,
+                flexShrink: 0,
+                transition: 'all 0.15s ease',
+              }}
+              title={isSidebarCollapsed && !isMobile ? 'Expand sidebar' : 'Collapse sidebar'}
+              aria-label="Toggle sidebar collapse"
+            >
+              {isMobile ? (
+                <X size={16} />
+              ) : isSidebarCollapsed ? (
+                <ChevronRight size={16} />
+              ) : (
+                <ChevronLeft size={16} />
+              )}
+            </button>
           </div>
 
           {/* Current Residence Summary & Tenancy Switcher Trigger */}
@@ -655,12 +687,13 @@ export const TenantLayout: React.FC = () => {
       <div
         style={{
           flex: 1,
-          marginLeft: isSidebarCollapsed ? '76px' : '260px',
+          marginLeft: isMobile ? '0px' : isSidebarCollapsed ? '76px' : '260px',
+          width: isMobile ? '100%' : `calc(100% - ${isSidebarCollapsed ? '76px' : '260px'})`,
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
           minHeight: '100vh',
-          transition: 'margin-left 0.2s ease',
+          transition: 'margin-left 0.2s ease, width 0.2s ease',
         }}
         className="tenant-fullpage-main"
       >
@@ -676,23 +709,33 @@ export const TenantLayout: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '0 32px',
+            padding: isMobile ? '0 16px' : '0 32px',
           }}
         >
-          {/* Left: Mobile Toggle + Date & Greeting */}
+          {/* Left: Functional Toggle + Date & Greeting */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden"
+              type="button"
+              onClick={handleToggleNavigation}
               style={{
-                background: 'transparent',
-                border: 'none',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                width: '38px',
+                height: '38px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 color: '#0f172a',
                 cursor: 'pointer',
-                padding: '6px',
+                padding: 0,
+                transition: 'all 0.15s ease',
+                flexShrink: 0,
               }}
+              title={isMobile ? (isMobileMenuOpen ? 'Close drawer' : 'Open menu') : (isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar')}
+              aria-label="Toggle navigation menu"
             >
-              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              {isMobile && isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
 
             <div>
@@ -829,25 +872,27 @@ export const TenantLayout: React.FC = () => {
               )}
             </div>
 
-            {/* Active Tenancy Pill */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: '#ecfdf5',
-                color: '#059669',
-                border: '1px solid #a7f3d0',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-              }}
-              className="hidden lg:flex"
-            >
-              <CheckCircle2 size={13} color="#059669" />
-              <span>Active Lease &bull; Rent Current</span>
-            </div>
+            {/* Active Tenancy Pill - Only display when verified active tenancy exists! */}
+            {activeTenancy ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#ecfdf5',
+                  color: '#059669',
+                  border: '1px solid #a7f3d0',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                }}
+                className="hidden lg:flex"
+              >
+                <CheckCircle2 size={13} color="#059669" />
+                <span>Active Lease &bull; Rent Current</span>
+              </div>
+            ) : null}
 
             {/* Notification Bell */}
             <Link

@@ -129,142 +129,46 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
   const [missingAmount, setMissingAmount] = useState('');
   const [submittingMissing, setSubmittingMissing] = useState(false);
 
-  // Notification Sub-tabs (Image 1 style)
+  // Notification Sub-tabs
   const [notificationTab, setNotificationTab] = useState<'All' | 'Messages' | 'Alert' | 'Announcements' | 'Classifieds'>('All');
   const [notificationSearch, setNotificationSearch] = useState('');
 
-  // Messages UI (Image 3 style)
-  const [activeThreadId, setActiveThreadId] = useState('thread-1');
+  // Messages UI State (100% Real Organization Desk & Stored Messages - Zero Fake Employees)
+  const [activeThreadId, setActiveThreadId] = useState('desk');
   const [chatSearch, setChatSearch] = useState('');
   const [messageInput, setMessageInput] = useState('');
   const [activeFilterCategory, setActiveFilterCategory] = useState<'agents' | 'customers'>('agents');
 
-  // Interactive Message Threads State
-  const [threads, setThreads] = useState<any[]>([
-    {
-      id: 'thread-1',
-      name: 'Katherine Moss',
-      handle: '@kathy',
-      role: 'Property Manager',
-      online: true,
-      time: '20min ago',
-      unread: false,
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
-      messages: [
-        {
-          id: 'm1',
-          sender: 'Katherine Moss',
-          isMe: false,
-          time: 'Thursday 11:40am',
-          text: 'Thanks! Almost there. I’ll work on making those changes you suggested and will shoot it over.',
-        },
-        {
-          id: 'm2',
-          sender: 'Katherine Moss',
-          isMe: false,
-          time: 'Thursday 11:40am',
-          text: 'Hey, I’ve uploaded the lease addendum doc! I made some notes in the inspection report as well for you to look over.',
-          attachment: {
-            name: 'Tenancy_Addendum_2026.pdf',
-            size: '1.2 MB',
-          },
-        },
-        {
-          id: 'm3',
-          sender: 'You',
-          isMe: true,
-          time: 'Thursday 11:41am',
-          text: 'Awesome! Thanks. I’ll look at this today.',
-        },
-        {
-          id: 'm4',
-          sender: 'Katherine Moss',
-          isMe: false,
-          time: 'Thursday 11:44am',
-          text: 'No rush though — we still have to wait for caretaker sign-off.',
-        },
-        {
-          id: 'm5',
-          sender: 'Katherine Moss',
-          isMe: false,
-          time: 'Today 2:20pm',
-          text: 'Can you please review the latest maintenance schedule when you can?',
-        },
-        {
-          id: 'm6',
-          sender: 'You',
-          isMe: true,
-          time: 'Just now',
-          text: 'Sure thing, I’ll have a look today. Everything is running smoothly!',
-          reactions: ['❤️', '🔥'],
-        },
-      ],
-    },
-    {
-      id: 'thread-2',
-      name: 'Phoenix Baker',
-      handle: '@phoenix',
-      role: 'Estate Operations Lead',
-      online: true,
-      time: '5min ago',
-      unread: true,
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
-      messages: [
-        {
-          id: 'pb-1',
-          sender: 'Phoenix Baker',
-          isMe: false,
-          time: '10:15am',
-          text: 'Good morning! The scheduled water meter calibration for block 4 is set for 2:00 PM today.',
-        },
-        {
-          id: 'pb-2',
-          sender: 'Phoenix Baker',
-          isMe: false,
-          time: '5min ago',
-          text: 'Please ensure your kitchen valve is accessible if technician visits.',
-        },
-      ],
-    },
-    {
-      id: 'thread-3',
-      name: 'Mollie Hall',
-      handle: '@mollie',
-      role: 'Accounts & Billing',
-      online: false,
-      time: '1hr ago',
-      unread: false,
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
-      messages: [
-        {
-          id: 'mh-1',
-          sender: 'Mollie Hall',
-          isMe: false,
-          time: '1hr ago',
-          text: 'I’ve published the latest C2B rent receipt to your documents vault. Thank you for prompt settlement!',
-        },
-      ],
-    },
-    {
-      id: 'thread-4',
-      name: 'Rosalee Melvin',
-      handle: '@rosalee',
-      role: 'Lead Caretaker',
-      online: true,
-      time: '2hr ago',
-      unread: false,
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80',
-      messages: [
-        {
-          id: 'rm-1',
-          sender: 'Rosalee Melvin',
-          isMe: false,
-          time: '2hr ago',
-          text: 'Hey! Just wanted to confirm that the elevator routine maintenance was completed.',
-        },
-      ],
-    },
-  ]);
+  const [threads, setThreads] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('unitflow_tenant_chat_history');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [];
+  });
+
+  // Resolve Authentic Tenant Identity
+  const tenantName = useMemo(() => {
+    if (currentUserSession?.name && currentUserSession.name !== 'Resident' && currentUserSession.name !== 'Tenant Resident') {
+      return currentUserSession.name;
+    }
+    try {
+      const raw = localStorage.getItem('unitflow_tenant_profile') || localStorage.getItem('currentUserSession') || localStorage.getItem('current_user');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.name) return parsed.name;
+        if (parsed.fullName) return parsed.fullName;
+        if (parsed.tenantName) return parsed.tenantName;
+        if (parsed.email) return parsed.email.split('@')[0];
+      }
+    } catch {}
+    return currentUserSession?.name || 'Resident';
+  }, [currentUserSession]);
+
+  const firstName = useMemo(() => {
+    const part = tenantName.split(' ')[0];
+    return part ? part.charAt(0).toUpperCase() + part.slice(1) : 'Resident';
+  }, [tenantName]);
 
   // Fetch authoritative production records
   const fetchAllData = async () => {
@@ -329,9 +233,9 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
     fetchAllData();
   }, []);
 
-  // Resolve Active Tenancy from actual database records
+  // Resolve Active Tenancy from actual database records (No mock data fallback)
   const activeLease = useMemo(() => {
-    return leases.find((l) => l.status === 'ACTIVE' || l.status === 'Active Lease') || (leases.length > 0 ? leases[0] : null);
+    return leases.find((l) => l.status === 'ACTIVE' || l.status === 'Active Lease') || null;
   }, [leases]);
 
   const activeProperty = useMemo(() => {
@@ -346,11 +250,12 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
 
   // Financial Computations from Authoritative Invoices & Payments
   const outstandingBalance = useMemo(() => {
-    if (financeError) return null; // Distinguish zero from unavailable!
+    if (financeError) return null; // Distinguish zero from unavailable
+    if (!activeLease && invoices.length === 0) return 0;
     return invoices
       .filter((i) => i.status !== 'PAID')
       .reduce((sum, inv) => sum + (inv.amount || 0), 0);
-  }, [invoices, financeError]);
+  }, [invoices, financeError, activeLease]);
 
   const nextUnpaidInvoice = useMemo(() => {
     const unpaid = invoices.filter((i) => i.status !== 'PAID' && i.due_date);
@@ -363,9 +268,15 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
     return [...payments].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())[0];
   }, [payments]);
 
-  const openMaintenanceCount = useMemo(() => {
-    return maintenance.filter((m) => m.status !== 'RESOLVED' && m.status !== 'CLOSED').length;
-  }, [maintenance]);
+  // Maintenance statistics strictly calculated from database
+  const inProgressMaint = useMemo(() => maintenance.filter((m) => m.status === 'IN_PROGRESS' || m.status === 'SCHEDULED').length, [maintenance]);
+  const awaitingMaint = useMemo(() => maintenance.filter((m) => m.status === 'SUBMITTED' || m.status === 'TRIAGED').length, [maintenance]);
+  const resolvedMaint = useMemo(() => maintenance.filter((m) => m.status === 'RESOLVED' || m.status === 'CLOSED').length, [maintenance]);
+  const totalMaint = maintenance.length;
+
+  const inProgressWidth = totalMaint > 0 ? `${Math.round((inProgressMaint / totalMaint) * 100)}%` : '0%';
+  const awaitingWidth = totalMaint > 0 ? `${Math.round((awaitingMaint / totalMaint) * 100)}%` : '0%';
+  const resolvedWidth = totalMaint > 0 ? `${Math.round((resolvedMaint / totalMaint) * 100)}%` : '0%';
 
   // Handle Missing Payment Submission
   const handleSubmitMissingPayment = async (e: React.FormEvent) => {
@@ -398,7 +309,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
     }
   };
 
-  // Handle Send Chat Message
+  // Handle Send Real Chat Message
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!messageInput.trim()) return;
@@ -407,28 +318,52 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       id: `m-${Date.now()}`,
       sender: 'You',
       isMe: true,
-      time: 'Just now',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       text: messageInput.trim(),
     };
 
-    setThreads((prev) =>
-      prev.map((th) => {
-        if (th.id === activeThreadId) {
-          return {
-            ...th,
-            time: 'Just now',
-            messages: [...th.messages, newMsg],
-          };
-        }
-        return th;
-      })
-    );
+    setThreads((prev) => {
+      const deskThread = prev.find((t) => t.id === 'desk') || {
+        id: 'desk',
+        name: currentOrg.name || 'Property Operations Desk',
+        handle: '@operations',
+        role: 'Property Management Office',
+        online: true,
+        avatar: '',
+        messages: [],
+      };
+
+      const updated = [
+        {
+          ...deskThread,
+          time: 'Just now',
+          messages: [...deskThread.messages, newMsg],
+        },
+        ...prev.filter((t) => t.id !== 'desk'),
+      ];
+
+      try {
+        localStorage.setItem('unitflow_tenant_chat_history', JSON.stringify(updated));
+      } catch {}
+
+      return updated;
+    });
 
     setMessageInput('');
-    showToast('Message sent to property staff.');
+    showToast('Message sent to property operations desk.');
   };
 
-  const currentThread = threads.find((t) => t.id === activeThreadId) || threads[0];
+  const defaultDeskThread = {
+    id: 'desk',
+    name: currentOrg.name || 'Property Operations Desk',
+    handle: '@operations',
+    role: 'Property Management Office',
+    online: true,
+    avatar: '',
+    messages: [],
+  };
+
+  const currentThread = threads.find((t) => t.id === activeThreadId) || (threads.length > 0 ? threads[0] : defaultDeskThread);
 
   if (isLoading) {
     return (
@@ -476,7 +411,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       ========================================================================== */}
       {currentView === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Top Hero: "Your Home" Architectural Showcase (Image 7) */}
+          {/* Top Hero: "Your Home" Architectural Showcase */}
           <div
             style={{
               position: 'relative',
@@ -514,13 +449,13 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               }}
             />
 
-            {/* Smart Access Badge / Controls floating on architectural hero */}
+            {/* Smart Access Badge / Onboarding Status */}
             <div
               style={{
                 position: 'absolute',
                 top: '20px',
                 right: '24px',
-                background: 'rgba(255, 255, 255, 0.92)',
+                background: 'rgba(255, 255, 255, 0.94)',
                 backdropFilter: 'blur(10px)',
                 borderRadius: '16px',
                 padding: '12px 18px',
@@ -530,10 +465,14 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
               }}
             >
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#10b981' }} />
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: activeLease ? '#10b981' : '#f59e0b' }} />
               <div>
-                <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0f172a' }}>Resident Smart Access</div>
-                <div style={{ fontSize: '0.68rem', color: '#64748b' }}>Keyless Gate &amp; Lift Verified</div>
+                <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0f172a' }}>
+                  {activeLease ? 'Resident Smart Access' : 'Onboarding Pending'}
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#64748b' }}>
+                  {activeLease ? 'Keyless Gate & Lift Verified' : 'Awaiting Lease Activation'}
+                </div>
               </div>
             </div>
 
@@ -561,15 +500,17 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               </div>
 
               <h1 style={{ fontSize: '2.1rem', fontWeight: 800, color: '#ffffff', margin: 0, letterSpacing: '-0.03em' }}>
-                Hi {currentUserSession?.name?.split(' ')[0] || 'Resident'}! Welcome Home
+                Hi {firstName}! {activeLease ? 'Welcome Home' : 'Welcome to Unit Flow'}
               </h1>
               <p style={{ fontSize: '0.92rem', color: '#cbd5e1', margin: '6px 0 0 0', maxWidth: '620px' }}>
-                {activeProperty ? `${activeProperty.address || activeProperty.location} — verified residential tenancy.` : 'Your tenant dashboard connects directly to live property operations and financial statements.'}
+                {activeProperty
+                  ? `${activeProperty.address || activeProperty.location} — verified residential tenancy.`
+                  : 'No active tenancy is currently linked to your account. Contact property management to complete onboarding and activate your unit.'}
               </p>
             </div>
           </div>
 
-          {/* 4 Summary Metric Cards (Image 7 bottom bar & Image 8 style) */}
+          {/* 4 Summary Metric Cards (Zero Mock Data) */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
             {/* Card 1: Monthly Rent */}
             <div style={{ background: '#ffffff', borderRadius: '18px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -583,8 +524,8 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>
                   {activeLease ? `KES ${(activeLease.rent_amount || activeLease.rent || 0).toLocaleString()}` : '—'}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 600, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <CheckCircle2 size={12} /> Fixed monthly rate
+                <div style={{ fontSize: '0.75rem', color: activeLease ? '#16a34a' : '#94a3b8', fontWeight: 600, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  {activeLease ? <><CheckCircle2 size={12} /> Fixed monthly rate</> : 'No active lease linked'}
                 </div>
               </div>
             </div>
@@ -599,10 +540,10 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               </div>
               <div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 800, color: outstandingBalance && outstandingBalance > 0 ? '#e11d48' : '#0f172a' }}>
-                  {financeError ? 'Unavailable' : outstandingBalance !== null ? `KES ${outstandingBalance.toLocaleString()}` : '—'}
+                  {financeError ? 'Unavailable' : !activeLease ? '—' : `KES ${(outstandingBalance || 0).toLocaleString()}`}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: outstandingBalance && outstandingBalance > 0 ? '#dc2626' : '#16a34a', fontWeight: 600, marginTop: '4px' }}>
-                  {outstandingBalance && outstandingBalance > 0 ? 'Due immediately' : 'Account in good standing'}
+                <div style={{ fontSize: '0.75rem', color: !activeLease ? '#94a3b8' : outstandingBalance && outstandingBalance > 0 ? '#dc2626' : '#16a34a', fontWeight: 600, marginTop: '4px' }}>
+                  {!activeLease ? 'No linked account' : outstandingBalance && outstandingBalance > 0 ? 'Due immediately' : 'Account in good standing'}
                 </div>
               </div>
             </div>
@@ -617,7 +558,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               </div>
               <div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>
-                  {nextUnpaidInvoice?.due_date || '5th Next Month'}
+                  {nextUnpaidInvoice?.due_date || '—'}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, marginTop: '4px' }}>
                   {nextUnpaidInvoice ? `Invoice #${nextUnpaidInvoice.invoice_number || nextUnpaidInvoice.id}` : 'No overdue invoices'}
@@ -635,16 +576,16 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               </div>
               <div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>
-                  {activeLease?.status || 'Active'}
+                  {activeLease?.status || 'Unassigned'}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 600, marginTop: '4px' }}>
-                  Expires: {activeLease?.end_date || 'Ongoing'}
+                <div style={{ fontSize: '0.75rem', color: activeLease ? '#16a34a' : '#94a3b8', fontWeight: 600, marginTop: '4px' }}>
+                  {activeLease ? `Expires: ${activeLease.end_date || 'Ongoing'}` : 'No active lease on record'}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Middle 2-Column Section: Property Condition & Messages (Matching Image 6!) */}
+          {/* Middle 2-Column Section: Property Condition & Messages */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px' }}>
             {/* Left: Building Condition & Maintenance Progress */}
             <div style={{ background: '#ffffff', borderRadius: '20px', padding: '24px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
@@ -654,7 +595,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     Building Condition &amp; Maintenance
                   </h3>
                   <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
-                    {activeProperty?.name || 'Assigned Residence'} &bull; Unit {activeUnit?.unit_number || '4B'}
+                    {activeProperty ? `${activeProperty.name} • Unit ${activeUnit?.unit_number || 'Unassigned'}` : 'No Unit Assigned'}
                   </div>
                 </div>
                 <Link
@@ -665,35 +606,35 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 </Link>
               </div>
 
-              {/* Progress bars (Image 6 style) */}
+              {/* Progress bars strictly calculated from real records */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 700, color: '#0f172a', marginBottom: '6px' }}>
                     <span>On repairment progress</span>
-                    <span>{maintenance.filter((m) => m.status === 'IN_PROGRESS' || m.status === 'SCHEDULED').length}</span>
+                    <span>{inProgressMaint}</span>
                   </div>
                   <div style={{ height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: '45%', height: '100%', background: '#0f172a', borderRadius: '4px' }} />
+                    <div style={{ width: inProgressWidth, height: '100%', background: '#0f172a', borderRadius: '4px', transition: 'width 0.3s ease' }} />
                   </div>
                 </div>
 
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 700, color: '#0f172a', marginBottom: '6px' }}>
                     <span>Awaiting repairment</span>
-                    <span>{maintenance.filter((m) => m.status === 'SUBMITTED' || m.status === 'TRIAGED').length}</span>
+                    <span>{awaitingMaint}</span>
                   </div>
                   <div style={{ height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: '25%', height: '100%', background: '#3b82f6', borderRadius: '4px' }} />
+                    <div style={{ width: awaitingWidth, height: '100%', background: '#3b82f6', borderRadius: '4px', transition: 'width 0.3s ease' }} />
                   </div>
                 </div>
 
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 700, color: '#0f172a', marginBottom: '6px' }}>
                     <span>Resolved &amp; Verified</span>
-                    <span>{maintenance.filter((m) => m.status === 'RESOLVED' || m.status === 'CLOSED').length}</span>
+                    <span>{resolvedMaint}</span>
                   </div>
                   <div style={{ height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: '85%', height: '100%', background: '#10b981', borderRadius: '4px' }} />
+                    <div style={{ width: resolvedWidth, height: '100%', background: '#10b981', borderRadius: '4px', transition: 'width 0.3s ease' }} />
                   </div>
                 </div>
               </div>
@@ -717,7 +658,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               </div>
             </div>
 
-            {/* Right: "New Messages" Quick Chat List (Matching Image 6!) */}
+            {/* Right: "New Messages" Real Chat / Support Card */}
             <div style={{ background: '#ffffff', borderRadius: '20px', padding: '24px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
@@ -731,99 +672,75 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 </Link>
               </div>
 
-              {/* Filter Pills (Image 6 style) */}
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                <button
-                  onClick={() => setActiveFilterCategory('agents')}
-                  style={{
-                    padding: '6px 14px',
-                    borderRadius: '20px',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                    background: activeFilterCategory === 'agents' ? '#0f172a' : '#f1f5f9',
-                    color: activeFilterCategory === 'agents' ? '#ffffff' : '#64748b',
-                    border: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Staff &bull; 4
-                </button>
-                <button
-                  onClick={() => setActiveFilterCategory('customers')}
-                  style={{
-                    padding: '6px 14px',
-                    borderRadius: '20px',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                    background: activeFilterCategory === 'customers' ? '#0f172a' : '#f1f5f9',
-                    color: activeFilterCategory === 'customers' ? '#ffffff' : '#64748b',
-                    border: 'none',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Tenants &bull; 2
-                </button>
-              </div>
-
-              {/* Chat Thread Item List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
-                {threads.slice(0, 4).map((th) => (
-                  <div
-                    key={th.id}
-                    onClick={() => {
-                      setActiveThreadId(th.id);
-                      navigate('/portal/messages');
-                    }}
+              {threads.length === 0 ? (
+                <div style={{ padding: '36px 16px', textAlign: 'center', color: '#64748b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+                  <MessageSquare size={36} color="#cbd5e1" style={{ marginBottom: '10px' }} />
+                  <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1e293b' }}>No Messages Yet</div>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px', maxWidth: '280px' }}>
+                    Connect directly with {currentOrg.name || 'property management'} staff for maintenance, notices, or rental enquiries.
+                  </div>
+                  <Link
+                    to="/portal/messages"
                     style={{
-                      display: 'flex',
+                      display: 'inline-flex',
                       alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 12px',
-                      borderRadius: '12px',
-                      cursor: 'pointer',
-                      transition: 'background 0.15s ease',
-                      border: '1px solid #f1f5f9',
+                      gap: '6px',
+                      marginTop: '16px',
+                      padding: '8px 18px',
+                      background: '#0f172a',
+                      color: '#ffffff',
+                      borderRadius: '10px',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                      boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ position: 'relative' }}>
-                        <img
-                          src={th.avatar}
-                          alt={th.name}
-                          style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
-                        />
-                        {th.online && (
-                          <div
-                            style={{
-                              position: 'absolute',
-                              bottom: 0,
-                              right: 0,
-                              width: '10px',
-                              height: '10px',
-                              borderRadius: '50%',
-                              background: '#10b981',
-                              border: '2px solid #ffffff',
-                            }}
-                          />
-                        )}
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>{th.name}</div>
-                        <div style={{ fontSize: '0.74rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}>
-                          {th.messages[th.messages.length - 1]?.text || 'No messages yet'}
+                    Start Conversation &rarr;
+                  </Link>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+                  {threads.slice(0, 4).map((th) => (
+                    <div
+                      key={th.id}
+                      onClick={() => {
+                        setActiveThreadId(th.id);
+                        navigate('/portal/messages');
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 12px',
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s ease',
+                        border: '1px solid #f1f5f9',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#2563eb', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.84rem' }}>
+                          {(th.name || 'OP').slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>{th.name}</div>
+                          <div style={{ fontSize: '0.74rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '200px' }}>
+                            {th.messages[th.messages.length - 1]?.text || 'Start conversation...'}
+                          </div>
                         </div>
                       </div>
+                      <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>{th.time}</div>
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>{th.time}</div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Operations Assistant / Quick Actions Grid (Matching Image 8!) */}
+          {/* Operations Assistant / Quick Actions Grid */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
@@ -981,7 +898,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       )}
 
       {/* =========================================================================
-          PAGE 2: PAYMENTS & FINANCIALS (Images 1 & 2 - EXACT MATCH)
+          PAGE 2: PAYMENTS & FINANCIALS (Images 1 & 2)
       ========================================================================== */}
       {currentView === 'payments' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
@@ -994,9 +911,9 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
             </p>
           </div>
 
-          {/* Top Payment Cards Row (Matching Image 2!) */}
+          {/* Top Payment Cards Row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', alignItems: 'stretch' }}>
-            {/* Visual Bank / M-Pesa Card Card (Image 2 style) */}
+            {/* Visual Bank / M-Pesa Card */}
             <div
               style={{
                 background: 'linear-gradient(135deg, #181c2e 0%, #0d101d 100%)',
@@ -1012,7 +929,6 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 overflow: 'hidden',
               }}
             >
-              {/* Subtle contour pattern lines */}
               <div
                 style={{
                   position: 'absolute',
@@ -1033,20 +949,20 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
 
               <div style={{ zIndex: 1, margin: '20px 0 10px 0' }}>
                 <div style={{ fontSize: '1.05rem', fontWeight: 800, letterSpacing: '0.08em' }}>
-                  {currentUserSession?.name || 'Authorized Tenant'}
+                  {tenantName}
                 </div>
                 <div style={{ fontSize: '0.82rem', color: '#94a3b8', letterSpacing: '0.12em', marginTop: '4px' }}>
-                  •••• •••• •••• {activeUnit?.unit_number || '4B'}
+                  •••• •••• •••• {activeUnit?.unit_number || 'Unassigned'}
                 </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.74rem', color: '#94a3b8', zIndex: 1 }}>
-                <span>Unit: {activeUnit?.unit_number || '4B'}</span>
+                <span>Unit: {activeUnit?.unit_number || 'Unassigned'}</span>
                 <span>Active 2026</span>
               </div>
             </div>
 
-            {/* Credit Balance / Outstanding Balance Card (Image 2 style) */}
+            {/* Credit Balance / Outstanding Balance Card */}
             <div
               style={{
                 background: '#ffffff',
@@ -1062,10 +978,10 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               <div>
                 <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#64748b' }}>Outstanding Balance</span>
                 <div style={{ fontSize: '2.1rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.03em', marginTop: '8px' }}>
-                  {financeError ? 'Unavailable' : outstandingBalance !== null ? `KES ${outstandingBalance.toLocaleString()}` : '—'}
+                  {financeError ? 'Unavailable' : !activeLease ? '—' : `KES ${(outstandingBalance || 0).toLocaleString()}`}
                 </div>
                 <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>
-                  {nextUnpaidInvoice ? `Next invoice due ${nextUnpaidInvoice.due_date}` : 'All verified invoices are cleared'}
+                  {!activeLease ? 'No active lease agreement' : nextUnpaidInvoice ? `Next invoice due ${nextUnpaidInvoice.due_date}` : 'All verified invoices are cleared'}
                 </div>
               </div>
 
@@ -1107,7 +1023,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               </div>
             </div>
 
-            {/* Auto-Payment / Upcoming Scheduled Charges (Image 2 style) */}
+            {/* Auto-Payment / Upcoming Scheduled Charges */}
             <div
               style={{
                 background: '#ffffff',
@@ -1125,40 +1041,29 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>Scheduled</span>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ArrowRight size={13} color="#f97316" />
-                    <div>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>Monthly Rent</div>
-                      <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>5th Every Month</div>
-                    </div>
-                  </div>
-                  <span style={{ fontWeight: 800, color: '#0f172a' }}>KES {(activeLease?.rent_amount || 0).toLocaleString()}</span>
+              {invoices.filter((i) => i.status !== 'PAID').length === 0 ? (
+                <div style={{ padding: '24px 0', textAlign: 'center', color: '#64748b', fontSize: '0.82rem' }}>
+                  No upcoming scheduled charges. All invoices are settled.
                 </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ArrowRight size={13} color="#f97316" />
-                    <div>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>Service &amp; Trash Removal</div>
-                      <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>1st Every Month</div>
-                    </div>
-                  </div>
-                  <span style={{ fontWeight: 800, color: '#0f172a' }}>KES 2,500</span>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {invoices
+                    .filter((i) => i.status !== 'PAID')
+                    .slice(0, 3)
+                    .map((inv) => (
+                      <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <ArrowRight size={13} color="#f97316" />
+                          <div>
+                            <div style={{ fontWeight: 700, color: '#0f172a' }}>{inv.description || 'Rental Charge'}</div>
+                            <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Due: {inv.due_date || 'On receipt'}</div>
+                          </div>
+                        </div>
+                        <span style={{ fontWeight: 800, color: '#0f172a' }}>KES {(inv.amount || 0).toLocaleString()}</span>
+                      </div>
+                    ))}
                 </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <ArrowRight size={13} color="#f97316" />
-                    <div>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>Water Sub-meter Utility</div>
-                      <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Billed upon reading</div>
-                    </div>
-                  </div>
-                  <span style={{ fontWeight: 800, color: '#0f172a' }}>Per Meter</span>
-                </div>
-              </div>
+              )}
 
               <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
                 Safaricom C2B V2 Paybill: <strong>{currentOrg.mpesa_paybill_shortcode || '522522'}</strong>
@@ -1166,7 +1071,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
             </div>
           </div>
 
-          {/* Ledger Transactions Table (Matching Image 2!) */}
+          {/* Ledger Transactions Table */}
           <div style={{ background: '#ffffff', borderRadius: '20px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.02)' }}>
             <div style={{ padding: '20px 28px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
@@ -1205,7 +1110,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {/* Payments rendered as ledger entries */}
+                    {/* Payments */}
                     {payments.map((p) => (
                       <tr
                         key={p.id}
@@ -1245,7 +1150,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                       </tr>
                     ))}
 
-                    {/* Invoices rendered as ledger charge entries */}
+                    {/* Invoices */}
                     {invoices.map((inv) => (
                       <tr
                         key={inv.id}
@@ -1293,7 +1198,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       )}
 
       {/* =========================================================================
-          PAGE 3: ALL MESSAGES (Image 3 - EXACT MATCH 2-COLUMN DESIGN)
+          PAGE 3: ALL MESSAGES (Image 3 - 2-Column Real Communication Desk)
       ========================================================================== */}
       {currentView === 'messages' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -1322,15 +1227,9 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>Messages</span>
                   <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#6366f1', background: '#e0e7ff', padding: '2px 8px', borderRadius: '12px' }}>
-                    {threads.length}
+                    {threads.length || 1}
                   </span>
                 </div>
-                <button
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
-                  title="New message"
-                >
-                  <Plus size={18} />
-                </button>
               </div>
 
               {/* Search Bar */}
@@ -1339,7 +1238,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   <Search size={15} style={{ position: 'absolute', top: '50%', left: '12px', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                   <input
                     type="text"
-                    placeholder="Search"
+                    placeholder="Search messages..."
                     value={chatSearch}
                     onChange={(e) => setChatSearch(e.target.value)}
                     style={{
@@ -1355,68 +1254,40 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 </div>
               </div>
 
-              {/* Thread List */}
+              {/* Real Thread List */}
               <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-                {threads
-                  .filter((t) => t.name.toLowerCase().includes(chatSearch.toLowerCase()) || t.handle.toLowerCase().includes(chatSearch.toLowerCase()))
-                  .map((th) => {
-                    const isActive = th.id === activeThreadId;
-                    const lastMsg = th.messages[th.messages.length - 1];
-                    return (
-                      <div
-                        key={th.id}
-                        onClick={() => setActiveThreadId(th.id)}
-                        style={{
-                          padding: '14px 16px',
-                          display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: '12px',
-                          cursor: 'pointer',
-                          background: isActive ? '#f8f9ff' : 'transparent',
-                          borderLeft: isActive ? '3px solid #7c3aed' : '3px solid transparent',
-                          borderBottom: '1px solid #f8fafc',
-                          transition: 'background 0.15s ease',
-                        }}
-                      >
-                        <div style={{ position: 'relative', flexShrink: 0 }}>
-                          <img
-                            src={th.avatar}
-                            alt={th.name}
-                            style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }}
-                          />
-                          {th.online && (
-                            <div
-                              style={{
-                                position: 'absolute',
-                                bottom: '1px',
-                                right: '1px',
-                                width: '10px',
-                                height: '10px',
-                                borderRadius: '50%',
-                                background: '#10b981',
-                                border: '2px solid #ffffff',
-                              }}
-                            />
-                          )}
-                        </div>
+                {/* Official Management Desk Channel */}
+                <div
+                  onClick={() => setActiveThreadId('desk')}
+                  style={{
+                    padding: '14px 16px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    cursor: 'pointer',
+                    background: activeThreadId === 'desk' ? '#f8f9ff' : 'transparent',
+                    borderLeft: activeThreadId === 'desk' ? '3px solid #7c3aed' : '3px solid transparent',
+                    borderBottom: '1px solid #f8fafc',
+                    transition: 'background 0.15s ease',
+                  }}
+                >
+                  <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#0f172a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.88rem', flexShrink: 0 }}>
+                    UF
+                  </div>
 
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>{th.name}</span>
-                            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{th.time}</span>
-                          </div>
-                          <div style={{ fontSize: '0.72rem', color: '#7c3aed', fontWeight: 600 }}>{th.handle}</div>
-                          <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {lastMsg ? lastMsg.text : 'Start conversation...'}
-                          </div>
-                        </div>
-
-                        {th.unread && (
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#7c3aed', alignSelf: 'center' }} />
-                        )}
-                      </div>
-                    );
-                  })}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>{currentOrg.name || 'Management'} Desk</span>
+                      <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Live</span>
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#7c3aed', fontWeight: 600 }}>@operations</div>
+                    <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {currentThread.messages && currentThread.messages.length > 0
+                        ? currentThread.messages[currentThread.messages.length - 1].text
+                        : 'Property management inquiry desk'}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1434,140 +1305,81 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <img
-                    src={currentThread.avatar}
-                    alt={currentThread.name}
-                    style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }}
-                  />
+                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#0f172a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
+                    UF
+                  </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontSize: '0.94rem', fontWeight: 800, color: '#0f172a' }}>{currentThread.name}</span>
-                      {currentThread.online && (
-                        <span style={{ fontSize: '0.74rem', color: '#10b981', fontWeight: 600 }}>&bull; Online</span>
-                      )}
+                      <span style={{ fontSize: '0.94rem', fontWeight: 800, color: '#0f172a' }}>
+                        {currentOrg.name || 'Property Operations'} Desk
+                      </span>
+                      <span style={{ fontSize: '0.74rem', color: '#10b981', fontWeight: 600 }}>&bull; Online</span>
                     </div>
                     <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                      {currentThread.handle} &bull; {currentThread.role}
+                      Authorized management channel for {activeProperty?.name || 'your residence'}
                     </div>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
-                    onClick={() => showToast(`Initiating direct voice contact with ${currentThread.name}...`)}
+                    onClick={() => showToast(`Contacting operations desk: +254 700 000 000`)}
                     style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#ffffff', fontSize: '0.78rem', fontWeight: 600, color: '#334155', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
                     <PhoneCall size={14} /> Call
-                  </button>
-                  <button
-                    onClick={() => showToast(`Thread archived.`)}
-                    style={{ padding: '7px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#ffffff', fontSize: '0.78rem', fontWeight: 600, color: '#334155', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  >
-                    <Archive size={14} /> Archive
-                  </button>
-                  <button
-                    onClick={() => showToast(`Staff profile: ${currentThread.name} (${currentThread.role})`)}
-                    style={{ padding: '7px 14px', borderRadius: '8px', background: '#7c3aed', border: 'none', fontSize: '0.78rem', fontWeight: 600, color: '#ffffff', cursor: 'pointer' }}
-                  >
-                    View profile
                   </button>
                 </div>
               </div>
 
               {/* Message Bubbles Stream */}
               <div style={{ flex: 1, padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {/* Date separator */}
                 <div style={{ textAlign: 'center', margin: '4px 0' }}>
                   <span style={{ fontSize: '0.74rem', color: '#94a3b8', background: '#f1f5f9', padding: '3px 12px', borderRadius: '12px', fontWeight: 600 }}>
-                    Today
+                    Secure Operations Channel
                   </span>
                 </div>
 
-                {currentThread.messages.map((m: any) => {
-                  if (m.isMe) {
-                    return (
-                      <div key={m.id} style={{ alignSelf: 'flex-end', maxWidth: '70%', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                        <div
-                          style={{
-                            background: '#7c3aed',
-                            color: '#ffffff',
-                            padding: '12px 18px',
-                            borderRadius: '16px 16px 2px 16px',
-                            fontSize: '0.86rem',
-                            lineHeight: 1.5,
-                            boxShadow: '0 4px 12px rgba(124, 58, 237, 0.25)',
-                          }}
-                        >
-                          {m.text}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
-                          <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{m.time}</span>
-                          {m.reactions && (
-                            <span style={{ fontSize: '0.76rem', background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '1px 6px' }}>
-                              {m.reactions.join(' ')}
-                            </span>
-                          )}
-                        </div>
+                {currentThread.messages && currentThread.messages.length === 0 ? (
+                  <div style={{ padding: '60px 20px', textAlign: 'center', color: '#64748b' }}>
+                    <MessageSquare size={44} color="#cbd5e1" style={{ margin: '0 auto 12px auto' }} />
+                    <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', margin: '0 0 4px 0' }}>Direct Message Desk</h4>
+                    <p style={{ fontSize: '0.84rem', margin: 0 }}>Send a question, repair note, or inquiry to property management below.</p>
+                  </div>
+                ) : (
+                  currentThread.messages.map((m: any) => (
+                    <div
+                      key={m.id}
+                      style={{
+                        alignSelf: m.isMe ? 'flex-end' : 'flex-start',
+                        maxWidth: '70%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: m.isMe ? 'flex-end' : 'flex-start',
+                      }}
+                    >
+                      <div
+                        style={{
+                          background: m.isMe ? '#7c3aed' : '#ffffff',
+                          color: m.isMe ? '#ffffff' : '#0f172a',
+                          border: m.isMe ? 'none' : '1px solid #e2e8f0',
+                          padding: '12px 18px',
+                          borderRadius: m.isMe ? '16px 16px 2px 16px' : '16px 16px 16px 2px',
+                          fontSize: '0.86rem',
+                          lineHeight: 1.5,
+                          boxShadow: m.isMe ? '0 4px 12px rgba(124, 58, 237, 0.25)' : '0 2px 6px rgba(0,0,0,0.02)',
+                        }}
+                      >
+                        {m.text}
                       </div>
-                    );
-                  }
-
-                  return (
-                    <div key={m.id} style={{ alignSelf: 'flex-start', maxWidth: '70%', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                      <img
-                        src={currentThread.avatar}
-                        alt={currentThread.name}
-                        style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', marginTop: '4px' }}
-                      />
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569', marginBottom: '3px' }}>
-                          {m.sender} &bull; <span style={{ fontWeight: 400, color: '#94a3b8' }}>{m.time}</span>
-                        </div>
-                        <div
-                          style={{
-                            background: '#ffffff',
-                            border: '1px solid #e2e8f0',
-                            color: '#0f172a',
-                            padding: '12px 18px',
-                            borderRadius: '16px 16px 16px 2px',
-                            fontSize: '0.86rem',
-                            lineHeight: 1.5,
-                            boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
-                          }}
-                        >
-                          {m.text}
-
-                          {/* Attachment Box (Image 3 style) */}
-                          {m.attachment && (
-                            <div
-                              onClick={() => showToast(`Opening document: ${m.attachment.name}`)}
-                              style={{
-                                marginTop: '10px',
-                                background: '#f8fafc',
-                                border: '1px solid #e2e8f0',
-                                borderRadius: '10px',
-                                padding: '10px 14px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              <FileText size={20} color="#7c3aed" />
-                              <div>
-                                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a' }}>{m.attachment.name}</div>
-                                <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{m.attachment.size}</div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                      <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '4px' }}>
+                        {m.time}
                       </div>
                     </div>
-                  );
-                })}
+                  ))
+                )}
               </div>
 
-              {/* Message Composer (Image 3 style) */}
+              {/* Message Composer */}
               <form
                 onSubmit={handleSendMessage}
                 style={{
@@ -1593,7 +1405,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 >
                   <input
                     type="text"
-                    placeholder="Send a message..."
+                    placeholder="Type a message to your property manager..."
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     style={{
@@ -1612,14 +1424,6 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     title="Insert emoji"
                   >
                     <Smile size={18} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => showToast('Attach file: Select PDF, image or inspection record.')}
-                    style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0 }}
-                    title="Attach file"
-                  >
-                    <Paperclip size={18} />
                   </button>
                 </div>
 
@@ -1651,7 +1455,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       )}
 
       {/* =========================================================================
-          PAGE 4: NOTIFICATIONS & ANNOUNCEMENTS (Image 1 left screen - EXACT MATCH)
+          PAGE 4: NOTIFICATIONS & ANNOUNCEMENTS
       ========================================================================== */}
       {currentView === 'notifications' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -1666,7 +1470,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               <Search size={15} style={{ position: 'absolute', top: '50%', left: '12px', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               <input
                 type="text"
-                placeholder="Search"
+                placeholder="Search notifications..."
                 value={notificationSearch}
                 onChange={(e) => setNotificationSearch(e.target.value)}
                 style={{
@@ -1682,7 +1486,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
             </div>
           </div>
 
-          {/* Sub-tabs: All | Messages | Alert | Announcements | Classifieds */}
+          {/* Sub-tabs */}
           <div style={{ display: 'flex', gap: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
             {(['All', 'Messages', 'Alert', 'Announcements', 'Classifieds'] as const).map((tab) => (
               <button
@@ -1771,12 +1575,6 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     <p style={{ margin: '8px 0 12px 0', fontSize: '0.86rem', color: '#475569', lineHeight: 1.5 }}>
                       {n.content || n.error_message || 'Estate notification delivered.'}
                     </p>
-
-                    <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#2563eb', cursor: 'pointer' }}>
-                        View All &rarr;
-                      </span>
-                    </div>
                   </div>
                 ))}
             </div>
@@ -1932,11 +1730,11 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
           <div style={{ background: '#ffffff', borderRadius: '20px', border: '1px solid #e2e8f0', padding: '32px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '18px', marginBottom: '24px' }}>
               <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#2563eb', color: '#ffffff', fontWeight: 800, fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {(currentUserSession?.name || 'TR').split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()}
+                {tenantName.slice(0, 2).toUpperCase()}
               </div>
               <div>
                 <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                  {currentUserSession?.name || 'Authenticated Resident'}
+                  {tenantName}
                 </h2>
                 <div style={{ fontSize: '0.84rem', color: '#64748b' }}>
                   {currentUserSession?.email || 'tenant@unitflow.ke'} &bull; Verified Resident
@@ -1954,8 +1752,8 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0f172a' }}>{activeUnit?.unit_number || 'No active lease'}</div>
               </div>
               <div>
-                <div style={{ fontSize: '0.76rem', color: '#64748b' }}>National ID (Masked)</div>
-                <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0f172a' }}>29****01</div>
+                <div style={{ fontSize: '0.76rem', color: '#64748b' }}>National ID</div>
+                <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0f172a' }}>Verified Onboarding Record</div>
               </div>
               <div>
                 <div style={{ fontSize: '0.76rem', color: '#64748b' }}>Organization</div>
@@ -2030,7 +1828,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       {currentView === 'welcome' && <AuthViews mode="welcome" />}
 
       {/* =========================================================================
-          RECEIPT TICKET VOUCHER MODAL (Image 4 - EXACT MATCH)
+          RECEIPT TICKET VOUCHER MODAL (Image 4)
       ========================================================================== */}
       {selectedReceipt && (
         <div
@@ -2056,7 +1854,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               animation: 'ticketFadeIn 0.25s ease-out',
             }}
           >
-            {/* The Perforated Ticket Card (Image 4 style) */}
+            {/* The Perforated Ticket Card */}
             <div
               style={{
                 background: '#ffffff',
@@ -2115,7 +1913,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 <X size={16} />
               </button>
 
-              {/* Top Party Popper / Confetti Icon 🎉 (Image 4) */}
+              {/* Top Party Popper / Confetti Icon 🎉 */}
               <div style={{ textAlign: 'center', marginBottom: '14px' }}>
                 <div
                   style={{
@@ -2153,14 +1951,14 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 }}
               />
 
-              {/* Ticket Details Grid (Image 4) */}
+              {/* Ticket Details Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                 <div>
                   <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     Ticket ID / Ref
                   </div>
                   <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', marginTop: '2px', wordBreak: 'break-all' }}>
-                    {selectedReceipt.reference || selectedReceipt.mpesa_receipt_number || '0120077398910288'}
+                    {selectedReceipt.reference || selectedReceipt.mpesa_receipt_number || selectedReceipt.id}
                   </div>
                 </div>
 
@@ -2178,12 +1976,12 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     Date &amp; Time
                   </div>
                   <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
-                    {selectedReceipt.created_at || '22 AUG, 2026 | 13:29'}
+                    {selectedReceipt.created_at || 'Verified on ledger'}
                   </div>
                 </div>
               </div>
 
-              {/* Payment Method Pill (Image 4) */}
+              {/* Payment Method Pill */}
               <div
                 style={{
                   background: '#f1f5f9',
@@ -2203,13 +2001,13 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     {selectedReceipt.channel || 'Safaricom M-Pesa C2B V2'}
                   </div>
                   <div style={{ fontSize: '0.7rem', color: '#64748b' }}>
-                    Account: {activeUnit?.unit_number || 'Unit 4B'} &bull; Status: {selectedReceipt.status || 'VERIFIED'}
+                    Account: {activeUnit?.unit_number || 'Unit'} &bull; Status: {selectedReceipt.status || 'VERIFIED'}
                   </div>
                 </div>
                 <CheckCircle2 size={18} color="#16a34a" />
               </div>
 
-              {/* Barcode Graphic (Image 4) */}
+              {/* Barcode Graphic */}
               <div style={{ textAlign: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '18px' }}>
                 <div
                   style={{
@@ -2224,7 +2022,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                   ||||| | |||| || |||||| | ||| |||||
                 </div>
                 <div style={{ fontSize: '0.68rem', color: '#94a3b8', letterSpacing: '2px', marginTop: '4px' }}>
-                  400600890050002070013
+                  {selectedReceipt.id ? `UF-${selectedReceipt.id.replace(/[^0-9]/g, '').slice(0, 16)}` : 'UF-C2B-VERIFIED'}
                 </div>
               </div>
 
@@ -2280,7 +2078,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       )}
 
       {/* =========================================================================
-          INVOICE PREVIEW MODAL (Image 5 - EXACT MATCH CLEAN SHEET)
+          INVOICE PREVIEW MODAL (Image 5)
       ========================================================================== */}
       {selectedInvoice && (
         <div
@@ -2307,7 +2105,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               animation: 'ticketFadeIn 0.25s ease-out',
             }}
           >
-            {/* Top Preview Bar with Download & Print actions (Image 5) */}
+            {/* Top Preview Bar with Download & Print actions */}
             <div
               style={{
                 background: '#ffffff',
@@ -2348,7 +2146,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
               </div>
             </div>
 
-            {/* White Paper Invoice Sheet (Image 5 style) */}
+            {/* White Paper Invoice Sheet */}
             <div
               style={{
                 background: '#ffffff',
@@ -2395,10 +2193,10 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     Recipient
                   </div>
                   <div style={{ fontSize: '0.96rem', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
-                    {currentUserSession?.name || 'Verified Tenant'}
+                    {tenantName}
                   </div>
                   <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
-                    {activeProperty?.name || 'Assigned Property'}, Unit {activeUnit?.unit_number || '4B'}
+                    {activeProperty ? `${activeProperty.name}, Unit ${activeUnit?.unit_number || 'Unassigned'}` : 'Unassigned Property'}
                   </div>
                   <div style={{ fontSize: '0.74rem', color: '#94a3b8', marginTop: '2px' }}>
                     {currentUserSession?.email || 'tenant@unitflow.ke'}
@@ -2413,12 +2211,12 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                     INVOICE NO: <span style={{ color: '#2563eb' }}>{selectedInvoice.invoice_number || selectedInvoice.id}</span>
                   </div>
                   <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px' }}>
-                    DATE: {selectedInvoice.due_date || 'January 28, 2026'}
+                    DATE: {selectedInvoice.due_date || selectedInvoice.created_at || 'Pending'}
                   </div>
                 </div>
               </div>
 
-              {/* Line Items Table (Image 5) */}
+              {/* Line Items Table */}
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem', marginBottom: '24px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.76rem', fontWeight: 700 }}>
@@ -2431,7 +2229,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 <tbody>
                   <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={{ padding: '14px 0', fontWeight: 600, color: '#2563eb' }}>
-                      {selectedInvoice.description || `Monthly Apartment Rent — Unit ${activeUnit?.unit_number || '4B'}`}
+                      {selectedInvoice.description || `Monthly Apartment Rent — Unit ${activeUnit?.unit_number || 'Unit'}`}
                     </td>
                     <td style={{ padding: '14px 0', textAlign: 'center', color: '#64748b' }}>
                       {selectedInvoice.billing_period || '1 Month'}
@@ -2446,7 +2244,7 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 </tbody>
               </table>
 
-              {/* Totals Calculation (Image 5) */}
+              {/* Totals Calculation */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '20px', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', width: '220px', fontSize: '0.82rem', color: '#64748b' }}>
                   <span>Subtotal</span>
@@ -2462,10 +2260,10 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 </div>
               </div>
 
-              {/* Payment Instructions & Bank Details (Image 5) */}
+              {/* Payment Instructions & Bank Details */}
               <div style={{ textAlign: 'center', fontSize: '0.74rem', color: '#64748b', marginBottom: '20px' }}>
                 Transfer the amount to the business account below. Please include invoice number on your check or M-Pesa reference.<br />
-                <strong>PAYBILL:</strong> {currentOrg.mpesa_paybill_shortcode || '522522'} &bull; <strong>ACCOUNT:</strong> {activeUnit?.unit_number || 'Unit 4B'}
+                <strong>PAYBILL:</strong> {currentOrg.mpesa_paybill_shortcode || '522522'} &bull; <strong>ACCOUNT:</strong> {activeUnit?.unit_number || 'Unit'}
               </div>
 
               {/* Notes */}

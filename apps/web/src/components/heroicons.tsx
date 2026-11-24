@@ -94,10 +94,18 @@ export const EnvelopeIcon = createHeroicon(OutlineIcons.EnvelopeIcon);
 export const MapPinIcon = createHeroicon(OutlineIcons.MapPinIcon);
 export const TruckIcon = createHeroicon(OutlineIcons.TruckIcon);
 export const BanknotesIcon = createHeroicon(OutlineIcons.BanknotesIcon);
+export const EllipsisHorizontalIcon = createHeroicon(OutlineIcons.EllipsisHorizontalIcon);
+export const AdjustmentsHorizontalIcon = createHeroicon(OutlineIcons.AdjustmentsHorizontalIcon);
+export const LightBulbIcon = createHeroicon(OutlineIcons.LightBulbIcon);
+export const FireIcon = createHeroicon(OutlineIcons.FireIcon);
 
 // ---------------------------------------------------------------------------
 // Named aliases mapping standard semantic names to official Heroicons
 // ---------------------------------------------------------------------------
+export const MoreHorizontal = EllipsisHorizontalIcon;
+export const SlidersHorizontal = AdjustmentsHorizontalIcon;
+export const Lightbulb = LightBulbIcon;
+export const Thermometer = FireIcon;
 export const LayoutDashboard = Squares2X2Icon;
 export const Building = BuildingOffice2Icon;
 export const Building2 = BuildingOffice2Icon;
