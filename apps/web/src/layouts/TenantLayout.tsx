@@ -28,8 +28,12 @@ import {
   Settings,
   ChevronDown,
   Check,
+  AlertCircle,
+  HelpCircle,
+  Search,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { apiClient } from '../lib/apiClient';
 
 export const TenantLayout: React.FC = () => {
   const { currentUserSession, logout } = useAuth();
@@ -37,50 +41,92 @@ export const TenantLayout: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [unreadNotifications, setUnreadNotifications] = useState(3);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [showTenancyDropdown, setShowTenancyDropdown] = useState(false);
 
-  // Available Active Tenancies for Multi-Tenancy Switcher
-  const tenancies = [
-    {
-      id: 'tenancy-greenview',
-      propertyName: 'Greenview Luxury Residences',
-      unitNumber: 'Unit A-204',
-      block: 'Block A',
-      location: 'Ruiru, Kiambu',
-      status: 'Active Lease',
-      rent: 25000,
-      badgeColor: '#10b981',
-    },
-    {
-      id: 'tenancy-silveroak',
-      propertyName: 'Silver Oak Apartments',
-      unitNumber: 'Unit B-12',
-      block: 'Block B',
-      location: 'Westlands, Nairobi',
-      status: 'Active Lease',
-      rent: 32000,
-      badgeColor: '#0ea5e9',
-    },
-  ];
-
+  // Live Tenancies from Backend
+  const [tenancies, setTenancies] = useState<any[]>([]);
+  const [isLoadingTenancies, setIsLoadingTenancies] = useState(true);
   const [activeTenancyId, setActiveTenancyId] = useState<string>(() => {
     try {
-      const saved = localStorage.getItem('unitflow_active_tenancy_id');
-      if (saved && (saved === 'tenancy-greenview' || saved === 'tenancy-silveroak')) {
-        return saved;
-      }
-    } catch {}
-    return 'tenancy-greenview';
+      return localStorage.getItem('unitflow_active_tenancy_id') || '';
+    } catch {
+      return '';
+    }
   });
 
-  const activeTenancy = tenancies.find((t) => t.id === activeTenancyId) || tenancies[0];
+  useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      setIsLoadingTenancies(true);
+      try {
+        const [leases, properties, units, notifs] = await Promise.all([
+          apiClient.getLeases().catch(() => []),
+          apiClient.getProperties().catch(() => []),
+          apiClient.getUnits().catch(() => []),
+          apiClient.getNotificationDeliveries().catch(() => []),
+        ]);
+
+        if (!isMounted) return;
+
+        if (Array.isArray(notifs)) {
+          const unread = notifs.filter((n: any) => n.status !== 'DELIVERED').length;
+          setUnreadNotifications(unread);
+        }
+
+        const activeLeases = (leases || []).filter(
+          (l: any) => l.status === 'ACTIVE' || l.status === 'Active Lease'
+        );
+
+        const mapped = activeLeases.map((l: any) => {
+          const prop = (properties || []).find((p: any) => p.id === l.property_id);
+          const unit = (units || []).find((u: any) => u.id === l.unit_id);
+          return {
+            id: l.id,
+            leaseId: l.id,
+            propertyId: l.property_id,
+            unitId: l.unit_id,
+            propertyName: prop?.name || 'Assigned Property',
+            unitNumber: unit?.unit_number || 'Unit',
+            block: unit?.block || prop?.location || '',
+            location: prop?.location || prop?.city || '',
+            status: l.status,
+            rent: l.rent_amount || l.rent || 0,
+            badgeColor: '#10b981',
+          };
+        });
+
+        setTenancies(mapped);
+        if (mapped.length > 0) {
+          const savedId = localStorage.getItem('unitflow_active_tenancy_id');
+          const found = mapped.find((m: any) => m.id === savedId) || mapped[0];
+          setActiveTenancyId(found.id);
+          window.dispatchEvent(new CustomEvent('unitflow_tenancy_switched', { detail: found }));
+        } else {
+          setActiveTenancyId('');
+        }
+      } catch (err) {
+        // Honest empty state
+      } finally {
+        if (isMounted) setIsLoadingTenancies(false);
+      }
+    }
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const activeTenancy = tenancies.find((t) => t.id === activeTenancyId) || (tenancies.length > 0 ? tenancies[0] : null);
 
   const handleSelectTenancy = (id: string) => {
     setActiveTenancyId(id);
     localStorage.setItem('unitflow_active_tenancy_id', id);
     setShowTenancyDropdown(false);
-    window.dispatchEvent(new CustomEvent('unitflow_tenancy_switched', { detail: { tenancyId: id } }));
+    const selected = tenancies.find((t) => t.id === id);
+    if (selected) {
+      window.dispatchEvent(new CustomEvent('unitflow_tenancy_switched', { detail: selected }));
+    }
   };
 
   // Unit Flow — Complete Primary Navigation
@@ -214,23 +260,19 @@ export const TenantLayout: React.FC = () => {
     .format(new Date())
     .toUpperCase();
 
-  const [profile, setProfile] = useState(() => {
+  const [profile] = useState<any>(() => {
     try {
       const saved = localStorage.getItem('unitflow_tenant_profile');
       if (saved) return JSON.parse(saved);
     } catch {}
-    return {
-      tenantName: 'Courtney Henry',
-      email: 'courtney@example.com',
-      unitNumber: 'Unit A-204',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
-    };
+    return null;
   });
 
-  const tenantName = profile.tenantName || currentUserSession?.user?.name || 'Courtney Henry';
-  const tenantEmail = profile.email || currentUserSession?.user?.email || 'courtney@example.com';
-  const tenantAvatar = profile.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80';
-  const firstName = tenantName.split(' ')[0] || 'Courtney';
+  const tenantName = currentUserSession?.name || profile?.tenantName || 'Tenant Resident';
+  const tenantEmail = currentUserSession?.email || profile?.email || '';
+  const tenantAvatar = currentUserSession?.avatar || profile?.avatar || '';
+  const initials = tenantName ? tenantName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() : 'TR';
+  const firstName = tenantName.split(' ')[0] || 'Resident';
 
   return (
     <div
@@ -258,11 +300,11 @@ export const TenantLayout: React.FC = () => {
         />
       )}
 
-      {/* Modern High-End Sidebar */}
+      {/* Modern High-End Sidebar (Image 1, 2, 6, 7 Resident Portal Style) */}
       <aside
         style={{
           width: isSidebarCollapsed ? '76px' : '260px',
-          background: '#0f172a', // Deep elegant navy slate
+          background: '#101322', // Sleek resident portal dark navy
           color: '#ffffff',
           display: 'flex',
           flexDirection: 'column',
@@ -273,7 +315,7 @@ export const TenantLayout: React.FC = () => {
           left: 0,
           zIndex: 50,
           transition: 'width 0.2s ease, transform 0.2s ease',
-          borderRight: '1px solid #1e293b',
+          borderRight: '1px solid rgba(255, 255, 255, 0.06)',
         }}
         className={`md:flex ${isMobileMenuOpen ? 'flex' : 'hidden'}`}
       >
@@ -386,14 +428,14 @@ export const TenantLayout: React.FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
                     <Home size={13} color="#38bdf8" />
                     <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {activeTenancy.propertyName}
+                      {isLoadingTenancies ? 'Loading Tenancies...' : activeTenancy ? activeTenancy.propertyName : 'No Active Tenancy'}
                     </span>
                   </div>
-                  <ChevronDown size={13} color="#94a3b8" />
+                  {tenancies.length > 1 && <ChevronDown size={13} color="#94a3b8" />}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.7rem', color: '#94a3b8' }}>
-                  <span>{activeTenancy.unitNumber} &bull; {activeTenancy.location}</span>
-                  <span style={{ color: activeTenancy.badgeColor, fontWeight: 700 }}>● Active</span>
+                  <span>{activeTenancy ? `${activeTenancy.unitNumber} • ${activeTenancy.location}` : 'No active lease linked'}</span>
+                  {activeTenancy && <span style={{ color: activeTenancy.badgeColor, fontWeight: 700 }}>● Active</span>}
                 </div>
               </div>
 
@@ -471,12 +513,12 @@ export const TenantLayout: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '10px',
-                    padding: isSidebarCollapsed ? '9px' : '7px 10px',
-                    borderRadius: '8px',
+                    padding: isSidebarCollapsed ? '9px' : '8px 12px',
+                    borderRadius: '10px',
                     fontSize: '0.82rem',
-                    fontWeight: active ? 600 : 500,
-                    color: active ? '#ffffff' : '#94a3b8',
-                    background: active ? '#2563eb' : 'transparent',
+                    fontWeight: active ? 700 : 500,
+                    color: active ? '#f97316' : '#94a3b8',
+                    background: active ? 'rgba(249, 115, 22, 0.12)' : 'transparent',
                     textDecoration: 'none',
                     justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
                     transition: 'all 0.15s ease',
@@ -484,7 +526,7 @@ export const TenantLayout: React.FC = () => {
                   }}
                   title={isSidebarCollapsed ? `${item.label} — ${item.sublabel}` : undefined}
                 >
-                  <span style={{ color: active ? '#ffffff' : '#94a3b8', flexShrink: 0 }}>
+                  <span style={{ color: active ? '#f97316' : '#94a3b8', flexShrink: 0 }}>
                     {item.icon}
                   </span>
                   {!isSidebarCollapsed && (
@@ -529,19 +571,19 @@ export const TenantLayout: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '10px',
-                    padding: isSidebarCollapsed ? '9px' : '7px 10px',
-                    borderRadius: '8px',
+                    padding: isSidebarCollapsed ? '9px' : '8px 12px',
+                    borderRadius: '10px',
                     fontSize: '0.82rem',
-                    fontWeight: active ? 600 : 500,
-                    color: active ? '#ffffff' : '#94a3b8',
-                    background: active ? '#2563eb' : 'transparent',
+                    fontWeight: active ? 700 : 500,
+                    color: active ? '#f97316' : '#94a3b8',
+                    background: active ? 'rgba(249, 115, 22, 0.12)' : 'transparent',
                     textDecoration: 'none',
                     justifyContent: isSidebarCollapsed ? 'center' : 'flex-start',
                     transition: 'all 0.15s ease',
                   }}
                   title={isSidebarCollapsed ? `${item.label} — ${item.sublabel}` : undefined}
                 >
-                  <span style={{ color: active ? '#ffffff' : '#94a3b8', flexShrink: 0 }}>
+                  <span style={{ color: active ? '#f97316' : '#94a3b8', flexShrink: 0 }}>
                     {item.icon}
                   </span>
                   {!isSidebarCollapsed && (
@@ -670,13 +712,52 @@ export const TenantLayout: React.FC = () => {
             </div>
           </div>
 
+          {/* Center Search Bar (Image 7 / 1 Style) */}
+          <div style={{ position: 'relative', width: '320px' }} className="hidden md:block">
+            <Search
+              size={15}
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '14px',
+                transform: 'translateY(-50%)',
+                color: '#94a3b8',
+              }}
+            />
+            <input
+              type="text"
+              placeholder="Search for payments, documents, tickets..."
+              style={{
+                width: '100%',
+                padding: '9px 14px 9px 38px',
+                borderRadius: '20px',
+                border: '1px solid #e2e8f0',
+                background: '#f8fafc',
+                fontSize: '0.82rem',
+                outline: 'none',
+                color: '#0f172a',
+                transition: 'all 0.15s ease',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.borderColor = '#94a3b8';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.background = '#f8fafc';
+                e.currentTarget.style.borderColor = '#e2e8f0';
+              }}
+            />
+          </div>
+
           {/* Right: Tenancy Switcher Dropdown, Notifications Bell, Profile Avatar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             {/* Top Bar Property/Tenancy Selector */}
             <div style={{ position: 'relative' }}>
               <button
                 type="button"
-                onClick={() => setShowTenancyDropdown(!showTenancyDropdown)}
+                onClick={() => {
+                  if (tenancies.length > 1) setShowTenancyDropdown(!showTenancyDropdown);
+                }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -688,12 +769,18 @@ export const TenantLayout: React.FC = () => {
                   borderRadius: '20px',
                   fontSize: '0.78rem',
                   fontWeight: 700,
-                  cursor: 'pointer',
+                  cursor: tenancies.length > 1 ? 'pointer' : 'default',
                 }}
               >
                 <Home size={13} color="#2563eb" />
-                <span>{activeTenancy.propertyName} &bull; {activeTenancy.unitNumber}</span>
-                <ChevronDown size={13} color="#64748b" />
+                <span>
+                  {isLoadingTenancies
+                    ? 'Loading Tenancies...'
+                    : activeTenancy
+                    ? `${activeTenancy.propertyName} • ${activeTenancy.unitNumber}`
+                    : 'No Active Tenancy Linked'}
+                </span>
+                {tenancies.length > 1 && <ChevronDown size={13} color="#64748b" />}
               </button>
 
               {showTenancyDropdown && (
@@ -807,17 +894,36 @@ export const TenantLayout: React.FC = () => {
                 color: 'inherit',
               }}
             >
-              <img
-                src={tenantAvatar}
-                alt={tenantName}
-                style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                  border: '1.5px solid #e2e8f0',
-                }}
-              />
+              {tenantAvatar ? (
+                <img
+                  src={tenantAvatar}
+                  alt={tenantName}
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '1.5px solid #e2e8f0',
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {initials}
+                </div>
+              )}
               <div className="hidden sm:block" style={{ lineHeight: 1.2 }}>
                 <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a' }}>
                   {tenantName}

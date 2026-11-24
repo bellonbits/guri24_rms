@@ -14,6 +14,8 @@ import {
   CheckCircle2,
   Lock,
 } from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
+import { apiClient } from '../../../lib/apiClient';
 
 interface SettingsViewProps {
   onBack?: () => void;
@@ -21,13 +23,14 @@ interface SettingsViewProps {
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, showToast }) => {
+  const { currentUserSession, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<'security' | 'notifications' | 'privacy'>('security');
 
   // Security state
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [mfaEnabled, setMfaEnabled] = useState(true);
+  const [mfaEnabled, setMfaEnabled] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
 
   // Notification preferences
@@ -37,13 +40,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, showToast })
     emailAnnouncements: true,
     smsRent: true,
     smsEmergency: true,
-    smsMaintenance: false,
-    inAppAll: true,
   });
 
-  const [currencyPref, setCurrencyPref] = useState<'KES' | 'USD'>('KES');
-
-  const handleUpdatePassword = (e: React.FormEvent) => {
+  const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       if (showToast) showToast('New passwords do not match.');
@@ -55,19 +54,29 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, showToast })
     }
 
     setSavingPassword(true);
-    setTimeout(() => {
-      setSavingPassword(false);
+    try {
+      if (currentUserSession?.email) {
+        await apiClient.resetPassword({
+          email: currentUserSession.email,
+          new_password: newPassword,
+          token: 'active_session_auth',
+        });
+      }
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       if (showToast) showToast('Password updated securely.');
-    }, 900);
+    } catch (err: any) {
+      if (showToast) showToast(err?.message || 'Password update failed.');
+    } finally {
+      setSavingPassword(false);
+    }
   };
 
   const handleToggleMfa = () => {
     setMfaEnabled(!mfaEnabled);
     if (showToast) {
-      showToast(!mfaEnabled ? 'Two-Factor Authentication (SMS OTP) enabled.' : 'Two-Factor Authentication disabled.');
+      showToast(!mfaEnabled ? 'Two-Factor Authentication enabled.' : 'Two-Factor Authentication disabled.');
     }
   };
 
@@ -75,18 +84,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, showToast })
     <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '60px' }}>
       {/* Top Header */}
       <div style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#6366f1', background: '#eef2ff', padding: '3px 10px', borderRadius: '12px' }}>
-            Account Control
-          </span>
-          <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>•</span>
-          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Security & Preferences</span>
-        </div>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#131726', letterSpacing: '-0.02em', margin: 0 }}>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', margin: 0 }}>
           Account Settings
         </h1>
         <p style={{ fontSize: '0.88rem', color: '#64748b', margin: '4px 0 0 0' }}>
-          Manage your login credentials, multi-factor authentication, active sessions, and communication channels.
+          Manage your login credentials, active sessions, and notification channels.
         </p>
       </div>
 
@@ -133,11 +135,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, showToast })
                 <Key size={18} />
               </div>
               <div>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#131726', margin: 0 }}>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
                   Change Password
                 </h3>
                 <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                  Ensure your account uses a secure password of at least 8 characters.
+                  Update your authentication credentials securely.
                 </div>
               </div>
             </div>
@@ -145,25 +147,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, showToast })
             <form onSubmit={handleUpdatePassword} style={{ maxWidth: '480px' }}>
               <div style={{ marginBottom: '14px' }}>
                 <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
-                  required
-                />
-              </div>
-
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                   New Password
                 </label>
                 <input
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="At least 8 characters"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
@@ -177,7 +165,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, showToast })
                 </label>
                 <input
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="Repeat new password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
@@ -212,11 +200,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, showToast })
                   <Smartphone size={20} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#131726', margin: 0 }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
                     Two-Factor Authentication (2FA)
                   </h3>
                   <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
-                    Receive a 6-digit verification code via SMS to +44 9999 999 999 on login.
+                    Require a verification code on login.
                   </div>
                 </div>
               </div>
@@ -232,12 +220,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, showToast })
                   fontWeight: 700,
                   fontSize: '0.84rem',
                   cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
                 }}
               >
-                {mfaEnabled ? <CheckCircle2 size={16} /> : null}
                 {mfaEnabled ? 'Enabled' : 'Disabled'}
               </button>
             </div>
@@ -245,73 +229,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, showToast })
 
           {/* Active Sessions */}
           <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <div>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#131726', margin: 0 }}>
-                  Active Device Sessions
-                </h3>
-                <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
-                  Devices currently signed in to your Courtney Henry tenant account.
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  if (showToast) showToast('Logged out of all other device sessions.');
-                }}
-                style={{
-                  padding: '8px 14px',
-                  background: '#ffffff',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  color: '#dc2626',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Log Out Other Devices
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#f8fafc', borderRadius: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Laptop size={20} color="#64748b" />
-                  <div>
-                    <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#131726' }}>
-                      Chrome on macOS (Current Session)
-                    </div>
-                    <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                      Nairobi, Kenya • IP 102.217.64.12 • Active Now
-                    </div>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: '0 0 16px 0' }}>
+              Active Device Session
+            </h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: '#f8fafc', borderRadius: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Laptop size={20} color="#64748b" />
+                <div>
+                  <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>
+                    Current Browser Session
+                  </div>
+                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                    {currentUserSession?.email || 'Authenticated User'} &bull; Active Now
                   </div>
                 </div>
-                <span style={{ fontSize: '0.72rem', fontWeight: 700, background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '10px' }}>
-                  Current
-                </span>
               </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Smartphone size={20} color="#64748b" />
-                  <div>
-                    <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#131726' }}>
-                      Safari on iPhone 15 Pro
-                    </div>
-                    <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                      Nairobi, Kenya • 2 hours ago
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    if (showToast) showToast('Session revoked.');
-                  }}
-                  style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.75rem', cursor: 'pointer' }}
-                >
-                  Revoke
-                </button>
-              </div>
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, background: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '8px' }}>
+                Active
+              </span>
             </div>
           </div>
         </div>
@@ -319,35 +254,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, showToast })
 
       {activeTab === 'notifications' && (
         <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '24px' }}>
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#131726', margin: '0 0 4px 0' }}>
-            Notification Channels & Triggers
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: '0 0 16px 0' }}>
+            Notification Channels
           </h3>
-          <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 20px 0' }}>
-            Customize which alerts you receive via Email and SMS.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {[
-              { id: 'emailRent', label: 'Rent Invoices & Payment Receipts (Email)', desc: 'Sent when monthly rent is billed and when C2B payments are verified.' },
-              { id: 'emailMaintenance', label: 'Maintenance Progress Updates (Email)', desc: 'Sent when a technician is scheduled or a ticket is resolved.' },
-              { id: 'emailAnnouncements', label: 'Estate Notices & Water/Power Alerts (Email)', desc: 'Bulletins and planned utility interruption notices.' },
-              { id: 'smsRent', label: 'Rent Due Reminders (SMS to mobile)', desc: 'Friendly SMS reminders 3 days before rent due date.' },
-              { id: 'smsEmergency', label: 'Emergency Estate Broadcasts (SMS)', desc: 'Security, fire drills, or urgent perimeter safety alerts (Mandatory).' },
+              { id: 'emailRent', label: 'Rent Invoices & Payment Confirmations (Email)' },
+              { id: 'emailMaintenance', label: 'Maintenance Progress Updates (Email)' },
+              { id: 'emailAnnouncements', label: 'Official Estate Bulletins (Email)' },
+              { id: 'smsRent', label: 'Rent Due Reminders (SMS)' },
+              { id: 'smsEmergency', label: 'Emergency Safety Broadcasts (SMS)' },
             ].map((item) => (
-              <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '14px', borderBottom: '1px solid #f1f5f9' }}>
-                <div>
-                  <div style={{ fontSize: '0.86rem', fontWeight: 600, color: '#131726' }}>{item.label}</div>
-                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>{item.desc}</div>
-                </div>
+              <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '0.86rem', color: '#334155', fontWeight: 500 }}>{item.label}</div>
                 <input
                   type="checkbox"
                   checked={(notifSettings as any)[item.id] !== false}
-                  disabled={item.id === 'smsEmergency'}
                   onChange={(e) => {
                     setNotifSettings({ ...notifSettings, [item.id]: e.target.checked });
                     if (showToast) showToast('Preferences updated.');
                   }}
-                  style={{ width: '18px', height: '18px', cursor: item.id === 'smsEmergency' ? 'not-allowed' : 'pointer' }}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                 />
               </div>
             ))}
@@ -357,70 +284,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onBack, showToast })
 
       {activeTab === 'privacy' && (
         <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '24px' }}>
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#131726', margin: '0 0 4px 0' }}>
-            Privacy & Data Sovereignty
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: '0 0 16px 0' }}>
+            Privacy & Tenancy Data Export
           </h3>
-          <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 20px 0' }}>
-            In compliance with the Kenya Data Protection Act 2019 and international GDPR privacy standards.
+          <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.6, margin: '0 0 20px 0' }}>
+            In accordance with the Kenya Data Protection Act 2019 and privacy regulations, you can request an export of your tenancy records.
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: '#f8fafc', borderRadius: '12px' }}>
-              <div>
-                <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#131726' }}>
-                  Export Personal Tenancy Data
-                </div>
-                <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                  Download an archive containing your lease agreements, payment history, maintenance records, and profile details.
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  if (showToast) showToast('Data export initiated. You will receive a secure download link via email.');
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '9px 16px',
-                  background: '#ffffff',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                <Download size={15} /> Export Archive (ZIP)
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '12px' }}>
-              <div>
-                <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#991b1b' }}>
-                  Account Closure & Data Anonymisation
-                </div>
-                <div style={{ fontSize: '0.76rem', color: '#7f1d1d' }}>
-                  Account closure is only permitted after lease termination, move-out inspection sign-off, and zero outstanding balance.
-                </div>
-              </div>
-              <button
-                disabled
-                style={{
-                  padding: '9px 16px',
-                  background: '#fee2e2',
-                  border: '1px solid #fca5a5',
-                  color: '#991b1b',
-                  borderRadius: '8px',
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  cursor: 'not-allowed',
-                }}
-              >
-                Active Tenancy Locked
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={() => {
+              if (showToast) showToast('Tenancy data archive requested. Link will be sent to your email.');
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '10px 18px',
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
+              borderRadius: '8px',
+              fontSize: '0.84rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            <Download size={15} /> Export Personal Tenancy Data
+          </button>
         </div>
       )}
     </div>

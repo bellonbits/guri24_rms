@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   FileText,
   Download,
@@ -13,150 +13,124 @@ import {
   ArrowUpRight,
   RefreshCw,
 } from 'lucide-react';
+import { apiClient } from '../../../lib/apiClient';
+import type { Invoice, Payment } from '../../../types';
 
 interface StatementsViewProps {
-  propertyName: string;
-  unitNumber: string;
-  tenantName: string;
-  currencyMode: 'KES' | 'USD';
-  fmt: (amountKes: number, amountUsd?: number) => string;
-  showToast: (msg: string) => void;
+  onBack?: () => void;
+  showToast?: (msg: string) => void;
 }
 
-export const StatementsView: React.FC<StatementsViewProps> = ({
-  propertyName,
-  unitNumber,
-  tenantName,
-  currencyMode,
-  fmt,
-  showToast,
-}) => {
-  const [selectedYear, setSelectedYear] = useState('2026');
-  const [filterType, setFilterType] = useState('ALL');
-  const [dateRange, setDateRange] = useState('Full Year');
+export const StatementsView: React.FC<StatementsViewProps> = ({ onBack, showToast }) => {
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [financeError, setFinanceError] = useState<string | null>(null);
 
-  // Authoritative double-entry statement transactions from Spring Boot Finance Service
-  const [statementRows] = useState([
-    {
-      id: 'st-01',
-      date: '01 Nov 2026',
-      ref: 'RCP-2026-1101',
-      mpesaRef: 'QKH782910X',
-      description: 'Lipa Na M-Pesa C2B V2 Payment (Rent & Service Charge)',
-      type: 'PAYMENT',
-      chargeKes: 0,
-      creditKes: 27500,
-      balanceKes: 0,
-      verified: true,
-    },
-    {
-      id: 'st-02',
-      date: '01 Nov 2026',
-      ref: 'INV-2026-1101',
-      mpesaRef: '-',
-      description: 'Monthly Lease Commitment — Unit A-204 (Nov 2026)',
-      type: 'RENT',
-      chargeKes: 25000,
-      creditKes: 0,
-      balanceKes: 27500,
-      verified: true,
-    },
-    {
-      id: 'st-03',
-      date: '01 Nov 2026',
-      ref: 'SC-2026-1101',
-      mpesaRef: '-',
-      description: 'Estate Common Amenities, Security & Garbage (Nov 2026)',
-      type: 'SERVICE_CHARGE',
-      chargeKes: 2500,
-      creditKes: 0,
-      balanceKes: 2500,
-      verified: true,
-    },
-    {
-      id: 'st-04',
-      date: '15 Oct 2026',
-      ref: 'WTR-2026-1015',
-      mpesaRef: 'WTR-MTR-204',
-      description: 'Metrix Sub-Metered Water Consumption (14 Units)',
-      type: 'UTILITY',
-      chargeKes: 1586,
-      creditKes: 0,
-      balanceKes: 0,
-      verified: true,
-    },
-    {
-      id: 'st-05',
-      date: '15 Oct 2026',
-      ref: 'RCP-2026-1015',
-      mpesaRef: 'QJD981720X',
-      description: 'M-Pesa Utility Settlement (Meter Reading M-204)',
-      type: 'PAYMENT',
-      chargeKes: 0,
-      creditKes: 1586,
-      balanceKes: 0,
-      verified: true,
-    },
-    {
-      id: 'st-06',
-      date: '01 Oct 2026',
-      ref: 'RCP-2026-1001',
-      mpesaRef: 'QJ92K81N2P',
-      description: 'Lipa Na M-Pesa C2B V2 Payment (Rent & Service Charge)',
-      type: 'PAYMENT',
-      chargeKes: 0,
-      creditKes: 27500,
-      balanceKes: 0,
-      verified: true,
-    },
-    {
-      id: 'st-07',
-      date: '01 Oct 2026',
-      ref: 'INV-2026-1001',
-      mpesaRef: '-',
-      description: 'Monthly Lease Commitment — Unit A-204 (Oct 2026)',
-      type: 'RENT',
-      chargeKes: 25000,
-      creditKes: 0,
-      balanceKes: 27500,
-      verified: true,
-    },
-    {
-      id: 'st-08',
-      date: '01 Oct 2026',
-      ref: 'SC-2026-1001',
-      mpesaRef: '-',
-      description: 'Estate Common Amenities, Security & Garbage (Oct 2026)',
-      type: 'SERVICE_CHARGE',
-      chargeKes: 2500,
-      creditKes: 0,
-      balanceKes: 2500,
-      verified: true,
-    },
-  ]);
+  const [filterType, setFilterType] = useState('ALL');
+
+  const loadFinanceData = async () => {
+    setIsLoading(true);
+    setFinanceError(null);
+    try {
+      const [invRes, payRes] = await Promise.all([
+        apiClient.getInvoices(),
+        apiClient.getPayments(),
+      ]);
+      setInvoices(invRes || []);
+      setPayments(payRes || []);
+    } catch (err: any) {
+      setFinanceError(err?.message || 'Financial information unavailable. Spring Boot finance service may be unreachable.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadFinanceData();
+  }, []);
+
+  // Merge authoritative invoices and payments into unified double-entry ledger rows
+  const ledgerRows = useMemo(() => {
+    const rows: any[] = [];
+
+    // Add Invoices as charges (debits)
+    invoices.forEach((inv) => {
+      rows.push({
+        id: inv.id,
+        date: inv.created_at || inv.due_date || 'Undated',
+        timestamp: new Date(inv.created_at || inv.due_date || 0).getTime(),
+        ref: inv.invoice_number || inv.id,
+        type: 'INVOICE',
+        description: inv.description || `Rent Invoice for period ${inv.billing_period || ''}`,
+        chargeKes: inv.amount || 0,
+        creditKes: 0,
+        status: inv.status,
+      });
+    });
+
+    // Add Payments as credits
+    payments.forEach((pay) => {
+      rows.push({
+        id: pay.id,
+        date: pay.created_at || 'Undated',
+        timestamp: new Date(pay.created_at || 0).getTime(),
+        ref: pay.reference || pay.mpesa_receipt_number || pay.id,
+        type: 'PAYMENT',
+        description: `Verified Payment via ${pay.channel || 'Safaricom C2B'} (Ref: ${pay.reference || pay.mpesa_receipt_number || ''})`,
+        chargeKes: 0,
+        creditKes: pay.amount || 0,
+        status: pay.status,
+      });
+    });
+
+    // Sort chronologically ascending to calculate running balance
+    rows.sort((a, b) => a.timestamp - b.timestamp);
+
+    let runningBalance = 0;
+    return rows.map((r) => {
+      runningBalance += r.chargeKes - r.creditKes;
+      return {
+        ...r,
+        balanceKes: runningBalance,
+      };
+    });
+  }, [invoices, payments]);
 
   const filteredRows = useMemo(() => {
-    if (filterType === 'PAYMENTS') return statementRows.filter((r) => r.type === 'PAYMENT');
-    if (filterType === 'CHARGES') return statementRows.filter((r) => r.type !== 'PAYMENT');
-    return statementRows;
-  }, [statementRows, filterType]);
+    if (filterType === 'INVOICES') return ledgerRows.filter((r) => r.type === 'INVOICE');
+    if (filterType === 'PAYMENTS') return ledgerRows.filter((r) => r.type === 'PAYMENT');
+    return ledgerRows;
+  }, [ledgerRows, filterType]);
 
-  const totalBilledKes = statementRows.reduce((acc, r) => acc + r.chargeKes, 0);
-  const totalPaidKes = statementRows.reduce((acc, r) => acc + r.creditKes, 0);
-  const currentBalanceKes = totalBilledKes - totalPaidKes;
+  const totalBilled = invoices.reduce((sum, inv) => sum + (inv.amount || 0), 0);
+  const totalPaid = payments.reduce((sum, pay) => sum + (pay.amount || 0), 0);
+  const netBalance = totalBilled - totalPaid;
 
-  const handleExportCSV = () => {
-    let csv = 'Date,Reference,M-Pesa Ref,Description,Type,Charge (KES),Paid (KES),Running Balance (KES)\n';
-    filteredRows.forEach((r) => {
-      csv += `"${r.date}","${r.ref}","${r.mpesaRef}","${r.description}","${r.type}",${r.chargeKes},${r.creditKes},${r.balanceKes}\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const handleExportCsv = () => {
+    if (filteredRows.length === 0) {
+      if (showToast) showToast('No statement rows available to export.');
+      return;
+    }
+    const headers = 'Date,Reference,Type,Description,Charge (KES),Credit (KES),Running Balance (KES)\n';
+    const csvContent =
+      headers +
+      filteredRows
+        .map(
+          (r) =>
+            `"${r.date}","${r.ref}","${r.type}","${r.description.replace(/"/g, '""')}",${r.chargeKes},${r.creditKes},${r.balanceKes}`
+        )
+        .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Rent_Statement_${unitNumber.replace(/\s+/g, '_')}_${selectedYear}.csv`;
+    link.setAttribute('download', `rent_statement_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
     link.click();
-    showToast('Rent statement CSV exported successfully!');
+    document.body.removeChild(link);
+    if (showToast) showToast('Statement CSV exported.');
   };
 
   const handlePrint = () => {
@@ -164,222 +138,212 @@ export const StatementsView: React.FC<StatementsViewProps> = ({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '60px' }}>
+      {/* Top Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
-            Rent Statements
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', margin: 0 }}>
+            Rent Statements & Ledger
           </h1>
-          <p style={{ margin: '4px 0 0 0', fontSize: '0.86rem', color: '#64748b' }}>
-            Authoritative statement of rental account, double-entry charges, and verified C2B allocations.
+          <p style={{ fontSize: '0.88rem', color: '#64748b', margin: '4px 0 0 0' }}>
+            Authoritative double-entry rent ledger from Spring Boot Finance Service.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '10px' }}>
           <button
-            type="button"
-            onClick={handleExportCSV}
+            onClick={handleExportCsv}
+            disabled={filteredRows.length === 0}
             style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '9px 16px',
               background: '#ffffff',
               border: '1px solid #cbd5e1',
               borderRadius: '8px',
-              padding: '8px 14px',
-              fontSize: '0.82rem',
+              fontSize: '0.84rem',
               fontWeight: 600,
               color: '#334155',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
+              cursor: filteredRows.length === 0 ? 'not-allowed' : 'pointer',
+              opacity: filteredRows.length === 0 ? 0.6 : 1,
             }}
           >
-            <Download size={14} />
-            <span>Export CSV</span>
+            <Download size={15} /> Export CSV
           </button>
           <button
-            type="button"
             onClick={handlePrint}
+            disabled={filteredRows.length === 0}
             style={{
-              background: '#2563eb',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '8px 16px',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              color: '#ffffff',
-              cursor: 'pointer',
-              display: 'inline-flex',
+              display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
-            }}
-          >
-            <Printer size={14} />
-            <span>Print PDF</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Summary KPI Cards */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '16px',
-        }}
-      >
-        <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px 22px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Opening Balance</span>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginTop: '6px' }}>{fmt(0)}</div>
-          <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px' }}>As of 1 Jan {selectedYear}</div>
-        </div>
-
-        <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px 22px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Rent & Charges Billed</span>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginTop: '6px' }}>{fmt(totalBilledKes)}</div>
-          <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px' }}>Total Invoices Issued</div>
-        </div>
-
-        <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px 22px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Payments Received</span>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#059669', marginTop: '6px' }}>{fmt(totalPaidKes)}</div>
-          <div style={{ fontSize: '0.74rem', color: '#059669', marginTop: '2px' }}>✓ 100% C2B V2 Verified</div>
-        </div>
-
-        <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '16px', padding: '20px 22px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Current Balance</span>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: currentBalanceKes > 0 ? '#ef4444' : '#059669', marginTop: '6px' }}>
-            {fmt(currentBalanceKes)}
-          </div>
-          <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px' }}>
-            {currentBalanceKes === 0 ? '✓ Account Settled (No Arrears)' : 'Due on 1st'}
-          </div>
-        </div>
-      </div>
-
-      {/* Filter Bar */}
-      <div
-        style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '16px',
-          padding: '16px 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '14px',
-        }}
-      >
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700 }}>Filter:</span>
-          {(['ALL', 'CHARGES', 'PAYMENTS'] as const).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setFilterType(t)}
-              style={{
-                background: filterType === t ? '#2563eb' : '#f8fafc',
-                color: filterType === t ? '#ffffff' : '#475569',
-                border: '1px solid',
-                borderColor: filterType === t ? '#2563eb' : '#cbd5e1',
-                borderRadius: '8px',
-                padding: '6px 14px',
-                fontSize: '0.78rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              {t === 'ALL' ? 'All Transactions' : t === 'CHARGES' ? 'Charges & Debits' : 'Payments & Credits'}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Financial Year:</span>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-            style={{
+              padding: '9px 16px',
               background: '#ffffff',
               border: '1px solid #cbd5e1',
               borderRadius: '8px',
-              padding: '6px 12px',
-              fontSize: '0.82rem',
-              color: '#0f172a',
-              outline: 'none',
-              cursor: 'pointer',
+              fontSize: '0.84rem',
+              fontWeight: 600,
+              color: '#334155',
+              cursor: filteredRows.length === 0 ? 'not-allowed' : 'pointer',
+              opacity: filteredRows.length === 0 ? 0.6 : 1,
             }}
           >
-            <option value="2026">FY 2026</option>
-            <option value="2025">FY 2025</option>
-            <option value="2024">FY 2024</option>
-          </select>
+            <Printer size={15} /> Print Statement
+          </button>
         </div>
       </div>
 
-      {/* Statement Table */}
-      <div
-        style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          borderRadius: '18px',
-          overflow: 'hidden',
-          boxShadow: '0 4px 25px rgba(0,0,0,0.02)',
-        }}
-      >
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <div style={{ fontSize: '0.94rem', fontWeight: 800, color: '#0f172a' }}>
-              Ledger Statement of Account
+      {/* Financial Health Banner / Status */}
+      {financeError ? (
+        <div style={{ background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '16px', padding: '24px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <AlertCircle size={32} color="#dc2626" />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 800, fontSize: '0.98rem', color: '#991b1b' }}>
+              Financial information unavailable
             </div>
-            <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
-              Tenant: <strong>{tenantName}</strong> &bull; Premises: <strong>{propertyName} ({unitNumber})</strong>
+            <div style={{ fontSize: '0.84rem', color: '#7f1d1d', marginTop: '2px' }}>
+              {financeError}
             </div>
           </div>
-          <span style={{ fontSize: '0.72rem', background: '#ecfdf5', color: '#059669', padding: '3px 10px', borderRadius: '12px', fontWeight: 700, border: '1px solid #a7f3d0' }}>
-            Spring Boot Double-Entry Reconciled
-          </span>
+          <button
+            onClick={loadFinanceData}
+            style={{ padding: '8px 16px', background: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer' }}
+          >
+            Retry
+          </button>
         </div>
+      ) : (
+        /* Summary Metric Cards */
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '20px' }}>
+            <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, marginBottom: '6px' }}>Total Invoiced Charges</div>
+            <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#0f172a' }}>
+              KES {totalBilled.toLocaleString()}
+            </div>
+            <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '4px' }}>
+              {invoices.length} {invoices.length === 1 ? 'invoice' : 'invoices'} posted
+            </div>
+          </div>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
-                <th style={{ padding: '12px 18px', fontWeight: 700 }}>Date</th>
-                <th style={{ padding: '12px 14px', fontWeight: 700 }}>Reference</th>
-                <th style={{ padding: '12px 14px', fontWeight: 700 }}>Description</th>
-                <th style={{ padding: '12px 14px', fontWeight: 700 }}>M-Pesa Ref</th>
-                <th style={{ padding: '12px 14px', fontWeight: 700, textAlign: 'right' }}>Charges (Debit)</th>
-                <th style={{ padding: '12px 14px', fontWeight: 700, textAlign: 'right' }}>Payments (Credit)</th>
-                <th style={{ padding: '12px 18px', fontWeight: 700, textAlign: 'right' }}>Balance</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRows.map((row) => {
-                const isPmt = row.type === 'PAYMENT';
-                return (
-                  <tr key={row.id} style={{ borderBottom: '1px solid #f8fafc' }}>
-                    <td style={{ padding: '12px 18px', color: '#64748b', whiteSpace: 'nowrap' }}>{row.date}</td>
-                    <td style={{ padding: '12px 14px', fontWeight: 700, color: '#0f172a', fontFamily: 'monospace' }}>{row.ref}</td>
-                    <td style={{ padding: '12px 14px', color: '#334155' }}>{row.description}</td>
-                    <td style={{ padding: '12px 14px', color: '#64748b', fontFamily: 'monospace' }}>{row.mpesaRef}</td>
-                    <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: row.chargeKes > 0 ? 700 : 400, color: row.chargeKes > 0 ? '#0f172a' : '#94a3b8' }}>
-                      {row.chargeKes > 0 ? fmt(row.chargeKes) : '-'}
+          <div style={{ background: '#ffffff', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '20px' }}>
+            <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, marginBottom: '6px' }}>Total Verified Payments</div>
+            <div style={{ fontSize: '1.45rem', fontWeight: 800, color: '#16a34a' }}>
+              KES {totalPaid.toLocaleString()}
+            </div>
+            <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '4px' }}>
+              {payments.length} {payments.length === 1 ? 'payment' : 'payments'} verified
+            </div>
+          </div>
+
+          <div style={{ background: '#ffffff', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '20px' }}>
+            <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, marginBottom: '6px' }}>Outstanding Balance</div>
+            <div style={{ fontSize: '1.45rem', fontWeight: 800, color: netBalance > 0 ? '#dc2626' : '#059669' }}>
+              KES {netBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </div>
+            <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '4px' }}>
+              {netBalance === 0 ? 'Account fully settled' : 'Unpaid balance outstanding'}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filter Tabs */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+        {[
+          { id: 'ALL', label: 'All Transactions' },
+          { id: 'INVOICES', label: 'Invoiced Charges Only' },
+          { id: 'PAYMENTS', label: 'Verified Payments Only' },
+        ].map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setFilterType(f.id)}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '20px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              background: filterType === f.id ? '#0f172a' : '#f1f5f9',
+              color: filterType === f.id ? '#ffffff' : '#64748b',
+            }}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Table Container */}
+      <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+        {isLoading ? (
+          <div style={{ padding: '60px 20px', textAlign: 'center', color: '#64748b' }}>
+            <RefreshCw size={28} className="animate-spin" style={{ margin: '0 auto 12px auto', color: '#2563eb' }} />
+            <div>Querying authoritative financial ledger...</div>
+          </div>
+        ) : filteredRows.length === 0 ? (
+          <div style={{ padding: '60px 20px', textAlign: 'center', color: '#64748b' }}>
+            <FileText size={40} color="#94a3b8" style={{ margin: '0 auto 12px auto', strokeWidth: 1.5 }} />
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#1e293b', margin: '0 0 4px 0' }}>
+              No statement records found
+            </h3>
+            <p style={{ fontSize: '0.84rem', margin: 0 }}>
+              {invoices.length === 0 && payments.length === 0
+                ? 'No payment transactions have been recorded for this tenancy yet.'
+                : 'No transactions match the selected filter.'}
+            </p>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.84rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontWeight: 700 }}>
+                  <th style={{ padding: '14px 18px' }}>Date</th>
+                  <th style={{ padding: '14px 18px' }}>Reference</th>
+                  <th style={{ padding: '14px 18px' }}>Transaction Description</th>
+                  <th style={{ padding: '14px 18px', textAlign: 'right' }}>Charge (KES)</th>
+                  <th style={{ padding: '14px 18px', textAlign: 'right' }}>Payment (KES)</th>
+                  <th style={{ padding: '14px 18px', textAlign: 'right' }}>Balance (KES)</th>
+                  <th style={{ padding: '14px 18px' }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredRows.map((row) => (
+                  <tr key={row.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '14px 18px', color: '#64748b', whiteSpace: 'nowrap' }}>{row.date}</td>
+                    <td style={{ padding: '14px 18px', fontWeight: 700, color: '#0f172a', fontFamily: 'monospace' }}>
+                      {row.ref}
                     </td>
-                    <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: row.creditKes > 0 ? 800 : 400, color: row.creditKes > 0 ? '#059669' : '#94a3b8' }}>
-                      {row.creditKes > 0 ? fmt(row.creditKes) : '-'}
+                    <td style={{ padding: '14px 18px', color: '#334155' }}>{row.description}</td>
+                    <td style={{ padding: '14px 18px', textAlign: 'right', fontWeight: 600, color: row.chargeKes > 0 ? '#0f172a' : '#94a3b8' }}>
+                      {row.chargeKes > 0 ? `KES ${row.chargeKes.toLocaleString()}` : '-'}
                     </td>
-                    <td style={{ padding: '12px 18px', textAlign: 'right', fontWeight: 800, color: '#0f172a' }}>
-                      {fmt(row.balanceKes)}
+                    <td style={{ padding: '14px 18px', textAlign: 'right', fontWeight: 700, color: row.creditKes > 0 ? '#16a34a' : '#94a3b8' }}>
+                      {row.creditKes > 0 ? `KES ${row.creditKes.toLocaleString()}` : '-'}
+                    </td>
+                    <td style={{ padding: '14px 18px', textAlign: 'right', fontWeight: 800, color: '#0f172a' }}>
+                      KES {row.balanceKes.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </td>
+                    <td style={{ padding: '14px 18px' }}>
+                      <span
+                        style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          padding: '3px 8px',
+                          borderRadius: '8px',
+                          background: row.status === 'PAID' || row.status === 'COMPLETED' || row.status === 'SETTLED' ? '#dcfce7' : '#eff6ff',
+                          color: row.status === 'PAID' || row.status === 'COMPLETED' || row.status === 'SETTLED' ? '#15803d' : '#2563eb',
+                        }}
+                      >
+                        {row.status || 'POSTED'}
+                      </span>
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

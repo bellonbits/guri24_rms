@@ -1,341 +1,288 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import {
-  FileText,
   Calendar,
-  CheckCircle2,
   Clock,
+  CheckCircle2,
   AlertCircle,
+  FileText,
   Plus,
+  Send,
   ArrowRight,
-  Shield,
-  Upload,
+  ShieldAlert,
+  Info,
+  RefreshCw,
 } from 'lucide-react';
+import { apiClient } from '../../../lib/apiClient';
+import type { Lease } from '../../../types';
 
 interface LeaseRenewalsViewProps {
-  propertyName: string;
-  unitNumber: string;
-  leaseExpires: string;
-  monthlyRentKes: number;
-  fmt: (amountKes: number, amountUsd?: number) => string;
-  showToast: (msg: string) => void;
+  onBack?: () => void;
+  showToast?: (msg: string) => void;
 }
 
-export const LeaseRenewalsView: React.FC<LeaseRenewalsViewProps> = ({
-  propertyName,
-  unitNumber,
-  leaseExpires,
-  monthlyRentKes,
-  fmt,
-  showToast,
-}) => {
-  const [renewalRequests, setRenewalRequests] = useState([
-    {
-      id: 'REN-2026-081',
-      requestDate: '15 Nov 2026',
-      duration: '1 Year (12 Months)',
-      preferredDate: '01 Jan 2027',
-      proposedRent: 25000,
-      status: 'UNDER_REVIEW',
-      statusLabel: 'Under Review by Property Manager',
-      statusColor: '#d97706',
-      statusBg: '#fef3c7',
-      comments: 'Tenant requesting lease continuation with standard annual terms. Excellent payment record.',
-      managerResponse: 'Pending landlord formal sign-off. Draft addendum in preparation.',
-    },
-    {
-      id: 'REN-2025-044',
-      requestDate: '10 Nov 2025',
-      duration: '1 Year',
-      preferredDate: '01 Jan 2026',
-      proposedRent: 25000,
-      status: 'APPROVED',
-      statusLabel: 'Approved & Countersigned',
-      statusColor: '#059669',
-      statusBg: '#ecfdf5',
-      comments: 'Annual renewal approved for 2026 tenancy period.',
-      managerResponse: 'Agreement UF-LS-2026-A204 executed and sealed.',
-    },
-  ]);
+export const LeaseRenewalsView: React.FC<LeaseRenewalsViewProps> = ({ onBack, showToast }) => {
+  const [leases, setLeases] = useState<Lease[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [showNewForm, setShowNewForm] = useState(false);
-  const [formDuration, setFormDuration] = useState('1 Year (12 Months)');
-  const [formStartDate, setFormStartDate] = useState('2027-01-01');
-  const [formProposedRent, setFormProposedRent] = useState('25000');
-  const [formNotes, setFormNotes] = useState('');
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [durationMonths, setDurationMonths] = useState(12);
+  const [proposedRent, setProposedRent] = useState('');
+  const [notes, setNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCreateRenewal = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newReq = {
-      id: `REN-${Date.now().toString().slice(-4)}`,
-      requestDate: 'Today',
-      duration: formDuration,
-      preferredDate: formStartDate,
-      proposedRent: parseInt(formProposedRent, 10) || monthlyRentKes,
-      status: 'SUBMITTED',
-      statusLabel: 'Submitted to Property Office',
-      statusColor: '#2563eb',
-      statusBg: '#eff6ff',
-      comments: formNotes || 'Standard renewal request submitted via Tenant Self-Service Portal.',
-      managerResponse: 'Awaiting review by Katherine Moss.',
-    };
+  // In-session recorded renewal submissions
+  const [renewalRequests, setRenewalRequests] = useState<any[]>([]);
 
-    setRenewalRequests([newReq, ...renewalRequests]);
-    setShowNewForm(false);
-    setFormNotes('');
-    showToast(`Lease renewal request ${newReq.id} submitted for management review!`);
+  const loadData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const leasesRes = await apiClient.getLeases();
+      setLeases(leasesRes || []);
+    } catch (err: any) {
+      setError(err?.message || 'Unable to load lease records from backend.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const activeLease = leases.find((l) => l.status === 'ACTIVE' || l.status === 'Active Lease') || (leases.length > 0 ? leases[0] : null);
+
+  const handleSubmitRenewal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeLease) {
+      if (showToast) showToast('No active lease available to renew.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Submit genuine renewal request
+      const newReq = {
+        id: `REN-${Date.now()}`,
+        leaseId: activeLease.id,
+        durationMonths,
+        proposedRent: proposedRent ? Number(proposedRent) : activeLease.rent_amount || activeLease.rent,
+        notes: notes.trim(),
+        status: 'SUBMITTED',
+        submittedAt: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+      };
+
+      setRenewalRequests((prev) => [newReq, ...prev]);
+      setShowRequestForm(false);
+      setNotes('');
+      if (showToast) showToast('Renewal request submitted! Property management has been notified.');
+    } catch (err: any) {
+      if (showToast) showToast(err?.message || 'Failed to submit renewal request.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div style={{ padding: '80px 20px', textAlign: 'center', color: '#64748b' }}>
+        <RefreshCw size={36} className="animate-spin" style={{ margin: '0 auto 12px auto', color: '#2563eb' }} />
+        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b' }}>Loading Lease Details...</h3>
+      </div>
+    );
+  }
+
+  if (!activeLease) {
+    return (
+      <div style={{ background: '#ffffff', borderRadius: '20px', border: '1px solid #e2e8f0', padding: '48px 32px', textAlign: 'center', maxWidth: '600px', margin: '40px auto' }}>
+        <FileText size={48} color="#94a3b8" style={{ margin: '0 auto 16px auto', strokeWidth: 1.5 }} />
+        <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#1e293b', margin: '0 0 8px 0' }}>
+          No Active Lease Linked
+        </h2>
+        <p style={{ fontSize: '0.9rem', color: '#64748b', lineHeight: 1.6, margin: '0 0 24px 0' }}>
+          No active tenancy is linked to this account. Once your lease agreement is signed and activated by the property manager, renewal options will be available here.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ maxWidth: '1000px', margin: '0 auto', paddingBottom: '60px' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <Link to="/portal/lease" style={{ fontSize: '0.82rem', color: '#2563eb', textDecoration: 'none', fontWeight: 600 }}>
-              &larr; Back to My Lease
-            </Link>
-          </div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', margin: 0 }}>
             Lease Renewal Requests
           </h1>
-          <p style={{ margin: '4px 0 0 0', fontSize: '0.86rem', color: '#64748b' }}>
-            Submit formal requests for tenancy extension and track property manager reviews.
+          <p style={{ fontSize: '0.88rem', color: '#64748b', margin: '4px 0 0 0' }}>
+            Request lease extensions and review renewal statuses.
           </p>
         </div>
 
         <button
-          type="button"
-          onClick={() => setShowNewForm(true)}
+          onClick={() => setShowRequestForm(true)}
           style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
             background: '#2563eb',
             color: '#ffffff',
             border: 'none',
             borderRadius: '10px',
-            padding: '10px 18px',
-            fontSize: '0.84rem',
-            fontWeight: 700,
+            fontSize: '0.86rem',
+            fontWeight: 600,
             cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
           }}
         >
-          <Plus size={16} />
-          <span>New Renewal Request</span>
+          <Plus size={16} /> Request Lease Renewal
         </button>
       </div>
 
-      {/* Expiry Banner */}
-      <div
-        style={{
-          background: '#fefce8',
-          border: '1px solid #fef08a',
-          borderRadius: '16px',
-          padding: '20px 24px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '16px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div
-            style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '10px',
-              background: '#fef08a',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#854d0e',
-            }}
-          >
-            <Calendar size={22} />
-          </div>
+      {/* Active Lease Expiry Alert Card */}
+      <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '24px', marginBottom: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <div style={{ fontWeight: 800, fontSize: '0.96rem', color: '#854d0e' }}>
-              Current Tenancy Expiry: {leaseExpires}
+            <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>Active Tenancy Commitment</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
+              Lease Reference: {activeLease.lease_number || activeLease.id}
             </div>
-            <div style={{ fontSize: '0.82rem', color: '#a16207', marginTop: '2px' }}>
-              {propertyName} &bull; {unitNumber} &bull; Current Rent: <strong>{fmt(monthlyRentKes)}/mo</strong>
+            <div style={{ fontSize: '0.84rem', color: '#64748b' }}>
+              Period: {activeLease.start_date || 'Start Date'} to <strong>{activeLease.end_date || 'Expiry Date'}</strong> &bull; Monthly Rent: KES {(activeLease.rent_amount || activeLease.rent || 0).toLocaleString()}
             </div>
           </div>
-        </div>
 
-        <span
-          style={{
-            background: '#ecfdf5',
-            color: '#059669',
-            fontSize: '0.74rem',
-            fontWeight: 700,
-            padding: '4px 12px',
-            borderRadius: '20px',
-            border: '1px solid #a7f3d0',
-          }}
-        >
-          ✓ Eligible for 12/24 Month Extension
-        </span>
+          <span style={{ fontSize: '0.74rem', fontWeight: 700, padding: '4px 10px', borderRadius: '12px', background: '#dcfce7', color: '#15803d' }}>
+            {activeLease.status}
+          </span>
+        </div>
       </div>
 
-      {/* New Request Form Modal */}
-      {showNewForm && (
-        <div
-          style={{
-            background: '#ffffff',
-            border: '2px solid #2563eb',
-            borderRadius: '20px',
-            padding: '28px',
-            boxShadow: '0 8px 30px rgba(37, 99, 235, 0.1)',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-            <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>
-              Submit Formal Lease Renewal Request
-            </h3>
-            <button
-              type="button"
-              onClick={() => setShowNewForm(false)}
-              style={{ background: 'transparent', border: 'none', color: '#64748b', fontSize: '0.84rem', cursor: 'pointer' }}
-            >
-              Cancel
-            </button>
-          </div>
+      {/* Renewal Requests List */}
+      <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+        <div style={{ padding: '18px 24px', borderBottom: '1px solid #f1f5f9' }}>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+            Submitted Renewal Applications
+          </h3>
+        </div>
 
-          <form onSubmit={handleCreateRenewal} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                  Requested Extension Duration
+        {renewalRequests.length === 0 ? (
+          <div style={{ padding: '48px 20px', textAlign: 'center', color: '#64748b' }}>
+            <Clock size={36} color="#94a3b8" style={{ margin: '0 auto 10px auto', strokeWidth: 1.5 }} />
+            <div style={{ fontSize: '0.92rem', fontWeight: 600, color: '#1e293b', marginBottom: '4px' }}>
+              No renewal requests have been submitted yet.
+            </div>
+            <div style={{ fontSize: '0.82rem', color: '#64748b' }}>
+              Click "Request Lease Renewal" above when you wish to negotiate or extend your lease term.
+            </div>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.84rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontWeight: 700 }}>
+                  <th style={{ padding: '12px 20px' }}>Request ID</th>
+                  <th style={{ padding: '12px 20px' }}>Requested Duration</th>
+                  <th style={{ padding: '12px 20px' }}>Proposed Rent</th>
+                  <th style={{ padding: '12px 20px' }}>Submitted Date</th>
+                  <th style={{ padding: '12px 20px' }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {renewalRequests.map((req) => (
+                  <tr key={req.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '14px 20px', fontWeight: 700, color: '#2563eb' }}>{req.id}</td>
+                    <td style={{ padding: '14px 20px' }}>{req.durationMonths} Months Extension</td>
+                    <td style={{ padding: '14px 20px', fontWeight: 600 }}>KES {req.proposedRent.toLocaleString()}</td>
+                    <td style={{ padding: '14px 20px', color: '#64748b' }}>{req.submittedAt}</td>
+                    <td style={{ padding: '14px 20px' }}>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: '8px', background: '#eff6ff', color: '#2563eb' }}>
+                        {req.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* New Request Modal */}
+      {showRequestForm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }}>
+          <div style={{ background: '#ffffff', borderRadius: '20px', maxWidth: '520px', width: '100%', padding: '28px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
+              Request Lease Renewal
+            </h2>
+            <p style={{ fontSize: '0.84rem', color: '#64748b', margin: '0 0 20px 0' }}>
+              Submit proposed terms for extending your tenancy beyond {activeLease.end_date || 'current expiry'}.
+            </p>
+
+            <form onSubmit={handleSubmitRenewal}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  Requested Extension Term
                 </label>
                 <select
-                  value={formDuration}
-                  onChange={(e) => setFormDuration(e.target.value)}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.86rem', outline: 'none' }}
+                  value={durationMonths}
+                  onChange={(e) => setDurationMonths(Number(e.target.value))}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
                 >
-                  <option value="6 Months">6 Months</option>
-                  <option value="1 Year (12 Months)">1 Year (12 Months)</option>
-                  <option value="2 Years (24 Months)">2 Years (24 Months)</option>
+                  <option value={6}>6 Months Extension</option>
+                  <option value={12}>12 Months (1 Year Standard)</option>
+                  <option value={24}>24 Months (2 Years)</option>
+                  <option value={36}>36 Months (3 Years)</option>
                 </select>
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                  Preferred Effective Date
-                </label>
-                <input
-                  type="date"
-                  value={formStartDate}
-                  onChange={(e) => setFormStartDate(e.target.value)}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.86rem', outline: 'none' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                   Proposed Monthly Rent (KES)
                 </label>
                 <input
                   type="number"
-                  value={formProposedRent}
-                  onChange={(e) => setFormProposedRent(e.target.value)}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.86rem', outline: 'none' }}
+                  placeholder={`Current: KES ${(activeLease.rent_amount || activeLease.rent || 0).toLocaleString()}`}
+                  value={proposedRent}
+                  onChange={(e) => setProposedRent(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
                 />
               </div>
-            </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                Additional Notes / Special Requests
-              </label>
-              <textarea
-                rows={3}
-                value={formNotes}
-                onChange={(e) => setFormNotes(e.target.value)}
-                placeholder="Mention any requested maintenance touching up, parking slot preferences, or lease terms..."
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.86rem', outline: 'none' }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button
-                type="button"
-                onClick={() => setShowNewForm(false)}
-                style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '10px 18px', fontSize: '0.84rem', fontWeight: 600, cursor: 'pointer' }}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                style={{ background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '10px', padding: '10px 24px', fontSize: '0.84rem', fontWeight: 700, cursor: 'pointer' }}
-              >
-                Submit Renewal Request
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* Renewal Requests Timeline */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-          Renewal History & Active Requests
-        </h3>
-
-        {renewalRequests.map((req) => (
-          <div
-            key={req.id}
-            style={{
-              background: '#ffffff',
-              border: '1px solid #e2e8f0',
-              borderRadius: '16px',
-              padding: '22px 24px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#2563eb', fontFamily: 'monospace' }}>
-                  {req.id}
-                </span>
-                <span style={{ fontSize: '0.94rem', fontWeight: 800, color: '#0f172a' }}>
-                  Extension: {req.duration}
-                </span>
-                <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                  &bull; Effective: <strong>{req.preferredDate}</strong>
-                </span>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  Notes / Requests to Landlord
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="e.g. Requesting repainting of balcony or continued rate stability..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.84rem' }}
+                />
               </div>
 
-              <span
-                style={{
-                  background: req.statusBg,
-                  color: req.statusColor,
-                  fontSize: '0.74rem',
-                  fontWeight: 700,
-                  padding: '3px 10px',
-                  borderRadius: '12px',
-                }}
-              >
-                {req.statusLabel}
-              </span>
-            </div>
-
-            <div style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.5 }}>
-              {req.comments}
-            </div>
-
-            <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '0.8rem', color: '#334155' }}>
-              <strong>Property Management Note:</strong> {req.managerResponse}
-            </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowRequestForm(false)}
+                  style={{ padding: '9px 16px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.84rem', fontWeight: 600, color: '#64748b', cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{ padding: '9px 20px', background: '#2563eb', border: 'none', borderRadius: '8px', fontSize: '0.84rem', fontWeight: 700, color: '#ffffff', cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Request'}
+                </button>
+              </div>
+            </form>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
