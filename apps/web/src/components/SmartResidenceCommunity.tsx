@@ -321,6 +321,53 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
     return list;
   }, [posts, searchQuery, activeTagFilter]);
 
+  // User Authored and Bookmarked Posts
+  const myPosts = useMemo(() => {
+    return posts.filter((p) => p.authorName === residentName);
+  }, [posts, residentName]);
+
+  const bookmarkedPosts = useMemo(() => {
+    return posts.filter((p) => p.isBookmarked);
+  }, [posts]);
+
+  const [profileSubTab, setProfileSubTab] = useState<'my_posts' | 'bookmarks'>('my_posts');
+
+  // Direct Community Messages State
+  const [communityChatRecipient, setCommunityChatRecipient] = useState<string>('Management Desk');
+  const [chatMessages, setChatMessages] = useState<{ id: string; sender: string; text: string; time: string; isMe: boolean }[]>([
+    {
+      id: 'msg-welcome',
+      sender: 'Management Desk',
+      text: 'Welcome to your verified residence network. You can message building operations or fellow verified residents here.',
+      time: '10:00 AM',
+      isMe: false,
+    },
+  ]);
+  const [chatInputText, setChatInputText] = useState('');
+
+  const handleSendChatMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInputText.trim()) return;
+    const clean = chatInputText.replace(/\p{Extended_Pictographic}/gu, '').trim();
+    if (!clean) {
+      notify('Please enter message text without emojis.');
+      return;
+    }
+
+    setChatMessages((prev) => [
+      ...prev,
+      {
+        id: `chat-${Date.now()}`,
+        sender: residentName,
+        text: clean,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isMe: true,
+      },
+    ]);
+    setChatInputText('');
+    notify(`Message sent to ${communityChatRecipient}.`);
+  };
+
   // Topic Categories List
   const topicTags = ['ALL', 'General', 'Recommendations', 'Fitness', 'Social', 'Maintenance', 'Marketplace'];
 
@@ -535,235 +582,50 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
             </div>
           </div>
 
-          {/* Active Residents Stories Carousel (Image 3 Top Bar) */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '16px',
-              overflowX: 'auto',
-              padding: '16px 0 14px 0',
-              borderBottom: '1px solid #f1f5f9',
-              scrollbarWidth: 'none',
-            }}
-          >
-            {/* Add Yours Bubble */}
-            <div
-              onClick={() => setShowCreateModal(true)}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                cursor: 'pointer',
-                flexShrink: 0,
-                width: '68px',
-              }}
-            >
-              <div style={{ position: 'relative', width: '60px', height: '60px' }}>
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    borderRadius: '50%',
-                    border: '2px dashed #2563eb',
-                    padding: '2px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      borderRadius: '50%',
-                      background: '#0f172a',
-                      color: '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 800,
-                      fontSize: '0.94rem',
-                    }}
-                  >
-                    {residentName.slice(0, 2).toUpperCase()}
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: '-2px',
-                    right: '18px',
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '6px',
-                    background: '#2563eb',
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '2px solid #ffffff',
-                  }}
-                >
-                  <Plus size={13} />
-                </div>
-              </div>
-
-              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#334155', marginTop: '8px', textAlign: 'center' }}>
-                Add Yours
-              </span>
-            </div>
-
-            {/* Active Verified Residents from Database */}
-            {activeResidents.map((res, idx) => (
+          {/* TAB 1: HOME FEED */}
+          {navTab === 'feed' && (
+            <>
+              {/* Active Residents Stories Carousel (Image 3 Top Bar) */}
               <div
-                key={idx}
-                onClick={() => {
-                  setSearchQuery(res.name);
-                  notify(`Viewing conversations with ${res.name}`);
-                }}
                 style={{
                   display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                  flexShrink: 0,
-                  width: '68px',
+                  alignItems: 'flex-start',
+                  gap: '16px',
+                  overflowX: 'auto',
+                  padding: '16px 0 14px 0',
+                  borderBottom: '1px solid #f1f5f9',
+                  scrollbarWidth: 'none',
                 }}
               >
+                {/* Add Yours Bubble */}
                 <div
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    border: '2px solid #0f172a',
-                    padding: '2px',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      borderRadius: '50%',
-                      background: '#f1f5f9',
-                      color: '#0f172a',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 800,
-                      fontSize: '0.86rem',
-                    }}
-                  >
-                    {res.initials}
-                  </div>
-                </div>
-
-                <span
-                  style={{
-                    fontSize: '0.72rem',
-                    fontWeight: 600,
-                    color: '#334155',
-                    marginTop: '8px',
-                    textAlign: 'center',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    maxWidth: '68px',
-                  }}
-                >
-                  {res.name.split(' ')[0]}
-                </span>
-              </div>
-            ))}
-
-            {activeResidents.length === 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.74rem', padding: '16px 0' }}>
-                <span>Verified residents who register will appear in this community ring.</span>
-              </div>
-            )}
-          </div>
-
-          {/* Topic Tags Horizontal Pill Bar */}
-          <div style={{ display: 'flex', gap: '6px', padding: '12px 0', overflowX: 'auto', scrollbarWidth: 'none' }}>
-            {topicTags.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => setActiveTagFilter(tag)}
-                style={{
-                  background: activeTagFilter === tag ? '#0f172a' : '#f8fafc',
-                  color: activeTagFilter === tag ? '#ffffff' : '#64748b',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '16px',
-                  padding: '4px 12px',
-                  fontSize: '0.74rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {tag === 'ALL' ? 'All Posts' : `#${tag}`}
-              </button>
-            ))}
-          </div>
-
-          {/* Post Feed Stream */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '26px', marginTop: '10px' }}>
-            {filteredPosts.length === 0 ? (
-              <div
-                style={{
-                  padding: '56px 20px',
-                  textAlign: 'center',
-                  background: '#ffffff',
-                  borderRadius: '20px',
-                  border: '1px dashed #e2e8f0',
-                  margin: '16px 0',
-                }}
-              >
-                <ChatBubbleLeftRightIcon size={36} color="#94a3b8" style={{ margin: '0 auto 12px auto' }} />
-                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>
-                  No community posts yet
-                </div>
-                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '6px', maxWidth: '340px', margin: '6px auto 18px auto', lineHeight: 1.5 }}>
-                  Be the first verified resident in {currentOrg?.name || 'this community'} to share an update, question, or photo with your neighbors.
-                </div>
-                <button
-                  type="button"
                   onClick={() => setShowCreateModal(true)}
-                  style={{
-                    background: '#2563eb',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '20px',
-                    padding: '9px 24px',
-                    fontSize: '0.84rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Create First Post
-                </button>
-              </div>
-            ) : (
-              filteredPosts.map((post) => (
-                <div
-                  key={post.id}
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '10px',
-                    paddingBottom: '20px',
-                    borderBottom: '1px solid #f1f5f9',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                    width: '68px',
                   }}
                 >
-                  {/* Author Header */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ position: 'relative', width: '60px', height: '60px' }}>
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '50%',
+                        border: '2px dashed #2563eb',
+                        padding: '2px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
                       <div
                         style={{
-                          width: '38px',
-                          height: '38px',
+                          width: '100%',
+                          height: '100%',
                           borderRadius: '50%',
                           background: '#0f172a',
                           color: '#ffffff',
@@ -771,265 +633,749 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontWeight: 800,
-                          fontSize: '0.82rem',
-                          flexShrink: 0,
+                          fontSize: '0.94rem',
                         }}
                       >
-                        {post.authorName.slice(0, 2).toUpperCase()}
-                      </div>
-
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a' }}>
-                          {post.authorName}
-                        </span>
-
-                        <SolidCheckCircleIcon size={16} color="#2563eb" />
-
-                        <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>
-                          {post.authorHandle}
-                        </span>
-
-                        <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
-                          &bull; {post.timeAgo}
-                        </span>
+                        {residentName.slice(0, 2).toUpperCase()}
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      {post.authorName === residentName && (
-                        <button
-                          type="button"
-                          onClick={() => handleDeletePost(post.id)}
-                          title="Delete Post"
-                          style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
-                        >
-                          <Trash size={15} />
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setShowReportModal(post.id)}
-                        title="Options"
-                        style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
-                      >
-                        <MoreHorizontal size={18} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Clean Text (NO emojis) */}
-                  <div style={{ fontSize: '0.92rem', color: '#1e293b', lineHeight: 1.5, wordBreak: 'break-word' }}>
-                    {post.content}
-                  </div>
-
-                  {/* Category Tag */}
-                  {post.tag && post.tag !== 'General' && (
-                    <div>
-                      <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#2563eb', background: '#eff6ff', padding: '2px 8px', borderRadius: '10px' }}>
-                        #{post.tag}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Attached Media Photo (20px Rounded Corners) */}
-                  {post.mediaUrl && (
                     <div
                       style={{
-                        width: '100%',
-                        borderRadius: '20px',
-                        overflow: 'hidden',
-                        background: '#0f172a',
-                        marginTop: '4px',
+                        position: 'absolute',
+                        bottom: '-2px',
+                        right: '18px',
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '6px',
+                        background: '#2563eb',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '2px solid #ffffff',
                       }}
                     >
-                      <img
-                        src={post.mediaUrl}
-                        alt="Community attachment"
-                        style={{
-                          width: '100%',
-                          height: 'auto',
-                          maxHeight: '460px',
-                          objectFit: 'cover',
-                          display: 'block',
-                        }}
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
+                      <Plus size={13} />
                     </div>
-                  )}
+                  </div>
 
-                  {/* Action Bar (Heart, Comment, Bookmark, Share) */}
+                  <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#334155', marginTop: '8px', textAlign: 'center' }}>
+                    Add Yours
+                  </span>
+                </div>
+
+                {/* Active Verified Residents from Database */}
+                {activeResidents.map((res, idx) => (
                   <div
+                    key={idx}
+                    onClick={() => {
+                      setSearchQuery(res.name);
+                      setNavTab('search');
+                      notify(`Filtering feed by ${res.name}`);
+                    }}
                     style={{
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '8px 4px 0 4px',
-                      color: '#64748b',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      width: '68px',
                     }}
                   >
-                    <button
-                      type="button"
-                      onClick={() => handleToggleLike(post.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: post.isLiked ? '#dc2626' : '#64748b',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '4px',
-                        fontSize: '0.84rem',
-                        fontWeight: 600,
-                      }}
-                    >
-                      <Heart size={20} color={post.isLiked ? '#dc2626' : '#64748b'} />
-                      {post.likes > 0 && <span>{post.likes}</span>}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setOpenCommentPostId(openCommentPostId === post.id ? null : post.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: openCommentPostId === post.id ? '#2563eb' : '#64748b',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        padding: '4px',
-                        fontSize: '0.84rem',
-                        fontWeight: 600,
-                      }}
-                    >
-                      <ChatBubbleOvalLeftEllipsisIcon size={20} />
-                      {post.comments.length > 0 && <span>{post.comments.length}</span>}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleToggleBookmark(post.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: post.isBookmarked ? '#2563eb' : '#64748b',
-                        cursor: 'pointer',
-                        padding: '4px',
-                      }}
-                    >
-                      <Bookmark size={20} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard?.writeText(window.location.href);
-                        notify('Post link copied to clipboard.');
-                      }}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#64748b',
-                        cursor: 'pointer',
-                        padding: '4px',
-                      }}
-                    >
-                      <Share size={20} />
-                    </button>
-                  </div>
-
-                  {/* Inline Comments Thread */}
-                  {openCommentPostId === post.id && (
                     <div
                       style={{
-                        background: '#f8fafc',
-                        borderRadius: '16px',
-                        padding: '14px',
-                        marginTop: '6px',
+                        width: '60px',
+                        height: '60px',
+                        borderRadius: '50%',
+                        border: '2px solid #0f172a',
+                        padding: '2px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          borderRadius: '50%',
+                          background: '#f1f5f9',
+                          color: '#0f172a',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 800,
+                          fontSize: '0.86rem',
+                        }}
+                      >
+                        {res.initials}
+                      </div>
+                    </div>
+
+                    <span
+                      style={{
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        color: '#334155',
+                        marginTop: '8px',
+                        textAlign: 'center',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: '68px',
+                      }}
+                    >
+                      {res.name.split(' ')[0]}
+                    </span>
+                  </div>
+                ))}
+
+                {activeResidents.length === 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.74rem', padding: '16px 0' }}>
+                    <span>Verified residents who register will appear in this community ring.</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Topic Tags Horizontal Pill Bar */}
+              <div style={{ display: 'flex', gap: '6px', padding: '12px 0', overflowX: 'auto', scrollbarWidth: 'none' }}>
+                {topicTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => setActiveTagFilter(tag)}
+                    style={{
+                      background: activeTagFilter === tag ? '#0f172a' : '#f8fafc',
+                      color: activeTagFilter === tag ? '#ffffff' : '#64748b',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '16px',
+                      padding: '4px 12px',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {tag === 'ALL' ? 'All Posts' : `#${tag}`}
+                  </button>
+                ))}
+              </div>
+
+              {/* Post Feed Stream */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '26px', marginTop: '10px' }}>
+                {filteredPosts.length === 0 ? (
+                  <div
+                    style={{
+                      padding: '56px 20px',
+                      textAlign: 'center',
+                      background: '#ffffff',
+                      borderRadius: '20px',
+                      border: '1px dashed #e2e8f0',
+                      margin: '16px 0',
+                    }}
+                  >
+                    <ChatBubbleLeftRightIcon size={36} color="#94a3b8" style={{ margin: '0 auto 12px auto' }} />
+                    <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>
+                      No community posts yet
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '6px', maxWidth: '340px', margin: '6px auto 18px auto', lineHeight: 1.5 }}>
+                      Be the first verified resident in {currentOrg?.name || 'this community'} to share an update, question, or photo with your neighbors.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowCreateModal(true)}
+                      style={{
+                        background: '#2563eb',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '20px',
+                        padding: '9px 24px',
+                        fontSize: '0.84rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Create First Post
+                    </button>
+                  </div>
+                ) : (
+                  filteredPosts.map((post) => (
+                    <div
+                      key={post.id}
+                      style={{
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '10px',
+                        paddingBottom: '20px',
+                        borderBottom: '1px solid #f1f5f9',
                       }}
                     >
-                      {post.comments.length > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          {post.comments.map((c) => (
-                            <div key={c.id} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                              <div
-                                style={{
-                                  width: '28px',
-                                  height: '28px',
-                                  borderRadius: '50%',
-                                  background: '#0f172a',
-                                  color: '#ffffff',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontSize: '0.72rem',
-                                  fontWeight: 800,
-                                  flexShrink: 0,
-                                }}
-                              >
-                                {c.authorName.slice(0, 2).toUpperCase()}
-                              </div>
-                              <div style={{ background: '#ffffff', borderRadius: '12px', padding: '8px 12px', flex: 1, border: '1px solid #e2e8f0' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>{c.authorName}</span>
-                                  <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{c.timeAgo}</span>
-                                </div>
-                                <div style={{ fontSize: '0.8rem', color: '#1e293b', marginTop: '2px' }}>{c.content}</div>
-                              </div>
-                            </div>
-                          ))}
+                      {/* Author Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div
+                            style={{
+                              width: '38px',
+                              height: '38px',
+                              borderRadius: '50%',
+                              background: '#0f172a',
+                              color: '#ffffff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 800,
+                              fontSize: '0.82rem',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {post.authorName.slice(0, 2).toUpperCase()}
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a' }}>
+                              {post.authorName}
+                            </span>
+
+                            <SolidCheckCircleIcon size={16} color="#2563eb" />
+
+                            <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>
+                              {post.authorHandle}
+                            </span>
+
+                            <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                              &bull; {post.timeAgo}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          {post.authorName === residentName && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeletePost(post.id)}
+                              title="Delete Post"
+                              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+                            >
+                              <Trash size={15} />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setShowReportModal(post.id)}
+                            title="Options"
+                            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
+                          >
+                            <MoreHorizontal size={18} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Clean Text (NO emojis) */}
+                      <div style={{ fontSize: '0.92rem', color: '#1e293b', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                        {post.content}
+                      </div>
+
+                      {/* Category Tag */}
+                      {post.tag && post.tag !== 'General' && (
+                        <div>
+                          <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#2563eb', background: '#eff6ff', padding: '2px 8px', borderRadius: '10px' }}>
+                            #{post.tag}
+                          </span>
                         </div>
                       )}
 
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <input
-                          type="text"
-                          placeholder="Write a reply (no emojis)..."
-                          value={commentInputs[post.id] || ''}
-                          onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleAddComment(post.id);
-                          }}
+                      {/* Attached Media Photo (20px Rounded Corners) */}
+                      {post.mediaUrl && (
+                        <div
                           style={{
-                            flex: 1,
-                            padding: '8px 12px',
-                            borderRadius: '16px',
-                            border: '1px solid #cbd5e1',
-                            fontSize: '0.82rem',
-                            outline: 'none',
-                            background: '#ffffff',
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleAddComment(post.id)}
-                          disabled={!(commentInputs[post.id] || '').trim()}
-                          style={{
+                            width: '100%',
+                            borderRadius: '20px',
+                            overflow: 'hidden',
                             background: '#0f172a',
-                            color: '#ffffff',
-                            border: 'none',
-                            borderRadius: '16px',
-                            padding: '7px 14px',
-                            fontSize: '0.78rem',
-                            fontWeight: 700,
-                            cursor: 'pointer',
+                            marginTop: '4px',
                           }}
                         >
-                          Reply
+                          <img
+                            src={post.mediaUrl}
+                            alt="Community attachment"
+                            style={{
+                              width: '100%',
+                              height: 'auto',
+                              maxHeight: '460px',
+                              objectFit: 'cover',
+                              display: 'block',
+                            }}
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Action Bar (Heart, Comment, Bookmark, Share) */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 4px 0 4px',
+                          color: '#64748b',
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleToggleLike(post.id)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: post.isLiked ? '#dc2626' : '#64748b',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '4px',
+                            fontSize: '0.84rem',
+                            fontWeight: 600,
+                          }}
+                        >
+                          <Heart size={20} color={post.isLiked ? '#dc2626' : '#64748b'} />
+                          {post.likes > 0 && <span>{post.likes}</span>}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setOpenCommentPostId(openCommentPostId === post.id ? null : post.id)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: openCommentPostId === post.id ? '#2563eb' : '#64748b',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '4px',
+                            fontSize: '0.84rem',
+                            fontWeight: 600,
+                          }}
+                        >
+                          <ChatBubbleOvalLeftEllipsisIcon size={20} />
+                          {post.comments.length > 0 && <span>{post.comments.length}</span>}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleToggleBookmark(post.id)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: post.isBookmarked ? '#2563eb' : '#64748b',
+                            cursor: 'pointer',
+                            padding: '4px',
+                          }}
+                        >
+                          <Bookmark size={20} />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard?.writeText(window.location.href);
+                            notify('Post link copied to clipboard.');
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#64748b',
+                            cursor: 'pointer',
+                            padding: '4px',
+                          }}
+                        >
+                          <Share size={20} />
                         </button>
                       </div>
+
+                      {/* Inline Comments Thread */}
+                      {openCommentPostId === post.id && (
+                        <div
+                          style={{
+                            background: '#f8fafc',
+                            borderRadius: '16px',
+                            padding: '14px',
+                            marginTop: '6px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '10px',
+                          }}
+                        >
+                          {post.comments.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              {post.comments.map((c) => (
+                                <div key={c.id} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                                  <div
+                                    style={{
+                                      width: '28px',
+                                      height: '28px',
+                                      borderRadius: '50%',
+                                      background: '#0f172a',
+                                      color: '#ffffff',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      fontSize: '0.72rem',
+                                      fontWeight: 800,
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    {c.authorName.slice(0, 2).toUpperCase()}
+                                  </div>
+                                  <div style={{ background: '#ffffff', borderRadius: '12px', padding: '8px 12px', flex: 1, border: '1px solid #e2e8f0' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>{c.authorName}</span>
+                                      <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{c.timeAgo}</span>
+                                    </div>
+                                    <div style={{ fontSize: '0.8rem', color: '#1e293b', marginTop: '2px' }}>{c.content}</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <input
+                              type="text"
+                              placeholder="Write a reply (no emojis)..."
+                              value={commentInputs[post.id] || ''}
+                              onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleAddComment(post.id);
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '8px 12px',
+                                borderRadius: '16px',
+                                border: '1px solid #cbd5e1',
+                                fontSize: '0.82rem',
+                                outline: 'none',
+                                background: '#ffffff',
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleAddComment(post.id)}
+                              disabled={!(commentInputs[post.id] || '').trim()}
+                              style={{
+                                background: '#0f172a',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '16px',
+                                padding: '7px 14px',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Reply
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ))
+                )}
+              </div>
+            </>
+          )}
+
+          {/* TAB 2: INTERACTIVE SEARCH VIEW */}
+          {navTab === 'search' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '16px 0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '8px 14px' }}>
+                <Search size={18} color="#2563eb" />
+                <input
+                  type="text"
+                  placeholder="Search community posts, tags, or neighbors..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoFocus
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    outline: 'none',
+                    fontSize: '0.88rem',
+                    flex: 1,
+                    color: '#0f172a',
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0 }}
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+
+              {/* Tag filters */}
+              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', scrollbarWidth: 'none' }}>
+                {topicTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => setActiveTagFilter(tag)}
+                    style={{
+                      background: activeTagFilter === tag ? '#0f172a' : '#f8fafc',
+                      color: activeTagFilter === tag ? '#ffffff' : '#64748b',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '16px',
+                      padding: '4px 12px',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {tag === 'ALL' ? 'All' : `#${tag}`}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search Results */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '10px' }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#64748b' }}>
+                  {filteredPosts.length} result{filteredPosts.length === 1 ? '' : 's'} {searchQuery ? `for "${searchQuery}"` : ''}
                 </div>
-              ))
-            )}
-          </div>
+                {filteredPosts.length === 0 ? (
+                  <div style={{ padding: '40px 16px', textAlign: 'center', background: '#f8fafc', borderRadius: '16px', border: '1px dashed #e2e8f0' }}>
+                    <Search size={28} color="#94a3b8" style={{ margin: '0 auto 8px auto' }} />
+                    <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>No matching posts found</div>
+                    <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>Try searching by resident name, hashtag, or keyword.</div>
+                  </div>
+                ) : (
+                  filteredPosts.map((p) => (
+                    <div key={p.id} style={{ background: '#f8fafc', padding: '14px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f172a' }}>{p.authorName}</span>
+                        <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{p.timeAgo}</span>
+                      </div>
+                      <div style={{ fontSize: '0.84rem', color: '#334155', marginTop: '6px' }}>{p.content}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: COMMUNITY DIRECT MESSAGES */}
+          {navTab === 'messages' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '16px 0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>
+                  Chat with {communityChatRecipient}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setNavTab('feed')}
+                  style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '4px 12px', fontSize: '0.74rem', fontWeight: 700, color: '#334155', cursor: 'pointer' }}
+                >
+                  Back to Feed
+                </button>
+              </div>
+
+              {/* Recipient Selector Pills */}
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+                {['Management Desk', ...activeResidents.map((r) => r.name)].map((name) => {
+                  const isSelected = communityChatRecipient === name;
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => setCommunityChatRecipient(name)}
+                      style={{
+                        background: isSelected ? '#0f172a' : '#f8fafc',
+                        color: isSelected ? '#ffffff' : '#334155',
+                        border: '1px solid ' + (isSelected ? '#0f172a' : '#e2e8f0'),
+                        borderRadius: '16px',
+                        padding: '6px 14px',
+                        fontSize: '0.76rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {name}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Message History Box */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '16px', minHeight: '280px', maxHeight: '420px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {chatMessages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    style={{
+                      alignSelf: msg.isMe ? 'flex-end' : 'flex-start',
+                      maxWidth: '80%',
+                      background: msg.isMe ? '#2563eb' : '#ffffff',
+                      color: msg.isMe ? '#ffffff' : '#0f172a',
+                      borderRadius: '16px',
+                      padding: '10px 14px',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                      border: msg.isMe ? 'none' : '1px solid #e2e8f0',
+                    }}
+                  >
+                    {!msg.isMe && (
+                      <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#2563eb', marginBottom: '2px' }}>
+                        {msg.sender}
+                      </div>
+                    )}
+                    <div style={{ fontSize: '0.84rem', lineHeight: 1.4 }}>{msg.text}</div>
+                    <div style={{ fontSize: '0.66rem', color: msg.isMe ? 'rgba(255,255,255,0.7)' : '#94a3b8', textAlign: 'right', marginTop: '4px' }}>
+                      {msg.time}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Direct Message Form */}
+              <form onSubmit={handleSendChatMessage} style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  placeholder={`Send direct message to ${communityChatRecipient}...`}
+                  value={chatInputText}
+                  onChange={(e) => setChatInputText(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '10px 14px',
+                    borderRadius: '16px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.84rem',
+                    outline: 'none',
+                    background: '#ffffff',
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={!chatInputText.trim()}
+                  style={{
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '16px',
+                    padding: '0 20px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: !chatInputText.trim() ? 'not-allowed' : 'pointer',
+                    opacity: !chatInputText.trim() ? 0.5 : 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Send size={15} />
+                  <span>Send</span>
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* TAB 4: RESIDENT PROFILE VIEW */}
+          {navTab === 'profile' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', padding: '16px 0' }}>
+              <div style={{ background: '#f8fafc', borderRadius: '24px', border: '1px solid #e2e8f0', padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#0f172a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800 }}>
+                    {residentName.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>{residentName}</span>
+                      <SolidCheckCircleIcon size={18} color="#2563eb" />
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{residentHandle}</div>
+                    <div style={{ fontSize: '0.76rem', color: '#16a34a', fontWeight: 700, marginTop: '2px' }}>
+                      {residentLocation} &bull; Verified Member
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px', display: 'flex', justifyContent: 'space-around', textAlign: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a' }}>{myPosts.length}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>My Posts</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a' }}>{bookmarkedPosts.length}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Saved Bookmarks</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a' }}>{activeResidents.length}</div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Neighbors</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Profile Subtabs */}
+              <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setProfileSubTab('my_posts')}
+                  style={{
+                    background: profileSubTab === 'my_posts' ? '#0f172a' : 'transparent',
+                    color: profileSubTab === 'my_posts' ? '#ffffff' : '#64748b',
+                    border: 'none',
+                    borderRadius: '16px',
+                    padding: '6px 16px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  My Posts ({myPosts.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProfileSubTab('bookmarks')}
+                  style={{
+                    background: profileSubTab === 'bookmarks' ? '#0f172a' : 'transparent',
+                    color: profileSubTab === 'bookmarks' ? '#ffffff' : '#64748b',
+                    border: 'none',
+                    borderRadius: '16px',
+                    padding: '6px 16px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Bookmarks ({bookmarkedPosts.length})
+                </button>
+              </div>
+
+              {/* Subtab Content */}
+              <div>
+                {(profileSubTab === 'my_posts' ? myPosts : bookmarkedPosts).length === 0 ? (
+                  <div style={{ padding: '36px 16px', textAlign: 'center', background: '#f8fafc', borderRadius: '16px', border: '1px dashed #e2e8f0' }}>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>
+                      {profileSubTab === 'my_posts' ? 'No posts authored yet' : 'No bookmarked posts'}
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                      {profileSubTab === 'my_posts' ? 'Your published updates will appear here.' : 'Tap the bookmark icon on any post to save it for later.'}
+                    </div>
+                  </div>
+                ) : (
+                  (profileSubTab === 'my_posts' ? myPosts : bookmarkedPosts).map((p) => (
+                    <div key={p.id} style={{ background: '#ffffff', padding: '14px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f172a' }}>{p.authorName}</span>
+                        <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{p.timeAgo}</span>
+                      </div>
+                      <div style={{ fontSize: '0.84rem', color: '#334155', marginTop: '6px' }}>{p.content}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
         </main>
 
         {/* ------------------------------------------------------------- */}
@@ -1123,25 +1469,48 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchQuery(neighbor.name);
-                      notify(`Filtering posts by ${neighbor.name}`);
-                    }}
-                    style={{
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '12px',
-                      padding: '4px 10px',
-                      fontSize: '0.7rem',
-                      fontWeight: 600,
-                      color: '#334155',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    View
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCommunityChatRecipient(neighbor.name);
+                        setNavTab('messages');
+                        notify(`Started direct chat with ${neighbor.name}`);
+                      }}
+                      style={{
+                        background: '#eff6ff',
+                        border: '1px solid #bfdbfe',
+                        borderRadius: '12px',
+                        padding: '4px 8px',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        color: '#2563eb',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Chat
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery(neighbor.name);
+                        setNavTab('search');
+                        notify(`Filtering posts by ${neighbor.name}`);
+                      }}
+                      style={{
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '12px',
+                        padding: '4px 8px',
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        color: '#334155',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Posts
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1166,6 +1535,32 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
             <div style={{ fontSize: '0.72rem', color: '#64748b', lineHeight: 1.4 }}>
               Main gate security station: Available 24/7 for visitor clearance and resident support.
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                setCommunityChatRecipient('Security & Front Desk');
+                setNavTab('messages');
+                notify('Connected to Front Gate Security station.');
+              }}
+              style={{
+                marginTop: '4px',
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                borderRadius: '12px',
+                padding: '6px 12px',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                color: '#0f172a',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+              }}
+            >
+              <Phone size={13} color="#2563eb" />
+              <span>Contact Security Desk</span>
+            </button>
           </div>
         </aside>
 
@@ -1200,12 +1595,12 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
           type="button"
           onClick={() => {
             setNavTab('messages');
-            notify('Open Messages to chat with property management or neighbors.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           style={{
             background: 'none',
             border: 'none',
-            color: navTab === 'messages' ? '#0f172a' : '#94a3b8',
+            color: navTab === 'messages' ? '#2563eb' : '#94a3b8',
             cursor: 'pointer',
             padding: '8px',
           }}
@@ -1240,13 +1635,13 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
         <button
           type="button"
           onClick={() => {
-            const query = prompt('Search community posts, tags or residents:');
-            if (query !== null) setSearchQuery(query);
+            setNavTab('search');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           style={{
             background: 'none',
             border: 'none',
-            color: searchQuery ? '#2563eb' : '#94a3b8',
+            color: navTab === 'search' ? '#2563eb' : '#94a3b8',
             cursor: 'pointer',
             padding: '8px',
           }}
@@ -1260,12 +1655,12 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
           type="button"
           onClick={() => {
             setNavTab('profile');
-            notify(`Logged in as verified resident: ${residentName}`);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           style={{
             background: 'none',
             border: 'none',
-            color: navTab === 'profile' ? '#0f172a' : '#94a3b8',
+            color: navTab === 'profile' ? '#2563eb' : '#94a3b8',
             cursor: 'pointer',
             padding: '8px',
           }}

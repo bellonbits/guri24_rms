@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ChevronDown,
@@ -29,14 +29,20 @@ import {
   Sparkles,
   BuildingOffice2Icon,
   ChatBubbleLeftRightIcon,
+  LogOut,
+  Settings,
+  CreditCard,
+  Users,
+  ExternalLink,
+  SolidCheckCircleIcon,
 } from '../components/heroicons';
 import { useAuth } from '../context/AuthContext';
 import { useRms } from '../context/RmsContext';
 import { SmartResidenceCommunity } from '../components/SmartResidenceCommunity';
 
 export const DashboardPage: React.FC = () => {
-  const { currentOrg, currentUserSession } = useAuth();
-  const { state } = useRms();
+  const { currentOrg, currentUserSession, logout } = useAuth();
+  const { state, setIsSwitcherModalOpen } = useRms();
   const navigate = useNavigate();
 
   // Active View Mode: 'portfolio' (Image 1) or 'smart-home' (Image 2)
@@ -44,6 +50,26 @@ export const DashboardPage: React.FC = () => {
 
   // Currency View Mode: KES by default
   const [currencyMode, setCurrencyMode] = useState<'USD' | 'KES'>('KES');
+
+  // Interactive Popovers State
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isMessagesOpen, setIsMessagesOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [readNotificationIds, setReadNotificationIds] = useState<string[]>([]);
+
+  // Click outside to dismiss popovers
+  useEffect(() => {
+    const handleDocumentClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.dashboard-topbar-popover') && !target.closest('.dashboard-topbar-trigger')) {
+        setIsNotificationsOpen(false);
+        setIsMessagesOpen(false);
+        setIsProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('click', handleDocumentClick);
+    return () => document.removeEventListener('click', handleDocumentClick);
+  }, []);
 
   // Currency Formatter: KES as default
   const fmt = (amountUsd: number, amountKes?: number) => {
@@ -165,7 +191,47 @@ export const DashboardPage: React.FC = () => {
 
   const activeMessages = messageCategory === 'agents' ? staffMessages : tenantMessages;
 
-  const unreadNotificationsCount = 0;
+  // Real notifications derived strictly from authoritative database state
+  const notifications = useMemo(() => {
+    const list: { id: string; title: string; subtitle: string; time: string; unread: boolean; to: string }[] = [];
+
+    (state.payments || []).slice(0, 4).forEach((p) => {
+      list.push({
+        id: `notif-p-${p.id}`,
+        title: 'Payment Verified',
+        subtitle: `KES ${Number(p.amount || 0).toLocaleString()} via ${p.payment_method || 'M-Pesa'}`,
+        time: p.payment_date ? new Date(p.payment_date).toLocaleDateString() : 'Recent',
+        unread: true,
+        to: '/app/payments-mpesa',
+      });
+    });
+
+    (state.maintenanceRequests || []).slice(0, 4).forEach((m) => {
+      list.push({
+        id: `notif-m-${m.id}`,
+        title: `Maintenance: ${m.title || 'Work Order'}`,
+        subtitle: `Status: ${m.status || 'OPEN'} • Unit ${m.unit_number || 'General'}`,
+        time: m.created_at ? new Date(m.created_at).toLocaleDateString() : 'Recent',
+        unread: m.status === 'OPEN' || m.status === 'SUBMITTED',
+        to: '/app/maintenance',
+      });
+    });
+
+    (state.leases || []).slice(0, 3).forEach((l) => {
+      list.push({
+        id: `notif-l-${l.id}`,
+        title: 'Active Lease',
+        subtitle: `Lease for unit ${l.unit_number || ''} is in active standing`,
+        time: 'Current',
+        unread: false,
+        to: '/app/leases-bookings',
+      });
+    });
+
+    return list;
+  }, [state.payments, state.maintenanceRequests, state.leases]);
+
+  const unreadNotificationsCount = notifications.filter((n) => !readNotificationIds.includes(n.id) && n.unread).length;
   const unreadMessagesCount = tenantMessages.filter((m) => m.unread).length;
 
   const hasFinancialActivity = totalRevenueKes > 0 || totalMaintenanceKes > 0;
@@ -217,19 +283,38 @@ export const DashboardPage: React.FC = () => {
           gap: '16px',
         }}
       >
-        {/* Left: Geometric Flower Logo + Breadcrumb + Title */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Left: Interactive Geometric Flower Logo + Breadcrumb + Title */}
+        <button
+          type="button"
+          onClick={() => {
+            const next = activeTab === 'portfolio' ? 'smart-home' : 'portfolio';
+            setActiveTab(next);
+            showToast(`Switched view to ${next === 'portfolio' ? 'Portfolio Console' : 'Smart Residence'}`);
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            textAlign: 'left',
+          }}
+          title={`Click to switch to ${activeTab === 'portfolio' ? 'Smart Residence' : 'Portfolio Console'}`}
+        >
           <div
             style={{
               width: '32px',
               height: '32px',
               borderRadius: '50%',
-              background: '#0f172a',
+              background: activeTab === 'portfolio' ? '#0f172a' : '#ff5e13',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#ffffff',
               boxShadow: '0 2px 8px rgba(15, 23, 42, 0.15)',
+              transition: 'all 0.15s ease',
             }}
           >
             {/* Flower geometric mark matching Image 1 */}
@@ -245,7 +330,7 @@ export const DashboardPage: React.FC = () => {
           <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
             {activeTab === 'portfolio' ? 'Dashboard' : 'Your Home'}
           </h1>
-        </div>
+        </button>
 
         {/* Center / Right Controls: View Switcher, Currency Toggle, Notifications, User */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
@@ -260,6 +345,7 @@ export const DashboardPage: React.FC = () => {
             }}
           >
             <button
+              type="button"
               onClick={() => setActiveTab('portfolio')}
               style={{
                 background: activeTab === 'portfolio' ? '#0f172a' : 'transparent',
@@ -276,6 +362,7 @@ export const DashboardPage: React.FC = () => {
               Portfolio Console
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('smart-home')}
               style={{
                 background: activeTab === 'smart-home' ? '#ff5e13' : 'transparent',
@@ -295,6 +382,7 @@ export const DashboardPage: React.FC = () => {
 
           {/* Currency Toggle */}
           <button
+            type="button"
             onClick={() => {
               const next = currencyMode === 'KES' ? 'USD' : 'KES';
               setCurrencyMode(next);
@@ -316,12 +404,18 @@ export const DashboardPage: React.FC = () => {
             {currencyMode === 'KES' ? 'KES (Default)' : '$ USD'}
           </button>
 
-          {/* Notification Bell */}
+          {/* Notification Bell with Functional Popover */}
           <div style={{ position: 'relative' }}>
             <button
-              onClick={() => showToast(unreadNotificationsCount > 0 ? `${unreadNotificationsCount} unread notification${unreadNotificationsCount > 1 ? 's' : ''}.` : 'No unread notifications.')}
+              type="button"
+              className="dashboard-topbar-trigger"
+              onClick={() => {
+                setIsNotificationsOpen(!isNotificationsOpen);
+                setIsMessagesOpen(false);
+                setIsProfileMenuOpen(false);
+              }}
               style={{
-                background: '#ffffff',
+                background: isNotificationsOpen ? '#f1f5f9' : '#ffffff',
                 border: '1px solid #e2e8f0',
                 borderRadius: '50%',
                 width: '38px',
@@ -330,8 +424,10 @@ export const DashboardPage: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                color: '#64748b',
+                color: isNotificationsOpen ? '#0f172a' : '#64748b',
+                transition: 'all 0.15s ease',
               }}
+              title="Notifications"
             >
               <Bell size={17} />
             </button>
@@ -339,24 +435,152 @@ export const DashboardPage: React.FC = () => {
               <span
                 style={{
                   position: 'absolute',
-                  top: '4px',
-                  right: '4px',
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
+                  top: '2px',
+                  right: '2px',
+                  minWidth: '16px',
+                  height: '16px',
+                  borderRadius: '8px',
                   background: '#ef4444',
+                  color: '#ffffff',
+                  fontSize: '0.65rem',
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 3px',
                   border: '2px solid #ffffff',
                 }}
-              />
+              >
+                {unreadNotificationsCount}
+              </span>
+            )}
+
+            {/* Notifications Popover */}
+            {isNotificationsOpen && (
+              <div
+                className="dashboard-topbar-popover"
+                style={{
+                  position: 'absolute',
+                  top: '46px',
+                  right: 0,
+                  width: '320px',
+                  background: '#ffffff',
+                  borderRadius: '18px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 12px 36px rgba(0,0,0,0.12)',
+                  zIndex: 120,
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>Notifications</span>
+                    {unreadNotificationsCount > 0 && (
+                      <span style={{ background: '#eff6ff', color: '#2563eb', fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+                        {unreadNotificationsCount} new
+                      </span>
+                    )}
+                  </div>
+                  {unreadNotificationsCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReadNotificationIds(notifications.map((n) => n.id));
+                        showToast('All notifications marked as read.');
+                      }}
+                      style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '0.74rem', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '260px', overflowY: 'auto' }}>
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: '20px 10px', textAlign: 'center', color: '#64748b', fontSize: '0.78rem' }}>
+                      No new notifications. Everything is up to date.
+                    </div>
+                  ) : (
+                    notifications.map((n) => {
+                      const isUnread = !readNotificationIds.includes(n.id) && n.unread;
+                      return (
+                        <div
+                          key={n.id}
+                          onClick={() => {
+                            setReadNotificationIds((prev) => [...prev, n.id]);
+                            setIsNotificationsOpen(false);
+                            navigate(n.to);
+                          }}
+                          style={{
+                            display: 'flex',
+                            gap: '10px',
+                            padding: '8px 10px',
+                            borderRadius: '10px',
+                            background: isUnread ? '#f8fafc' : '#ffffff',
+                            cursor: 'pointer',
+                            transition: 'background 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = '#f1f5f9')}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = isUnread ? '#f8fafc' : '#ffffff')}
+                        >
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isUnread ? '#2563eb' : 'transparent', marginTop: '6px', flexShrink: 0 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a' }}>{n.title}</span>
+                              <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{n.time}</span>
+                            </div>
+                            <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {n.subtitle}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsNotificationsOpen(false);
+                      navigate('/app/automated-emails');
+                    }}
+                    style={{
+                      width: '100%',
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '10px',
+                      padding: '8px',
+                      fontSize: '0.76rem',
+                      fontWeight: 700,
+                      color: '#0f172a',
+                      cursor: 'pointer',
+                      textAlign: 'center',
+                    }}
+                  >
+                    View Notification Settings & Logs &rsaquo;
+                  </button>
+                </div>
+              </div>
             )}
           </div>
 
-          {/* Message bubble */}
+          {/* Message Bubble with Functional Popover */}
           <div style={{ position: 'relative' }}>
             <button
-              onClick={() => showToast(unreadMessagesCount > 0 ? `${unreadMessagesCount} unread message${unreadMessagesCount > 1 ? 's' : ''}.` : 'No unread messages.')}
+              type="button"
+              className="dashboard-topbar-trigger"
+              onClick={() => {
+                setIsMessagesOpen(!isMessagesOpen);
+                setIsNotificationsOpen(false);
+                setIsProfileMenuOpen(false);
+              }}
               style={{
-                background: '#ffffff',
+                background: isMessagesOpen ? '#f1f5f9' : '#ffffff',
                 border: '1px solid #e2e8f0',
                 borderRadius: '50%',
                 width: '38px',
@@ -365,8 +589,10 @@ export const DashboardPage: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                color: '#64748b',
+                color: isMessagesOpen ? '#0f172a' : '#64748b',
+                transition: 'all 0.15s ease',
               }}
+              title="Messages & Inquiries"
             >
               <MessageSquare size={17} />
             </button>
@@ -374,49 +600,383 @@ export const DashboardPage: React.FC = () => {
               <span
                 style={{
                   position: 'absolute',
-                  top: '4px',
-                  right: '4px',
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
+                  top: '2px',
+                  right: '2px',
+                  minWidth: '16px',
+                  height: '16px',
+                  borderRadius: '8px',
                   background: '#ef4444',
+                  color: '#ffffff',
+                  fontSize: '0.65rem',
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 3px',
                   border: '2px solid #ffffff',
                 }}
-              />
+              >
+                {unreadMessagesCount}
+              </span>
+            )}
+
+            {/* Messages Popover */}
+            {isMessagesOpen && (
+              <div
+                className="dashboard-topbar-popover"
+                style={{
+                  position: 'absolute',
+                  top: '46px',
+                  right: 0,
+                  width: '340px',
+                  background: '#ffffff',
+                  borderRadius: '18px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 12px 36px rgba(0,0,0,0.12)',
+                  zIndex: 120,
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>Communications</span>
+                    {unreadMessagesCount > 0 && (
+                      <span style={{ background: '#fef2f2', color: '#dc2626', fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+                        {unreadMessagesCount} unread
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {/* Shortcut 1: AI Operations Assistant */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMessagesOpen(false);
+                      navigate('/app/ai-assistant');
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '10px 12px',
+                      borderRadius: '12px',
+                      background: '#eff6ff',
+                      border: '1px solid #bfdbfe',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <Sparkles size={18} color="#2563eb" />
+                    <div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e3a8a' }}>AI Operations Assistant</div>
+                      <div style={{ fontSize: '0.72rem', color: '#3b82f6' }}>Draft replies, query ledger, or dispatch vendors</div>
+                    </div>
+                  </button>
+
+                  {/* Shortcut 2: Smart Residence Feed */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMessagesOpen(false);
+                      setActiveTab('smart-home');
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '10px 12px',
+                      borderRadius: '12px',
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <Users size={18} color="#0f172a" />
+                    <div>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }}>Smart Residence Community</div>
+                      <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Open private residence feed &amp; conversations</div>
+                    </div>
+                  </button>
+                </div>
+
+                {/* Recent Tenant Inquiries List */}
+                <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
+                  <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px' }}>
+                    Recent Inquiries
+                  </div>
+                  {tenantMessages.length === 0 ? (
+                    <div style={{ padding: '12px 0', textAlign: 'center', color: '#64748b', fontSize: '0.76rem' }}>
+                      No active tenant inquiries recorded.
+                    </div>
+                  ) : (
+                    tenantMessages.slice(0, 3).map((m) => (
+                      <div
+                        key={m.id}
+                        onClick={() => {
+                          setIsMessagesOpen(false);
+                          navigate('/app/maintenance');
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '6px 8px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          transition: 'background 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: '#0f172a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800 }}>
+                          {m.initials}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {m.name}
+                          </div>
+                          <div style={{ fontSize: '0.7rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {m.text}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             )}
           </div>
 
-          {/* User profile avatar and label */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div
+          {/* User Profile Avatar with Functional Popover */}
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              className="dashboard-topbar-trigger"
+              onClick={() => {
+                setIsProfileMenuOpen(!isProfileMenuOpen);
+                setIsNotificationsOpen(false);
+                setIsMessagesOpen(false);
+              }}
               style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '50%',
-                background: '#0f172a',
-                color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.84rem',
-                fontWeight: 700,
+                gap: '10px',
+                background: isProfileMenuOpen ? '#f1f5f9' : 'transparent',
+                border: '1px solid ' + (isProfileMenuOpen ? '#cbd5e1' : 'transparent'),
+                borderRadius: '24px',
+                padding: '4px 10px 4px 4px',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.15s ease',
               }}
+              title="Account &amp; Organization Menu"
             >
-              {(currentUserSession?.name || currentOrg?.name || 'Admin')
-                .split(' ')
-                .map((n) => n[0])
-                .join('')
-                .toUpperCase()
-                .slice(0, 2)}
-            </div>
-            <div>
-              <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0f172a' }}>
-                {currentUserSession?.name || currentOrg?.name || 'Administrator'}
+              <div
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  background: '#0f172a',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.84rem',
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}
+              >
+                {(currentUserSession?.name || currentOrg?.name || 'Admin')
+                  .split(' ')
+                  .map((n) => n[0])
+                  .join('')
+                  .toUpperCase()
+                  .slice(0, 2)}
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                {currentUserSession?.role || 'Admin'}
+              <div>
+                <div style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+                  {currentUserSession?.name || currentOrg?.name || 'Administrator'}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                  {currentUserSession?.role || 'Admin'}
+                </div>
               </div>
-            </div>
+              <ChevronDown size={14} color="#64748b" />
+            </button>
+
+            {/* Profile Popover Menu */}
+            {isProfileMenuOpen && (
+              <div
+                className="dashboard-topbar-popover"
+                style={{
+                  position: 'absolute',
+                  top: '52px',
+                  right: 0,
+                  width: '280px',
+                  background: '#ffffff',
+                  borderRadius: '18px',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 12px 36px rgba(0,0,0,0.12)',
+                  zIndex: 120,
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                }}
+              >
+                {/* Org Info */}
+                <div style={{ paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
+                  <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0f172a' }}>
+                    {currentOrg?.name || 'Unit Flow Organization'}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>
+                    {currentOrg?.county || 'Nairobi'} &bull; {currentOrg?.currency || 'KES'}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    setIsSwitcherModalOpen(true);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 10px',
+                    borderRadius: '10px',
+                    background: 'transparent',
+                    border: 'none',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: '#334155',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <Building2 size={16} color="#2563eb" />
+                  <span>Switch Organization / Role</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    navigate('/portal/dashboard');
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 10px',
+                    borderRadius: '10px',
+                    background: 'transparent',
+                    border: 'none',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: '#334155',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <Home size={16} color="#16a34a" />
+                  <span>Tenant Self-Service Portal</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    navigate('/app/properties-units');
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 10px',
+                    borderRadius: '10px',
+                    background: 'transparent',
+                    border: 'none',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: '#334155',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <BuildingOffice2Icon size={16} color="#64748b" />
+                  <span>Properties &amp; Units</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    navigate('/app/settings');
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 10px',
+                    borderRadius: '10px',
+                    background: 'transparent',
+                    border: 'none',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    color: '#334155',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <Settings size={16} color="#64748b" />
+                  <span>System Settings</span>
+                </button>
+
+                <div style={{ borderTop: '1px solid #f1f5f9', margin: '4px 0' }} />
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    logout();
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 10px',
+                    borderRadius: '10px',
+                    background: '#fff1f2',
+                    border: 'none',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    color: '#dc2626',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                >
+                  <LogOut size={16} color="#dc2626" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -468,8 +1028,10 @@ export const DashboardPage: React.FC = () => {
                   </span>
                 </div>
                 <button
-                  onClick={() => showToast(`Total Revenue details: ${fmt(totalRevenueUsd, totalRevenueKes)}`)}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                  type="button"
+                  onClick={() => navigate('/app/analytics-ledger')}
+                  title="View Accounting Ledger & Financial Analytics"
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}
                 >
                   <MoreHorizontal size={16} />
                 </button>
@@ -522,8 +1084,10 @@ export const DashboardPage: React.FC = () => {
                   </span>
                 </div>
                 <button
-                  onClick={() => showToast(`Maintenance Cost details: ${fmt(totalMaintenanceUsd, totalMaintenanceKes)}`)}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                  type="button"
+                  onClick={() => navigate('/app/maintenance')}
+                  title="View Maintenance Log & Service Orders"
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}
                 >
                   <MoreHorizontal size={16} />
                 </button>
@@ -1041,7 +1605,10 @@ export const DashboardPage: React.FC = () => {
                   activeMessages.map((m) => (
                     <div
                       key={m.id}
-                      onClick={() => showToast(`Opening chat with ${m.name}...`)}
+                      onClick={() => {
+                        navigate('/app/maintenance');
+                        showToast(`Viewing request from ${m.name}`);
+                      }}
                       style={{
                         display: 'flex',
                         gap: '12px',
