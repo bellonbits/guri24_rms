@@ -142,6 +142,9 @@ export const AppLayout: React.FC = () => {
         if (item.to === '/app/dashboard') {
           return location.pathname === '/app/dashboard' || location.pathname === '/app';
         }
+        if (item.to === '/app/assistant') {
+          return location.pathname.startsWith('/app/assistant') || location.pathname.startsWith('/app/ai-assistant');
+        }
         if (item.to === '/app/settings-portal' || item.to === '/app/settings') {
           return location.pathname.startsWith('/app/settings');
         }
@@ -250,6 +253,8 @@ export const AppLayout: React.FC = () => {
             const isActive =
               item.to === '/app/dashboard'
                 ? location.pathname === '/app/dashboard' || location.pathname === '/app'
+                : item.to === '/app/assistant'
+                ? location.pathname.startsWith('/app/assistant') || location.pathname.startsWith('/app/ai-assistant')
                 : location.pathname.startsWith(item.to);
 
             return (
@@ -599,6 +604,8 @@ export const AppLayout: React.FC = () => {
                   const isActive =
                     item.to === '/app/dashboard'
                       ? location.pathname === '/app/dashboard' || location.pathname === '/app'
+                      : item.to === '/app/assistant'
+                      ? location.pathname.startsWith('/app/assistant') || location.pathname.startsWith('/app/ai-assistant')
                       : location.pathname.startsWith(item.to);
 
                   return (
@@ -707,12 +714,12 @@ export const AppLayout: React.FC = () => {
 
         <Link
           to="/app/assistant"
-          className={`bottom-nav-item ${location.pathname.startsWith('/app/assistant') ? 'active' : ''}`}
+          className={`bottom-nav-item ${location.pathname.startsWith('/app/assistant') || location.pathname.startsWith('/app/ai-assistant') ? 'active' : ''}`}
           aria-label="AI Assistant"
         >
           <SparklesIcon style={{ width: 20, height: 20 }} />
           <span>AI Help</span>
-          {location.pathname.startsWith('/app/assistant') && <span className="bottom-nav-indicator" />}
+          {(location.pathname.startsWith('/app/assistant') || location.pathname.startsWith('/app/ai-assistant')) && <span className="bottom-nav-indicator" />}
         </Link>
 
         <button

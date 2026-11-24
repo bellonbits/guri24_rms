@@ -666,7 +666,7 @@ export const DashboardPage: React.FC = () => {
                     type="button"
                     onClick={() => {
                       setIsMessagesOpen(false);
-                      navigate('/app/ai-assistant');
+                      navigate('/app/assistant');
                     }}
                     style={{
                       display: 'flex',

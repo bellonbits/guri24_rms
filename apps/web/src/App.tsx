@@ -158,6 +158,8 @@ export const App: React.FC = () => {
             <Route path="/properties-units" element={<Navigate to="/app/properties-units" replace />} />
             <Route path="/properties" element={<Navigate to="/app/properties-units" replace />} />
             <Route path="/units" element={<Navigate to="/app/properties-units" replace />} />
+            <Route path="/assistant" element={<Navigate to="/app/assistant" replace />} />
+            <Route path="/ai-assistant" element={<Navigate to="/app/assistant" replace />} />
             <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
             <Route path="/settings-portal" element={<Navigate to="/app/settings" replace />} />
 
@@ -219,8 +221,11 @@ export const App: React.FC = () => {
               <Route path="ocr-documents/review" element={<OcrDocumentsPage />} />
               <Route path="ocr-documents/review/:id" element={<OcrDocumentsPage />} />
 
-              {/* 9. AI Assistant */}
+              {/* 9. AI Assistant (supports both /app/assistant and /app/ai-assistant) */}
               <Route path="assistant" element={<AssistantPage />} />
+              <Route path="assistant/*" element={<AssistantPage />} />
+              <Route path="ai-assistant" element={<AssistantPage />} />
+              <Route path="ai-assistant/*" element={<AssistantPage />} />
 
               {/* 10. Analytics & Ledger (Complete Nested Financial Management Subpages) */}
               <Route path="analytics-ledger" element={<AnalyticsLedgerPage />} />
