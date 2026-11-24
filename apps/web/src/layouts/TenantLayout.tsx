@@ -18,6 +18,7 @@ import {
   X,
   PanelLeftClose,
   PanelLeft,
+  ChevronLeft,
   ChevronRight,
   ShieldCheck,
   Calendar,
