@@ -343,7 +343,7 @@ export const TenantLayout: React.FC = () => {
           <div
             style={{
               height: '70px',
-              padding: isSidebarCollapsed && !isMobile ? '0 14px' : '0 18px',
+              padding: isSidebarCollapsed && !isMobile ? '0' : '0 18px',
               borderBottom: '1px solid #1e293b',
               display: 'flex',
               alignItems: 'center',
@@ -352,95 +352,141 @@ export const TenantLayout: React.FC = () => {
               flexShrink: 0,
             }}
           >
-            <Link
-              to="/portal/dashboard"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                textDecoration: 'none',
-                color: '#ffffff',
-                minWidth: 0,
-              }}
-            >
-              <div
+            {isSidebarCollapsed && !isMobile ? (
+              /* Clean, centered logo toggle button when collapsed (prevents icon overlap/squishing) */
+              <button
+                type="button"
+                onClick={handleToggleNavigation}
                 style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#ffffff',
-                  fontWeight: 800,
-                  fontSize: '1.05rem',
-                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.35)',
-                  flexShrink: 0,
+                  position: 'relative',
+                  padding: '6px',
+                  borderRadius: '12px',
+                  transition: 'transform 0.15s ease',
                 }}
+                title="Expand sidebar"
+                aria-label="Expand sidebar"
               >
-                UF
-              </div>
-              {(!isSidebarCollapsed || isMobile) && (
-                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: '1.15rem',
-                      fontWeight: 800,
-                      letterSpacing: '-0.02em',
-                      color: '#ffffff',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    Unit Flow
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '0.74rem',
-                      fontWeight: 600,
-                      color: '#60a5fa',
-                      letterSpacing: '0.04em',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    Tenant Portal
-                  </div>
+                <img
+                  src="/logo.png"
+                  alt="Unit Flow Logo"
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '10px',
+                    objectFit: 'contain',
+                    display: 'block',
+                  }}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = '/logo-256.png';
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '0px',
+                    right: '0px',
+                    background: '#2563eb',
+                    border: '2px solid #101322',
+                    borderRadius: '50%',
+                    width: '18px',
+                    height: '18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+                  }}
+                >
+                  <ChevronRight size={10} color="#ffffff" />
                 </div>
-              )}
-            </Link>
+              </button>
+            ) : (
+              /* Expanded state: Brand Logo + Wordmark + Collapse button */
+              <>
+                <Link
+                  to="/portal/dashboard"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    textDecoration: 'none',
+                    color: '#ffffff',
+                    minWidth: 0,
+                  }}
+                >
+                  <img
+                    src="/logo.png"
+                    alt="Unit Flow Logo"
+                    style={{
+                      width: '38px',
+                      height: '38px',
+                      borderRadius: '10px',
+                      objectFit: 'contain',
+                      flexShrink: 0,
+                    }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/logo-256.png';
+                    }}
+                  />
+                  <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: '1.15rem',
+                        fontWeight: 800,
+                        letterSpacing: '-0.02em',
+                        color: '#ffffff',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      Unit Flow
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.74rem',
+                        fontWeight: 600,
+                        color: '#60a5fa',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      Tenant Portal
+                    </div>
+                  </div>
+                </Link>
 
-            {/* Collapse / Expand Toggle Button inside Sidebar */}
-            <button
-              type="button"
-              onClick={handleToggleNavigation}
-              style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                borderRadius: '8px',
-                width: '28px',
-                height: '28px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: '#cbd5e1',
-                padding: 0,
-                flexShrink: 0,
-                transition: 'all 0.15s ease',
-              }}
-              title={isSidebarCollapsed && !isMobile ? 'Expand sidebar' : 'Collapse sidebar'}
-              aria-label="Toggle sidebar collapse"
-            >
-              {isMobile ? (
-                <X size={16} />
-              ) : isSidebarCollapsed ? (
-                <ChevronRight size={16} />
-              ) : (
-                <ChevronLeft size={16} />
-              )}
-            </button>
+                {/* Collapse / Close Toggle Button */}
+                <button
+                  type="button"
+                  onClick={handleToggleNavigation}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: '8px',
+                    width: '28px',
+                    height: '28px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#cbd5e1',
+                    padding: 0,
+                    flexShrink: 0,
+                    transition: 'all 0.15s ease',
+                  }}
+                  title={isMobile ? 'Close menu' : 'Collapse sidebar'}
+                  aria-label="Toggle sidebar collapse"
+                >
+                  {isMobile ? <X size={16} /> : <ChevronLeft size={16} />}
+                </button>
+              </>
+            )}
           </div>
 
           {/* Current Residence Summary & Tenancy Switcher Trigger */}
