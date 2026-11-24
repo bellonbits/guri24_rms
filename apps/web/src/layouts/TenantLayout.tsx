@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
+  Users,
   CreditCard,
   FileText,
   Wrench,
@@ -157,6 +158,14 @@ export const TenantLayout: React.FC = () => {
       icon: <LayoutDashboard size={18} />,
     },
     {
+      to: '/portal/community',
+      aliases: ['/portal/social', '/portal/smart-residence', '/portal/neighborhood'],
+      label: 'Smart Residence',
+      sublabel: 'Private social network',
+      icon: <Users size={18} />,
+      badge: 'Social',
+    },
+    {
       to: '/portal/properties',
       aliases: ['/portal/properties/', '/portal/apartment'],
       label: 'My Properties',
@@ -207,7 +216,7 @@ export const TenantLayout: React.FC = () => {
     },
     {
       to: '/portal/messages',
-      aliases: ['/portal/community'],
+      aliases: ['/portal/chat', '/portal/desk'],
       label: 'Messages',
       sublabel: 'Contact property staff',
       icon: <MessageSquare size={18} />,

@@ -98,10 +98,26 @@ export const EllipsisHorizontalIcon = createHeroicon(OutlineIcons.EllipsisHorizo
 export const AdjustmentsHorizontalIcon = createHeroicon(OutlineIcons.AdjustmentsHorizontalIcon);
 export const LightBulbIcon = createHeroicon(OutlineIcons.LightBulbIcon);
 export const FireIcon = createHeroicon(OutlineIcons.FireIcon);
+export const HeartIcon = createHeroicon(OutlineIcons.HeartIcon);
+export const BookmarkIcon = createHeroicon(OutlineIcons.BookmarkIcon);
+export const ArrowPathRoundedSquareIcon = createHeroicon(OutlineIcons.ArrowPathRoundedSquareIcon);
+export const ShareIcon = createHeroicon(OutlineIcons.ShareIcon);
+export const FlagIcon = createHeroicon(OutlineIcons.FlagIcon);
+export const UserGroupIcon = createHeroicon(OutlineIcons.UserGroupIcon);
+export const TagIcon = createHeroicon(OutlineIcons.TagIcon);
+export const ShoppingBagIcon = createHeroicon(OutlineIcons.ShoppingBagIcon);
 
 // ---------------------------------------------------------------------------
 // Named aliases mapping standard semantic names to official Heroicons
 // ---------------------------------------------------------------------------
+export const Heart = HeartIcon;
+export const Bookmark = BookmarkIcon;
+export const Repeat = ArrowPathRoundedSquareIcon;
+export const Share = ShareIcon;
+export const Flag = FlagIcon;
+export const Users = UserGroupIcon;
+export const Tag = TagIcon;
+export const ShoppingBag = ShoppingBagIcon;
 export const MoreHorizontal = EllipsisHorizontalIcon;
 export const SlidersHorizontal = AdjustmentsHorizontalIcon;
 export const Lightbulb = LightBulbIcon;

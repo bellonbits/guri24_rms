@@ -41,10 +41,12 @@ import {
   DollarSign,
   Zap,
   Sparkles,
+  Users,
 } from '../../components/heroicons';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../lib/apiClient';
 import type { Property, Unit, Lease, Invoice, Payment, MaintenanceRequest, DocumentItem, NotificationDelivery } from '../../types';
+import { SmartResidenceCommunity } from '../../components/SmartResidenceCommunity';
 
 // Specialized Subviews
 import { PropertiesView } from './views/PropertiesView';
@@ -92,7 +94,8 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
     if (path.includes('/payments') || path.includes('/financials')) return 'payments';
     if (path.includes('/lease') || path.includes('/apartment')) return 'lease';
     if (path.includes('/documents')) return 'documents';
-    if (path.includes('/messages') || path.includes('/community')) return 'messages';
+    if (path.includes('/community') || path.includes('/smart-residence') || path.includes('/social')) return 'community';
+    if (path.includes('/messages')) return 'messages';
     if (path.includes('/notifications') || path.includes('/notification')) return 'notifications';
     if (path.includes('/profile') || path.includes('/account')) return 'profile';
     return 'dashboard';
@@ -450,7 +453,9 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
             />
 
             {/* Smart Access Badge / Onboarding Status */}
-            <div
+            <Link
+              to="/portal/community"
+              title="Open Smart Residence Private Social Network"
               style={{
                 position: 'absolute',
                 top: '20px',
@@ -463,6 +468,9 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 alignItems: 'center',
                 gap: '12px',
                 boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                textDecoration: 'none',
+                cursor: 'pointer',
+                transition: 'transform 0.15s ease',
               }}
             >
               <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: activeLease ? '#10b981' : '#f59e0b' }} />
@@ -470,11 +478,11 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0f172a' }}>
                   {activeLease ? 'Resident Smart Access' : 'Onboarding Pending'}
                 </div>
-                <div style={{ fontSize: '0.68rem', color: '#64748b' }}>
-                  {activeLease ? 'Keyless Gate & Lift Verified' : 'Awaiting Lease Activation'}
+                <div style={{ fontSize: '0.68rem', color: '#2563eb', fontWeight: 700 }}>
+                  Private Social Community &rarr;
                 </div>
               </div>
-            </div>
+            </Link>
 
             {/* Hero Content Bottom */}
             <div style={{ position: 'relative', zIndex: 10, padding: '28px 32px' }}>
@@ -890,6 +898,30 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
                 <div>
                   <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>Contact Staff</div>
                   <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Direct management channel</div>
+                </div>
+              </Link>
+
+              {/* Action 7: Smart Residence Community */}
+              <Link
+                to="/portal/community"
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  textDecoration: 'none',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                }}
+              >
+                <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Users size={20} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>Smart Residence</div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Private social network</div>
                 </div>
               </Link>
             </div>
@@ -1786,6 +1818,10 @@ export const TenantPortalPage: React.FC<TenantPortalPageProps> = ({ view }) => {
       {/* =========================================================================
           SUBVIEWS DELEGATION
       ========================================================================== */}
+      {currentView === 'community' && (
+        <SmartResidenceCommunity onBack={() => navigate('/portal/dashboard')} showToast={showToast} />
+      )}
+
       {currentView === 'properties' && (
         <PropertiesView onBack={() => navigate('/portal/dashboard')} showToast={showToast} />
       )}

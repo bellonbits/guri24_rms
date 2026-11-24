@@ -324,7 +324,9 @@ export const App: React.FC = () => {
               {/* Documents & Communication */}
               <Route path="documents" element={<TenantPortalPage view="documents" />} />
               <Route path="messages" element={<TenantPortalPage view="messages" />} />
-              <Route path="community" element={<TenantPortalPage view="messages" />} />
+              <Route path="community" element={<TenantPortalPage view="community" />} />
+              <Route path="smart-residence" element={<TenantPortalPage view="community" />} />
+              <Route path="social" element={<TenantPortalPage view="community" />} />
               <Route path="announcements" element={<TenantPortalPage view="announcements" />} />
               <Route path="notifications" element={<TenantPortalPage view="notifications" />} />
               <Route path="notification" element={<TenantPortalPage view="notifications" />} />
