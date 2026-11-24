@@ -2131,6 +2131,112 @@
   }
 }
 
+/* =========================================================================
+   SMART RESIDENCE COMMUNITY — RESPONSIVE LAYOUT (DESKTOP & MOBILE)
+   ========================================================================= */
+.smart-community-wrapper {
+  width: 100%;
+  min-height: 100%;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.smart-community-grid {
+  width: 100%;
+  max-width: 1320px;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 300px;
+  gap: 28px;
+  align-items: start;
+  padding: 0 16px 80px 16px;
+  box-sizing: border-box;
+}
+
+.smart-community-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.smart-community-center-col {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.smart-community-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: sticky;
+  top: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.smart-community-mobile-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 520px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  border-radius: 32px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  padding: 8px 20px;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 90;
+}
+
+/* Tablet (max-width: 1279px): 2 columns, hide right sidebar */
+@media (max-width: 1279px) {
+  .smart-community-grid {
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 20px;
+  }
+  .smart-community-right-col {
+    display: none !important;
+  }
+}
+
+/* Mobile & Small Tablets (max-width: 1023px): Single column, full width */
+@media (max-width: 1023px) {
+  .smart-community-grid {
+    display: flex;
+    flex-direction: column;
+    padding: 0 12px calc(84px + env(safe-area-inset-bottom, 16px)) 12px;
+    gap: 16px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .smart-community-left-col {
+    display: none !important;
+  }
+  .smart-community-right-col {
+    display: none !important;
+  }
+  .smart-community-center-col {
+    width: 100%;
+  }
+  .smart-community-mobile-bottom-nav {
+    display: flex !important;
+  }
+}
+
 /* ==========================================================================
    SKILL.md B7: PREFERS-REDUCED-MOTION
    ========================================================================== */

@@ -29,6 +29,9 @@ import {
   SolidCheckCircleIcon,
   Camera,
   Trash,
+  Phone,
+  Wrench,
+  Info,
 } from './heroicons';
 import { useAuth } from '../context/AuthContext';
 import { useRms } from '../context/RmsContext';
@@ -63,6 +66,29 @@ export interface CommunityPost {
   }[];
 }
 
+// Strictly detect and purge legacy mock / demo posts or any post with emojis
+const isMockOrEmojiPost = (p: any): boolean => {
+  if (!p || typeof p !== 'object') return true;
+  const mockHandles = ['@janem', '@davidk', '@patrik9', '@gerald_hart', '@joey_rev', '@management'];
+  const mockNames = ['Jane M.', 'David K.', 'Patrick Hill', 'Gerald Hart', 'Joey Reeves', 'Residence Operations & Management'];
+  const mockIds = ['post-1', 'post-2', 'post-3', 'demo-1', 'demo-2'];
+
+  if (
+    mockHandles.includes(p.authorHandle) ||
+    mockNames.includes(p.authorName) ||
+    mockIds.includes(p.id)
+  ) {
+    return true;
+  }
+
+  // Strictly check if content has emoji characters
+  if (typeof p.content === 'string' && /\p{Extended_Pictographic}/u.test(p.content)) {
+    return true;
+  }
+
+  return false;
+};
+
 export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = ({ onBack, showToast }) => {
   const { currentOrg, currentUserSession } = useAuth();
   const { state } = useRms();
@@ -78,7 +104,7 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTagFilter, setActiveTagFilter] = useState<string>('ALL');
 
-  // Local Storage Storage Key strictly scoped to current organization (Zero mock data)
+  // Local Storage Key strictly scoped to current organization (Zero mock data policy)
   const STORAGE_KEY = `unitflow_residence_posts_${currentOrg?.id || 'live'}`;
 
   // Real Tenant / Admin Identity
@@ -107,23 +133,28 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) {
+          // Immediately purge any legacy mock posts or emoji posts
+          const cleaned = parsed.filter((p) => !isMockOrEmojiPost(p));
+          return cleaned;
+        }
       }
     } catch {}
     return [];
   });
 
-  // Sync to localStorage
+  // Keep localStorage sanitized and synced
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+      const cleaned = posts.filter((p) => !isMockOrEmojiPost(p));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
     } catch {}
   }, [posts, STORAGE_KEY]);
 
   // Verified Active Residents from Database (No fake people)
   const activeResidents = useMemo(() => {
     const list: { name: string; handle: string; unit: string; initials: string }[] = [];
-    (state?.tenants || []).slice(0, 8).forEach((t: any) => {
+    (state?.tenants || []).slice(0, 10).forEach((t: any) => {
       const name = t.name || t.fullName || 'Resident';
       const initials = name
         .split(' ')
@@ -134,7 +165,7 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
       list.push({
         name,
         handle: `@${name.toLowerCase().replace(/[^a-z0-9]/g, '')}`,
-        unit: t.unit_number ? `Unit ${t.unit_number}` : 'Verified',
+        unit: t.unit_number ? `Unit ${t.unit_number}` : 'Verified Unit',
         initials: initials || 'RM',
       });
     });
@@ -155,10 +186,17 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
   const [reportPostId, setShowReportModal] = useState<string | null>(null);
   const [reportReason, setReportReason] = useState('Inappropriate Content');
 
-  // Submit New Post
+  // Submit New Post (Strictly zero emojis)
   const handleCreatePost = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPostText.trim()) return;
+
+    // Check if user accidentally pasted emojis, strip them cleanly
+    const sanitizedText = newPostText.replace(/\p{Extended_Pictographic}/gu, '').trim();
+    if (!sanitizedText) {
+      notify('Please enter post text without emojis.');
+      return;
+    }
 
     const isMgmt = currentUserSession?.role === 'ORGANIZATION_ADMINISTRATOR' || currentUserSession?.role === 'PLATFORM_SUPER_ADMIN';
 
@@ -170,7 +208,7 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
       authorLocation: residentLocation,
       timeAgo: 'Just now',
       timestamp: Date.now(),
-      content: newPostText.trim(),
+      content: sanitizedText,
       tag: newPostTag,
       mediaUrl: newPostMediaUrl.trim() || undefined,
       isOfficial: isMgmt,
@@ -220,10 +258,16 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
     notify('Bookmark status updated.');
   };
 
-  // Add Comment
+  // Add Comment (Strictly zero emojis)
   const handleAddComment = (postId: string) => {
-    const text = (commentInputs[postId] || '').trim();
-    if (!text) return;
+    const rawText = (commentInputs[postId] || '').trim();
+    if (!rawText) return;
+
+    const sanitized = rawText.replace(/\p{Extended_Pictographic}/gu, '').trim();
+    if (!sanitized) {
+      notify('Please enter a reply without emojis.');
+      return;
+    }
 
     setPosts((prev) =>
       prev.map((p) => {
@@ -237,7 +281,7 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
               authorName: residentName,
               authorLocation: residentLocation,
               timeAgo: 'Just now',
-              content: text,
+              content: sanitized,
             },
           ],
         };
@@ -277,155 +321,235 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
     return list;
   }, [posts, searchQuery, activeTagFilter]);
 
+  // Topic Categories List
+  const topicTags = ['ALL', 'General', 'Recommendations', 'Fitness', 'Social', 'Maintenance', 'Marketplace'];
+
   return (
-    <div style={{ background: '#ffffff', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      {/* Max Width Container matching the Image 3 Reference Frame */}
-      <div style={{ width: '100%', maxWidth: '580px', display: 'flex', flexDirection: 'column', padding: '0 16px 90px 16px' }}>
-        
-        {/* Top Header Bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 0 14px 0', borderBottom: '1px solid #f1f5f9' }}>
-          <div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
-              Smart Residence
-            </div>
-            <div style={{ fontSize: '0.74rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-              <ShieldCheck size={14} color="#2563eb" />
-              <span>{currentOrg?.name || 'Verified Community'} &bull; Private Network</span>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {onBack && (
-              <button
-                onClick={onBack}
-                style={{
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '20px',
-                  padding: '6px 14px',
-                  fontSize: '0.76rem',
-                  fontWeight: 700,
-                  color: '#334155',
-                  cursor: 'pointer',
-                }}
-              >
-                Exit
-              </button>
-            )}
-
-            <button
-              onClick={() => setShowCreateModal(true)}
-              style={{
-                background: '#2563eb',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '20px',
-                padding: '6px 16px',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-              }}
-            >
-              <Plus size={15} />
-              <span>Post</span>
-            </button>
-          </div>
-        </div>
+    <div className="smart-community-wrapper">
+      <div className="smart-community-grid">
 
         {/* ------------------------------------------------------------- */}
-        {/* TOP STORIES / ACTIVE RESIDENTS ROW (Image 3 Top Carousel)    */}
+        {/* 1. LEFT SIDEBAR: DESKTOP ONLY (≥ 1024px)                      */}
         {/* ------------------------------------------------------------- */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '16px',
-            overflowX: 'auto',
-            padding: '16px 0 14px 0',
-            borderBottom: '1px solid #f1f5f9',
-            scrollbarWidth: 'none',
-          }}
-        >
-          {/* Item 1: Add Your's (Current User) */}
+        <aside className="smart-community-left-col">
+          {/* Verified Resident Profile Card */}
           <div
-            onClick={() => setShowCreateModal(true)}
             style={{
+              background: '#ffffff',
+              borderRadius: '20px',
+              padding: '20px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'center',
-              cursor: 'pointer',
-              flexShrink: 0,
-              width: '68px',
+              gap: '12px',
             }}
           >
-            <div style={{ position: 'relative', width: '60px', height: '60px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div
                 style={{
-                  width: '100%',
-                  height: '100%',
+                  width: '46px',
+                  height: '46px',
                   borderRadius: '50%',
-                  border: '2px dashed #2563eb',
-                  padding: '2px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    borderRadius: '50%',
-                    background: '#0f172a',
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 800,
-                    fontSize: '0.94rem',
-                  }}
-                >
-                  {residentName.slice(0, 2).toUpperCase()}
-                </div>
-              </div>
-
-              {/* Blue Plus Badge */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '-2px',
-                  right: '18px',
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '6px',
-                  background: '#2563eb',
+                  background: '#0f172a',
                   color: '#ffffff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '2px solid #ffffff',
+                  fontWeight: 800,
+                  fontSize: '1rem',
+                  flexShrink: 0,
                 }}
               >
-                <Plus size={13} />
+                {residentName.slice(0, 2).toUpperCase()}
+              </div>
+
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span
+                    style={{
+                      fontSize: '0.94rem',
+                      fontWeight: 800,
+                      color: '#0f172a',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {residentName}
+                  </span>
+                  <SolidCheckCircleIcon size={16} color="#2563eb" style={{ flexShrink: 0 }} />
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{residentHandle}</div>
               </div>
             </div>
 
-            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#334155', marginTop: '8px', textAlign: 'center' }}>
-              Add Yours
-            </span>
+            <div style={{ height: '1px', background: '#f1f5f9', margin: '2px 0' }} />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.76rem', color: '#475569' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Building size={14} color="#2563eb" />
+                <span>{currentOrg?.name || 'Verified Property'}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <ShieldCheck size={14} color="#16a34a" />
+                <span>{residentLocation} &bull; Verified Member</span>
+              </div>
+            </div>
           </div>
 
-          {/* Active Verified Residents from Database */}
-          {activeResidents.map((res, idx) => (
+          {/* Topic Channels / Navigation Menu */}
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '20px',
+              padding: '18px 14px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+            }}
+          >
+            <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0 8px 6px 8px' }}>
+              Residence Channels
+            </div>
+
+            {topicTags.map((tag) => {
+              const active = activeTagFilter === tag;
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => setActiveTagFilter(tag)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 12px',
+                    borderRadius: '12px',
+                    background: active ? '#0f172a' : 'transparent',
+                    color: active ? '#ffffff' : '#334155',
+                    border: 'none',
+                    fontSize: '0.82rem',
+                    fontWeight: active ? 700 : 500,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <span>{tag === 'ALL' ? 'All Community Feed' : `#${tag}`}</span>
+                  {active && <Check size={14} color="#38bdf8" />}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Community Standards & Guidelines */}
+          <div
+            style={{
+              background: '#f8fafc',
+              borderRadius: '20px',
+              padding: '18px',
+              border: '1px solid #e2e8f0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <ShieldCheck size={16} color="#2563eb" />
+              <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>Community Principles</span>
+            </div>
+            <div style={{ fontSize: '0.74rem', color: '#64748b', lineHeight: 1.5 }}>
+              Strictly verified residents only. Respect neighbor privacy, uphold safety standards, and keep conversations constructive.
+            </div>
+          </div>
+        </aside>
+
+        {/* ------------------------------------------------------------- */}
+        {/* 2. CENTER FEED COLUMN: RESPONSIVE FLUID STREAM                */}
+        {/* ------------------------------------------------------------- */}
+        <main className="smart-community-center-col">
+          {/* Top Header Bar */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '16px 0 14px 0',
+              borderBottom: '1px solid #f1f5f9',
+            }}
+          >
+            <div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+                Smart Residence
+              </div>
+              <div style={{ fontSize: '0.74rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
+                <ShieldCheck size={14} color="#2563eb" />
+                <span>{currentOrg?.name || 'Verified Community'} &bull; Private Social Network</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '20px',
+                    padding: '6px 14px',
+                    fontSize: '0.76rem',
+                    fontWeight: 700,
+                    color: '#334155',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Exit
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(true)}
+                style={{
+                  background: '#2563eb',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '20px',
+                  padding: '7px 18px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
+                }}
+              >
+                <Plus size={15} />
+                <span>Post</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Active Residents Stories Carousel (Image 3 Top Bar) */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '16px',
+              overflowX: 'auto',
+              padding: '16px 0 14px 0',
+              borderBottom: '1px solid #f1f5f9',
+              scrollbarWidth: 'none',
+            }}
+          >
+            {/* Add Yours Bubble */}
             <div
-              key={idx}
-              onClick={() => {
-                setSearchQuery(res.name);
-                notify(`Viewing conversations mentioning ${res.name}`);
-              }}
+              onClick={() => setShowCreateModal(true)}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -435,433 +559,625 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
                 width: '68px',
               }}
             >
-              <div
-                style={{
-                  width: '60px',
-                  height: '60px',
-                  borderRadius: '50%',
-                  border: '2px solid #0f172a',
-                  padding: '2px',
-                }}
-              >
+              <div style={{ position: 'relative', width: '60px', height: '60px' }}>
                 <div
                   style={{
                     width: '100%',
                     height: '100%',
                     borderRadius: '50%',
-                    background: '#f1f5f9',
-                    color: '#0f172a',
+                    border: '2px dashed #2563eb',
+                    padding: '2px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontWeight: 800,
-                    fontSize: '0.86rem',
                   }}
                 >
-                  {res.initials}
-                </div>
-              </div>
-
-              <span
-                style={{
-                  fontSize: '0.72rem',
-                  fontWeight: 600,
-                  color: '#334155',
-                  marginTop: '8px',
-                  textAlign: 'center',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '68px',
-                }}
-              >
-                {res.name.split(' ')[0]}
-              </span>
-            </div>
-          ))}
-
-          {activeResidents.length === 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.74rem', padding: '16px 0' }}>
-              <span>Verified residents who register will appear in this community ring.</span>
-            </div>
-          )}
-        </div>
-
-        {/* ------------------------------------------------------------- */}
-        {/* TOPIC TAGS FILTER BAR                                         */}
-        {/* ------------------------------------------------------------- */}
-        <div style={{ display: 'flex', gap: '6px', padding: '12px 0', overflowX: 'auto', scrollbarWidth: 'none' }}>
-          {['ALL', 'General', 'Recommendations', 'Fitness', 'Social', 'Maintenance', 'Marketplace'].map((tag) => (
-            <button
-              key={tag}
-              onClick={() => setActiveTagFilter(tag)}
-              style={{
-                background: activeTagFilter === tag ? '#0f172a' : '#f8fafc',
-                color: activeTagFilter === tag ? '#ffffff' : '#64748b',
-                border: '1px solid #e2e8f0',
-                borderRadius: '16px',
-                padding: '4px 12px',
-                fontSize: '0.74rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {tag === 'ALL' ? 'All Posts' : `#${tag}`}
-            </button>
-          ))}
-        </div>
-
-        {/* ------------------------------------------------------------- */}
-        {/* POST FEED STREAM (Exact Match to Image 3 Layout)              */}
-        {/* ------------------------------------------------------------- */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '26px', marginTop: '10px' }}>
-          {filteredPosts.length === 0 ? (
-            <div
-              style={{
-                padding: '56px 20px',
-                textAlign: 'center',
-                background: '#ffffff',
-                borderRadius: '20px',
-                border: '1px dashed #e2e8f0',
-                margin: '16px 0',
-              }}
-            >
-              <ChatBubbleLeftRightIcon size={36} color="#94a3b8" style={{ margin: '0 auto 12px auto' }} />
-              <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>
-                No community posts yet
-              </div>
-              <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '6px', maxWidth: '320px', margin: '6px auto 18px auto', lineHeight: 1.5 }}>
-                Be the first verified resident in {currentOrg?.name || 'this community'} to share an update, question, or photo with your neighbors.
-              </div>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                style={{
-                  background: '#2563eb',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '20px',
-                  padding: '9px 24px',
-                  fontSize: '0.84rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                Create First Post
-              </button>
-            </div>
-          ) : (
-            filteredPosts.map((post) => (
-              <div
-                key={post.id}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
-                  paddingBottom: '20px',
-                  borderBottom: '1px solid #f1f5f9',
-                }}
-              >
-                {/* Author Info Row */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div
-                      style={{
-                        width: '38px',
-                        height: '38px',
-                        borderRadius: '50%',
-                        background: '#0f172a',
-                        color: '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 800,
-                        fontSize: '0.82rem',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {post.authorName.slice(0, 2).toUpperCase()}
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a' }}>
-                        {post.authorName}
-                      </span>
-
-                      {/* Blue Verified Badge Checkmark Icon (Exact match to Image 3) */}
-                      <SolidCheckCircleIcon size={16} color="#2563eb" />
-
-                      <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>
-                        {post.authorHandle}
-                      </span>
-
-                      <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
-                        &bull; {post.timeAgo}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Right Options Dropdown */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    {post.authorName === residentName && (
-                      <button
-                        onClick={() => handleDeletePost(post.id)}
-                        title="Delete Post"
-                        style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
-                      >
-                        <Trash size={15} />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => setShowReportModal(post.id)}
-                      title="Options"
-                      style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
-                    >
-                      <MoreHorizontal size={18} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Post Content Text (Strictly no emojis) */}
-                <div style={{ fontSize: '0.92rem', color: '#1e293b', lineHeight: 1.5, wordBreak: 'break-word' }}>
-                  {post.content}
-                </div>
-
-                {/* Tag pill */}
-                {post.tag && post.tag !== 'General' && (
-                  <div>
-                    <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#2563eb', background: '#eff6ff', padding: '2px 8px', borderRadius: '10px' }}>
-                      #{post.tag}
-                    </span>
-                  </div>
-                )}
-
-                {/* Attached Media Photo (Rounded Image matching Image 3) */}
-                {post.mediaUrl && (
                   <div
                     style={{
                       width: '100%',
-                      borderRadius: '20px',
-                      overflow: 'hidden',
+                      height: '100%',
+                      borderRadius: '50%',
                       background: '#0f172a',
-                      marginTop: '4px',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: '0.94rem',
                     }}
                   >
-                    <img
-                      src={post.mediaUrl}
-                      alt="Community media"
+                    {residentName.slice(0, 2).toUpperCase()}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '-2px',
+                    right: '18px',
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '6px',
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px solid #ffffff',
+                  }}
+                >
+                  <Plus size={13} />
+                </div>
+              </div>
+
+              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#334155', marginTop: '8px', textAlign: 'center' }}>
+                Add Yours
+              </span>
+            </div>
+
+            {/* Active Verified Residents from Database */}
+            {activeResidents.map((res, idx) => (
+              <div
+                key={idx}
+                onClick={() => {
+                  setSearchQuery(res.name);
+                  notify(`Viewing conversations with ${res.name}`);
+                }}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  width: '68px',
+                }}
+              >
+                <div
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    border: '2px solid #0f172a',
+                    padding: '2px',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      background: '#f1f5f9',
+                      color: '#0f172a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: '0.86rem',
+                    }}
+                  >
+                    {res.initials}
+                  </div>
+                </div>
+
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    color: '#334155',
+                    marginTop: '8px',
+                    textAlign: 'center',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: '68px',
+                  }}
+                >
+                  {res.name.split(' ')[0]}
+                </span>
+              </div>
+            ))}
+
+            {activeResidents.length === 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.74rem', padding: '16px 0' }}>
+                <span>Verified residents who register will appear in this community ring.</span>
+              </div>
+            )}
+          </div>
+
+          {/* Topic Tags Horizontal Pill Bar */}
+          <div style={{ display: 'flex', gap: '6px', padding: '12px 0', overflowX: 'auto', scrollbarWidth: 'none' }}>
+            {topicTags.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => setActiveTagFilter(tag)}
+                style={{
+                  background: activeTagFilter === tag ? '#0f172a' : '#f8fafc',
+                  color: activeTagFilter === tag ? '#ffffff' : '#64748b',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '16px',
+                  padding: '4px 12px',
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {tag === 'ALL' ? 'All Posts' : `#${tag}`}
+              </button>
+            ))}
+          </div>
+
+          {/* Post Feed Stream */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '26px', marginTop: '10px' }}>
+            {filteredPosts.length === 0 ? (
+              <div
+                style={{
+                  padding: '56px 20px',
+                  textAlign: 'center',
+                  background: '#ffffff',
+                  borderRadius: '20px',
+                  border: '1px dashed #e2e8f0',
+                  margin: '16px 0',
+                }}
+              >
+                <ChatBubbleLeftRightIcon size={36} color="#94a3b8" style={{ margin: '0 auto 12px auto' }} />
+                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>
+                  No community posts yet
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '6px', maxWidth: '340px', margin: '6px auto 18px auto', lineHeight: 1.5 }}>
+                  Be the first verified resident in {currentOrg?.name || 'this community'} to share an update, question, or photo with your neighbors.
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(true)}
+                  style={{
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '20px',
+                    padding: '9px 24px',
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Create First Post
+                </button>
+              </div>
+            ) : (
+              filteredPosts.map((post) => (
+                <div
+                  key={post.id}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    paddingBottom: '20px',
+                    borderBottom: '1px solid #f1f5f9',
+                  }}
+                >
+                  {/* Author Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div
+                        style={{
+                          width: '38px',
+                          height: '38px',
+                          borderRadius: '50%',
+                          background: '#0f172a',
+                          color: '#ffffff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 800,
+                          fontSize: '0.82rem',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {post.authorName.slice(0, 2).toUpperCase()}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a' }}>
+                          {post.authorName}
+                        </span>
+
+                        <SolidCheckCircleIcon size={16} color="#2563eb" />
+
+                        <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>
+                          {post.authorHandle}
+                        </span>
+
+                        <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                          &bull; {post.timeAgo}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {post.authorName === residentName && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePost(post.id)}
+                          title="Delete Post"
+                          style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+                        >
+                          <Trash size={15} />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setShowReportModal(post.id)}
+                        title="Options"
+                        style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}
+                      >
+                        <MoreHorizontal size={18} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Clean Text (NO emojis) */}
+                  <div style={{ fontSize: '0.92rem', color: '#1e293b', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                    {post.content}
+                  </div>
+
+                  {/* Category Tag */}
+                  {post.tag && post.tag !== 'General' && (
+                    <div>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#2563eb', background: '#eff6ff', padding: '2px 8px', borderRadius: '10px' }}>
+                        #{post.tag}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Attached Media Photo (20px Rounded Corners) */}
+                  {post.mediaUrl && (
+                    <div
                       style={{
                         width: '100%',
-                        height: 'auto',
-                        maxHeight: '440px',
-                        objectFit: 'cover',
-                        display: 'block',
+                        borderRadius: '20px',
+                        overflow: 'hidden',
+                        background: '#0f172a',
+                        marginTop: '4px',
                       }}
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  </div>
-                )}
+                    >
+                      <img
+                        src={post.mediaUrl}
+                        alt="Community attachment"
+                        style={{
+                          width: '100%',
+                          height: 'auto',
+                          maxHeight: '460px',
+                          objectFit: 'cover',
+                          display: 'block',
+                        }}
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
 
-                {/* Action Bar (Heart, Comment, Bookmark, Share matching Image 3) */}
+                  {/* Action Bar (Heart, Comment, Bookmark, Share) */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '8px 4px 0 4px',
+                      color: '#64748b',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => handleToggleLike(post.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: post.isLiked ? '#dc2626' : '#64748b',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '4px',
+                        fontSize: '0.84rem',
+                        fontWeight: 600,
+                      }}
+                    >
+                      <Heart size={20} color={post.isLiked ? '#dc2626' : '#64748b'} />
+                      {post.likes > 0 && <span>{post.likes}</span>}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setOpenCommentPostId(openCommentPostId === post.id ? null : post.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: openCommentPostId === post.id ? '#2563eb' : '#64748b',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '4px',
+                        fontSize: '0.84rem',
+                        fontWeight: 600,
+                      }}
+                    >
+                      <ChatBubbleOvalLeftEllipsisIcon size={20} />
+                      {post.comments.length > 0 && <span>{post.comments.length}</span>}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleToggleBookmark(post.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: post.isBookmarked ? '#2563eb' : '#64748b',
+                        cursor: 'pointer',
+                        padding: '4px',
+                      }}
+                    >
+                      <Bookmark size={20} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard?.writeText(window.location.href);
+                        notify('Post link copied to clipboard.');
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#64748b',
+                        cursor: 'pointer',
+                        padding: '4px',
+                      }}
+                    >
+                      <Share size={20} />
+                    </button>
+                  </div>
+
+                  {/* Inline Comments Thread */}
+                  {openCommentPostId === post.id && (
+                    <div
+                      style={{
+                        background: '#f8fafc',
+                        borderRadius: '16px',
+                        padding: '14px',
+                        marginTop: '6px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                      }}
+                    >
+                      {post.comments.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {post.comments.map((c) => (
+                            <div key={c.id} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                              <div
+                                style={{
+                                  width: '28px',
+                                  height: '28px',
+                                  borderRadius: '50%',
+                                  background: '#0f172a',
+                                  color: '#ffffff',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 800,
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {c.authorName.slice(0, 2).toUpperCase()}
+                              </div>
+                              <div style={{ background: '#ffffff', borderRadius: '12px', padding: '8px 12px', flex: 1, border: '1px solid #e2e8f0' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>{c.authorName}</span>
+                                  <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{c.timeAgo}</span>
+                                </div>
+                                <div style={{ fontSize: '0.8rem', color: '#1e293b', marginTop: '2px' }}>{c.content}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          placeholder="Write a reply (no emojis)..."
+                          value={commentInputs[post.id] || ''}
+                          onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleAddComment(post.id);
+                          }}
+                          style={{
+                            flex: 1,
+                            padding: '8px 12px',
+                            borderRadius: '16px',
+                            border: '1px solid #cbd5e1',
+                            fontSize: '0.82rem',
+                            outline: 'none',
+                            background: '#ffffff',
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleAddComment(post.id)}
+                          disabled={!(commentInputs[post.id] || '').trim()}
+                          style={{
+                            background: '#0f172a',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '16px',
+                            padding: '7px 14px',
+                            fontSize: '0.78rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Reply
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </main>
+
+        {/* ------------------------------------------------------------- */}
+        {/* 3. RIGHT SIDEBAR: WIDE DESKTOP ONLY (≥ 1280px)                */}
+        {/* ------------------------------------------------------------- */}
+        <aside className="smart-community-right-col">
+          {/* Official Notices Card */}
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '20px',
+              padding: '20px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Megaphone size={16} color="#2563eb" />
+              <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0f172a' }}>Management Notices</span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '10px 12px', border: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>Resident Smart Access</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px', lineHeight: 1.4 }}>
+                  Keyless gate and biometric lift access active for all registered tenants.
+                </div>
+              </div>
+
+              <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '10px 12px', border: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>Facility Maintenance</div>
+                <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px', lineHeight: 1.4 }}>
+                  Generator servicing scheduled for the first Monday of next month.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Active Neighbors Directory */}
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '20px',
+              padding: '18px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0f172a' }}>Verified Neighbors</span>
+              <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{activeResidents.length} Active</span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {activeResidents.slice(0, 5).map((neighbor, idx) => (
                 <div
+                  key={idx}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '8px 4px 0 4px',
-                    color: '#64748b',
+                    padding: '6px 0',
                   }}
                 >
-                  {/* Heart / Like */}
-                  <button
-                    onClick={() => handleToggleLike(post.id)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: post.isLiked ? '#dc2626' : '#64748b',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      padding: '4px',
-                      fontSize: '0.84rem',
-                      fontWeight: 600,
-                    }}
-                  >
-                    <Heart size={20} color={post.isLiked ? '#dc2626' : '#64748b'} />
-                    {post.likes > 0 && <span>{post.likes}</span>}
-                  </button>
-
-                  {/* Comment / Chat Bubble */}
-                  <button
-                    onClick={() => setOpenCommentPostId(openCommentPostId === post.id ? null : post.id)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: openCommentPostId === post.id ? '#2563eb' : '#64748b',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      padding: '4px',
-                      fontSize: '0.84rem',
-                      fontWeight: 600,
-                    }}
-                  >
-                    <ChatBubbleOvalLeftEllipsisIcon size={20} />
-                    {post.comments.length > 0 && <span>{post.comments.length}</span>}
-                  </button>
-
-                  {/* Bookmark */}
-                  <button
-                    onClick={() => handleToggleBookmark(post.id)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: post.isBookmarked ? '#2563eb' : '#64748b',
-                      cursor: 'pointer',
-                      padding: '4px',
-                    }}
-                  >
-                    <Bookmark size={20} />
-                  </button>
-
-                  {/* Share */}
-                  <button
-                    onClick={() => {
-                      navigator.clipboard?.writeText(window.location.href);
-                      notify('Post link copied to clipboard.');
-                    }}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#64748b',
-                      cursor: 'pointer',
-                      padding: '4px',
-                    }}
-                  >
-                    <Share size={20} />
-                  </button>
-                </div>
-
-                {/* Inline Comment Thread */}
-                {openCommentPostId === post.id && (
-                  <div
-                    style={{
-                      background: '#f8fafc',
-                      borderRadius: '16px',
-                      padding: '14px',
-                      marginTop: '6px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '10px',
-                    }}
-                  >
-                    {post.comments.length > 0 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {post.comments.map((c) => (
-                          <div key={c.id} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                            <div
-                              style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '50%',
-                                background: '#0f172a',
-                                color: '#ffffff',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '0.72rem',
-                                fontWeight: 800,
-                                flexShrink: 0,
-                              }}
-                            >
-                              {c.authorName.slice(0, 2).toUpperCase()}
-                            </div>
-                            <div style={{ background: '#ffffff', borderRadius: '12px', padding: '8px 12px', flex: 1, border: '1px solid #e2e8f0' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>{c.authorName}</span>
-                                <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{c.timeAgo}</span>
-                              </div>
-                              <div style={{ fontSize: '0.8rem', color: '#1e293b', marginTop: '2px' }}>{c.content}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <input
-                        type="text"
-                        placeholder="Write a reply..."
-                        value={commentInputs[post.id] || ''}
-                        onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleAddComment(post.id);
-                        }}
-                        style={{
-                          flex: 1,
-                          padding: '8px 12px',
-                          borderRadius: '16px',
-                          border: '1px solid #cbd5e1',
-                          fontSize: '0.82rem',
-                          outline: 'none',
-                          background: '#ffffff',
-                        }}
-                      />
-                      <button
-                        onClick={() => handleAddComment(post.id)}
-                        disabled={!(commentInputs[post.id] || '').trim()}
-                        style={{
-                          background: '#0f172a',
-                          color: '#ffffff',
-                          border: 'none',
-                          borderRadius: '16px',
-                          padding: '7px 14px',
-                          fontSize: '0.78rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Reply
-                      </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: '#f1f5f9',
+                        color: '#0f172a',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 800,
+                        fontSize: '0.74rem',
+                      }}
+                    >
+                      {neighbor.initials}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>{neighbor.name}</div>
+                      <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{neighbor.unit}</div>
                     </div>
                   </div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery(neighbor.name);
+                      notify(`Filtering posts by ${neighbor.name}`);
+                    }}
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      padding: '4px 10px',
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
+                      color: '#334155',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    View
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Support & Emergency */}
+          <div
+            style={{
+              background: '#f8fafc',
+              borderRadius: '20px',
+              padding: '16px',
+              border: '1px solid #e2e8f0',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Phone size={15} color="#2563eb" />
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>Gate &amp; Security Desk</span>
+            </div>
+            <div style={{ fontSize: '0.72rem', color: '#64748b', lineHeight: 1.4 }}>
+              Main gate security station: Available 24/7 for visitor clearance and resident support.
+            </div>
+          </div>
+        </aside>
 
       </div>
 
       {/* ------------------------------------------------------------- */}
-      {/* FLOATING BOTTOM NAVIGATION BAR (Exact Match to Image 3 Bottom) */}
+      {/* 4. FLOATING BOTTOM NAVIGATION: MOBILE ONLY (< 1024px)         */}
       {/* ------------------------------------------------------------- */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: '16px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: 'calc(100% - 32px)',
-          maxWidth: '520px',
-          background: 'rgba(255, 255, 255, 0.96)',
-          backdropFilter: 'blur(12px)',
-          borderRadius: '32px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)',
-          padding: '8px 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          zIndex: 90,
-        }}
-      >
-        {/* Nav 1: Home */}
+      <nav className="smart-community-mobile-bottom-nav">
+        {/* Nav 1: Home Feed */}
         <button
+          type="button"
           onClick={() => {
             setNavTab('feed');
             setActiveTagFilter('ALL');
@@ -879,8 +1195,9 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
           <Home size={22} />
         </button>
 
-        {/* Nav 2: Chat / Messages */}
+        {/* Nav 2: Chat */}
         <button
+          type="button"
           onClick={() => {
             setNavTab('messages');
             notify('Open Messages to chat with property management or neighbors.');
@@ -897,8 +1214,9 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
           <ChatBubbleOvalLeftEllipsisIcon size={22} />
         </button>
 
-        {/* Nav 3: Big Center Blue Plus Button (Image 3 Center Action) */}
+        {/* Nav 3: Center Plus Button */}
         <button
+          type="button"
           onClick={() => setShowCreateModal(true)}
           style={{
             width: '46px',
@@ -912,7 +1230,6 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
             justifyContent: 'center',
             cursor: 'pointer',
             boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
-            transition: 'transform 0.15s ease',
           }}
           title="Create Post"
         >
@@ -921,6 +1238,7 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
 
         {/* Nav 4: Search */}
         <button
+          type="button"
           onClick={() => {
             const query = prompt('Search community posts, tags or residents:');
             if (query !== null) setSearchQuery(query);
@@ -939,6 +1257,7 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
 
         {/* Nav 5: Profile */}
         <button
+          type="button"
           onClick={() => {
             setNavTab('profile');
             notify(`Logged in as verified resident: ${residentName}`);
@@ -954,7 +1273,7 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
         >
           <User size={22} />
         </button>
-      </div>
+      </nav>
 
       {/* ------------------------------------------------------------- */}
       {/* MODAL: CREATE POST                                            */}
@@ -997,6 +1316,7 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
               </div>
 
               <button
+                type="button"
                 onClick={() => setShowCreateModal(false)}
                 style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}
               >
@@ -1045,7 +1365,7 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
                 />
               </div>
 
-              {/* Quick Preset Photos */}
+              {/* Quick Presets */}
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.72rem', color: '#64748b', alignSelf: 'center' }}>Presets:</span>
                 {[
@@ -1072,10 +1392,10 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
                 ))}
               </div>
 
-              {/* Tag Selector */}
+              {/* Category Tag */}
               <div>
                 <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                  Category Tag
+                  Category Channel
                 </label>
                 <select
                   value={newPostTag}
@@ -1141,7 +1461,7 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
       )}
 
       {/* ------------------------------------------------------------- */}
-      {/* MODAL: REPORT INAPPROPRIATE POST                              */}
+      {/* MODAL: REPORT POST                                            */}
       {/* ------------------------------------------------------------- */}
       {reportPostId && (
         <div
@@ -1174,13 +1494,17 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
                 <Flag size={18} color="#dc2626" />
                 <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>Report Post</span>
               </div>
-              <button onClick={() => setShowReportModal(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
+              <button
+                type="button"
+                onClick={() => setShowReportModal(null)}
+                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}
+              >
                 <X size={18} />
               </button>
             </div>
 
             <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0 0 14px 0', lineHeight: 1.4 }}>
-              Select a reason for community moderator review:
+              Select a reason for confidential community review:
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '18px' }}>
@@ -1218,12 +1542,14 @@ export const SmartResidenceCommunity: React.FC<SmartResidenceCommunityProps> = (
 
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
+                type="button"
                 onClick={() => setShowReportModal(null)}
                 style={{ flex: 1, padding: '9px', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#334155', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={() => {
                   setShowReportModal(null);
                   notify('Report submitted for confidential moderator review.');
